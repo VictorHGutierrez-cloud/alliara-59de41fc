@@ -1,76 +1,128 @@
+## Goal
 
-# Repensar o Assessment: do Ecossistema → para o Parceiro
-
-Você está certíssimo. As perguntas atuais avaliam o **programa de canais** ("Você tem uma tese de ecossistema?", "Pipeline de recrutamento?", "IPP definido?"). Isso responde "quão maduro é o seu time de partnerships". Mas o que você precisa, dentro de cada workspace de parceiro, é responder:
-
-> **"Em que estágio está esta parceria, e o que devo fazer a seguir com ela?"**
-
-São perguntas totalmente diferentes — mesmas 8 dimensões OCTA, mas vistas pela lente de **um relacionamento individual**.
+Reposition OCTA OS from a generic "audit/task" tool to a strategic "Partner Revenue Orchestration" platform — purely through copy and content payload changes. **No** changes to layout, Tailwind classes, DB schema, RLS, or Edge Function logic.
 
 ---
 
-## Parte 1 — Reescrever o diagnóstico (8 eixos × 3 perguntas)
+## 1. UI label renames (frontend only)
 
-Mantenho os 8 eixos OCTA e a estrutura de 5 níveis, mas reescrevo as 24 perguntas com foco no **estado da parceria com este parceiro específico**. Cada pergunta vira "onde estamos com ESTE parceiro neste eixo".
+### `src/routes/partner.$partnerId.tsx`
+- Tab label `"Diagnostic"` / `"Re-diagnose"` → `"Readiness Assessment"` / `"Re-run Assessment"`
+- Tab label `"Action plan (n)"` → `"JBP (n)"`
+- Tab label `"AI coach"` → `"Ecosystem Copilot"`
+- Overview empty-state heading `"Run the OCTA diagnostic"` → `"Run the Partner Readiness Assessment"`; CTA `"Start diagnostic →"` → `"Run Readiness Assessment →"`
+- Overview card heading `"Action plan"` → `"Joint Business Plan (JBP)"`; link `"Open plan →"` → `"Open JBP →"`
+- Overview card heading `"Highest leverage moves"` → `"High-Impact Growth Levers"`; sublink `"AI coach →"` → `"Ecosystem Copilot →"`
+- `"Diagnostic history"` heading → `"Assessment History"`; "n run(s)" → "n assessment(s)"; "Delete this diagnostic?" confirm → "Delete this assessment?"; toast `"Diagnostic deleted"` → `"Assessment deleted"`
 
-Exemplos do novo formato (vs. atual):
+### `src/routes/partner.$partnerId.diagnostic.tsx`
+- Route head title → `"Readiness Assessment — OCTA OS"`
+- Read-only message: replace "run a diagnostic" with "run a readiness assessment"
+- Submit button `"Save diagnostic"` → `"Save Readiness Assessment"`; toast `"Diagnostic saved · maturity updated"` → `"Readiness Assessment saved · partner maturity updated"`
 
-| Eixo | Antes (ecossistema) | Depois (este parceiro) |
+### `src/routes/partner.$partnerId.plan.tsx`
+- Route head title → `"Joint Business Plan — OCTA OS"`
+- Empty-state heading `"No actions yet"` → `"No growth initiatives yet"`; copy mentions "action plan" / "tasks" → "Joint Business Plan" / "growth initiatives"
+- Button `"+ Add action"` → `"+ Add Growth Initiative"`; dialog title `"New action"` → `"New Growth Initiative"`; final CTA `"Add action"` → `"Add Initiative"`; toast `"Action added"` → `"Growth Initiative added"`
+- Column titles: `"To do"` / `"Doing"` / `"Done"` → `"Planned"` / `"In Motion"` / `"Delivered"` (keeps the same `todo|doing|done` enum values in the select options' `value`; only display labels change)
+
+### `src/routes/partner.$partnerId.intel.tsx`
+- Generate button `"Generate insights"` / `"Analyzing…"` → `"Decode Partner Signals"` / `"Decoding signals…"`
+- Right-column card heading `"AI insights"` → `"Decoded Partner Signals"`; subcopy "Every generation is saved as a run." → "Each decode is saved to the partner's signal history."
+- `RunCard`: section heading `"Suggested actions"` → `"High-Impact Initiatives"`; `"Signals by axis"` → `"Signals by Growth Axis"`; the `executive_summary` is rendered as a plain paragraph today — add a small label above it: `"Ecosystem Executive Vision"` (in the existing `text-xs font-mono uppercase tracking-widest` style), no layout change
+
+### `src/routes/partner.$partnerId.coach.tsx`
+- Route head title + heading `"AI Coach"` → `"Ecosystem Copilot"`; subcopy mentions "AI coach" → "Ecosystem Copilot"
+- `"No recommendations yet"` heading kept; subcopy refers to "coaching" → "copilot guidance"
+- Toast `"AI coach generated new recommendations"` → `"Ecosystem Copilot delivered new guidance"`
+
+### `src/routes/partner.$partnerId.axes.tsx` (Section headers in `AxisDetail`)
+- `"Mental model"` → `"Ecosystem Mindset"`
+- `"Common mistakes"` → `"Frictions & Blind Spots"`
+- `"Examples"` → `"Real-World Plays"` (kept consistent with the new tone; minor)
+- `"Maturity ladder"` → `"Maturity Journey"`
+- `"Action plan"` side-card → `"Joint Business Plan"`; subcopy "Open the plan to add or update tasks →" → "Open the JBP to add or update growth initiatives →"
+- `ListSection` titles passed in: `"Objectives"` → `"Expansion Goals"`, `"Key levers"` → `"Traction Levers"`, `"Metrics that matter"` → `"Impact KPIs"`
+
+### `src/lib/partners-store.ts` — `statusLabel()` (display only, enum values untouched)
+- `active` → `"Scaling"`
+- `nurturing` → `"Developing"`
+- `at_risk` → `"Churn Risk"`
+- `paused` → `"Paused"` (kept)
+- `archived` → `"Archived"` (kept)
+
+The Edit Partner dialog `<select>` option labels in `partner.$partnerId.tsx` updated to match (Active→Scaling, Nurturing→Developing, At risk→Churn Risk). The `value=` attributes stay as `active|nurturing|at_risk|...` so the DB enum is unchanged.
+
+---
+
+## 2. `src/content/octa.ts` — full axis content rewrite
+
+Rewrite the 8 `AXES` entries so every field evaluates the **partner's** capabilities (not the orchestrator's program). Keep the existing TypeScript shape, the existing `key` / `letter` / `color` / `icon` slots so radar, colors, and routing keep working without touching any other file.
+
+| # | New axis (key / letter unchanged) | Old → New name |
 |---|---|---|
-| Strategy | "Você tem uma tese de ecossistema escrita?" | "Quão claro está o papel estratégico deste parceiro no seu plano (reach, capacidade, vertical, produto)?" |
-| Offer | "Pricing dos parceiros é tierizado?" | "Este parceiro consegue pitchar sua oferta sozinho em 60 segundos?" |
-| Recruit | "Pipeline de recrutamento de parceiros" | "Como entrou esta parceria — inbound oportunista, indicação, ou prospecção estratégica?" |
-| Enable | "Você tem trilha de certificação?" | "Quantas pessoas deste parceiro estão treinadas/certificadas hoje?" |
-| Co-sell | "Cadência de co-sell com parceiros" | "Existe pipeline conjunto ativo e revisado regularmente com este parceiro?" |
-| Delivery | "SLA de entrega via parceiros" | "Este parceiro consegue entregar/implementar sem o seu time?" |
-| Govern | "Tier system & QBRs" | "Cadência de QBR e plano conjunto com este parceiro" |
-| Measure | "Métricas de programa" | "Você consegue medir ARR sourced/influenced por este parceiro?" |
+| 1 | `strategy` / S | Strategy & Vision → **Strategic Alignment (Fit)** |
+| 2 | `offer` / O | Offer & Value Proposition → **Commercial & Operational Capacity** |
+| 3 | `recruit` / R | Recruitment & Targeting → **Solution Mastery (Enablement)** |
+| 4 | `enable` / E | Enablement & Certification → **Go-to-Market Strength (Pipeline)** |
+| 5 | `cosell` / C | Co-sell & Pipeline → **Delivery Quality & Value** |
+| 6 | `operate` / T | Tech & Operations → **Program Engagement** |
+| 7 | `growth` / G | Growth & Marketing → **Collaboration & Relationship** |
+| 8 | `success` / X | Success & Lifecycle → **Customer Success & Impact** |
 
-Os 5 níveis de cada pergunta passam a descrever **estágios da parceria** (de "ainda não existe" → "transacional" → "ativa" → "estratégica" → "co-criando produto/mercado"). Isso conversa naturalmente com o seu modelo de tier (emerging → core → strategic).
+For each axis, fully rewrite:
+- `name`, `tagline`, `mentalModel` (now framed as "How to evaluate this in the partner")
+- `objectives` → renamed mentally as Expansion Goals (3 items, partner-focused)
+- `levers` → Traction Levers (3 items the PDM can pull on the partner side)
+- `metrics` → Impact KPIs (3, observable on the partner)
+- `commonMistakes` → Frictions & Blind Spots (3, things partners typically get wrong)
+- `examples` (2, real B2B partner archetypes)
+- `levels[1..5]` (5 maturity steps describing the **partner's** evolution: e.g. for Strategic Alignment: 1 "Misaligned" → 5 "Strategic Twin")
+- `lessons` (3, kept — these now coach the PDM on how to grow the partner on this axis)
+- `diagnostic` (3 questions, see §3) — written from the PDM's perspective evaluating the partner
 
-**Onde mexo:** `src/content/octa.ts` (substituir as 24 entradas em `diagnostic`). A lógica de cálculo, salvamento e exibição não muda — mesmo schema, mesmo número de perguntas, então o histórico anterior continua lendo sem quebrar.
+`CENTRAL_MENTAL_MODEL` and `OCTA_FULL_NAME` are slightly reworded to emphasize "evaluating each partner individually" rather than "the ecosystem program".
 
-## Parte 2 — Aba "Documentos & Dados" do parceiro com insights por IA
-
-Nova aba no workspace do parceiro (`/partner/:id/intel`) onde o PDM sobe qualquer artefato relevante e a IA extrai insights.
-
-**O que o usuário pode subir:**
-- Arquivos: Business Plan (PDF/DOCX), apresentação do parceiro (PPTX), planilha de vendas (XLSX/CSV), contratos, atas de reunião
-- Texto livre: notas de call, emails importantes, "vendeu R$ X nos últimos 6 meses em Y verticais"
-- Números estruturados (campos rápidos): revenue YTD, # vendedores treinados, # deals em aberto, último QBR
-
-**O que a IA gera (botão "Gerar insights"):**
-1. **Resumo executivo** do material subido
-2. **Sinais por eixo OCTA** — para cada um dos 8 eixos, evidências encontradas + sugestão de nível
-3. **Red flags** detectadas (queda de vendas, churn de pessoas treinadas, falta de plano conjunto…)
-4. **3–5 ações sugeridas** já no formato do action plan, com botão "Adicionar ao plano"
-5. **Pré-preenchimento opcional do diagnóstico** — a IA propõe respostas para cada uma das 24 perguntas baseada nos documentos, e o PDM revisa/ajusta antes de salvar
-
-Isso fecha o loop: documentos → insights → diagnóstico calibrado → plano de ação.
-
-### Detalhes técnicos (Parte 2)
-
-- **Backend (Lovable Cloud):**
-  - Bucket de storage `partner-docs` (privado), RLS: só o owner do parceiro + leadership lê/escreve
-  - Tabela `partner_documents` (id, partner_id, user_id, filename, storage_path, mime, size, kind, extracted_text, created_at) com RLS espelhando `partners`
-  - Tabela `partner_metrics` (id, partner_id, period, revenue, deals_open, trained_people, notes, created_at) — campos numéricos rápidos
-  - Tabela `partner_intel_runs` (id, partner_id, input_summary, output jsonb, model, created_at) — histórico de cada execução de insights
-- **Edge function `partner-intel`:** recebe `partner_id`, busca docs+metrics+último assessment, chama Lovable AI (`google/gemini-2.5-pro` para PDFs com imagens; `google/gemini-2.5-flash` para texto puro), retorna JSON estruturado `{ summary, signals_by_axis, red_flags, suggested_actions[], suggested_scores }`
-- **Extração de texto dos uploads:**
-  - PDF/DOCX/XLSX: usar `unpdf` + `mammoth` + `xlsx` (todos puros JS, compatíveis com Worker) na própria edge function no momento do upload, gravando `extracted_text` na linha
-  - PPTX: extrair texto dos slides via `pptx-parser` (puro JS)
-  - Imagens dentro de PDFs: enviadas direto ao Gemini (multimodal)
-- **UI nova:** `src/routes/partner.$partnerId.intel.tsx` com 3 seções — "Documentos" (lista + upload drag&drop), "Métricas rápidas" (form), "Insights gerados" (timeline das execuções, cada uma expandível, com botões "Adicionar ao plano" e "Pré-preencher diagnóstico")
-- **Integração com diagnóstico:** o componente `partner.$partnerId.diagnostic.tsx` ganha um botão opcional "Carregar sugestões da IA" no topo, que pré-preenche `answers` a partir do último `partner_intel_run.output.suggested_scores`
+`overallLevelLabel` / `overallLevelDescription` are reworded (still 5 buckets) to describe the partner's maturity ("Misaligned → Emerging → Productive → Strategic → Compounding"), not the program's.
 
 ---
 
-## Ordem de execução
+## 3. Diagnostic questions — 24 partner-centric prompts
 
-1. **Reescrita das 24 perguntas** em `src/content/octa.ts` (rápido, alto impacto, zero quebra)
-2. **Schema + storage** para documentos, métricas e intel_runs
-3. **Edge function `partner-intel`** com extração de texto e chamada Lovable AI
-4. **Aba `/partner/:id/intel`** com upload, métricas e display de insights
-5. **Integração no diagnóstico** (botão "carregar sugestões da IA") e no plano de ação (botão "adicionar ação sugerida")
+Each new axis gets exactly 3 questions (3 × 8 = 24), all phrased to evaluate the partner. Examples (full set in the implementation):
 
-Posso fazer tudo de uma vez, ou prefere que eu entregue só a Parte 1 primeiro (perguntas reescritas) pra você validar o tom antes de eu construir a Parte 2?
+- **Strategic Alignment (Fit)** — fit_icp, fit_values, fit_ambition
+- **Commercial & Operational Capacity** — sales_team_size, sales_structure, delivery_capacity
+- **Solution Mastery (Enablement)** — certifications, independent_pitch, technical_depth
+- **Go-to-Market Strength (Pipeline)** — eql_generation, comarketing_activity, pipeline_predictability
+- **Delivery Quality & Value** — implementation_quality, services_packaging, csat_on_delivery
+- **Program Engagement** — portal_usage, mdf_uptake, tier_progression
+- **Collaboration & Relationship** — proactivity, pipeline_transparency, comms_quality
+- **Customer Success & Impact** — end_customer_churn, end_customer_nps, expansion_within_base
+
+Each question has 5 options mapped to maturity 1→5, mirroring the existing pattern, so the wizard, scoring math (`reduce/avg`), assessment storage, and radar all keep working without code changes.
+
+---
+
+## 4. Safety check (no logic changes required)
+
+- **Wizard** auto-builds from `AXES.flatMap(a => a.diagnostic.map(...))` — new questions appear automatically.
+- **Scoring** uses averages over a's `diagnostic`, then keys by `a.key`. We keep all 8 `key` slots unchanged → existing `assessments.scores` (jsonb) rows still match the AXES list; old historical runs still render under their original keys (with the new axis name shown).
+- **Edge functions** (`partner-intel`, `ai-coach`) receive `axes: [{ key, name, ... }]` from the client and reference them by `key`/`name` only (verified). The new partner-centric names actually *improve* the prompt context. No edge function code changes.
+- **DB enums** (`partner_status`, action `status`, etc.) are untouched — only display labels change.
+- **routeTree.gen.ts**, Supabase types, and storage paths are untouched.
+
+---
+
+## Files touched
+
+- `src/content/octa.ts` (full content rewrite within existing types)
+- `src/lib/partners-store.ts` (only `statusLabel` body)
+- `src/routes/partner.$partnerId.tsx`
+- `src/routes/partner.$partnerId.diagnostic.tsx`
+- `src/routes/partner.$partnerId.plan.tsx`
+- `src/routes/partner.$partnerId.intel.tsx`
+- `src/routes/partner.$partnerId.coach.tsx`
+- `src/routes/partner.$partnerId.axes.tsx`
+
+No migrations, no edge function edits, no schema changes, no Tailwind changes.
