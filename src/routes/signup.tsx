@@ -17,7 +17,7 @@ function SignUp() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (user) nav({ to: "/diagnostic", replace: true });
+    if (user) nav({ to: "/partners", replace: true });
   }, [user, nav]);
 
   const onSubmit = async (e: FormEvent) => {
@@ -28,7 +28,7 @@ function SignUp() {
     setBusy(false);
     if (error) return toast.error(error);
     toast.success("Account created");
-    nav({ to: "/diagnostic" });
+    nav({ to: "/partners" });
   };
 
   return (
