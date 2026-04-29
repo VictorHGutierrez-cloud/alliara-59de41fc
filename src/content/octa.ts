@@ -1,3 +1,4 @@
+// rev: octa-rename
 // OCTA Methodology — content model for the OCTA OS platform.
 // Synthesized from "Ecossistema de Parceiros — Método OCTA" (Tubino & Guimarães)
 // and standard B2B partnership operating frameworks.
