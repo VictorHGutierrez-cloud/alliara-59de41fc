@@ -497,6 +497,7 @@ function RunCard({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs font-mono text-muted-foreground">{new Date(run.created_at).toLocaleString()}</div>
+            <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Ecosystem Executive Vision</div>
             <div className="mt-1 text-sm font-medium line-clamp-2">{out.executive_summary}</div>
           </div>
           <span className="text-muted-foreground ml-2">{open ? "−" : "+"}</span>
@@ -526,7 +527,7 @@ function RunCard({
           )}
 
           <div>
-            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Signals by axis</h3>
+            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Signals by Growth Axis</h3>
             <div className="mt-2 grid sm:grid-cols-2 gap-2">
               {out.signals_by_axis.map((s) => {
                 const ax = AXES.find((a) => a.key === s.axis_key);
@@ -553,7 +554,7 @@ function RunCard({
           </div>
 
           <div>
-            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Suggested actions</h3>
+            <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">High-Impact Initiatives</h3>
             <ul className="mt-2 space-y-2">
               {out.suggested_actions.map((a, i) => {
                 const ax = AXES.find((x) => x.key === a.axis_key);
