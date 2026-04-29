@@ -17,7 +17,7 @@ function SignUp() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (user) nav({ to: "/dashboard", replace: true });
+    if (user) nav({ to: "/diagnostic", replace: true });
   }, [user, nav]);
 
   const onSubmit = async (e: FormEvent) => {
