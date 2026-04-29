@@ -17,6 +17,10 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartnerPartnerIdRouteImport } from './routes/partner.$partnerId'
 import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
+import { Route as PartnerPartnerIdPlanRouteImport } from './routes/partner.$partnerId.plan'
+import { Route as PartnerPartnerIdDiagnosticRouteImport } from './routes/partner.$partnerId.diagnostic'
+import { Route as PartnerPartnerIdCoachRouteImport } from './routes/partner.$partnerId.coach'
+import { Route as PartnerPartnerIdAxesRouteImport } from './routes/partner.$partnerId.axes'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -58,6 +62,27 @@ const AxisAxisKeyRoute = AxisAxisKeyRouteImport.update({
   path: '/axis/$axisKey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnerPartnerIdPlanRoute = PartnerPartnerIdPlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => PartnerPartnerIdRoute,
+} as any)
+const PartnerPartnerIdDiagnosticRoute =
+  PartnerPartnerIdDiagnosticRouteImport.update({
+    id: '/diagnostic',
+    path: '/diagnostic',
+    getParentRoute: () => PartnerPartnerIdRoute,
+  } as any)
+const PartnerPartnerIdCoachRoute = PartnerPartnerIdCoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => PartnerPartnerIdRoute,
+} as any)
+const PartnerPartnerIdAxesRoute = PartnerPartnerIdAxesRouteImport.update({
+  id: '/axes',
+  path: '/axes',
+  getParentRoute: () => PartnerPartnerIdRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -67,7 +92,11 @@ export interface FileRoutesByFullPath {
   '/partners': typeof PartnersRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
-  '/partner/$partnerId': typeof PartnerPartnerIdRoute
+  '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
+  '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
+  '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
+  '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
+  '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,7 +106,11 @@ export interface FileRoutesByTo {
   '/partners': typeof PartnersRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
-  '/partner/$partnerId': typeof PartnerPartnerIdRoute
+  '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
+  '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
+  '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
+  '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
+  '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,7 +121,11 @@ export interface FileRoutesById {
   '/partners': typeof PartnersRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
-  '/partner/$partnerId': typeof PartnerPartnerIdRoute
+  '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
+  '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
+  '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
+  '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
+  '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +138,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
+    | '/partner/$partnerId/axes'
+    | '/partner/$partnerId/coach'
+    | '/partner/$partnerId/diagnostic'
+    | '/partner/$partnerId/plan'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +152,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
+    | '/partner/$partnerId/axes'
+    | '/partner/$partnerId/coach'
+    | '/partner/$partnerId/diagnostic'
+    | '/partner/$partnerId/plan'
   id:
     | '__root__'
     | '/'
@@ -121,6 +166,10 @@ export interface FileRouteTypes {
     | '/signup'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
+    | '/partner/$partnerId/axes'
+    | '/partner/$partnerId/coach'
+    | '/partner/$partnerId/diagnostic'
+    | '/partner/$partnerId/plan'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -131,7 +180,7 @@ export interface RootRouteChildren {
   PartnersRoute: typeof PartnersRoute
   SignupRoute: typeof SignupRoute
   AxisAxisKeyRoute: typeof AxisAxisKeyRoute
-  PartnerPartnerIdRoute: typeof PartnerPartnerIdRoute
+  PartnerPartnerIdRoute: typeof PartnerPartnerIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -192,8 +241,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AxisAxisKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partner/$partnerId/plan': {
+      id: '/partner/$partnerId/plan'
+      path: '/plan'
+      fullPath: '/partner/$partnerId/plan'
+      preLoaderRoute: typeof PartnerPartnerIdPlanRouteImport
+      parentRoute: typeof PartnerPartnerIdRoute
+    }
+    '/partner/$partnerId/diagnostic': {
+      id: '/partner/$partnerId/diagnostic'
+      path: '/diagnostic'
+      fullPath: '/partner/$partnerId/diagnostic'
+      preLoaderRoute: typeof PartnerPartnerIdDiagnosticRouteImport
+      parentRoute: typeof PartnerPartnerIdRoute
+    }
+    '/partner/$partnerId/coach': {
+      id: '/partner/$partnerId/coach'
+      path: '/coach'
+      fullPath: '/partner/$partnerId/coach'
+      preLoaderRoute: typeof PartnerPartnerIdCoachRouteImport
+      parentRoute: typeof PartnerPartnerIdRoute
+    }
+    '/partner/$partnerId/axes': {
+      id: '/partner/$partnerId/axes'
+      path: '/axes'
+      fullPath: '/partner/$partnerId/axes'
+      preLoaderRoute: typeof PartnerPartnerIdAxesRouteImport
+      parentRoute: typeof PartnerPartnerIdRoute
+    }
   }
 }
+
+interface PartnerPartnerIdRouteChildren {
+  PartnerPartnerIdAxesRoute: typeof PartnerPartnerIdAxesRoute
+  PartnerPartnerIdCoachRoute: typeof PartnerPartnerIdCoachRoute
+  PartnerPartnerIdDiagnosticRoute: typeof PartnerPartnerIdDiagnosticRoute
+  PartnerPartnerIdPlanRoute: typeof PartnerPartnerIdPlanRoute
+}
+
+const PartnerPartnerIdRouteChildren: PartnerPartnerIdRouteChildren = {
+  PartnerPartnerIdAxesRoute: PartnerPartnerIdAxesRoute,
+  PartnerPartnerIdCoachRoute: PartnerPartnerIdCoachRoute,
+  PartnerPartnerIdDiagnosticRoute: PartnerPartnerIdDiagnosticRoute,
+  PartnerPartnerIdPlanRoute: PartnerPartnerIdPlanRoute,
+}
+
+const PartnerPartnerIdRouteWithChildren =
+  PartnerPartnerIdRoute._addFileChildren(PartnerPartnerIdRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -203,7 +297,7 @@ const rootRouteChildren: RootRouteChildren = {
   PartnersRoute: PartnersRoute,
   SignupRoute: SignupRoute,
   AxisAxisKeyRoute: AxisAxisKeyRoute,
-  PartnerPartnerIdRoute: PartnerPartnerIdRoute,
+  PartnerPartnerIdRoute: PartnerPartnerIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
