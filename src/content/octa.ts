@@ -109,9 +109,9 @@ export const AXES: Axis[] = [
       { key: "targets", title: "Set partner-sourced ARR targets", minutes: 10, body: "Move from logo counting to dollar contribution. Define sourced vs. influenced vs. delivered.", exercise: "Publish a definition doc and bake the metric into your CRM." },
     ],
     diagnostic: [
-      { key: "thesis_doc", prompt: "Do you have a written ecosystem strategy?", options: ["No, partnerships happen ad hoc", "Verbal alignment only", "One-pager exists", "Annual plan with KPIs and budget", "Multi-year thesis tied to corporate strategy"] },
-      { key: "exec_sponsor", prompt: "Executive sponsorship for partnerships:", options: ["None", "Tolerated by leadership", "One sponsor, occasional reviews", "Monthly exec reviews", "CEO/CRO actively champions ecosystem"] },
-      { key: "revenue_target", prompt: "Revenue target tied to partners:", options: ["None", "Soft aspiration", "Documented annual target", "Target with quarterly tracking", "Partner ARR is a board metric"] },
+      { key: "thesis_doc", prompt: "How clear is this partner's strategic role for you (reach, vertical, capacity, product gap)?", options: ["No defined role — opportunistic relationship", "Vague idea, never written down", "One-pager describing why this partner matters", "Documented role with annual targets agreed with the partner", "Multi-year joint thesis tied to both companies' strategies"] },
+      { key: "exec_sponsor", prompt: "Executive sponsorship on both sides for this partnership:", options: ["No sponsor on either side", "Sponsor on our side only", "Sponsors named on both sides, rare contact", "Sponsors meet at least quarterly", "C-level sponsors actively champion the partnership"] },
+      { key: "revenue_target", prompt: "Shared revenue target with this partner:", options: ["None — we don't track revenue from them", "Informal aspiration discussed verbally", "Written annual number, not reviewed", "Quarterly target reviewed jointly", "Joint number owned by both companies and reported to leadership"] },
     ],
   },
   {
@@ -160,9 +160,9 @@ export const AXES: Axis[] = [
       { key: "jvp", title: "Joint value proposition canvas", minutes: 15, body: "Per archetype: who, problem, our part, partner part, proof, economics.", exercise: "Fill the canvas for your top 2 partner archetypes." },
     ],
     diagnostic: [
-      { key: "pitch", prompt: "Partner pitch readiness:", options: ["Partners improvise", "Generic deck shared", "Partner-specific one-pager + deck", "Tiered collateral by archetype", "Partners can self-serve full enablement"] },
-      { key: "economics", prompt: "Partner economics:", options: ["Same as direct", "Flat discount", "Tiered margins", "Tiered + MDF + co-sell incentives", "Marketplace/rev-share platform"] },
-      { key: "jvp", prompt: "Joint value propositions:", options: ["None", "Verbal", "Documented per type", "Co-branded references", "Productized joint solutions"] },
+      { key: "pitch", prompt: "Can this partner pitch our offer in 60 seconds without our help?", options: ["No — every pitch needs us in the room", "They have our generic deck but freestyle it", "Their reps can do a basic intro pitch", "They can run a full discovery call solo", "They lead full sales cycles end-to-end"] },
+      { key: "economics", prompt: "Commercial economics with this partner:", options: ["Undefined — case by case", "Flat discount, no incentives", "Tiered margin agreed in writing", "Margin + co-sell incentives + MDF available", "Joint solution with shared rev-share or co-branded SKU"] },
+      { key: "jvp", prompt: "Joint value proposition with this partner:", options: ["None — we sell separately", "Verbal alignment, nothing documented", "Documented joint pitch we both use", "Co-branded references and case studies exist", "Productized joint solution we go to market with"] },
     ],
   },
   {
@@ -211,9 +211,9 @@ export const AXES: Axis[] = [
       { key: "mbp", title: "Mutual business plan", minutes: 15, body: "The artifact that turns interest into commitment: shared targets, owners, dates.", exercise: "Use the MBP template with one new partner." },
     ],
     diagnostic: [
-      { key: "ipp_doc", prompt: "Ideal Partner Profile:", options: ["None", "Loose criteria", "Documented IPP", "Scored IPP applied to all", "IPP + segmentation by archetype"] },
-      { key: "pipeline", prompt: "Recruiting pipeline:", options: ["Inbound only, ad hoc", "Some target list", "Active outbound", "Stages, SLA, forecast", "Inbound flywheel + selective"] },
-      { key: "mbp_use", prompt: "Mutual business plan use:", options: ["Never", "For top partners", "All tier-1 partners", "All tiered partners", "Refreshed quarterly"] },
+      { key: "ipp_doc", prompt: "How well does this partner fit your ideal partner profile?", options: ["Don't know — never assessed against an IPP", "Weak fit, inherited or accidental relationship", "Decent fit on most criteria", "Strong fit, ticks most IPP boxes", "Perfect fit — a poster-child partner"] },
+      { key: "pipeline", prompt: "How did this partnership originate and how has it been activated?", options: ["Inbound, no real onboarding", "Inbound, basic kickoff happened", "Outbound to a target we wanted, structured kickoff", "Outbound + formal onboarding plan completed", "Targeted recruit + onboarded + already producing pipeline"] },
+      { key: "mbp_use", prompt: "Mutual Business Plan with this partner:", options: ["No MBP exists", "Discussed but never written", "MBP drafted, signed, then shelved", "MBP in use, reviewed at least quarterly", "MBP is the operating doc — refreshed every quarter with both teams"] },
     ],
   },
   {
@@ -262,9 +262,9 @@ export const AXES: Axis[] = [
       { key: "winrate", title: "Measure enablement impact", minutes: 8, body: "Compare win rate of deals with certified vs. uncertified partner reps.", exercise: "Run the analysis on last quarter." },
     ],
     diagnostic: [
-      { key: "portal", prompt: "Partner enablement delivery:", options: ["Email attachments", "Shared folder", "Portal with tracking", "Role-based paths + cert", "Continuous, community-led"] },
-      { key: "cert_benefit", prompt: "Certifications:", options: ["None", "Optional, no benefit", "Tied to tier", "Tied to tier + co-sell", "Required for marketplace listing"] },
-      { key: "impact_meas", prompt: "Enablement impact measurement:", options: ["Not measured", "Completion rates only", "Time-to-first-deal", "Win-rate by cert level", "Continuous A/B on content"] },
+      { key: "portal", prompt: "How many people at this partner are trained on our solution today?", options: ["Zero — no one trained", "1 person (single point of failure)", "A small core team (2–4 people)", "Multiple roles trained (sales + presales + delivery)", "A broad bench across multiple offices/teams"] },
+      { key: "cert_benefit", prompt: "Certification status of this partner's team:", options: ["No one certified", "1 certified individual", "Sales reps certified, no technical certs", "Sales + technical certifications in place", "Fully certified across all required tracks, kept current"] },
+      { key: "impact_meas", prompt: "How quickly can this partner run a demo or POC without our involvement?", options: ["Cannot — we run everything for them", "Only with us shadowing", "They can demo, we still run POCs", "They can demo + run a POC with light support", "Fully autonomous on demo, POC, and first implementation"] },
     ],
   },
   {
@@ -313,9 +313,9 @@ export const AXES: Axis[] = [
       { key: "comp", title: "Neutralize comp conflicts", minutes: 8, body: "If sellers lose money working with partners, no process will save you.", exercise: "Audit comp plan for anti-partner incentives." },
     ],
     diagnostic: [
-      { key: "deal_reg", prompt: "Deal registration:", options: ["None", "Exists, rarely used", "Required for protection", "Required + integrated in CRM", "Enforced + tied to seller comp"] },
-      { key: "mapping_freq", prompt: "Account mapping cadence:", options: ["Never", "Annually", "Quarterly", "Monthly", "Continuous via tooling"] },
-      { key: "joint_review", prompt: "Joint pipeline reviews:", options: ["None", "Ad hoc", "Quarterly with top partners", "Monthly with all tiered partners", "Weekly per major partner"] },
+      { key: "deal_reg", prompt: "Active joint pipeline with this partner right now:", options: ["No joint deals in pipeline", "1–2 deals occasionally registered", "Small but recurring pipeline", "Healthy pipeline, regularly registered and tracked", "Significant predictable pipeline contribution every quarter"] },
+      { key: "mapping_freq", prompt: "Account mapping done with this partner:", options: ["Never mapped", "Mapped once, long ago", "Mapped within last 12 months", "Mapped and refreshed quarterly", "Continuous account mapping, integrated in daily workflow"] },
+      { key: "joint_review", prompt: "Cadence of pipeline / co-sell reviews with this partner:", options: ["No recurring meetings", "Ad-hoc when a deal pops up", "Quarterly review", "Monthly pipeline + account review", "Weekly co-sell sync between sales teams"] },
     ],
   },
   {
@@ -364,9 +364,9 @@ export const AXES: Axis[] = [
       { key: "automate", title: "Automate the painful parts", minutes: 8, body: "MDF approvals, commission calc, certification status — automation buys back manager time.", exercise: "Pick one to automate this month." },
     ],
     diagnostic: [
-      { key: "prm_state", prompt: "Partner tooling:", options: ["Spreadsheets + email", "Shared drive portal", "PRM, standalone", "PRM integrated with CRM", "Full automation + APIs"] },
-      { key: "self_serve", prompt: "Partner self-service:", options: ["Everything via email", "Some collateral self-serve", "Deal reg self-serve", "Deal reg + MDF + training", "Full lifecycle self-serve"] },
-      { key: "data", prompt: "Partner data & analytics:", options: ["No reporting", "Manual monthly report", "Live dashboard for team", "Dashboards shared with partners", "Predictive analytics + alerts"] },
+      { key: "prm_state", prompt: "How does this partner interact with us operationally?", options: ["Email + WhatsApp only", "Email + a shared folder", "They use our partner portal occasionally", "They actively use the portal for deal reg, content, training", "Fully integrated — they self-serve everything they need"] },
+      { key: "self_serve", prompt: "How autonomous is this partner in day-to-day operations (deal reg, MDF, training)?", options: ["Asks us for everything", "Self-serves on content only", "Self-serves on deal reg", "Self-serves on deal reg + training + MDF requests", "Fully autonomous across the lifecycle"] },
+      { key: "data", prompt: "Visibility you have into this partner's activity and performance:", options: ["No data — black box", "Anecdotal updates from calls", "Manual scorecard updated occasionally", "Live dashboard of pipeline, training, certifications", "Real-time signals + alerts on health changes"] },
     ],
   },
   {
@@ -415,9 +415,9 @@ export const AXES: Axis[] = [
       { key: "attribution", title: "Joint attribution model", minutes: 10, body: "UTMs, partner codes, deal reg. Stitch the funnel.", exercise: "Audit one campaign's full funnel." },
     ],
     diagnostic: [
-      { key: "mdf_use", prompt: "MDF usage:", options: ["No MDF", "Discretionary, no rules", "Application + plan", "Claim-based + ROI tracked", "Performance-based renewal"] },
-      { key: "joint_plays", prompt: "Joint marketing motion:", options: ["Random", "1-2 events/year", "Quarterly cadence", "Always-on calendar", "Programmatic + measured"] },
-      { key: "attribution_q", prompt: "Attribution from partner marketing to ARR:", options: ["None", "Anecdotal", "Per-campaign", "End-to-end funnel", "Cohort + LTV analysis"] },
+      { key: "mdf_use", prompt: "Joint marketing investment with this partner (MDF, co-funded campaigns):", options: ["Zero co-investment", "One-off small spend, no plan", "Annual plan with one funded campaign", "Multiple funded campaigns with claims and tracking", "Continuous co-investment with measured ROI per campaign"] },
+      { key: "joint_plays", prompt: "Joint demand-gen activities with this partner in the last 6 months:", options: ["None", "1 event or webinar, no follow-up", "2–3 activities, some follow-up", "Quarterly activities with structured follow-up", "Always-on joint marketing calendar producing pipeline"] },
+      { key: "attribution_q", prompt: "Attribution: can you measure pipeline / ARR sourced or influenced by this partner?", options: ["No attribution at all", "Anecdotal — we 'feel' they helped", "Sourced deals tracked, not influenced", "Sourced + influenced tracked per deal", "Full funnel attribution with cohort and LTV view"] },
     ],
   },
   {
@@ -466,9 +466,9 @@ export const AXES: Axis[] = [
       { key: "community", title: "Stand up a partner community", minutes: 10, body: "Slack, advisory board, MVP program. Peer learning beats vendor broadcasts.", exercise: "Pick a community format and recruit 5 founders." },
     ],
     diagnostic: [
-      { key: "onboarding", prompt: "Partner onboarding:", options: ["None", "Welcome email", "30-day plan", "90-day plan with milestones", "Personalized lifecycle by archetype"] },
-      { key: "health_score", prompt: "Partner health monitoring:", options: ["No tracking", "Manual gut feel", "Manual scorecard", "Automated health score", "Predictive churn + interventions"] },
-      { key: "community_q", prompt: "Partner community:", options: ["None", "Newsletter", "Annual partner event", "Active community + advisory board", "Partner-led MVPs and content"] },
+      { key: "onboarding", prompt: "Where is this partner in the lifecycle today?", options: ["Just signed — not yet onboarded", "Onboarded but not yet activated (no first deal)", "Activated — first deal closed, ramping", "Producing — recurring pipeline and revenue", "Strategic advocate — co-creates, refers other partners"] },
+      { key: "health_score", prompt: "Health of this partnership right now:", options: ["At risk — silent / disengaged / declining", "Lukewarm — sporadic activity, no momentum", "Stable — regular activity, modest results", "Healthy — engaged, growing, hitting targets", "Thriving — exceeding targets, strong relationship at multiple levels"] },
+      { key: "community_q", prompt: "Relationship depth beyond the day-to-day account team:", options: ["Single point of contact only", "2–3 contacts, mostly operational", "Relationships across sales + technical teams", "Cross-functional relationships including leadership", "Deep relationships at exec level on both sides + joint events / advocacy"] },
     ],
   },
 ];
