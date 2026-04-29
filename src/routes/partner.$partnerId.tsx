@@ -42,11 +42,11 @@ function PartnerLayout() {
 
   const tabs: { key: string; label: string; to: string }[] = [
     { key: "overview", label: "Overview", to: `/partner/${partnerId}` },
-    { key: "diagnostic", label: data.latest ? "Re-diagnose" : "Diagnostic", to: `/partner/${partnerId}/diagnostic` },
+    { key: "diagnostic", label: data.latest ? "Re-run Assessment" : "Readiness Assessment", to: `/partner/${partnerId}/diagnostic` },
     { key: "axes", label: "Axes", to: `/partner/${partnerId}/axes` },
-    { key: "plan", label: `Action plan${data.openActions.length ? ` (${data.openActions.length})` : ""}`, to: `/partner/${partnerId}/plan` },
+    { key: "plan", label: `JBP${data.openActions.length ? ` (${data.openActions.length})` : ""}`, to: `/partner/${partnerId}/plan` },
     { key: "intel", label: "Intel", to: `/partner/${partnerId}/intel` },
-    { key: "coach", label: "AI coach", to: `/partner/${partnerId}/coach` },
+    { key: "coach", label: "Ecosystem Copilot", to: `/partner/${partnerId}/coach` },
   ];
 
   const isOverview = path === `/partner/${partnerId}` || path === `/partner/${partnerId}/`;
@@ -142,7 +142,7 @@ function PartnerLayout() {
             catch (e) { toast.error((e as Error).message); }
           }}
           onDelete={async () => {
-            if (!confirm(`Delete ${data.partner!.name}? This removes all diagnostics, action plans, and coaching for this partner.`)) return;
+            if (!confirm(`Delete ${data.partner!.name}? This removes all assessments, the Joint Business Plan, and copilot guidance for this partner.`)) return;
             try {
               await data.deletePartner();
               toast.success("Partner deleted");
@@ -175,12 +175,12 @@ function Overview({
   if (!hasDiagnostic) {
     return (
       <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-        <h2 className="text-lg font-semibold">Run the OCTA diagnostic</h2>
+        <h2 className="text-lg font-semibold">Run the Partner Readiness Assessment</h2>
         <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-          Score this partner across the 8 OCTA axes to unlock the maturity radar, AI coaching, and a tailored action plan.
+          Score this partner across the 8 OCTA axes to unlock the maturity radar, Ecosystem Copilot guidance, and a tailored Joint Business Plan.
         </p>
         <Link to="/partner/$partnerId/diagnostic" params={{ partnerId }} className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
-          Start diagnostic →
+          Run Readiness Assessment →
         </Link>
       </div>
     );
@@ -205,8 +205,8 @@ function Overview({
       <div className="lg:col-span-3 space-y-4">
         <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Highest leverage moves</h2>
-            <Link to="/partner/$partnerId/coach" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">AI coach →</Link>
+            <h2 className="font-semibold">High-Impact Growth Levers</h2>
+            <Link to="/partner/$partnerId/coach" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Ecosystem Copilot →</Link>
           </div>
           <p className="text-sm text-muted-foreground mt-1">Lowest-scoring axes are the biggest unlock for this partner.</p>
           <div className="mt-4 space-y-3">
@@ -236,8 +236,8 @@ function Overview({
 
         <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Action plan</h2>
-            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open plan →</Link>
+            <h2 className="font-semibold">Joint Business Plan (JBP)</h2>
+            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open JBP →</Link>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-3 text-center">
             <Stat label="Open" value={String(data.openActions.length)} />
@@ -266,8 +266,8 @@ function DiagnosticHistory({ data }: { data: ReturnType<typeof usePartner> }) {
   return (
     <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold">Diagnostic history</h2>
-        <span className="text-xs font-mono text-muted-foreground">{data.history.length} run{data.history.length !== 1 ? "s" : ""}</span>
+        <h2 className="font-semibold">Assessment History</h2>
+        <span className="text-xs font-mono text-muted-foreground">{data.history.length} assessment{data.history.length !== 1 ? "s" : ""}</span>
       </div>
       <div className="mt-3 divide-y divide-border/60">
         {data.history.map((h, i) => {
@@ -296,12 +296,12 @@ function DiagnosticHistory({ data }: { data: ReturnType<typeof usePartner> }) {
                 <span className="text-xl font-display font-semibold text-gradient">{score.toFixed(1)}</span>
                 <button
                   onClick={async () => {
-                    if (!confirm("Delete this diagnostic? This can't be undone.")) return;
-                    try { await data.deleteAssessment(h.id); toast.success("Diagnostic deleted"); }
+                    if (!confirm("Delete this assessment? This can't be undone.")) return;
+                    try { await data.deleteAssessment(h.id); toast.success("Assessment deleted"); }
                     catch (e) { toast.error((e as Error).message); }
                   }}
                   className="text-xs text-destructive hover:underline"
-                  aria-label="Delete diagnostic"
+                  aria-label="Delete assessment"
                 >
                   Delete
                 </button>
@@ -351,9 +351,9 @@ function EditPartnerDialog({
             </Field>
             <Field label="Status">
               <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className="input">
-                <option value="active">Active</option>
-                <option value="nurturing">Nurturing</option>
-                <option value="at_risk">At risk</option>
+                <option value="active">Scaling</option>
+                <option value="nurturing">Developing</option>
+                <option value="at_risk">Churn Risk</option>
                 <option value="paused">Paused</option>
                 <option value="archived">Archived</option>
               </select>
