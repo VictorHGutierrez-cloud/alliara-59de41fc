@@ -189,7 +189,7 @@ function PartnerIntel() {
               disabled={!isOwner || generating}
               className="rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
             >
-              {generating ? "Analyzing…" : "Generate insights"}
+              {generating ? "Decoding signals…" : "Decode Partner Signals"}
             </button>
           </div>
         </div>
@@ -197,13 +197,13 @@ function PartnerIntel() {
 
       <div className="space-y-4">
         <div className="rounded-2xl bg-card border border-border/60 p-5 card-elev">
-          <h2 className="font-semibold">AI insights</h2>
-          <p className="text-xs text-muted-foreground mt-1">Every generation is saved as a run.</p>
+          <h2 className="font-semibold">Decoded Partner Signals</h2>
+          <p className="text-xs text-muted-foreground mt-1">Each decode is saved to the partner's signal history.</p>
           {loading ? (
             <div className="mt-4 text-sm text-muted-foreground">Loading…</div>
           ) : runs.length === 0 ? (
             <div className="mt-6 rounded-xl border border-dashed border-border/60 bg-surface/40 p-6 text-center text-sm text-muted-foreground">
-              No insights yet. Add docs/metrics and click <span className="font-medium">Generate insights</span>.
+              No signals decoded yet. Add docs/metrics and click <span className="font-medium">Decode Partner Signals</span>.
             </div>
           ) : (
             <div className="mt-4 space-y-3">
