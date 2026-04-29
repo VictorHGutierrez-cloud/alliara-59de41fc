@@ -6,7 +6,7 @@ import { AXES } from "../content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/partner/$partnerId/plan")({
-  head: () => ({ meta: [{ title: "Action Plan — OCTA OS" }] }),
+  head: () => ({ meta: [{ title: "Joint Business Plan — OCTA OS" }] }),
   component: PartnerPlan,
 });
 
@@ -46,16 +46,16 @@ function PartnerPlan() {
         </div>
         {isOwner && (
           <button onClick={() => setShowNew(true)} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
-            + Add action
+            + Add Growth Initiative
           </button>
         )}
       </div>
 
       {data.actions.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-          <h2 className="text-lg font-semibold">No actions yet</h2>
+          <h2 className="text-lg font-semibold">No growth initiatives yet</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            Build a partner action plan by axis. Or jump to the AI coach to generate prescriptive next steps you can add in one click.
+            Build the Joint Business Plan by growth axis. Or jump to the Ecosystem Copilot to generate prescriptive initiatives you can add in one click.
           </p>
         </div>
       ) : (
@@ -63,7 +63,7 @@ function PartnerPlan() {
           {(["todo", "doing", "done"] as const).map((s) => (
             <Column
               key={s}
-              title={({ todo: "To do", doing: "Doing", done: "Done" } as const)[s]}
+              title={({ todo: "Planned", doing: "In Motion", done: "Delivered" } as const)[s]}
               items={grouped[s]}
               isOwner={isOwner}
               onUpdate={(id, patch) => data.updateAction(id, patch).catch((e) => toast.error((e as Error).message))}
@@ -79,7 +79,7 @@ function PartnerPlan() {
           onCreate={async (input) => {
             try {
               await data.addAction({ ...input, userId: user.id });
-              toast.success("Action added");
+              toast.success("Growth Initiative added");
               setShowNew(false);
             } catch (e) { toast.error((e as Error).message); }
           }}
@@ -141,9 +141,9 @@ function Column({
                     })}
                     className="text-xs rounded-md bg-surface-2 border border-border/60 px-2 py-1"
                   >
-                    <option value="todo">To do</option>
-                    <option value="doing">Doing</option>
-                    <option value="done">Done</option>
+                    <option value="todo">Planned</option>
+                    <option value="doing">In Motion</option>
+                    <option value="done">Delivered</option>
                   </select>
                   <button onClick={() => onDelete(a.id)} className="text-xs text-destructive hover:underline">Delete</button>
                 </div>
@@ -182,7 +182,7 @@ function NewActionDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-xl font-semibold">New action</h2>
+        <h2 className="text-xl font-semibold">New Growth Initiative</h2>
         <div className="mt-5 space-y-3">
           <Field label="Axis">
             <select value={axisKey} onChange={(e) => setAxisKey(e.target.value)} className="input">
@@ -228,7 +228,7 @@ function NewActionDialog({
             }}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
           >
-            Add action
+            Add Initiative
           </button>
         </div>
       </div>

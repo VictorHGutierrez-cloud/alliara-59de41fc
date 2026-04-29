@@ -7,7 +7,7 @@ import { AXES } from "../content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/partner/$partnerId/coach")({
-  head: () => ({ meta: [{ title: "AI Coach — OCTA OS" }] }),
+  head: () => ({ meta: [{ title: "Ecosystem Copilot — OCTA OS" }] }),
   component: PartnerCoach,
 });
 
@@ -73,7 +73,7 @@ function PartnerCoach() {
       if (!resp?.ok) throw new Error(resp?.error ?? "Coach failed");
 
       await data.saveRecommendation(focus || null, resp.content, resp.model ?? "");
-      toast.success("AI coach generated new recommendations");
+      toast.success("Ecosystem Copilot delivered new guidance");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -86,8 +86,8 @@ function PartnerCoach() {
       <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="font-semibold">AI Coach</h2>
-            <p className="text-sm text-muted-foreground mt-1">Personalized recommendations for {data.partner.name}, grounded in their OCTA scores and your PDM notes.</p>
+            <h2 className="font-semibold">Ecosystem Copilot</h2>
+            <p className="text-sm text-muted-foreground mt-1">Personalized guidance for {data.partner.name}, grounded in their OCTA scores and your PDM notes.</p>
           </div>
           {isOwner && (
             <div className="flex flex-wrap items-center gap-2">
@@ -107,7 +107,7 @@ function PartnerCoach() {
         </div>
         {!hasDiagnostic && (
           <div className="mt-4 text-sm text-muted-foreground">
-            Run the diagnostic first → <Link to="/partner/$partnerId/diagnostic" params={{ partnerId }} className="text-primary underline">go to diagnostic</Link>
+            Run the Readiness Assessment first → <Link to="/partner/$partnerId/diagnostic" params={{ partnerId }} className="text-primary underline">go to assessment</Link>
           </div>
         )}
       </div>
@@ -115,9 +115,9 @@ function PartnerCoach() {
       {data.recs.length === 0 ? (
         hasDiagnostic && (
           <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-            <h3 className="text-lg font-semibold">No recommendations yet</h3>
+            <h3 className="text-lg font-semibold">No copilot guidance yet</h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-              {isOwner ? "Generate the first set of recommendations for this partner." : "The owning PDM hasn't generated coaching yet."}
+              {isOwner ? "Generate the first set of guidance for this partner." : "The owning PDM hasn't generated copilot guidance yet."}
             </p>
           </div>
         )

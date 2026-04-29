@@ -68,16 +68,16 @@ function AxisDetail({ axis, myLevel, actions, partnerId }: { axis: Axis; myLevel
     <div className="mt-5 grid lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 space-y-5">
         <div>
-          <h3 className="text-sm font-semibold">Mental model</h3>
+          <h3 className="text-sm font-semibold">Ecosystem Mindset</h3>
           <p className="mt-1 text-sm text-muted-foreground">{axis.mentalModel}</p>
         </div>
 
-        <ListSection title="Objectives" items={axis.objectives} color={axis.color} />
-        <ListSection title="Key levers" items={axis.levers} color={axis.color} />
-        <ListSection title="Metrics that matter" items={axis.metrics} color={axis.color} />
+        <ListSection title="Expansion Goals" items={axis.objectives} color={axis.color} />
+        <ListSection title="Traction Levers" items={axis.levers} color={axis.color} />
+        <ListSection title="Impact KPIs" items={axis.metrics} color={axis.color} />
 
         <div>
-          <h3 className="text-sm font-semibold text-warning">Common mistakes</h3>
+          <h3 className="text-sm font-semibold text-warning">Frictions & Blind Spots</h3>
           <ul className="mt-2 space-y-1 text-sm">
             {axis.commonMistakes.map((m) => (
               <li key={m} className="flex gap-2"><span className="text-warning">✗</span><span>{m}</span></li>
@@ -86,7 +86,7 @@ function AxisDetail({ axis, myLevel, actions, partnerId }: { axis: Axis; myLevel
         </div>
 
         <div>
-          <h3 className="text-sm font-semibold">Examples</h3>
+          <h3 className="text-sm font-semibold">Real-World Plays</h3>
           <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
             {axis.examples.map((e) => (
               <li key={e} className="border-l-2 pl-3" style={{ borderColor: `var(--${axis.color})` }}>{e}</li>
@@ -97,7 +97,7 @@ function AxisDetail({ axis, myLevel, actions, partnerId }: { axis: Axis; myLevel
 
       <div className="space-y-4">
         <div className="rounded-xl bg-surface/60 border border-border/60 p-4">
-          <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Maturity ladder</h3>
+          <h3 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Maturity Journey</h3>
           <div className="mt-3 space-y-2">
             {axis.levels.map((l) => {
               const isMe = l.level === myLevel;
@@ -126,9 +126,9 @@ function AxisDetail({ axis, myLevel, actions, partnerId }: { axis: Axis; myLevel
           params={{ partnerId }}
           className="block rounded-xl border border-border/60 bg-surface/60 p-4 hover:bg-surface-2 transition"
         >
-          <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Action plan</div>
+          <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Joint Business Plan</div>
           <div className="mt-1 text-sm font-medium">{actions} item{actions !== 1 ? "s" : ""} on this axis</div>
-          <div className="mt-1 text-xs text-muted-foreground">Open the plan to add or update tasks →</div>
+          <div className="mt-1 text-xs text-muted-foreground">Open the JBP to add or update growth initiatives →</div>
         </Link>
       </div>
     </div>
