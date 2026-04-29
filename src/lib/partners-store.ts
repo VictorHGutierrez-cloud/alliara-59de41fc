@@ -24,9 +24,9 @@ export function tierColor(tier: PartnerRow["tier"]): string {
 
 export function statusLabel(s: PartnerRow["status"]): string {
   return ({
-    active: "Active",
-    nurturing: "Nurturing",
-    at_risk: "At risk",
+    active: "Scaling",
+    nurturing: "Developing",
+    at_risk: "Churn Risk",
     paused: "Paused",
     archived: "Archived",
   } as const)[s];
