@@ -1,11 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AXES, CENTRAL_MENTAL_MODEL } from "@/content/octo";
+import { AXES, CENTRAL_MENTAL_MODEL } from "@/content/octa";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "OCTO OS — Build a partner ecosystem that compounds" },
-      { name: "description", content: "An interactive operating system for B2B partnership teams. Diagnose maturity across 8 OCTO axes and execute the next move." },
+      { title: "OCTA OS — Build a partner ecosystem that compounds" },
+      { name: "description", content: "An interactive operating system for B2B partnership teams. Diagnose maturity across 8 OCTA axes and execute the next move." },
     ],
   }),
   component: Landing,
@@ -25,7 +25,7 @@ function Landing() {
           <br /> as a growth engine.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-          OCTO OS turns the OCTO methodology into an interactive system for B2B partnership teams.
+          OCTA OS turns the OCTA methodology into an interactive system for B2B partnership teams.
           Diagnose maturity across 8 axes. Execute the next right move. Compound.
         </p>
         <div className="mt-8 flex items-center justify-center gap-3">
@@ -47,7 +47,7 @@ function Landing() {
         <div className="mb-8 flex items-end justify-between">
           <div>
             <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">The system</p>
-            <h2 className="text-3xl font-semibold mt-2">8 OCTO axes</h2>
+            <h2 className="text-3xl font-semibold mt-2">8 OCTA axes</h2>
           </div>
           <p className="hidden sm:block max-w-sm text-sm text-muted-foreground">
             Each axis is a discipline. Each discipline has 5 maturity levels, lessons, metrics, and common mistakes.

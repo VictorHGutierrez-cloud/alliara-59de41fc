@@ -30,7 +30,7 @@ function SignUp() {
   };
 
   return (
-    <AuthLayout title="Create your OCTO account" sub="Diagnose your ecosystem in under 5 minutes.">
+    <AuthLayout title="Create your OCTA account" sub="Diagnose your ecosystem in under 5 minutes.">
       <form onSubmit={onSubmit} className="space-y-3">
         <Input label="Your name" value={name} onChange={setName} required />
         <Input label="Work email" type="email" value={email} onChange={setEmail} required />

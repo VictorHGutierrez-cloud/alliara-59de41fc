@@ -1,12 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useOctoData } from "@/lib/octo-store";
-import { AXES } from "@/content/octo";
+import { useOctaData } from "@/lib/octa-store";
+import { AXES } from "@/content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/diagnostic")({
-  head: () => ({ meta: [{ title: "Diagnostic — OCTO OS" }] }),
+  head: () => ({ meta: [{ title: "Diagnostic — OCTA OS" }] }),
   component: Diagnostic,
 });
 
@@ -15,7 +15,7 @@ interface Step { axisKey: string; qKey: string; prompt: string; options: string[
 function Diagnostic() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
-  const data = useOctoData(user?.id);
+  const data = useOctaData(user?.id);
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({}); // qKey -> 1..5
   const [submitting, setSubmitting] = useState(false);
@@ -72,7 +72,7 @@ function Diagnostic() {
         <span>{pct}%</span>
       </div>
       <div className="mt-2 h-1.5 rounded-full bg-surface-2 overflow-hidden">
-        <div className="h-full bg-gradient-to-r from-[var(--octo-1)] via-[var(--octo-4)] to-[var(--octo-5)] transition-all" style={{ width: `${(idx / total) * 100}%` }} />
+        <div className="h-full bg-gradient-to-r from-[var(--octa-1)] via-[var(--octa-4)] to-[var(--octa-5)] transition-all" style={{ width: `${(idx / total) * 100}%` }} />
       </div>
 
       {/* Question card */}

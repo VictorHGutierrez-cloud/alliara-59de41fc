@@ -1,19 +1,19 @@
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
-import { useOctoData, levelFromAvg } from "@/lib/octo-store";
-import { AXES, overallLevelDescription, overallLevelLabel, xpProgressInLevel, xpToLevel } from "@/content/octo";
+import { useOctaData, levelFromAvg } from "@/lib/octa-store";
+import { AXES, overallLevelDescription, overallLevelLabel, xpProgressInLevel, xpToLevel } from "@/content/octa";
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — OCTO OS" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — OCTA OS" }] }),
   component: Dashboard,
 });
 
 function Dashboard() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
-  const data = useOctoData(user?.id);
+  const data = useOctaData(user?.id);
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/login" });
@@ -71,7 +71,7 @@ function Dashboard() {
             <span className="text-5xl font-display font-bold">L{playerLevel}</span>
           </div>
           <div className="mt-3 h-2 rounded-full bg-surface-2 overflow-hidden">
-            <div className="h-full bg-gradient-to-r from-[var(--octo-1)] to-[var(--octo-4)]" style={{ width: `${playerProg.pct}%` }} />
+            <div className="h-full bg-gradient-to-r from-[var(--octa-1)] to-[var(--octa-4)]" style={{ width: `${playerProg.pct}%` }} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">{data.totalXp} XP total · {100 - playerProg.current} XP to L{playerLevel + 1}</p>
         </div>

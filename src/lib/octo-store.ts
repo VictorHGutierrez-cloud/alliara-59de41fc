@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AXES, type Level } from "@/content/octo";
+import { AXES, type Level } from "@/content/octa";
 
 export type ScoreMap = Record<string, number>; // axis_key -> 1..5 (can be float from diagnostic averaging)
 
@@ -18,7 +18,7 @@ export interface CompletionRow {
   completed_at: string;
 }
 
-export function useOctoData(userId: string | undefined) {
+export function useOctaData(userId: string | undefined) {
   const [latest, setLatest] = useState<AssessmentRow | null>(null);
   const [history, setHistory] = useState<AssessmentRow[]>([]);
   const [completions, setCompletions] = useState<CompletionRow[]>([]);

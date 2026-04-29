@@ -38,14 +38,14 @@
   --color-ring: var(--ring);
   --color-ring-offset-background: var(--background);
 
-  --color-octo-1: var(--octo-1);
-  --color-octo-2: var(--octo-2);
-  --color-octo-3: var(--octo-3);
-  --color-octo-4: var(--octo-4);
-  --color-octo-5: var(--octo-5);
-  --color-octo-6: var(--octo-6);
-  --color-octo-7: var(--octo-7);
-  --color-octo-8: var(--octo-8);
+  --color-octa-1: var(--octa-1);
+  --color-octa-2: var(--octa-2);
+  --color-octa-3: var(--octa-3);
+  --color-octa-4: var(--octa-4);
+  --color-octa-5: var(--octa-5);
+  --color-octa-6: var(--octa-6);
+  --color-octa-7: var(--octa-7);
+  --color-octa-8: var(--octa-8);
 
   --color-success: var(--success);
   --color-warning: var(--warning);
@@ -59,11 +59,11 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --color-chart-1: var(--octo-1);
-  --color-chart-2: var(--octo-3);
-  --color-chart-3: var(--octo-5);
-  --color-chart-4: var(--octo-7);
-  --color-chart-5: var(--octo-2);
+  --color-chart-1: var(--octa-1);
+  --color-chart-2: var(--octa-3);
+  --color-chart-3: var(--octa-5);
+  --color-chart-4: var(--octa-7);
+  --color-chart-5: var(--octa-2);
 }
 
 /* Dark-first OS aesthetic */
@@ -104,19 +104,19 @@
   --input: oklch(0.28 0.025 265);
   --ring: oklch(0.78 0.18 155);
 
-  /* OCTO axis palette — 8 distinct hues with consistent chroma/lightness */
-  --octo-1: oklch(0.78 0.18 155); /* mint — Strategy */
-  --octo-2: oklch(0.78 0.16 195); /* cyan — Offer */
-  --octo-3: oklch(0.74 0.16 235); /* sky — Recruit */
-  --octo-4: oklch(0.72 0.18 280); /* violet — Enable */
-  --octo-5: oklch(0.74 0.2 320);  /* magenta — Co-sell */
-  --octo-6: oklch(0.78 0.18 25);  /* coral — Tech/Ops */
-  --octo-7: oklch(0.83 0.16 70);  /* amber — Growth */
-  --octo-8: oklch(0.85 0.16 105); /* lime — Success */
+  /* OCTA axis palette — 8 distinct hues with consistent chroma/lightness */
+  --octa-1: oklch(0.78 0.18 155); /* mint — Strategy */
+  --octa-2: oklch(0.78 0.16 195); /* cyan — Offer */
+  --octa-3: oklch(0.74 0.16 235); /* sky — Recruit */
+  --octa-4: oklch(0.72 0.18 280); /* violet — Enable */
+  --octa-5: oklch(0.74 0.2 320);  /* magenta — Co-sell */
+  --octa-6: oklch(0.78 0.18 25);  /* coral — Tech/Ops */
+  --octa-7: oklch(0.83 0.16 70);  /* amber — Growth */
+  --octa-8: oklch(0.85 0.16 105); /* lime — Success */
 
   --gradient-hero: radial-gradient(ellipse at top left, oklch(0.78 0.18 155 / 0.18), transparent 60%),
                    radial-gradient(ellipse at bottom right, oklch(0.72 0.19 295 / 0.18), transparent 60%);
-  --gradient-glow: linear-gradient(135deg, var(--octo-1), var(--octo-4));
+  --gradient-glow: linear-gradient(135deg, var(--octa-1), var(--octa-4));
   --shadow-glow: 0 10px 40px -10px oklch(0.78 0.18 155 / 0.45);
   --shadow-card: 0 1px 0 0 oklch(1 0 0 / 6%) inset, 0 8px 24px -12px oklch(0 0 0 / 0.5);
 
@@ -159,7 +159,7 @@
   .glow-ring { box-shadow: var(--shadow-glow); }
   .card-elev { box-shadow: var(--shadow-card); }
   .text-gradient {
-    background: linear-gradient(135deg, var(--octo-1), var(--octo-4) 60%, var(--octo-5));
+    background: linear-gradient(135deg, var(--octa-1), var(--octa-4) 60%, var(--octa-5));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
