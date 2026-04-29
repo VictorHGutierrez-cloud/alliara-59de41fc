@@ -1,0 +1,345 @@
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/lib/auth";
+import { usePartner, levelFromAvg, statusLabel, tierColor, type PartnerRow } from "../lib/partners-store";
+import { AXES } from "../content/octa";
+import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer } from "recharts";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/partner/$partnerId")({
+  head: () => ({ meta: [{ title: "Partner — OCTA OS" }] }),
+  component: PartnerLayout,
+});
+
+function PartnerLayout() {
+  const { partnerId } = Route.useParams();
+  const { user, loading } = useAuth();
+  const nav = useNavigate();
+  const data = usePartner(partnerId);
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const [editOpen, setEditOpen] = useState(false);
+
+  useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
+
+  if (loading || !user || data.loading) return <div className="p-10 text-muted-foreground">Loading…</div>;
+  if (!data.partner) {
+    return (
+      <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+        <h1 className="text-2xl font-semibold">Partner not found</h1>
+        <p className="text-sm text-muted-foreground mt-2">It may have been deleted or you don't have access.</p>
+        <Link to="/partners" className="mt-6 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">Back to portfolio</Link>
+      </div>
+    );
+  }
+
+  const overall = data.latest ? Number(data.latest.overall) : 0;
+  const lvl = overall ? levelFromAvg(overall) : 0;
+  const tColor = tierColor(data.partner.tier);
+  const isOwner = data.partner.owner_id === user.id;
+
+  const scores = (data.latest?.scores ?? {}) as Record<string, number>;
+  const radarData = AXES.map((a) => ({ axis: a.letter, fullName: a.name, score: scores[a.key] ?? 0 }));
+
+  const tabs: { key: string; label: string; to: string }[] = [
+    { key: "overview", label: "Overview", to: `/partner/${partnerId}` },
+    { key: "diagnostic", label: data.latest ? "Re-diagnose" : "Diagnostic", to: `/partner/${partnerId}/diagnostic` },
+    { key: "axes", label: "Axes", to: `/partner/${partnerId}/axes` },
+    { key: "plan", label: `Action plan${data.openActions.length ? ` (${data.openActions.length})` : ""}`, to: `/partner/${partnerId}/plan` },
+    { key: "coach", label: "AI coach", to: `/partner/${partnerId}/coach` },
+  ];
+
+  const isOverview = path === `/partner/${partnerId}` || path === `/partner/${partnerId}/`;
+
+  return (
+    <div className="mx-auto max-w-7xl px-6 py-8">
+      <Link to="/partners" className="text-xs font-mono text-muted-foreground hover:text-foreground">← Portfolio</Link>
+
+      {/* Hero */}
+      <div className="mt-3 rounded-2xl bg-card border border-border/60 p-6 card-elev">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+          <div className="flex items-start gap-4">
+            <div
+              className="h-14 w-14 rounded-xl flex items-center justify-center font-display text-xl font-bold uppercase"
+              style={{ background: `color-mix(in oklab, var(--${tColor}) 22%, transparent)`, color: `var(--${tColor})` }}
+            >
+              {data.partner.name.slice(0, 2)}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-2xl font-semibold">{data.partner.name}</h1>
+                <span
+                  className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md"
+                  style={{ background: `color-mix(in oklab, var(--${tColor}) 22%, transparent)`, color: `var(--${tColor})` }}
+                >
+                  {data.partner.tier.replace("_", " ")}
+                </span>
+                <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md bg-surface-2 text-muted-foreground">
+                  {statusLabel(data.partner.status)}
+                </span>
+                {!isOwner && <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md bg-surface-2 text-muted-foreground">read-only</span>}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {data.partner.company ?? "—"}{data.partner.segment ? ` · ${data.partner.segment}` : ""}
+              </p>
+              {data.partner.notes && <p className="text-sm text-muted-foreground mt-2 max-w-xl">{data.partner.notes}</p>}
+            </div>
+          </div>
+
+          <div className="flex flex-col items-start lg:items-end gap-2">
+            <div className="flex items-baseline gap-2">
+              <span className="text-5xl font-display font-bold text-gradient">{overall ? overall.toFixed(1) : "—"}</span>
+              <span className="text-sm text-muted-foreground">/ 5.0</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {lvl ? `Level ${lvl} · ${data.history.length} diagnostic${data.history.length !== 1 ? "s" : ""}` : "Not diagnosed yet"}
+            </div>
+            {isOwner && (
+              <button onClick={() => setEditOpen(true)} className="mt-1 text-xs underline text-muted-foreground hover:text-foreground">Edit partner</button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="mt-6 flex gap-1 border-b border-border/60 overflow-x-auto">
+        {tabs.map((t) => {
+          const active =
+            (t.key === "overview" && isOverview) ||
+            (t.key !== "overview" && path.startsWith(t.to));
+          return (
+            <Link
+              key={t.key}
+              to={t.to}
+              className={`px-4 py-2 text-sm whitespace-nowrap transition ${active ? "border-b-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              style={active ? { borderColor: `var(--${tColor})` } : {}}
+            >
+              {t.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      <div className="mt-6">
+        {isOverview ? (
+          <Overview
+            partnerId={partnerId}
+            radarData={radarData}
+            data={data}
+            scores={scores}
+          />
+        ) : (
+          <Outlet />
+        )}
+      </div>
+
+      {editOpen && isOwner && (
+        <EditPartnerDialog
+          partner={data.partner}
+          onClose={() => setEditOpen(false)}
+          onSave={async (patch) => {
+            try { await data.updatePartner(patch); toast.success("Partner updated"); setEditOpen(false); }
+            catch (e) { toast.error((e as Error).message); }
+          }}
+          onDelete={async () => {
+            if (!confirm(`Delete ${data.partner!.name}? This removes all diagnostics, action plans, and coaching for this partner.`)) return;
+            try {
+              await data.deletePartner();
+              toast.success("Partner deleted");
+              nav({ to: "/partners" });
+            } catch (e) { toast.error((e as Error).message); }
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+function Overview({
+  partnerId,
+  radarData,
+  data,
+  scores,
+}: {
+  partnerId: string;
+  radarData: { axis: string; fullName: string; score: number }[];
+  data: ReturnType<typeof usePartner>;
+  scores: Record<string, number>;
+}) {
+  const hasDiagnostic = !!data.latest;
+  const lowest = [...AXES]
+    .map((a) => ({ a, s: scores[a.key] ?? 0 }))
+    .sort((x, y) => x.s - y.s)
+    .slice(0, 3);
+
+  if (!hasDiagnostic) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
+        <h2 className="text-lg font-semibold">Run the OCTA diagnostic</h2>
+        <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+          Score this partner across the 8 OCTA axes to unlock the maturity radar, AI coaching, and a tailored action plan.
+        </p>
+        <Link to="/partner/$partnerId/diagnostic" params={{ partnerId }} className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
+          Start diagnostic →
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid lg:grid-cols-5 gap-4">
+      <div className="lg:col-span-2 rounded-2xl bg-card border border-border/60 p-4 card-elev">
+        <h2 className="font-semibold px-2 pt-2">Maturity radar</h2>
+        <div className="h-[340px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart data={radarData} outerRadius="75%">
+              <PolarGrid stroke="oklch(0.4 0.02 265 / 0.4)" />
+              <PolarAngleAxis dataKey="axis" tick={{ fill: "oklch(0.85 0.01 250)", fontSize: 12, fontFamily: "Space Grotesk" }} />
+              <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: "oklch(0.6 0.02 260)", fontSize: 10 }} />
+              <Radar name={data.partner!.name} dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.35} />
+            </RadarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="lg:col-span-3 space-y-4">
+        <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">Highest leverage moves</h2>
+            <Link to="/partner/$partnerId/coach" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">AI coach →</Link>
+          </div>
+          <p className="text-sm text-muted-foreground mt-1">Lowest-scoring axes are the biggest unlock for this partner.</p>
+          <div className="mt-4 space-y-3">
+            {lowest.map(({ a, s }) => (
+              <Link
+                key={a.key}
+                to="/partner/$partnerId/axes"
+                params={{ partnerId }}
+                className="block rounded-xl border border-border/60 bg-surface/50 p-4 hover:bg-surface-2 transition"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-md flex items-center justify-center font-display font-bold" style={{ background: `color-mix(in oklab, var(--${a.color}) 22%, transparent)`, color: `var(--${a.color})` }}>
+                      {a.letter}
+                    </div>
+                    <div>
+                      <div className="font-medium text-sm">{a.name}</div>
+                      <div className="text-xs text-muted-foreground">{s ? `Level ${levelFromAvg(s)} → target ${Math.min(5, levelFromAvg(s) + 1)}` : "Not assessed"}</div>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-display font-bold text-gradient">{s ? s.toFixed(1) : "—"}</div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
+          <div className="flex items-center justify-between">
+            <h2 className="font-semibold">Action plan</h2>
+            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open plan →</Link>
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-3 text-center">
+            <Stat label="Open" value={String(data.openActions.length)} />
+            <Stat label="Done" value={String(data.doneActions.length)} />
+            <Stat label="Total" value={String(data.actions.length)} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-surface/60 border border-border/60 px-3 py-3">
+      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-2xl font-display font-semibold">{value}</div>
+    </div>
+  );
+}
+
+function EditPartnerDialog({
+  partner, onClose, onSave, onDelete,
+}: {
+  partner: PartnerRow;
+  onClose: () => void;
+  onSave: (patch: Partial<PartnerRow>) => Promise<void>;
+  onDelete: () => Promise<void>;
+}) {
+  const [name, setName] = useState(partner.name);
+  const [company, setCompany] = useState(partner.company ?? "");
+  const [segment, setSegment] = useState(partner.segment ?? "");
+  const [tier, setTier] = useState(partner.tier);
+  const [status, setStatus] = useState(partner.status);
+  const [notes, setNotes] = useState(partner.notes ?? "");
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
+        <h2 className="text-xl font-semibold">Edit partner</h2>
+        <div className="mt-5 space-y-3">
+          <Field label="Partner name *"><input value={name} onChange={(e) => setName(e.target.value)} className="input" /></Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Company"><input value={company} onChange={(e) => setCompany(e.target.value)} className="input" /></Field>
+            <Field label="Segment"><input value={segment} onChange={(e) => setSegment(e.target.value)} className="input" /></Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Tier">
+              <select value={tier} onChange={(e) => setTier(e.target.value as typeof tier)} className="input">
+                <option value="strategic">Strategic</option>
+                <option value="core">Core</option>
+                <option value="emerging">Emerging</option>
+                <option value="long_tail">Long tail</option>
+              </select>
+            </Field>
+            <Field label="Status">
+              <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className="input">
+                <option value="active">Active</option>
+                <option value="nurturing">Nurturing</option>
+                <option value="at_risk">At risk</option>
+                <option value="paused">Paused</option>
+                <option value="archived">Archived</option>
+              </select>
+            </Field>
+          </div>
+          <Field label="PDM notes">
+            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="input min-h-[80px]" />
+          </Field>
+        </div>
+
+        <div className="mt-6 flex justify-between items-center">
+          <button
+            onClick={async () => { setBusy(true); try { await onDelete(); } finally { setBusy(false); } }}
+            className="text-xs text-destructive hover:underline"
+          >
+            Delete partner
+          </button>
+          <div className="flex gap-3">
+            <button onClick={onClose} className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2">Cancel</button>
+            <button
+              disabled={!name.trim() || busy}
+              onClick={async () => {
+                setBusy(true);
+                try { await onSave({ name: name.trim(), company: company.trim() || null, segment: segment.trim() || null, tier, status, notes: notes.trim() || null }); }
+                finally { setBusy(false); }
+              }}
+              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}

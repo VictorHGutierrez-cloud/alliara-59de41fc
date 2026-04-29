@@ -14,11 +14,116 @@ export type Database = {
   }
   public: {
     Tables: {
+      action_plans: {
+        Row: {
+          axis_key: string
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          partner_id: string
+          priority: Database["public"]["Enums"]["action_priority"]
+          source: string
+          status: Database["public"]["Enums"]["action_status"]
+          target_level: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          axis_key: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          partner_id: string
+          priority?: Database["public"]["Enums"]["action_priority"]
+          source?: string
+          status?: Database["public"]["Enums"]["action_status"]
+          target_level?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          axis_key?: string
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          partner_id?: string
+          priority?: Database["public"]["Enums"]["action_priority"]
+          source?: string
+          status?: Database["public"]["Enums"]["action_status"]
+          target_level?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_plans_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_recommendations: {
+        Row: {
+          assessment_id: string | null
+          axis_key: string | null
+          content: Json
+          created_at: string
+          id: string
+          model: string | null
+          partner_id: string
+        }
+        Insert: {
+          assessment_id?: string | null
+          axis_key?: string | null
+          content: Json
+          created_at?: string
+          id?: string
+          model?: string | null
+          partner_id: string
+        }
+        Update: {
+          assessment_id?: string | null
+          axis_key?: string | null
+          content?: Json
+          created_at?: string
+          id?: string
+          model?: string | null
+          partner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_recommendations_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_recommendations_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessments: {
         Row: {
           created_at: string
           id: string
           overall: number
+          partner_id: string | null
           scores: Json
           user_id: string
         }
@@ -26,6 +131,7 @@ export type Database = {
           created_at?: string
           id?: string
           overall: number
+          partner_id?: string | null
           scores: Json
           user_id: string
         }
@@ -33,10 +139,19 @@ export type Database = {
           created_at?: string
           id?: string
           overall?: number
+          partner_id?: string | null
           scores?: Json
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "assessments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       lesson_completions: {
         Row: {
@@ -62,6 +177,45 @@ export type Database = {
           lesson_key?: string
           user_id?: string
           xp_awarded?: number
+        }
+        Relationships: []
+      }
+      partners: {
+        Row: {
+          company: string | null
+          created_at: string
+          id: string
+          name: string
+          notes: string | null
+          owner_id: string
+          segment: string | null
+          status: Database["public"]["Enums"]["partner_status"]
+          tier: Database["public"]["Enums"]["partner_tier"]
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          notes?: string | null
+          owner_id: string
+          segment?: string | null
+          status?: Database["public"]["Enums"]["partner_status"]
+          tier?: Database["public"]["Enums"]["partner_tier"]
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          notes?: string | null
+          owner_id?: string
+          segment?: string | null
+          status?: Database["public"]["Enums"]["partner_status"]
+          tier?: Database["public"]["Enums"]["partner_tier"]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -92,15 +246,46 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      action_priority: "low" | "medium" | "high"
+      action_status: "todo" | "doing" | "done"
+      app_role: "pdm" | "leadership" | "admin"
+      partner_status: "active" | "nurturing" | "at_risk" | "paused" | "archived"
+      partner_tier: "strategic" | "core" | "emerging" | "long_tail"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -227,6 +412,12 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      action_priority: ["low", "medium", "high"],
+      action_status: ["todo", "doing", "done"],
+      app_role: ["pdm", "leadership", "admin"],
+      partner_status: ["active", "nurturing", "at_risk", "paused", "archived"],
+      partner_tier: ["strategic", "core", "emerging", "long_tail"],
+    },
   },
 } as const
