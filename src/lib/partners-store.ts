@@ -98,7 +98,13 @@ export function usePortfolio(userId: string | undefined) {
     return data as PartnerRow;
   }, [userId, refresh]);
 
-  return { items, isLeadership, loading, refresh, createPartner };
+  const deletePartner = useCallback(async (id: string) => {
+    const { error } = await supabase.from("partners").delete().eq("id", id);
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
+  return { items, isLeadership, loading, refresh, createPartner, deletePartner };
 }
 
 /* ─────────────────────── Single Partner workspace ─────────────────────── */
