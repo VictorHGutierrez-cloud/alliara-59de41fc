@@ -87,8 +87,8 @@ function AppFrame() {
           <nav className="flex items-center gap-2 text-sm">
             {user ? (
               <>
-                <Link to="/dashboard" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2" }}>Dashboard</Link>
-                <Link to="/diagnostic" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2" }}>Diagnostic</Link>
+                <Link to="/partners" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2" }}>Portfolio</Link>
+                <Link to="/dashboard" className="px-3 py-1.5 rounded-md hover:bg-surface-2 text-muted-foreground" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>My maturity</Link>
                 <button onClick={() => signOut()} className="ml-2 text-muted-foreground hover:text-foreground">Sign out</button>
               </>
             ) : (
