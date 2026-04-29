@@ -45,6 +45,7 @@ function PartnerLayout() {
     { key: "diagnostic", label: data.latest ? "Re-diagnose" : "Diagnostic", to: `/partner/${partnerId}/diagnostic` },
     { key: "axes", label: "Axes", to: `/partner/${partnerId}/axes` },
     { key: "plan", label: `Action plan${data.openActions.length ? ` (${data.openActions.length})` : ""}`, to: `/partner/${partnerId}/plan` },
+    { key: "intel", label: "Intel", to: `/partner/${partnerId}/intel` },
     { key: "coach", label: "AI coach", to: `/partner/${partnerId}/coach` },
   ];
 
