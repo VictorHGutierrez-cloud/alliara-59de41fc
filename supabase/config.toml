@@ -2,3 +2,6 @@ project_id = "hbarmsaprabwwickdudg"
 
 [functions.ai-coach]
 verify_jwt = true
+
+[functions.partner-intel]
+verify_jwt = true
