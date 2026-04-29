@@ -5,9 +5,14 @@ import { toast } from "sonner";
 import {
   useLeads,
   LEAD_STATUSES,
-  fitVerdict,
+  FACTORIAL_DIMENSIONS,
+  factorialVerdict,
+  computeFactorialTotal,
+  getDimensionValue,
+  parseScorecard,
   type LeadRow,
   type LeadStatus,
+  type DimensionKey,
 } from "@/lib/leads-store";
 
 export const Route = createFileRoute("/qualification")({
@@ -41,7 +46,7 @@ function QualificationPage() {
           <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Qualification</p>
           <h1 className="text-3xl font-semibold mt-1">Partner Lead Pipeline</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Qualify incoming leads against your Ideal Partner Profile before promoting them.
+            Score every lead on the Factorial 5-Dimension Scorecard before promoting them.
           </p>
         </div>
         <button
@@ -116,6 +121,16 @@ function QualificationPage() {
           lead={active}
           onClose={() => setActiveId(null)}
           onUpdate={(patch) => leadsStore.updateLead(active.id, patch)}
+          onSetDimension={(key, v) => leadsStore.setDimension(active, key, v)}
+          onUpdateNotes={(text) => leadsStore.updateFreeNotes(active, text)}
+          onReject={async (reason) => {
+            try {
+              await leadsStore.rejectLead(active, reason);
+              toast.success(`${active.company_name} rejected`);
+            } catch (e) {
+              toast.error((e as Error).message);
+            }
+          }}
           onDelete={async () => {
             await leadsStore.deleteLead(active.id);
             toast.success("Lead deleted");
@@ -151,7 +166,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
     <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
       <h2 className="text-lg font-semibold">No leads yet</h2>
       <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-        Add your first partner lead to start qualifying against your Ideal Partner Profile.
+        Add your first partner lead to start scoring against the Factorial 5-Dimension Scorecard.
       </p>
       <button onClick={onAdd} className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
         + Add your first lead
@@ -167,11 +182,8 @@ function LeadCard({
   onClick: () => void;
   onStatusChange: (s: LeadStatus) => void;
 }) {
-  const total =
-    lead.sales_score !== null && lead.expertise_score !== null && lead.fit_score !== null
-      ? (lead.sales_score ?? 0) + (lead.expertise_score ?? 0) + (lead.fit_score ?? 0)
-      : null;
-  const verdict = fitVerdict(total);
+  const total = computeFactorialTotal(lead);
+  const verdict = factorialVerdict(total);
   const host = (() => { try { return lead.website ? new URL(lead.website).host : null; } catch { return lead.website; } })();
 
   return (
@@ -184,11 +196,11 @@ function LeadCard({
         {lead.contact_person ?? "—"}{host ? ` · ${host}` : ""}
       </div>
       <div className="mt-3 flex items-center justify-between gap-2">
-        {verdict ? (
+        {verdict && total !== null ? (
           <span
             className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md ${toneClass(verdict.tone)}`}
           >
-            {total}/9 · {verdict.label}
+            {total}/15 · {verdict.label}
           </span>
         ) : (
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Not scored</span>
@@ -231,7 +243,7 @@ function NewLeadDialog({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-xl font-semibold">New partner lead</h2>
-        <p className="text-sm text-muted-foreground mt-1">Capture the basics — qualify against the IPP next.</p>
+        <p className="text-sm text-muted-foreground mt-1">Capture the basics — score the 5 dimensions next.</p>
 
         <div className="mt-5 space-y-3">
           <Field label="Company name *">
@@ -271,43 +283,30 @@ function NewLeadDialog({
   );
 }
 
-const IPP_QUESTIONS: { key: "sales_score" | "expertise_score" | "fit_score"; label: string; help: string }[] = [
-  { key: "sales_score", label: "Sales & Audience Capacity", help: "Pipeline reach, sales muscle, and customer base relevance." },
-  { key: "expertise_score", label: "Technical & Market Expertise", help: "Domain depth, certifications, and ability to deliver." },
-  { key: "fit_score", label: "Strategic & Cultural Fit", help: "Values, long-term alignment, and ease of collaboration." },
-];
-
 function LeadDetailPanel({
-  lead, onClose, onUpdate, onDelete, onPromote,
+  lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
 }: {
   lead: LeadRow;
   onClose: () => void;
   onUpdate: (patch: Partial<LeadRow>) => Promise<void>;
+  onSetDimension: (key: DimensionKey, v: 1 | 2 | 3) => Promise<void>;
+  onUpdateNotes: (text: string) => Promise<void>;
+  onReject: (reason: string) => Promise<void>;
   onDelete: () => Promise<void>;
   onPromote: () => Promise<void>;
 }) {
-  const [notes, setNotes] = useState(lead.notes ?? "");
-  useEffect(() => { setNotes(lead.notes ?? ""); }, [lead.id, lead.notes]);
+  const { meta, freeText } = parseScorecard(lead.notes);
+  const [notes, setNotes] = useState(freeText);
+  const [showReject, setShowReject] = useState(false);
+  useEffect(() => { setNotes(freeText); }, [lead.id, freeText]);
 
-  const total =
-    lead.sales_score !== null && lead.expertise_score !== null && lead.fit_score !== null
-      ? (lead.sales_score ?? 0) + (lead.expertise_score ?? 0) + (lead.fit_score ?? 0)
-      : null;
-  const verdict = fitVerdict(total);
-
-  const setScore = async (key: "sales_score" | "expertise_score" | "fit_score", val: 1 | 2 | 3) => {
-    const next = { ...lead, [key]: val } as LeadRow;
-    const t =
-      next.sales_score !== null && next.expertise_score !== null && next.fit_score !== null
-        ? (next.sales_score ?? 0) + (next.expertise_score ?? 0) + (next.fit_score ?? 0)
-        : null;
-    await onUpdate({ [key]: val, total_score: t } as Partial<LeadRow>);
-  };
+  const total = computeFactorialTotal(lead);
+  const verdict = factorialVerdict(total);
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-background/70 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="w-full max-w-[520px] h-full overflow-y-auto bg-card border-l border-border/60 p-6"
+        className="w-full max-w-[560px] h-full overflow-y-auto bg-card border-l border-border/60 p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
@@ -322,7 +321,7 @@ function LeadDetailPanel({
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-sm">Close</button>
         </div>
 
-        <div className="mt-4 flex items-center gap-2">
+        <div className="mt-4 flex items-center gap-2 flex-wrap">
           <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Status</span>
           <select
             value={lead.status}
@@ -338,49 +337,57 @@ function LeadDetailPanel({
               Promoted
             </span>
           )}
+          {meta.rejection_reason && lead.status === "rejected" && (
+            <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md bg-red-500/15 text-red-400">
+              Reason: {meta.rejection_reason}
+            </span>
+          )}
         </div>
 
         <div className="mt-6">
-          <h3 className="text-sm font-semibold">IPP Scorecard</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Score the lead against your Ideal Partner Profile.</p>
+          <h3 className="text-sm font-semibold">Factorial 5-Dimension Scorecard</h3>
+          <p className="text-xs text-muted-foreground mt-0.5">Score each dimension Low (1) · Medium (2) · High (3). Total ranges 5–15.</p>
 
-          <div className="mt-4 space-y-4">
-            {IPP_QUESTIONS.map((q) => {
-              const value = lead[q.key] as number | null;
+          <div className="mt-4 space-y-5">
+            {FACTORIAL_DIMENSIONS.map((d, idx) => {
+              const value = getDimensionValue(lead, d.key);
+              const selectedHelp = d.options.find((o) => o.v === value)?.help ?? null;
               return (
-                <div key={q.key}>
-                  <div className="text-sm font-medium">{q.label}</div>
-                  <div className="text-xs text-muted-foreground">{q.help}</div>
+                <div key={d.key}>
+                  <div className="text-sm font-medium">
+                    <span className="text-muted-foreground font-mono mr-2">{idx + 1}.</span>{d.label}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">{d.description}</div>
                   <div className="mt-2 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
-                    {([
-                      { v: 1, label: "Low" },
-                      { v: 2, label: "Medium" },
-                      { v: 3, label: "High" },
-                    ] as const).map((opt) => (
+                    {d.options.map((opt) => (
                       <button
                         key={opt.v}
-                        onClick={() => setScore(q.key, opt.v)}
+                        title={opt.help}
+                        onClick={() => onSetDimension(d.key, opt.v)}
                         className={`px-3 py-1.5 rounded-md transition ${value === opt.v ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                       >
                         {opt.label}
                       </button>
                     ))}
                   </div>
+                  {selectedHelp && (
+                    <div className="text-[11px] text-muted-foreground mt-1.5 italic">→ {selectedHelp}</div>
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
 
-        <div className="mt-5">
-          {verdict ? (
+        <div className="mt-6">
+          {verdict && total !== null ? (
             <div className={`rounded-xl border p-4 ${bannerClass(verdict.tone)}`}>
-              <div className="text-sm font-semibold">{verdict.label} · Score {total}/9</div>
+              <div className="text-sm font-semibold">{verdict.label} · Score {total}/15</div>
               <div className="text-xs mt-1 opacity-90">{verdict.message}</div>
             </div>
           ) : (
             <div className="rounded-xl border border-border/60 bg-surface/40 p-4 text-xs text-muted-foreground">
-              Answer all 3 questions to see the fit recommendation.
+              Score all 5 dimensions to see the Factorial fit recommendation.
             </div>
           )}
         </div>
@@ -390,7 +397,7 @@ function LeadDetailPanel({
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            onBlur={() => { if ((lead.notes ?? "") !== notes) void onUpdate({ notes: notes || null }); }}
+            onBlur={() => { if ((freeText ?? "") !== notes) void onUpdateNotes(notes); }}
             className="input mt-1 min-h-[100px]"
             placeholder="Context, source of the lead, key conversation points…"
           />
@@ -405,10 +412,11 @@ function LeadDetailPanel({
           </button>
           <div className="flex gap-2">
             <button
-              onClick={() => onUpdate({ status: "rejected" })}
-              className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2"
+              onClick={() => setShowReject(true)}
+              disabled={lead.status === "rejected"}
+              className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2 disabled:opacity-40"
             >
-              Reject
+              Reject Lead
             </button>
             <button
               disabled={total === null || lead.status === "approved"}
@@ -418,6 +426,78 @@ function LeadDetailPanel({
               {lead.status === "approved" ? "Already promoted" : "Promote to Official Partner"}
             </button>
           </div>
+        </div>
+
+        {showReject && (
+          <RejectReasonDialog
+            onClose={() => setShowReject(false)}
+            onConfirm={async (reason) => {
+              await onReject(reason);
+              setShowReject(false);
+            }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+const REJECT_REASONS = [
+  "Below 20 employees",
+  "Above 3000 employees",
+  "Competitor overlap",
+  "No sales capacity",
+  "No delivery muscle",
+  "Misaligned ICP",
+  "Other",
+] as const;
+
+function RejectReasonDialog({
+  onClose, onConfirm,
+}: {
+  onClose: () => void;
+  onConfirm: (reason: string) => Promise<void>;
+}) {
+  const [preset, setPreset] = useState<string>(REJECT_REASONS[0]);
+  const [detail, setDetail] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
+        <h3 className="text-lg font-semibold">Reject lead</h3>
+        <p className="text-sm text-muted-foreground mt-1">Pick the primary reason — it will be archived with the lead for context.</p>
+
+        <div className="mt-4 space-y-3">
+          <Field label="Rejection reason">
+            <select value={preset} onChange={(e) => setPreset(e.target.value)} className="input">
+              {REJECT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </Field>
+          {preset === "Other" && (
+            <Field label="Details">
+              <input value={detail} onChange={(e) => setDetail(e.target.value)} className="input" placeholder="Short description" autoFocus />
+            </Field>
+          )}
+        </div>
+
+        <div className="mt-6 flex justify-end gap-3">
+          <button onClick={onClose} className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2">Cancel</button>
+          <button
+            disabled={busy || (preset === "Other" && !detail.trim())}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                const reason = preset === "Other" ? detail.trim() : preset;
+                await onConfirm(reason);
+              } finally {
+                setBusy(false);
+              }
+            }}
+            className="rounded-lg bg-red-500/90 hover:bg-red-500 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40"
+          >
+            {busy ? "Rejecting…" : "Confirm reject"}
+          </button>
         </div>
       </div>
     </div>

@@ -16,11 +16,153 @@ export function leadStatusLabel(s: LeadStatus): string {
   return LEAD_STATUSES.find((x) => x.key === s)?.label ?? s;
 }
 
-export function fitVerdict(total: number | null) {
-  if (total === null) return null;
-  if (total <= 4) return { tone: "red" as const, label: "Low Fit", message: "High risk of churn. Recommendation is to Reject." };
-  if (total <= 7) return { tone: "yellow" as const, label: "Moderate Fit", message: "Review carefully before promoting." };
-  return { tone: "green" as const, label: "Strong Fit", message: "Highly recommended to Promote." };
+/* ───────────────── Factorial 5-Dimension Scorecard ───────────────── */
+
+export type DimensionKey =
+  | "icp_overlap"
+  | "sales_capacity"
+  | "delivery_muscle"
+  | "business_commitment"
+  | "strategic_alignment";
+
+export type DimensionOption = { v: 1 | 2 | 3; label: "Low" | "Medium" | "High"; help: string };
+
+export const FACTORIAL_DIMENSIONS: {
+  key: DimensionKey;
+  label: string;
+  description: string;
+  options: [DimensionOption, DimensionOption, DimensionOption];
+}[] = [
+  {
+    key: "icp_overlap",
+    label: "ICP Overlap",
+    description: "How well does the partner's customer base match Factorial's Ideal Customer Profile?",
+    options: [
+      { v: 1, label: "Low", help: "<20 or >3000 employees" },
+      { v: 2, label: "Medium", help: "Broad SMBs" },
+      { v: 3, label: "High", help: "50–500 employees in Hospitality, Tech, Construction, Pharma" },
+    ],
+  },
+  {
+    key: "sales_capacity",
+    label: "Sales Capacity",
+    description: "Does the partner have a real engine to source and close opportunities?",
+    options: [
+      { v: 1, label: "Low", help: "No sales team" },
+      { v: 2, label: "Medium", help: "Reactive referrals" },
+      { v: 3, label: "High", help: "Proactive sales machine targeting CEOs / HR Managers" },
+    ],
+  },
+  {
+    key: "delivery_muscle",
+    label: "Delivery Muscle",
+    description: "Can the partner deploy and support Factorial autonomously?",
+    options: [
+      { v: 1, label: "Low", help: "Needs Factorial to do onboarding" },
+      { v: 2, label: "Medium", help: "Basic setup" },
+      { v: 3, label: "High", help: "Autonomous — can deploy Performance or Factorial IT/MDM" },
+    ],
+  },
+  {
+    key: "business_commitment",
+    label: "Business Commitment",
+    description: "How serious is the partner about building a real business with Factorial?",
+    options: [
+      { v: 1, label: "Low", help: "Opportunistic" },
+      { v: 2, label: "Medium", help: "Casual referrals" },
+      { v: 3, label: "High", help: "Ready for a Joint Business Plan" },
+    ],
+  },
+  {
+    key: "strategic_alignment",
+    label: "Strategic Alignment",
+    description: "How well does the partner's positioning align with Factorial's GTM?",
+    options: [
+      { v: 1, label: "Low", help: "Competitor overlap" },
+      { v: 2, label: "Medium", help: "Neutral" },
+      { v: 3, label: "High", help: "Perfect synergy (e.g. HR Consultancies, IT MSPs)" },
+    ],
+  },
+];
+
+/* Storage mapping:
+ *   icp_overlap          → sales_score
+ *   sales_capacity       → expertise_score
+ *   delivery_muscle      → fit_score
+ *   business_commitment  → notes JSON block (key: commitment)
+ *   strategic_alignment  → notes JSON block (key: alignment)
+ */
+
+export type ScorecardMeta = {
+  commitment: 1 | 2 | 3 | null;
+  alignment: 1 | 2 | 3 | null;
+  rejection_reason: string | null;
+};
+
+const SCORECARD_RE = /^<!--FACTORIAL_SCORECARD:(\{[^}]*\})-->\n?/;
+
+export function parseScorecard(notes: string | null | undefined): { meta: ScorecardMeta; freeText: string } {
+  const empty: ScorecardMeta = { commitment: null, alignment: null, rejection_reason: null };
+  if (!notes) return { meta: empty, freeText: "" };
+  const m = notes.match(SCORECARD_RE);
+  if (!m) return { meta: empty, freeText: notes };
+  try {
+    const parsed = JSON.parse(m[1]) as Partial<ScorecardMeta>;
+    return {
+      meta: {
+        commitment: (parsed.commitment as ScorecardMeta["commitment"]) ?? null,
+        alignment: (parsed.alignment as ScorecardMeta["alignment"]) ?? null,
+        rejection_reason: parsed.rejection_reason ?? null,
+      },
+      freeText: notes.replace(SCORECARD_RE, ""),
+    };
+  } catch {
+    return { meta: empty, freeText: notes };
+  }
+}
+
+export function serializeScorecard(meta: ScorecardMeta, freeText: string): string | null {
+  const hasMeta = meta.commitment !== null || meta.alignment !== null || meta.rejection_reason;
+  const trimmed = (freeText ?? "").trim();
+  if (!hasMeta && !trimmed) return null;
+  if (!hasMeta) return trimmed;
+  const json = JSON.stringify({
+    commitment: meta.commitment,
+    alignment: meta.alignment,
+    rejection_reason: meta.rejection_reason,
+  });
+  return `<!--FACTORIAL_SCORECARD:${json}-->\n${trimmed}`;
+}
+
+export function getDimensionValue(lead: LeadRow, key: DimensionKey): 1 | 2 | 3 | null {
+  if (key === "icp_overlap") return (lead.sales_score as 1 | 2 | 3 | null) ?? null;
+  if (key === "sales_capacity") return (lead.expertise_score as 1 | 2 | 3 | null) ?? null;
+  if (key === "delivery_muscle") return (lead.fit_score as 1 | 2 | 3 | null) ?? null;
+  const { meta } = parseScorecard(lead.notes);
+  if (key === "business_commitment") return meta.commitment;
+  return meta.alignment;
+}
+
+export function computeFactorialTotal(lead: LeadRow): number | null {
+  const vals = FACTORIAL_DIMENSIONS.map((d) => getDimensionValue(lead, d.key));
+  if (vals.some((v) => v === null)) return null;
+  return vals.reduce<number>((s, v) => s + (v ?? 0), 0);
+}
+
+export function factorialVerdict(total: number | null) {
+  if (total === null || total < 5) return null;
+  if (total <= 8) return {
+    tone: "red" as const, label: "Low Fit",
+    message: "High risk of churn. Target company size or capacity is misaligned. Recommendation: Reject.",
+  };
+  if (total <= 12) return {
+    tone: "yellow" as const, label: "Moderate Fit",
+    message: "Potential synergy, but review implementation muscle and ICP overlap before promoting.",
+  };
+  return {
+    tone: "green" as const, label: "Strong Fit",
+    message: "Ideal partner for Factorial. Highly recommended to Promote.",
+  };
 }
 
 export function useLeads(userId: string | undefined) {
@@ -67,14 +209,59 @@ export function useLeads(userId: string | undefined) {
     await refresh();
   }, [refresh]);
 
+  const setDimension = useCallback(async (lead: LeadRow, key: DimensionKey, value: 1 | 2 | 3) => {
+    const { meta, freeText } = parseScorecard(lead.notes);
+    const next: LeadRow = { ...lead };
+    const patch: Partial<LeadRow> = {};
+    if (key === "icp_overlap") { next.sales_score = value; patch.sales_score = value; }
+    else if (key === "sales_capacity") { next.expertise_score = value; patch.expertise_score = value; }
+    else if (key === "delivery_muscle") { next.fit_score = value; patch.fit_score = value; }
+    else {
+      const nextMeta: ScorecardMeta = { ...meta };
+      if (key === "business_commitment") nextMeta.commitment = value;
+      else nextMeta.alignment = value;
+      const newNotes = serializeScorecard(nextMeta, freeText);
+      next.notes = newNotes;
+      patch.notes = newNotes;
+    }
+    const total = computeFactorialTotal(next);
+    patch.total_score = total;
+    const { error } = await supabase.from("partner_leads").update(patch).eq("id", lead.id);
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
+  const updateFreeNotes = useCallback(async (lead: LeadRow, freeText: string) => {
+    const { meta } = parseScorecard(lead.notes);
+    const newNotes = serializeScorecard(meta, freeText);
+    const { error } = await supabase.from("partner_leads").update({ notes: newNotes }).eq("id", lead.id);
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
+  const rejectLead = useCallback(async (lead: LeadRow, reason: string) => {
+    const { meta, freeText } = parseScorecard(lead.notes);
+    const nextMeta: ScorecardMeta = { ...meta, rejection_reason: reason };
+    const newNotes = serializeScorecard(nextMeta, freeText);
+    const { error } = await supabase.from("partner_leads")
+      .update({ status: "rejected", notes: newNotes })
+      .eq("id", lead.id);
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
   const promoteLead = useCallback(async (lead: LeadRow): Promise<string> => {
     if (!userId) throw new Error("Not signed in");
-    const total =
-      (lead.sales_score ?? 0) + (lead.expertise_score ?? 0) + (lead.fit_score ?? 0);
+    const { freeText } = parseScorecard(lead.notes);
+    const total = computeFactorialTotal(lead);
+    const lines = FACTORIAL_DIMENSIONS.map((d) => {
+      const v = getDimensionValue(lead, d.key);
+      return `  • ${d.label}: ${v ?? "-"}`;
+    });
     const notesPrefix =
-      `Promoted from qualification. IPP scores — Sales: ${lead.sales_score ?? "-"}, ` +
-      `Expertise: ${lead.expertise_score ?? "-"}, Fit: ${lead.fit_score ?? "-"} (Total ${total}/9).`;
-    const combinedNotes = lead.notes ? `${notesPrefix}\n\n${lead.notes}` : notesPrefix;
+      `Promoted from qualification — Factorial 5-Dimension Scorecard (Total ${total ?? "-"}/15):\n` +
+      lines.join("\n");
+    const combinedNotes = freeText ? `${notesPrefix}\n\n${freeText}` : notesPrefix;
 
     const { data: partner, error: insErr } = await supabase
       .from("partners")
@@ -100,5 +287,9 @@ export function useLeads(userId: string | undefined) {
     return partner.id as string;
   }, [userId, refresh]);
 
-  return { leads, loading, refresh, createLead, updateLead, deleteLead, promoteLead };
+  return {
+    leads, loading, refresh,
+    createLead, updateLead, deleteLead,
+    setDimension, updateFreeNotes, rejectLead, promoteLead,
+  };
 }
