@@ -191,6 +191,12 @@ export function usePartner(partnerId: string | undefined) {
     if (error) throw error;
   }, [partnerId]);
 
+  const deleteAssessment = useCallback(async (assessmentId: string) => {
+    const { error } = await supabase.from("assessments").delete().eq("id", assessmentId);
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
   const saveRecommendation = useCallback(async (axisKey: string | null, content: unknown, model: string) => {
     if (!partnerId) throw new Error("Missing partner");
     const { error } = await supabase.from("ai_recommendations").insert({
@@ -216,7 +222,7 @@ export function usePartner(partnerId: string | undefined) {
   return {
     partner, latest, history, actions, recs, loading,
     refresh, saveAssessment, addAction, updateAction, deleteAction,
-    updatePartner, deletePartner, saveRecommendation,
+    updatePartner, deletePartner, deleteAssessment, saveRecommendation,
     axisScore, actionsByAxis, openActions, doneActions, totalDiagnosticQs,
   };
 }

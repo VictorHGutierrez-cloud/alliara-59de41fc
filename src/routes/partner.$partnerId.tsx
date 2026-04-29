@@ -245,6 +245,8 @@ function Overview({
             <Stat label="Total" value={String(data.actions.length)} />
           </div>
         </div>
+
+        <DiagnosticHistory data={data} />
       </div>
     </div>
   );
@@ -255,6 +257,59 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="rounded-lg bg-surface/60 border border-border/60 px-3 py-3">
       <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
       <div className="text-2xl font-display font-semibold">{value}</div>
+    </div>
+  );
+}
+
+function DiagnosticHistory({ data }: { data: ReturnType<typeof usePartner> }) {
+  if (data.history.length === 0) return null;
+  return (
+    <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
+      <div className="flex items-center justify-between">
+        <h2 className="font-semibold">Diagnostic history</h2>
+        <span className="text-xs font-mono text-muted-foreground">{data.history.length} run{data.history.length !== 1 ? "s" : ""}</span>
+      </div>
+      <div className="mt-3 divide-y divide-border/60">
+        {data.history.map((h, i) => {
+          const score = Number(h.overall);
+          const lvl = levelFromAvg(score);
+          const date = new Date(h.created_at);
+          const prev = data.history[i + 1];
+          const delta = prev ? score - Number(prev.overall) : null;
+          return (
+            <div key={h.id} className="flex items-center justify-between py-3">
+              <div className="min-w-0">
+                <div className="text-sm font-medium">
+                  {date.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" })}
+                  {i === 0 && <span className="ml-2 text-[10px] font-mono uppercase tracking-widest text-primary">latest</span>}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {date.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" })} · Level {lvl}
+                  {delta !== null && (
+                    <span className={`ml-2 font-mono ${delta > 0 ? "text-success" : delta < 0 ? "text-destructive" : ""}`}>
+                      {delta > 0 ? "▲" : delta < 0 ? "▼" : "="} {Math.abs(delta).toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xl font-display font-semibold text-gradient">{score.toFixed(1)}</span>
+                <button
+                  onClick={async () => {
+                    if (!confirm("Delete this diagnostic? This can't be undone.")) return;
+                    try { await data.deleteAssessment(h.id); toast.success("Diagnostic deleted"); }
+                    catch (e) { toast.error((e as Error).message); }
+                  }}
+                  className="text-xs text-destructive hover:underline"
+                  aria-label="Delete diagnostic"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
