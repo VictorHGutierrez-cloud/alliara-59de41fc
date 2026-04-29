@@ -1,128 +1,113 @@
-## Goal
+# Partner Qualification Module
 
-Reposition OCTA OS from a generic "audit/task" tool to a strategic "Partner Revenue Orchestration" platform — purely through copy and content payload changes. **No** changes to layout, Tailwind classes, DB schema, RLS, or Edge Function logic.
+A new lightweight pipeline at `/qualification` to triage incoming leads with an Ideal Partner Profile (IPP) scorecard, then promote qualified leads into the existing `partners` table. Nothing in `/partners`, `/axes`, `/intel`, or `/plan` is touched.
 
----
+## 1. Database (new migration)
 
-## 1. UI label renames (frontend only)
+New table `partner_leads`:
 
-### `src/routes/partner.$partnerId.tsx`
-- Tab label `"Diagnostic"` / `"Re-diagnose"` → `"Readiness Assessment"` / `"Re-run Assessment"`
-- Tab label `"Action plan (n)"` → `"JBP (n)"`
-- Tab label `"AI coach"` → `"Ecosystem Copilot"`
-- Overview empty-state heading `"Run the OCTA diagnostic"` → `"Run the Partner Readiness Assessment"`; CTA `"Start diagnostic →"` → `"Run Readiness Assessment →"`
-- Overview card heading `"Action plan"` → `"Joint Business Plan (JBP)"`; link `"Open plan →"` → `"Open JBP →"`
-- Overview card heading `"Highest leverage moves"` → `"High-Impact Growth Levers"`; sublink `"AI coach →"` → `"Ecosystem Copilot →"`
-- `"Diagnostic history"` heading → `"Assessment History"`; "n run(s)" → "n assessment(s)"; "Delete this diagnostic?" confirm → "Delete this assessment?"; toast `"Diagnostic deleted"` → `"Assessment deleted"`
+```text
+id              uuid PK (default gen_random_uuid)
+owner_id        uuid not null      -- auth.uid() of PDM
+company_name    text not null
+contact_person  text
+website         text
+status          enum partner_lead_status: 'new' | 'in_review' | 'approved' | 'rejected'
+                default 'new'
+sales_score     int  (1|2|3, nullable)
+expertise_score int  (1|2|3, nullable)
+fit_score       int  (1|2|3, nullable)
+total_score     int  generated/derived (computed in app, also stored)
+notes           text
+promoted_partner_id uuid (nullable) -- set after conversion
+created_at      timestamptz default now()
+updated_at      timestamptz default now()
+```
 
-### `src/routes/partner.$partnerId.diagnostic.tsx`
-- Route head title → `"Readiness Assessment — OCTA OS"`
-- Read-only message: replace "run a diagnostic" with "run a readiness assessment"
-- Submit button `"Save diagnostic"` → `"Save Readiness Assessment"`; toast `"Diagnostic saved · maturity updated"` → `"Readiness Assessment saved · partner maturity updated"`
+New enum `partner_lead_status` with the 4 statuses above.
 
-### `src/routes/partner.$partnerId.plan.tsx`
-- Route head title → `"Joint Business Plan — OCTA OS"`
-- Empty-state heading `"No actions yet"` → `"No growth initiatives yet"`; copy mentions "action plan" / "tasks" → "Joint Business Plan" / "growth initiatives"
-- Button `"+ Add action"` → `"+ Add Growth Initiative"`; dialog title `"New action"` → `"New Growth Initiative"`; final CTA `"Add action"` → `"Add Initiative"`; toast `"Action added"` → `"Growth Initiative added"`
-- Column titles: `"To do"` / `"Doing"` / `"Done"` → `"Planned"` / `"In Motion"` / `"Delivered"` (keeps the same `todo|doing|done` enum values in the select options' `value`; only display labels change)
+RLS (mirrors `partners`):
+- SELECT: `owner_id = auth.uid()` OR leadership/admin via `private.has_role`
+- INSERT: `owner_id = auth.uid()`
+- UPDATE: `owner_id = auth.uid()`
+- DELETE: `owner_id = auth.uid()`
 
-### `src/routes/partner.$partnerId.intel.tsx`
-- Generate button `"Generate insights"` / `"Analyzing…"` → `"Decode Partner Signals"` / `"Decoding signals…"`
-- Right-column card heading `"AI insights"` → `"Decoded Partner Signals"`; subcopy "Every generation is saved as a run." → "Each decode is saved to the partner's signal history."
-- `RunCard`: section heading `"Suggested actions"` → `"High-Impact Initiatives"`; `"Signals by axis"` → `"Signals by Growth Axis"`; the `executive_summary` is rendered as a plain paragraph today — add a small label above it: `"Ecosystem Executive Vision"` (in the existing `text-xs font-mono uppercase tracking-widest` style), no layout change
+Trigger `set_updated_at` on update.
 
-### `src/routes/partner.$partnerId.coach.tsx`
-- Route head title + heading `"AI Coach"` → `"Ecosystem Copilot"`; subcopy mentions "AI coach" → "Ecosystem Copilot"
-- `"No recommendations yet"` heading kept; subcopy refers to "coaching" → "copilot guidance"
-- Toast `"AI coach generated new recommendations"` → `"Ecosystem Copilot delivered new guidance"`
+## 2. Routes & Files
 
-### `src/routes/partner.$partnerId.axes.tsx` (Section headers in `AxisDetail`)
-- `"Mental model"` → `"Ecosystem Mindset"`
-- `"Common mistakes"` → `"Frictions & Blind Spots"`
-- `"Examples"` → `"Real-World Plays"` (kept consistent with the new tone; minor)
-- `"Maturity ladder"` → `"Maturity Journey"`
-- `"Action plan"` side-card → `"Joint Business Plan"`; subcopy "Open the plan to add or update tasks →" → "Open the JBP to add or update growth initiatives →"
-- `ListSection` titles passed in: `"Objectives"` → `"Expansion Goals"`, `"Key levers"` → `"Traction Levers"`, `"Metrics that matter"` → `"Impact KPIs"`
+New files:
+- `src/routes/qualification.tsx` — pipeline view (Kanban with 4 columns) + "+ New Lead" button + lead detail side panel.
+- `src/lib/leads-store.ts` — `useLeads(userId)` hook (list, create, update status, update scores, promote, delete) following the same pattern as `partners-store.ts`.
 
-### `src/lib/partners-store.ts` — `statusLabel()` (display only, enum values untouched)
-- `active` → `"Scaling"`
-- `nurturing` → `"Developing"`
-- `at_risk` → `"Churn Risk"`
-- `paused` → `"Paused"` (kept)
-- `archived` → `"Archived"` (kept)
+Edited files:
+- `src/routes/__root.tsx` — add `<Link to="/qualification">Qualification</Link>` in the authenticated nav, between "Portfolio" and "My maturity".
+- `src/integrations/supabase/types.ts` — auto-regenerated after the migration; not hand-edited.
 
-The Edit Partner dialog `<select>` option labels in `partner.$partnerId.tsx` updated to match (Active→Scaling, Nurturing→Developing, At risk→Churn Risk). The `value=` attributes stay as `active|nurturing|at_risk|...` so the DB enum is unchanged.
+No edits to `/partners`, `/axes`, `/intel`, `/plan`, or `partners-store.ts`.
 
----
+## 3. UI Specification (`/qualification`)
 
-## 2. `src/content/octa.ts` — full axis content rewrite
+### Pipeline view
+Header identical in style to `/partners`:
+- Eyebrow: "Qualification"
+- H1: "Partner Lead Pipeline"
+- Sub: "Qualify incoming leads against your Ideal Partner Profile before promoting them."
+- Right side: `+ New Partner Lead` button.
 
-Rewrite the 8 `AXES` entries so every field evaluates the **partner's** capabilities (not the orchestrator's program). Keep the existing TypeScript shape, the existing `key` / `letter` / `color` / `icon` slots so radar, colors, and routing keep working without touching any other file.
+KPI strip (4 cards): New Leads · In Review · Approved · Rejected (counts).
 
-| # | New axis (key / letter unchanged) | Old → New name |
-|---|---|---|
-| 1 | `strategy` / S | Strategy & Vision → **Strategic Alignment (Fit)** |
-| 2 | `offer` / O | Offer & Value Proposition → **Commercial & Operational Capacity** |
-| 3 | `recruit` / R | Recruitment & Targeting → **Solution Mastery (Enablement)** |
-| 4 | `enable` / E | Enablement & Certification → **Go-to-Market Strength (Pipeline)** |
-| 5 | `cosell` / C | Co-sell & Pipeline → **Delivery Quality & Value** |
-| 6 | `operate` / T | Tech & Operations → **Program Engagement** |
-| 7 | `growth` / G | Growth & Marketing → **Collaboration & Relationship** |
-| 8 | `success` / X | Success & Lifecycle → **Customer Success & Impact** |
+Kanban: 4 columns ("New Lead", "In Review", "Approved", "Rejected"). Each card shows company name, contact, website host, and a colored Fit Score chip if scored. Clicking a card opens the detail side panel. Status changes via a small dropdown on the card (no drag-and-drop required for v1 — keeps it lightweight per the brief).
 
-For each axis, fully rewrite:
-- `name`, `tagline`, `mentalModel` (now framed as "How to evaluate this in the partner")
-- `objectives` → renamed mentally as Expansion Goals (3 items, partner-focused)
-- `levers` → Traction Levers (3 items the PDM can pull on the partner side)
-- `metrics` → Impact KPIs (3, observable on the partner)
-- `commonMistakes` → Frictions & Blind Spots (3, things partners typically get wrong)
-- `examples` (2, real B2B partner archetypes)
-- `levels[1..5]` (5 maturity steps describing the **partner's** evolution: e.g. for Strategic Alignment: 1 "Misaligned" → 5 "Strategic Twin")
-- `lessons` (3, kept — these now coach the PDM on how to grow the partner on this axis)
-- `diagnostic` (3 questions, see §3) — written from the PDM's perspective evaluating the partner
+### "+ New Partner Lead" modal
+Fields: Company Name (required), Contact Person, Website. Reuses the same modal style as `NewPartnerDialog` in `/partners`.
 
-`CENTRAL_MENTAL_MODEL` and `OCTA_FULL_NAME` are slightly reworded to emphasize "evaluating each partner individually" rather than "the ecosystem program".
+### Lead detail side panel (slide-over from right, ~480px)
+Sections:
+1. **Lead info** — company, contact, website, status dropdown, delete button.
+2. **IPP Scorecard** — 3 radio groups, each with Low (1) / Medium (2) / High (3):
+   - Sales & Audience Capacity
+   - Technical & Market Expertise
+   - Strategic & Cultural Fit
+3. **Fit Banner** (live, computed from sum 3-9):
+   - 3-4 → red banner: "Low Fit: High risk of churn. Recommendation is to Reject."
+   - 5-7 → yellow banner: "Moderate Fit: Review carefully before promoting."
+   - 8-9 → green banner: "Strong Fit: Highly recommended to Promote."
+   - Not yet fully scored → muted hint: "Answer all 3 questions to see the fit recommendation."
+4. **Notes** — free text, autosaves on blur.
+5. **Actions footer**:
+   - Primary: `Promote to Official Partner` (disabled until all 3 scored).
+   - Secondary: `Reject` (sets status to `rejected`).
 
-`overallLevelLabel` / `overallLevelDescription` are reworded (still 5 buckets) to describe the partner's maturity ("Misaligned → Emerging → Productive → Strategic → Compounding"), not the program's.
+Scores autosave on change; total is recalculated and the banner re-renders immediately (pure derived state — no extra hooks per render to avoid the earlier "Rendered more hooks" issue).
 
----
+## 4. Promotion Flow
 
-## 3. Diagnostic questions — 24 partner-centric prompts
+`Promote to Official Partner` handler:
+1. Insert into `partners` with:
+   - `owner_id = auth.uid()`
+   - `name = lead.company_name`
+   - `company = lead.company_name`
+   - `tier = 'emerging'`
+   - `status = 'active'`
+   - `notes` = a generated string: `"Promoted from qualification. IPP scores — Sales: X, Expertise: Y, Fit: Z (Total N/9). " + lead.notes`
+2. Update the lead: `status = 'approved'`, `promoted_partner_id = newPartner.id` (kept as an audit trail rather than hard-deleted, so leadership can see conversion history; the Kanban filters approved leads with a `promoted_partner_id` into a collapsed "Promoted" badge in the Approved column).
+3. Toast: `${name} promoted to partner`.
+4. Navigate to `/partner/$partnerId` with the new id.
 
-Each new axis gets exactly 3 questions (3 × 8 = 24), all phrased to evaluate the partner. Examples (full set in the implementation):
+`Reject` handler: just sets `status = 'rejected'`. Delete button hard-deletes the lead row (allowed by RLS).
 
-- **Strategic Alignment (Fit)** — fit_icp, fit_values, fit_ambition
-- **Commercial & Operational Capacity** — sales_team_size, sales_structure, delivery_capacity
-- **Solution Mastery (Enablement)** — certifications, independent_pitch, technical_depth
-- **Go-to-Market Strength (Pipeline)** — eql_generation, comarketing_activity, pipeline_predictability
-- **Delivery Quality & Value** — implementation_quality, services_packaging, csat_on_delivery
-- **Program Engagement** — portal_usage, mdf_uptake, tier_progression
-- **Collaboration & Relationship** — proactivity, pipeline_transparency, comms_quality
-- **Customer Success & Impact** — end_customer_churn, end_customer_nps, expansion_within_base
+## 5. Technical Notes
 
-Each question has 5 options mapped to maturity 1→5, mirroring the existing pattern, so the wizard, scoring math (`reduce/avg`), assessment storage, and radar all keep working without code changes.
+- All Supabase calls go through the browser client (`@/integrations/supabase/client`), matching the existing pattern in `partners-store.ts`. No edge functions, no server functions needed.
+- Total score is derived in the component (`sales + expertise + fit` when all three are non-null) — not stored as a generated column to keep the migration simple. The `total_score` column is written as a denormalized convenience field for sorting/leadership analytics.
+- The new nav link shows only when `user` is signed in (same condition as Portfolio link).
+- Kanban uses CSS grid (`grid-cols-1 md:grid-cols-2 xl:grid-cols-4`), no dnd library.
+- Side panel uses a fixed-position overlay matching the visual style of `NewPartnerDialog` (no new shadcn components required).
 
----
+## 6. Out of Scope
 
-## 4. Safety check (no logic changes required)
-
-- **Wizard** auto-builds from `AXES.flatMap(a => a.diagnostic.map(...))` — new questions appear automatically.
-- **Scoring** uses averages over a's `diagnostic`, then keys by `a.key`. We keep all 8 `key` slots unchanged → existing `assessments.scores` (jsonb) rows still match the AXES list; old historical runs still render under their original keys (with the new axis name shown).
-- **Edge functions** (`partner-intel`, `ai-coach`) receive `axes: [{ key, name, ... }]` from the client and reference them by `key`/`name` only (verified). The new partner-centric names actually *improve* the prompt context. No edge function code changes.
-- **DB enums** (`partner_status`, action `status`, etc.) are untouched — only display labels change.
-- **routeTree.gen.ts**, Supabase types, and storage paths are untouched.
-
----
-
-## Files touched
-
-- `src/content/octa.ts` (full content rewrite within existing types)
-- `src/lib/partners-store.ts` (only `statusLabel` body)
-- `src/routes/partner.$partnerId.tsx`
-- `src/routes/partner.$partnerId.diagnostic.tsx`
-- `src/routes/partner.$partnerId.plan.tsx`
-- `src/routes/partner.$partnerId.intel.tsx`
-- `src/routes/partner.$partnerId.coach.tsx`
-- `src/routes/partner.$partnerId.axes.tsx`
-
-No migrations, no edge function edits, no schema changes, no Tailwind changes.
+- Drag-and-drop between Kanban columns (status change via dropdown is sufficient for v1).
+- Bulk import of leads.
+- AI scoring suggestions for the IPP (kept manual; can be added later).
+- Editing company name / website after creation (user can delete + recreate if wrong).

@@ -252,6 +252,57 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_leads: {
+        Row: {
+          company_name: string
+          contact_person: string | null
+          created_at: string
+          expertise_score: number | null
+          fit_score: number | null
+          id: string
+          notes: string | null
+          owner_id: string
+          promoted_partner_id: string | null
+          sales_score: number | null
+          status: Database["public"]["Enums"]["partner_lead_status"]
+          total_score: number | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          company_name: string
+          contact_person?: string | null
+          created_at?: string
+          expertise_score?: number | null
+          fit_score?: number | null
+          id?: string
+          notes?: string | null
+          owner_id: string
+          promoted_partner_id?: string | null
+          sales_score?: number | null
+          status?: Database["public"]["Enums"]["partner_lead_status"]
+          total_score?: number | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          company_name?: string
+          contact_person?: string | null
+          created_at?: string
+          expertise_score?: number | null
+          fit_score?: number | null
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          promoted_partner_id?: string | null
+          sales_score?: number | null
+          status?: Database["public"]["Enums"]["partner_lead_status"]
+          total_score?: number | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       partner_metrics: {
         Row: {
           created_at: string
@@ -395,6 +446,7 @@ export type Database = {
       action_priority: "low" | "medium" | "high"
       action_status: "todo" | "doing" | "done"
       app_role: "pdm" | "leadership" | "admin"
+      partner_lead_status: "new" | "in_review" | "approved" | "rejected"
       partner_status: "active" | "nurturing" | "at_risk" | "paused" | "archived"
       partner_tier: "strategic" | "core" | "emerging" | "long_tail"
     }
@@ -527,6 +579,7 @@ export const Constants = {
       action_priority: ["low", "medium", "high"],
       action_status: ["todo", "doing", "done"],
       app_role: ["pdm", "leadership", "admin"],
+      partner_lead_status: ["new", "in_review", "approved", "rejected"],
       partner_status: ["active", "nurturing", "at_risk", "paused", "archived"],
       partner_tier: ["strategic", "core", "emerging", "long_tail"],
     },
