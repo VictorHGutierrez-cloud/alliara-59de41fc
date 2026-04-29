@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as QualificationRouteImport } from './routes/qualification'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
@@ -26,6 +27,11 @@ import { Route as PartnerPartnerIdAxesRouteImport } from './routes/partner.$part
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QualificationRoute = QualificationRouteImport.update({
+  id: '/qualification',
+  path: '/qualification',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartnersRoute = PartnersRouteImport.update({
@@ -96,6 +102,7 @@ export interface FileRoutesByFullPath {
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
   '/partners': typeof PartnersRoute
+  '/qualification': typeof QualificationRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
   '/partners': typeof PartnersRoute
+  '/qualification': typeof QualificationRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
   '/partners': typeof PartnersRoute
+  '/qualification': typeof QualificationRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/diagnostic'
     | '/login'
     | '/partners'
+    | '/qualification'
     | '/signup'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/diagnostic'
     | '/login'
     | '/partners'
+    | '/qualification'
     | '/signup'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/diagnostic'
     | '/login'
     | '/partners'
+    | '/qualification'
     | '/signup'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
@@ -190,6 +202,7 @@ export interface RootRouteChildren {
   DiagnosticRoute: typeof DiagnosticRoute
   LoginRoute: typeof LoginRoute
   PartnersRoute: typeof PartnersRoute
+  QualificationRoute: typeof QualificationRoute
   SignupRoute: typeof SignupRoute
   AxisAxisKeyRoute: typeof AxisAxisKeyRoute
   PartnerPartnerIdRoute: typeof PartnerPartnerIdRouteWithChildren
@@ -202,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/qualification': {
+      id: '/qualification'
+      path: '/qualification'
+      fullPath: '/qualification'
+      preLoaderRoute: typeof QualificationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partners': {
@@ -316,6 +336,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiagnosticRoute: DiagnosticRoute,
   LoginRoute: LoginRoute,
   PartnersRoute: PartnersRoute,
+  QualificationRoute: QualificationRoute,
   SignupRoute: SignupRoute,
   AxisAxisKeyRoute: AxisAxisKeyRoute,
   PartnerPartnerIdRoute: PartnerPartnerIdRouteWithChildren,
