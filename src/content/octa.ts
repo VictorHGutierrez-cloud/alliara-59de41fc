@@ -1,5 +1,5 @@
-// OCTO Methodology — content model for the OCTO OS platform.
-// Synthesized from "Ecossistema de Parceiros — Método OCTO" (Tubino & Guimarães)
+// OCTA Methodology — content model for the OCTA OS platform.
+// Synthesized from "Ecossistema de Parceiros — Método OCTA" (Tubino & Guimarães)
 // and standard B2B partnership operating frameworks.
 
 export type Level = 1 | 2 | 3 | 4 | 5;
@@ -32,7 +32,7 @@ export interface Axis {
   letter: string;
   name: string;
   tagline: string;
-  color: string; // CSS var token, e.g. "octo-1"
+  color: string; // CSS var token, e.g. "octa-1"
   icon: string;  // lucide icon name
   mentalModel: string;
   objectives: string[];
@@ -47,11 +47,11 @@ export interface Axis {
 
 export const CENTRAL_MENTAL_MODEL = `No company scales B2B distribution alone. Sustainable growth comes from a
 deliberately designed partner ecosystem that compounds reach, trust, and
-delivery capacity. OCTO is the operating system that turns partnerships from
+delivery capacity. OCTA is the operating system that turns partnerships from
 ad-hoc deals into a predictable, measurable growth engine — across eight
 interlocking axes that must move together.`;
 
-export const OCTO_FULL_NAME = "Operating model for Channel and Tech Orchestration";
+export const OCTA_FULL_NAME = "Operating model for Channel and Tech Orchestration";
 
 const lvl = (
   level: Level,
@@ -67,7 +67,7 @@ export const AXES: Axis[] = [
     letter: "S",
     name: "Strategy & Vision",
     tagline: "Why partnerships exist and what they must deliver.",
-    color: "octo-1",
+    color: "octa-1",
     icon: "Compass",
     mentalModel:
       "Partnerships are a board-level growth lever, not a sales tactic. Every partner motion ties to a measurable contribution to ARR, market entry, or product reach.",
@@ -118,7 +118,7 @@ export const AXES: Axis[] = [
     letter: "O",
     name: "Offer & Value Proposition",
     tagline: "What partners sell, deliver, and earn.",
-    color: "octo-2",
+    color: "octa-2",
     icon: "Package",
     mentalModel:
       "A partner-ready offer is productized: clear ICP, packaging, pricing tiers, margins, deliverables, and joint value props. If a partner cannot pitch you in 60 seconds, you do not have an offer.",
@@ -169,7 +169,7 @@ export const AXES: Axis[] = [
     letter: "R",
     name: "Recruitment & Targeting",
     tagline: "Right partners, on purpose.",
-    color: "octo-3",
+    color: "octa-3",
     icon: "Users",
     mentalModel:
       "Partner recruiting is sales: ICP, pipeline, conversion. The wrong partner costs more than no partner. Quality of fit beats quantity of logos every time.",
@@ -220,7 +220,7 @@ export const AXES: Axis[] = [
     letter: "E",
     name: "Enablement & Certification",
     tagline: "Partners who can sell and deliver without you.",
-    color: "octo-4",
+    color: "octa-4",
     icon: "GraduationCap",
     mentalModel:
       "An enabled partner is a force multiplier; a confused partner is a brand liability. Enablement is a product — track adoption, completion, and impact on win rates.",
@@ -271,7 +271,7 @@ export const AXES: Axis[] = [
     letter: "C",
     name: "Co-sell & Pipeline",
     tagline: "Joint motion that fills both pipelines.",
-    color: "octo-5",
+    color: "octa-5",
     icon: "Handshake",
     mentalModel:
       "Co-sell is the daily handshake between your sellers and partner sellers. Without rules of engagement, deal registration, and shared pipeline visibility, partners sit on the sidelines.",
@@ -322,7 +322,7 @@ export const AXES: Axis[] = [
     letter: "T",
     name: "Tech & Operations",
     tagline: "Systems that make the program scale.",
-    color: "octo-6",
+    color: "octa-6",
     icon: "Settings2",
     mentalModel:
       "Spreadsheets cap your program at ~50 partners. A real PRM, integrated with CRM and finance, is the difference between a hobby and a business.",
@@ -373,7 +373,7 @@ export const AXES: Axis[] = [
     letter: "G",
     name: "Growth & Marketing",
     tagline: "Joint demand generation that compounds.",
-    color: "octo-7",
+    color: "octa-7",
     icon: "TrendingUp",
     mentalModel:
       "Marketing with partners is a multiplier on reach and trust — but only if you co-invest, co-create, and measure. MDF without rigor becomes a tax.",
@@ -424,7 +424,7 @@ export const AXES: Axis[] = [
     letter: "X",
     name: "Success & Lifecycle",
     tagline: "Partner experience that drives retention and growth.",
-    color: "octo-8",
+    color: "octa-8",
     icon: "Sparkles",
     mentalModel:
       "Treat partners like customers: onboard, activate, retain, expand, advocate. Partner churn is silent and expensive — it kills compounding.",

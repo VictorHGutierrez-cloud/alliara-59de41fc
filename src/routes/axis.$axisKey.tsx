@@ -1,14 +1,14 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useOctoData, levelFromAvg } from "@/lib/octo-store";
-import { AXES, type Axis } from "@/content/octo";
+import { useOctaData, levelFromAvg } from "@/lib/octa-store";
+import { AXES, type Axis } from "@/content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/axis/$axisKey")({
   head: ({ params }) => {
     const a = AXES.find((x) => x.key === params.axisKey);
-    return { meta: [{ title: a ? `${a.name} — OCTO OS` : "Axis — OCTO OS" }] };
+    return { meta: [{ title: a ? `${a.name} — OCTA OS` : "Axis — OCTA OS" }] };
   },
   component: AxisPage,
   notFoundComponent: () => (
@@ -23,7 +23,7 @@ function AxisPage() {
   const axis = AXES.find((a) => a.key === axisKey);
   const { user, loading } = useAuth();
   const nav = useNavigate();
-  const data = useOctoData(user?.id);
+  const data = useOctaData(user?.id);
   const [tab, setTab] = useState<"overview" | "levels" | "lessons">("overview");
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
@@ -47,7 +47,7 @@ function AxisPage() {
             {axis.letter}
           </div>
           <div>
-            <p className="text-xs font-mono uppercase tracking-widest" style={{ color: `var(--${axis.color})` }}>OCTO axis</p>
+            <p className="text-xs font-mono uppercase tracking-widest" style={{ color: `var(--${axis.color})` }}>OCTA axis</p>
             <h1 className="text-3xl font-semibold">{axis.name}</h1>
             <p className="text-sm text-muted-foreground">{axis.tagline}</p>
           </div>
