@@ -93,7 +93,21 @@ function PartnersPage() {
           <EmptyState onAdd={() => setShowNew(true)} />
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map((it) => <PartnerCard key={it.partner.id} item={it} />)}
+            {filtered.map((it) => (
+              <PartnerCard
+                key={it.partner.id}
+                item={it}
+                onDelete={async () => {
+                  if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
+                  try {
+                    await portfolio.deletePartner(it.partner.id);
+                    toast.success(`${it.partner.name} deleted`);
+                  } catch (e) {
+                    toast.error((e as Error).message);
+                  }
+                }}
+              />
+            ))}
           </div>
         )}
       </div>
@@ -140,18 +154,28 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item }: { item: PortfolioItem }) {
+function PartnerCard({ item, onDelete }: { item: PortfolioItem; onDelete: () => void }) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
   const tColor = tierColor(item.partner.tier);
   const scores = (item.latest?.scores ?? {}) as Record<string, number>;
 
   return (
-    <Link
-      to="/partner/$partnerId"
-      params={{ partnerId: item.partner.id }}
-      className="block rounded-2xl bg-card border border-border/60 p-5 card-elev hover:-translate-y-0.5 transition"
-    >
+    <div className="relative">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+        title="Delete partner"
+        aria-label="Delete partner"
+        className="absolute top-2 right-2 z-10 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-red-400 hover:bg-surface-2 transition"
+      >
+        ✕
+      </button>
+      <Link
+        to="/partner/$partnerId"
+        params={{ partnerId: item.partner.id }}
+        className="block rounded-2xl bg-card border border-border/60 p-5 card-elev hover:-translate-y-0.5 transition"
+      >
       <div className="flex items-start justify-between">
         <div className="min-w-0">
           <div className="font-semibold truncate">{item.partner.name}</div>
@@ -160,7 +184,7 @@ function PartnerCard({ item }: { item: PortfolioItem }) {
           </div>
         </div>
         <span
-          className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md"
+          className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md mr-7"
           style={{ background: `color-mix(in oklab, var(--${tColor}) 22%, transparent)`, color: `var(--${tColor})` }}
         >
           {item.partner.tier.replace("_", " ")}
@@ -194,7 +218,8 @@ function PartnerCard({ item }: { item: PortfolioItem }) {
           <span className="font-mono text-muted-foreground">leadership view</span>
         )}
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 }
 
