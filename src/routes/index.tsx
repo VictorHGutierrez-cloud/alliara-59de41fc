@@ -31,7 +31,7 @@ function Landing() {
         </p>
         <div className="mt-8 flex items-center justify-center gap-3">
           <Link to="/signup" className="inline-flex items-center rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground glow-ring hover:opacity-90">
-            Start free diagnostic →
+            Run OCTA on every partner →
           </Link>
           <Link to="/login" className="inline-flex items-center rounded-lg border border-border bg-surface px-5 py-3 text-sm font-semibold hover:bg-surface-2">
             Sign in
