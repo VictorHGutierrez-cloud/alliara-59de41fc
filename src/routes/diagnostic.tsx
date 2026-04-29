@@ -2,8 +2,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useOctaData } from "@/lib/octa-store";
-import { AXES } from "@/content/octa";
+import { useOctaData } from "../lib/octa-store";
+import { AXES } from "../content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/diagnostic")({

@@ -1,7 +1,7 @@
 // rev: octa-rename
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { AXES, type Level } from "@/content/octa";
+import { AXES, type Level } from "../content/octa";
 
 export type ScoreMap = Record<string, number>; // axis_key -> 1..5 (can be float from diagnostic averaging)
 

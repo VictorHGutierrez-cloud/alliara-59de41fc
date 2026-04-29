@@ -2,8 +2,8 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { useOctaData, levelFromAvg } from "@/lib/octa-store";
-import { AXES, type Axis } from "@/content/octa";
+import { useOctaData, levelFromAvg } from "../lib/octa-store";
+import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/axis/$axisKey")({

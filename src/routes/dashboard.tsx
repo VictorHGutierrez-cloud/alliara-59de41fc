@@ -1,8 +1,8 @@
 // rev: octa-rename
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
-import { useOctaData, levelFromAvg } from "@/lib/octa-store";
-import { AXES, overallLevelDescription, overallLevelLabel, xpProgressInLevel, xpToLevel } from "@/content/octa";
+import { useOctaData, levelFromAvg } from "../lib/octa-store";
+import { AXES, overallLevelDescription, overallLevelLabel, xpProgressInLevel, xpToLevel } from "../content/octa";
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 import { useEffect } from "react";
 

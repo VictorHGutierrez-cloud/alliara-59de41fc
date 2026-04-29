@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate, redirect } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 
@@ -19,9 +19,9 @@ function Login() {
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
 
-  if (user) {
-    throw redirect({ to: "/dashboard" });
-  }
+  useEffect(() => {
+    if (user) nav({ to: "/dashboard", replace: true });
+  }, [user, nav]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
