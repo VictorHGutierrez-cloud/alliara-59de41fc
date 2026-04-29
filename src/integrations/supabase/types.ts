@@ -180,6 +180,117 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_documents: {
+        Row: {
+          created_at: string
+          description: string | null
+          extracted_text: string | null
+          filename: string
+          id: string
+          kind: string
+          mime: string
+          partner_id: string
+          size_bytes: number
+          storage_path: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          extracted_text?: string | null
+          filename: string
+          id?: string
+          kind?: string
+          mime: string
+          partner_id: string
+          size_bytes?: number
+          storage_path: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          extracted_text?: string | null
+          filename?: string
+          id?: string
+          kind?: string
+          mime?: string
+          partner_id?: string
+          size_bytes?: number
+          storage_path?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      partner_intel_runs: {
+        Row: {
+          created_at: string
+          id: string
+          input_summary: string | null
+          model: string
+          output: Json
+          partner_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input_summary?: string | null
+          model: string
+          output: Json
+          partner_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input_summary?: string | null
+          model?: string
+          output?: Json
+          partner_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      partner_metrics: {
+        Row: {
+          created_at: string
+          deals_open: number | null
+          deals_won: number | null
+          id: string
+          notes: string | null
+          partner_id: string
+          period: string | null
+          revenue: number | null
+          trained_people: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deals_open?: number | null
+          deals_won?: number | null
+          id?: string
+          notes?: string | null
+          partner_id: string
+          period?: string | null
+          revenue?: number | null
+          trained_people?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deals_open?: number | null
+          deals_won?: number | null
+          id?: string
+          notes?: string | null
+          partner_id?: string
+          period?: string | null
+          revenue?: number | null
+          trained_people?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       partners: {
         Row: {
           company: string | null
