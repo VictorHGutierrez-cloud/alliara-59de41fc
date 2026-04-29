@@ -17,16 +17,18 @@ function PartnerPlan() {
   const [filterAxis, setFilterAxis] = useState<string>("all");
   const [showNew, setShowNew] = useState(false);
 
+  const grouped = useMemo(() => {
+    const m: Record<ActionRow["status"], ActionRow[]> = { todo: [], doing: [], done: [] };
+    for (const a of data.actions) {
+      if (filterAxis !== "all" && a.axis_key !== filterAxis) continue;
+      m[a.status].push(a);
+    }
+    return m;
+  }, [data.actions, filterAxis]);
+
   if (data.loading || !user) return <div className="text-muted-foreground">Loading…</div>;
 
   const isOwner = data.partner?.owner_id === user.id;
-
-  const filtered = data.actions.filter((a) => filterAxis === "all" || a.axis_key === filterAxis);
-  const grouped = useMemo(() => {
-    const m: Record<ActionRow["status"], ActionRow[]> = { todo: [], doing: [], done: [] };
-    for (const a of filtered) m[a.status].push(a);
-    return m;
-  }, [filtered]);
 
   return (
     <div>
