@@ -11,7 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as DiagnosticRouteImport } from './routes/diagnostic'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -23,40 +26,86 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DiagnosticRoute = DiagnosticRouteImport.update({
+  id: '/diagnostic',
+  path: '/diagnostic',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AxisAxisKeyRoute = AxisAxisKeyRouteImport.update({
+  id: '/axis/$axisKey',
+  path: '/axis/$axisKey',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/axis/$axisKey': typeof AxisAxisKeyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/axis/$axisKey': typeof AxisAxisKeyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
+  '/axis/$axisKey': typeof AxisAxisKeyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/signup'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/diagnostic'
+    | '/login'
+    | '/signup'
+    | '/axis/$axisKey'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/signup'
-  id: '__root__' | '/' | '/login' | '/signup'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/diagnostic'
+    | '/login'
+    | '/signup'
+    | '/axis/$axisKey'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/diagnostic'
+    | '/login'
+    | '/signup'
+    | '/axis/$axisKey'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRoute
+  DiagnosticRoute: typeof DiagnosticRoute
   LoginRoute: typeof LoginRoute
   SignupRoute: typeof SignupRoute
+  AxisAxisKeyRoute: typeof AxisAxisKeyRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +124,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/diagnostic': {
+      id: '/diagnostic'
+      path: '/diagnostic'
+      fullPath: '/diagnostic'
+      preLoaderRoute: typeof DiagnosticRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -82,13 +145,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/axis/$axisKey': {
+      id: '/axis/$axisKey'
+      path: '/axis/$axisKey'
+      fullPath: '/axis/$axisKey'
+      preLoaderRoute: typeof AxisAxisKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRoute,
+  DiagnosticRoute: DiagnosticRoute,
   LoginRoute: LoginRoute,
   SignupRoute: SignupRoute,
+  AxisAxisKeyRoute: AxisAxisKeyRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
