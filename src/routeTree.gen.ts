@@ -10,15 +10,22 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PartnerPartnerIdRouteImport } from './routes/partner.$partnerId'
 import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -41,6 +48,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnerPartnerIdRoute = PartnerPartnerIdRouteImport.update({
+  id: '/partner/$partnerId',
+  path: '/partner/$partnerId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AxisAxisKeyRoute = AxisAxisKeyRouteImport.update({
   id: '/axis/$axisKey',
   path: '/axis/$axisKey',
@@ -52,16 +64,20 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
+  '/partners': typeof PartnersRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
+  '/partner/$partnerId': typeof PartnerPartnerIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
+  '/partners': typeof PartnersRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
+  '/partner/$partnerId': typeof PartnerPartnerIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +85,10 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
+  '/partners': typeof PartnersRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
+  '/partner/$partnerId': typeof PartnerPartnerIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +97,30 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diagnostic'
     | '/login'
+    | '/partners'
     | '/signup'
     | '/axis/$axisKey'
+    | '/partner/$partnerId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/dashboard'
     | '/diagnostic'
     | '/login'
+    | '/partners'
     | '/signup'
     | '/axis/$axisKey'
+    | '/partner/$partnerId'
   id:
     | '__root__'
     | '/'
     | '/dashboard'
     | '/diagnostic'
     | '/login'
+    | '/partners'
     | '/signup'
     | '/axis/$axisKey'
+    | '/partner/$partnerId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,8 +128,10 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   DiagnosticRoute: typeof DiagnosticRoute
   LoginRoute: typeof LoginRoute
+  PartnersRoute: typeof PartnersRoute
   SignupRoute: typeof SignupRoute
   AxisAxisKeyRoute: typeof AxisAxisKeyRoute
+  PartnerPartnerIdRoute: typeof PartnerPartnerIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -115,6 +141,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -145,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partner/$partnerId': {
+      id: '/partner/$partnerId'
+      path: '/partner/$partnerId'
+      fullPath: '/partner/$partnerId'
+      preLoaderRoute: typeof PartnerPartnerIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/axis/$axisKey': {
       id: '/axis/$axisKey'
       path: '/axis/$axisKey'
@@ -160,8 +200,10 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   DiagnosticRoute: DiagnosticRoute,
   LoginRoute: LoginRoute,
+  PartnersRoute: PartnersRoute,
   SignupRoute: SignupRoute,
   AxisAxisKeyRoute: AxisAxisKeyRoute,
+  PartnerPartnerIdRoute: PartnerPartnerIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
