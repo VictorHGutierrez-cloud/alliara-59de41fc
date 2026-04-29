@@ -166,3 +166,27 @@
   }
   .ring-axis { box-shadow: 0 0 0 2px var(--axis-color, var(--primary)) inset; }
 }
+
+@layer components {
+  .input {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+    background: color-mix(in oklab, var(--surface) 70%, transparent);
+    color: var(--foreground);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    outline: none;
+    transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+  }
+  .input::placeholder { color: var(--muted-foreground); }
+  .input:hover { background: var(--surface-2); }
+  .input:focus,
+  .input:focus-visible {
+    border-color: color-mix(in oklab, var(--primary) 60%, var(--border));
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+  textarea.input { min-height: 2.5rem; resize: vertical; }
+  select.input { appearance: none; padding-right: 1.75rem; }
+}

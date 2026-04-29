@@ -20,7 +20,7 @@ function Login() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (user) nav({ to: "/dashboard", replace: true });
+    if (user) nav({ to: "/partners", replace: true });
   }, [user, nav]);
 
   const onSubmit = async (e: FormEvent) => {
@@ -30,7 +30,7 @@ function Login() {
     setBusy(false);
     if (error) return toast.error(error);
     toast.success("Welcome back");
-    nav({ to: "/dashboard" });
+    nav({ to: "/partners" });
   };
 
   return (
