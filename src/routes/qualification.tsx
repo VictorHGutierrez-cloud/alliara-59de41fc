@@ -202,6 +202,8 @@ function LeadCard({
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
   const host = (() => { try { return lead.website ? new URL(lead.website).host : null; } catch { return lead.website; } })();
+  const { activities } = useLeadActivities(lead.id, lead.owner_id);
+  const summary = activitySummary(activities);
 
   return (
     <div
@@ -245,6 +247,16 @@ function LeadCard({
           ))}
         </select>
       </div>
+      {(summary.openTasks > 0 || lead.next_step_at) && (
+        <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+          {summary.openTasks > 0 ? (
+            <span className={summary.overdue > 0 ? "text-red-400" : ""}>
+              {summary.openTasks} open · {summary.overdue > 0 ? `${summary.overdue} overdue` : "on track"}
+            </span>
+          ) : <span />}
+          {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
+        </div>
+      )}
     </div>
   );
 }
