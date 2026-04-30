@@ -43,6 +43,23 @@ function QualificationPage() {
 
   const active = leadsStore.leads.find((l) => l.id === activeId) ?? null;
 
+  const moveLeadInQualificationKanban = async (lead: LeadRow, next: LeadStatus) => {
+    if (next === lead.status && !(next === "approved" && !lead.promoted_partner_id)) return;
+    try {
+      if (next !== lead.status) await leadsStore.updateLead(lead.id, { status: next });
+      if (next !== "approved" || lead.promoted_partner_id) return;
+
+      if (confirm("Create partner object? This will add this approved lead to your Portfolio as an Official Partner.")) {
+        await leadsStore.promoteLead(lead);
+        toast.success(`${lead.company_name} added to portfolio`);
+      } else {
+        toast.success(`${lead.company_name} approved in qualification`);
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
   if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
 
   return (
@@ -79,7 +96,17 @@ function QualificationPage() {
             {LEAD_STATUSES.map((col) => {
               const items = leadsStore.leads.filter((l) => l.status === col.key);
               return (
-                <div key={col.key} className="rounded-2xl bg-surface/40 border border-border/60 p-3 min-h-[200px]">
+                <div
+                  key={col.key}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const leadId = e.dataTransfer.getData("text/plain");
+                    const lead = leadsStore.leads.find((l) => l.id === leadId);
+                    if (lead) void moveLeadInQualificationKanban(lead, col.key);
+                  }}
+                  className="rounded-2xl bg-surface/40 border border-border/60 p-3 min-h-[200px]"
+                >
                   <div className="flex items-center justify-between px-1 pb-2">
                     <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
                       {col.label}
@@ -92,7 +119,6 @@ function QualificationPage() {
                         key={lead.id}
                         lead={lead}
                         onClick={() => setActiveId(lead.id)}
-                        onStatusChange={(s) => leadsStore.updateLead(lead.id, { status: s })}
                         onDelete={async () => {
                           if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
                           try {
@@ -152,16 +178,6 @@ function QualificationPage() {
             toast.success("Lead deleted");
             setActiveId(null);
           }}
-          onPromote={async () => {
-            try {
-              await leadsStore.promoteLead(active);
-              toast.success(`${active.company_name} promoted to partner`);
-              setActiveId(null);
-              nav({ to: "/partners" });
-            } catch (e) {
-              toast.error((e as Error).message);
-            }
-          }}
         />
       )}
     </div>
@@ -192,11 +208,10 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 }
 
 function LeadCard({
-  lead, onClick, onStatusChange, onDelete,
+  lead, onClick, onDelete,
 }: {
   lead: LeadRow;
   onClick: () => void;
-  onStatusChange: (s: LeadStatus) => void;
   onDelete: () => void;
 }) {
   const total = computeFactorialTotal(lead);
@@ -207,8 +222,13 @@ function LeadCard({
 
   return (
     <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", lead.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
       onClick={onClick}
-      className="rounded-xl bg-card border border-border/60 p-3 cursor-pointer hover:-translate-y-0.5 transition card-elev"
+      className="rounded-xl bg-card border border-border/60 p-3 cursor-grab active:cursor-grabbing hover:-translate-y-0.5 transition card-elev"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -236,16 +256,7 @@ function LeadCard({
         ) : (
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Not scored</span>
         )}
-        <select
-          value={lead.status}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => onStatusChange(e.target.value as LeadStatus)}
-          className="text-xs rounded-md bg-surface border border-border/60 px-1.5 py-1"
-        >
-          {LEAD_STATUSES.map((s) => (
-            <option key={s.key} value={s.key}>{s.label}</option>
-          ))}
-        </select>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Drag to move</span>
       </div>
       {(summary.openTasks > 0 || lead.next_step_at) && (
         <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
@@ -325,7 +336,7 @@ function NewLeadDialog({
 }
 
 function LeadDetailPanel({
-  lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
+  lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete,
 }: {
   lead: LeadRow;
   onClose: () => void;
@@ -334,7 +345,6 @@ function LeadDetailPanel({
   onUpdateNotes: (text: string) => Promise<void>;
   onReject: (reason: string) => Promise<void>;
   onDelete: () => Promise<void>;
-  onPromote: () => Promise<void>;
 }) {
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
@@ -365,33 +375,9 @@ function LeadDetailPanel({
 
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Status</span>
-          <select
-            value={lead.status}
-            onChange={(e) => {
-              const next = e.target.value as LeadStatus;
-              if (next === lead.status) return;
-              if (next === "approved") {
-                void (async () => {
-                  await onUpdate({ status: "approved" });
-                  if (lead.promoted_partner_id) return;
-                  if (confirm("Create partner object? This will add this lead to your Portfolio as an Official Partner.")) {
-                    await onPromote();
-                  }
-                })();
-                return;
-              }
-              if (next === "rejected") {
-                setShowReject(true);
-                return;
-              }
-              void onUpdate({ status: next });
-            }}
-            className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1"
-          >
-            {LEAD_STATUSES.map((s) => (
-              <option key={s.key} value={s.key}>{s.label}</option>
-            ))}
-          </select>
+          <span className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1">
+            {LEAD_STATUSES.find((s) => s.key === lead.status)?.label ?? lead.status}
+          </span>
           {lead.promoted_partner_id && (
             <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">
               Promoted
@@ -500,21 +486,11 @@ function LeadDetailPanel({
               Reject Lead
             </button>
             <button
-              disabled={lead.status === "approved" || lead.status === "rejected"}
-              onClick={() => {
-                void (async () => {
-                  await onUpdate({ status: "approved" });
-                  if (lead.promoted_partner_id) return;
-                  if (confirm("Create partner object? This will add this lead to your Portfolio as an Official Partner.")) {
-                    await onPromote();
-                  }
-                })();
-              }}
+              disabled={lead.status !== "new"}
+              onClick={() => void onUpdate({ status: "in_review" })}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
             >
-              {lead.status === "approved"
-                ? (lead.promoted_partner_id ? "In Portfolio" : "In Pipeline")
-                : "Add to Acquisition Pipeline"}
+              {lead.status === "new" ? "Put in Qualification Pipe" : "In Qualification Pipe"}
             </button>
           </div>
         </div>
