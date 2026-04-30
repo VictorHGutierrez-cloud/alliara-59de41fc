@@ -952,3 +952,85 @@ function ActivityRow({
     </div>
   );
 }
+/* ───────────────── Lead Tasks · Next moves ───────────────── */
+
+function LeadTasksSection({
+  tasks, loading, onComplete, onOpenLead,
+}: {
+  tasks: LeadTaskRow[];
+  loading: boolean;
+  onComplete: (id: string) => void | Promise<void>;
+  onOpenLead: (leadId: string) => void;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = tasks.filter((t) => t.due_date && t.due_date < today).length;
+  const top = tasks.slice(0, 6);
+
+  return (
+    <section id="lead-tasks" className="mt-6 rounded-2xl border border-border/60 bg-card p-5 card-elev">
+      <div className="flex items-baseline justify-between gap-2 flex-wrap">
+        <div>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Lead Tasks · Next moves
+          </p>
+          <h2 className="mt-1 text-lg font-semibold">
+            {tasks.length} open
+            {overdue > 0 && <span className="ml-2 text-sm font-mono text-red-400">· {overdue} overdue</span>}
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Tasks attached to leads in the qualification pipeline. Sorted by due date.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        {loading ? (
+          <div className="text-sm text-muted-foreground py-4 text-center">Loading tasks…</div>
+        ) : top.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border/60 bg-surface/40 p-6 text-center text-sm text-muted-foreground">
+            No open tasks on any lead. Add one inside a lead's CRM tab to keep things moving.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {top.map((t) => {
+              const isOverdue = !!(t.due_date && t.due_date < today);
+              return (
+                <li
+                  key={t.id}
+                  className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 transition cursor-pointer hover:bg-surface-2 ${
+                    isOverdue ? "border-red-500/30 bg-red-500/5" : "border-border bg-surface"
+                  }`}
+                  onClick={() => onOpenLead(t.lead_id)}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); void onComplete(t.id); }}
+                    title="Mark complete"
+                    className="shrink-0 h-5 w-5 rounded border border-border bg-card hover:bg-primary hover:border-primary transition"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{t.title}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {t.lead_company}
+                      {t.lead_status === "rejected" || t.lead_status === "approved"
+                        ? ` · ${t.lead_status}`
+                        : ""}
+                    </div>
+                  </div>
+                  <span className={`text-xs font-mono ${isOverdue ? "text-red-400 font-semibold" : "text-muted-foreground"}`}>
+                    {t.due_date ?? "no date"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {tasks.length > top.length && (
+          <p className="mt-3 text-[11px] text-center font-mono text-muted-foreground">
+            +{tasks.length - top.length} more · open a lead to see all its tasks
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
