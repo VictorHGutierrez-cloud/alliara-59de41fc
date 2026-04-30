@@ -161,7 +161,7 @@ function PartnersPage() {
             Command Center · {greeting()}
           </span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
           {greeting()}, {displayName}
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
@@ -171,16 +171,16 @@ function PartnersPage() {
           {statusCounts.at_risk > 0 && (
             <button
               onClick={() => setStatusFilter("at_risk")}
-              className="inline-flex items-center gap-2 rounded-lg border border-[#FF4444]/40 bg-[#FF4444]/10 px-3 py-1.5 text-xs font-medium text-[#FF6B6B] hover:bg-[#FF4444]/20 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/20 transition"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-[#FF4444]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
               Review {statusCounts.at_risk} Churn Risk
             </button>
           )}
           {pendingLeads.length > 0 && (
             <Link
               to="/qualification"
-              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs font-medium hover:bg-white/[0.06] transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium hover:bg-surface-2 transition"
             >
               Qualify {pendingLeads.length} lead{pendingLeads.length === 1 ? "" : "s"} →
             </Link>
@@ -188,7 +188,7 @@ function PartnersPage() {
           {overdueActions.length > 0 && (
             <a
               href="#growth-initiatives"
-              className="inline-flex items-center gap-2 rounded-lg border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-3 py-1.5 text-xs font-medium text-[#F59E0B] hover:bg-[#F59E0B]/15 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-medium text-warning hover:bg-warning/15 transition"
             >
               {overdueActions.length} overdue initiative{overdueActions.length === 1 ? "" : "s"}
             </a>
@@ -281,10 +281,10 @@ function PartnersPage() {
         </div>
 
         {/* Qualification Queue */}
-        <div className="rounded-2xl border border-white/[0.06] bg-[#1A1D27] p-6 card-elev">
+        <div className="rounded-2xl border border-border bg-card p-6 card-elev">
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Qualification Queue</p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className={`text-5xl font-display font-bold ${pendingLeads.length > 0 ? "text-white" : "text-muted-foreground/60"}`}>
+            <span className={`text-5xl font-display font-bold ${pendingLeads.length > 0 ? "text-foreground" : "text-muted-foreground/60"}`}>
               {pendingLeads.length}
             </span>
             <span className="text-sm text-muted-foreground">pending IPP scoring</span>
@@ -294,15 +294,15 @@ function PartnersPage() {
               ? "All caught up. Inbox is clean."
               : `${leads.leads.filter((l) => l.status === "new").length} new · ${leads.leads.filter((l) => l.status === "in_review").length} in review`}
           </p>
-          <div className="mt-4 h-1 rounded-full bg-white/[0.05] overflow-hidden">
+          <div className="mt-4 h-1 rounded-full bg-surface-2 overflow-hidden">
             <div
-              className="h-full bg-[#10B981]/50 transition-all"
+              className="h-full bg-primary/50 transition-all"
               style={{ width: `${Math.min(100, pendingLeads.length * 10)}%` }}
             />
           </div>
           <Link
             to="/qualification"
-            className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-[#10B981] hover:bg-[#10B981]/90 px-4 py-2.5 text-sm font-semibold text-[#0F111A] transition shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)]"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-primary hover:bg-primary/90 px-4 py-2.5 text-sm font-semibold text-primary-foreground transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)]"
           >
             Review Leads →
           </Link>
@@ -315,7 +315,7 @@ function PartnersPage() {
           <div>
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Next Best Actions</p>
             <h2 className="mt-1 text-lg font-semibold flex items-center gap-2">
-              {focusMode && <Target className="h-4 w-4 text-[#FF4444]" />}
+              {focusMode && <Target className="h-4 w-4 text-destructive" />}
               {focusMode ? "Focus Mode · Top 3" : "Growth Initiatives Due"}
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
@@ -332,8 +332,8 @@ function PartnersPage() {
               onClick={() => setFocusMode((v) => !v)}
               className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
                 focusMode
-                  ? "border-[#FF4444]/40 bg-[#FF4444]/15 text-[#FF6B6B] shadow-[0_0_16px_-6px_rgba(255,68,68,0.6)]"
-                  : "border-white/[0.08] bg-white/[0.03] text-muted-foreground hover:text-foreground hover:bg-white/[0.06]"
+                  ? "border-destructive/40 bg-destructive/15 text-destructive shadow-[0_4px_16px_-6px_oklch(0.58_0.2_27_/_0.45)]"
+                  : "border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-surface-2"
               }`}
             >
               <Focus className="h-3.5 w-3.5" />
@@ -349,8 +349,8 @@ function PartnersPage() {
               onClick={() => setAxisFilter("all")}
               className={`text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-md border transition ${
                 axisFilter === "all"
-                  ? "border-white/20 bg-white/[0.08] text-white"
-                  : "border-white/[0.06] bg-white/[0.02] text-muted-foreground hover:text-foreground hover:bg-white/[0.05]"
+                  ? "border-foreground/30 bg-surface-2 text-foreground"
+                  : "border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-surface-2"
               }`}
             >
               All · {openActions.length}
@@ -367,7 +367,7 @@ function PartnersPage() {
                   title={ax.name}
                   className={`text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-md border transition flex items-center gap-1.5 ${
                     disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"
-                  } ${active ? "" : "hover:bg-white/[0.05]"}`}
+                  } ${active ? "" : "hover:bg-surface-2"}`}
                   style={
                     active
                       ? {
@@ -415,8 +415,8 @@ function PartnersPage() {
                       onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedAction(a); } }}
                       className={`group flex items-center gap-3 px-3 py-3 rounded-lg transition border cursor-pointer ${
                         isHigh
-                          ? "border-l-4 border-l-[#FF4444] border-y border-r border-y-[#FF4444]/20 border-r-[#FF4444]/20 bg-[#FF4444]/[0.04] shadow-[0_0_24px_-8px_rgba(255,68,68,0.45)] hover:bg-[#FF4444]/[0.07]"
-                          : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
+                          ? "border-l-4 border-l-destructive border-y border-r border-y-destructive/20 border-r-destructive/20 bg-destructive/5 shadow-[0_8px_24px_-8px_oklch(0.58_0.2_27_/_0.35)] hover:bg-destructive/10"
+                          : "border-border bg-surface hover:bg-surface-2"
                       }`}
                     >
                       <button
@@ -426,11 +426,11 @@ function PartnersPage() {
                         title="Mark complete"
                         className={`shrink-0 h-6 w-6 rounded-md border flex items-center justify-center transition ${
                           isHigh
-                            ? "border-[#FF4444]/50 bg-[#FF4444]/10 hover:bg-[#10B981] hover:border-[#10B981]"
-                            : "border-white/[0.1] bg-white/[0.03] hover:bg-[#10B981] hover:border-[#10B981]"
+                            ? "border-destructive/50 bg-destructive/10 hover:bg-primary hover:border-primary"
+                            : "border-border bg-surface hover:bg-primary hover:border-primary"
                         } disabled:opacity-50`}
                       >
-                        <Check className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 text-white transition" />
+                        <Check className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 text-foreground transition" />
                       </button>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -442,7 +442,7 @@ function PartnersPage() {
                               {axis.letter}
                             </span>
                           )}
-                          <span className={`text-sm truncate ${isHigh ? "font-bold text-white" : "font-medium"}`}>{a.title}</span>
+                          <span className={`text-sm truncate ${isHigh ? "font-bold text-foreground" : "font-medium"}`}>{a.title}</span>
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground truncate">
                           {a.partner_name}
@@ -451,7 +451,7 @@ function PartnersPage() {
                       </div>
                       <PriorityPill p={a.priority} />
                       <span
-                        className={`text-xs font-mono w-20 text-right ${overdue ? "text-[#FF4444] font-semibold" : "text-muted-foreground"}`}
+                        className={`text-xs font-mono w-20 text-right ${overdue ? "text-destructive font-semibold" : "text-muted-foreground"}`}
                       >
                         {due ? formatDue(due, overdue) : "no date"}
                       </span>
@@ -646,14 +646,14 @@ function prettyStatus(s: StatusFilter): string {
 
 function KpiCard({ label, value, hint, accent, primary }: { label: string; value: string; hint: string; accent: string; primary?: boolean }) {
   return (
-    <div className="rounded-xl border border-white/[0.05] bg-[#1A1D27] p-5 card-elev relative overflow-hidden hover:border-white/[0.1] transition">
+    <div className="rounded-xl border border-border bg-card p-5 card-elev relative overflow-hidden hover:border-border transition">
       <div
         className="absolute top-0 left-0 h-1 w-full"
         style={{ background: `linear-gradient(90deg, var(--${accent}), transparent)` }}
       />
       <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
       <div
-        className={`mt-2 text-3xl font-display font-bold ${primary ? "text-gradient" : "text-white"}`}
+        className={`mt-2 text-3xl font-display font-bold ${primary ? "text-gradient" : "text-foreground"}`}
       >
         {value}
       </div>
@@ -671,29 +671,29 @@ function HealthBadge({
 }) {
   const isZero = count === 0;
   const ring = isZero
-    ? "border-white/[0.05] bg-white/[0.02]"
-    : tone === "green" ? "border-[#10B981]/30 bg-[#10B981]/5"
-    : tone === "yellow" ? "border-[#F59E0B]/30 bg-[#F59E0B]/5"
-    : "border-[#FF4444]/40 bg-[#FF4444]/5";
+    ? "border-border bg-surface"
+    : tone === "green" ? "border-primary/30 bg-primary/5"
+    : tone === "yellow" ? "border-warning/30 bg-warning/5"
+    : "border-destructive/40 bg-destructive/5";
   const dot = isZero
     ? "bg-muted-foreground/40"
-    : tone === "green" ? "bg-[#10B981]" : tone === "yellow" ? "bg-[#F59E0B]" : "bg-[#FF4444]";
+    : tone === "green" ? "bg-primary" : tone === "yellow" ? "bg-warning" : "bg-destructive";
   const text = isZero
     ? "text-muted-foreground"
-    : tone === "green" ? "text-[#10B981]" : tone === "yellow" ? "text-[#F59E0B]" : "text-[#FF6B6B]";
+    : tone === "green" ? "text-primary" : tone === "yellow" ? "text-warning" : "text-destructive";
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
 
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-xl border p-4 transition ${ring} ${isZero ? "opacity-40 hover:opacity-70" : "hover:bg-white/[0.04]"} ${active ? "ring-2 ring-offset-2 ring-offset-background ring-current opacity-100" : ""}`}
+      className={`text-left rounded-xl border p-4 transition ${ring} ${isZero ? "opacity-40 hover:opacity-70" : "hover:bg-surface-2"} ${active ? "ring-2 ring-offset-2 ring-offset-background ring-current opacity-100" : ""}`}
     >
       <div className="flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${dot}`} />
         <span className={`text-xs font-medium ${text}`}>{label}</span>
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className={`text-3xl font-display font-bold ${isZero ? "text-muted-foreground" : "text-white"}`}>{count}</span>
+        <span className={`text-3xl font-display font-bold ${isZero ? "text-muted-foreground" : "text-foreground"}`}>{count}</span>
         <span className="text-xs text-muted-foreground">{pct}%</span>
       </div>
     </button>
@@ -702,9 +702,9 @@ function HealthBadge({
 
 function PriorityPill({ p }: { p: ActionRow["priority"] }) {
   const map = {
-    high: "bg-[#FF4444] text-white border-[#FF4444] font-bold",
-    medium: "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/40",
-    low: "bg-white/[0.03] text-muted-foreground border-white/[0.06]",
+    high: "bg-destructive text-foreground border-destructive font-bold",
+    medium: "bg-warning/10 text-warning border-warning/40",
+    low: "bg-surface text-muted-foreground border-border",
   } as const;
   return (
     <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border ${map[p]}`}>
@@ -925,13 +925,13 @@ function ActionDetailSheet({
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="h-full w-full max-w-xl overflow-y-auto bg-[#1A1D27] border-l border-white/[0.06] shadow-2xl"
+        className="h-full w-full max-w-xl overflow-y-auto bg-card border-l border-border shadow-2xl"
       >
         {/* Header */}
-        <div className={`relative px-6 pt-6 pb-5 border-b border-white/[0.05] ${isHigh ? "bg-gradient-to-b from-[#FF4444]/10 to-transparent" : ""}`}>
+        <div className={`relative px-6 pt-6 pb-5 border-b border-border ${isHigh ? "bg-gradient-to-b from-destructive/10 to-transparent" : ""}`}>
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 h-8 w-8 rounded-md border border-white/[0.06] bg-white/[0.03] text-muted-foreground hover:text-foreground hover:bg-white/[0.08] flex items-center justify-center transition"
+            className="absolute top-4 right-4 h-8 w-8 rounded-md border border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-surface-2 flex items-center justify-center transition"
             aria-label="Close"
           >
             <XIcon className="h-4 w-4" />
@@ -947,12 +947,12 @@ function ActionDetailSheet({
             )}
             <PriorityPill p={action.priority} />
             {overdue && (
-              <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border border-[#FF4444]/40 bg-[#FF4444]/10 text-[#FF6B6B]">
+              <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border border-destructive/40 bg-destructive/10 text-destructive">
                 overdue
               </span>
             )}
           </div>
-          <h2 className={`mt-3 text-xl font-semibold ${isHigh ? "text-white" : ""}`}>{action.title}</h2>
+          <h2 className={`mt-3 text-xl font-semibold ${isHigh ? "text-foreground" : ""}`}>{action.title}</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {action.partner_name}
             {due && <> · due {formatDue(due, overdue)}</>}
@@ -993,7 +993,7 @@ function ActionDetailSheet({
               <ul className="space-y-1.5">
                 {axis.metrics.map((m, i) => (
                   <li key={i} className="flex gap-2 text-sm">
-                    <span className="text-[#10B981] mt-0.5">▸</span>
+                    <span className="text-primary mt-0.5">▸</span>
                     <span className="text-foreground/85">{m}</span>
                   </li>
                 ))}
@@ -1007,7 +1007,7 @@ function ActionDetailSheet({
               <ul className="space-y-1.5">
                 {axis.commonMistakes.map((m, i) => (
                   <li key={i} className="flex gap-2 text-sm">
-                    <span className="text-[#FF4444] mt-0.5">✕</span>
+                    <span className="text-destructive mt-0.5">✕</span>
                     <span className="text-foreground/85">{m}</span>
                   </li>
                 ))}
@@ -1022,9 +1022,9 @@ function ActionDetailSheet({
                 {checklist.map((c, i) => (
                   <li
                     key={i}
-                    className="flex items-start gap-3 rounded-lg border border-white/[0.05] bg-white/[0.02] p-3"
+                    className="flex items-start gap-3 rounded-lg border border-border bg-surface p-3"
                   >
-                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border border-white/[0.1] bg-white/[0.03] text-[10px] font-mono text-muted-foreground">
+                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border border-border bg-surface text-[10px] font-mono text-muted-foreground">
                       {i + 1}
                     </span>
                     <div className="min-w-0">
@@ -1041,7 +1041,7 @@ function ActionDetailSheet({
         </div>
 
         {/* Footer actions */}
-        <div className="sticky bottom-0 border-t border-white/[0.05] bg-[#1A1D27]/95 backdrop-blur px-6 py-4 flex items-center justify-between gap-3">
+        <div className="sticky bottom-0 border-t border-border bg-card/95 backdrop-blur px-6 py-4 flex items-center justify-between gap-3">
           <Link
             to="/partner/$partnerId/plan"
             params={{ partnerId: action.partner_id }}
@@ -1052,7 +1052,7 @@ function ActionDetailSheet({
           <button
             onClick={onComplete}
             disabled={completing}
-            className="inline-flex items-center gap-2 rounded-lg bg-[#10B981] hover:bg-[#10B981]/90 px-4 py-2 text-sm font-semibold text-[#0F111A] transition shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)] disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg bg-primary hover:bg-primary/90 px-4 py-2 text-sm font-semibold text-primary-foreground transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)] disabled:opacity-50"
           >
             <Check className="h-4 w-4" />
             {completing ? "Saving…" : "Mark complete"}
