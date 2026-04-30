@@ -13,11 +13,13 @@ export const Route = createFileRoute("/login")({
 });
 
 function Login() {
-  const { signIn, user } = useAuth();
+  const { signIn, user, resendVerification } = useAuth();
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
+  const [needsVerify, setNeedsVerify] = useState(false);
+  const [resending, setResending] = useState(false);
 
   useEffect(() => {
     if (user) nav({ to: "/partners", replace: true });
@@ -28,7 +30,13 @@ function Login() {
     setBusy(true);
     const { error } = await signIn(email, pw);
     setBusy(false);
-    if (error) return toast.error(error);
+    if (error) {
+      const msg = error.toLowerCase();
+      if (msg.includes("email") && (msg.includes("not confirmed") || msg.includes("confirm"))) {
+        setNeedsVerify(true);
+      }
+      return toast.error(error);
+    }
     toast.success("Welcome back");
     nav({ to: "/partners" });
   };
@@ -41,6 +49,22 @@ function Login() {
         <button disabled={busy} className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
           {busy ? "Signing in…" : "Sign in"}
         </button>
+        {needsVerify && (
+          <button
+            type="button"
+            disabled={resending || !email}
+            onClick={async () => {
+              setResending(true);
+              const { error } = await resendVerification(email);
+              setResending(false);
+              if (error) toast.error(error);
+              else toast.success("Verification email sent — check your inbox.");
+            }}
+            className="w-full rounded-lg border border-border bg-surface py-2 text-xs font-medium hover:bg-surface-2 disabled:opacity-50"
+          >
+            {resending ? "Resending…" : "Resend verification email"}
+          </button>
+        )}
         <p className="text-center text-sm text-muted-foreground">
           New here? <Link to="/signup" className="text-primary hover:underline">Create an account</Link>
         </p>
