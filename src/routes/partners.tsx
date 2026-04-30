@@ -110,38 +110,37 @@ function PartnersPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
-      {/* 1. AI Morning Briefing */}
-      <section className="rounded-3xl border border-border/60 bg-gradient-to-br from-card via-card to-surface/40 p-6 sm:p-8 card-elev relative overflow-hidden">
-        <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-gradient-to-br from-[var(--octa-1)]/20 via-[var(--octa-4)]/10 to-transparent blur-3xl pointer-events-none" />
+      {/* 1. Compact header */}
+      <section className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface-2/60 px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--octa-4)] opacity-60 animate-ping" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--octa-4)]" />
-            </span>
-            AI Morning Briefing · {greeting()}
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          </span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Command Center · {greeting()}
           </span>
         </div>
-        <h1 className="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight">
-          {greeting()}, <span className="text-gradient">{displayName}</span>
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
+          {greeting()}, {displayName}
         </h1>
-        <p className="mt-3 max-w-3xl text-base text-muted-foreground leading-relaxed">
+        <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
           {briefing}
         </p>
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {statusCounts.at_risk > 0 && (
             <button
               onClick={() => setStatusFilter("at_risk")}
-              className="inline-flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 hover:bg-red-500/15 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#FF4444]/40 bg-[#FF4444]/10 px-3 py-1.5 text-xs font-medium text-[#FF6B6B] hover:bg-[#FF4444]/20 transition"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FF4444]" />
               Review {statusCounts.at_risk} Churn Risk
             </button>
           )}
           {pendingLeads.length > 0 && (
             <Link
               to="/qualification"
-              className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-surface-2/60 px-3 py-1.5 text-xs font-medium hover:bg-surface-2 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs font-medium hover:bg-white/[0.06] transition"
             >
               Qualify {pendingLeads.length} lead{pendingLeads.length === 1 ? "" : "s"} →
             </Link>
@@ -149,7 +148,7 @@ function PartnersPage() {
           {overdueActions.length > 0 && (
             <a
               href="#growth-initiatives"
-              className="inline-flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-1.5 text-xs font-medium text-yellow-200 hover:bg-yellow-500/15 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-3 py-1.5 text-xs font-medium text-[#F59E0B] hover:bg-[#F59E0B]/15 transition"
             >
               {overdueActions.length} overdue initiative{overdueActions.length === 1 ? "" : "s"}
             </a>
@@ -170,6 +169,7 @@ function PartnersPage() {
           value="$150k"
           hint="ARR in motion · forecast"
           accent="octa-4"
+          primary
         />
         <KpiCard
           label="Active partners"
@@ -241,11 +241,12 @@ function PartnersPage() {
         </div>
 
         {/* Qualification Queue */}
-        <div className="rounded-2xl border border-border/60 bg-card p-6 card-elev relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[var(--octa-5)]/20 blur-3xl pointer-events-none" />
+        <div className="rounded-2xl border border-white/[0.06] bg-[#1A1D27] p-6 card-elev">
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Qualification Queue</p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-5xl font-display font-bold text-gradient">{pendingLeads.length}</span>
+            <span className={`text-5xl font-display font-bold ${pendingLeads.length > 0 ? "text-white" : "text-muted-foreground/60"}`}>
+              {pendingLeads.length}
+            </span>
             <span className="text-sm text-muted-foreground">pending IPP scoring</span>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
@@ -253,9 +254,15 @@ function PartnersPage() {
               ? "All caught up. Inbox is clean."
               : `${leads.leads.filter((l) => l.status === "new").length} new · ${leads.leads.filter((l) => l.status === "in_review").length} in review`}
           </p>
+          <div className="mt-4 h-1 rounded-full bg-white/[0.05] overflow-hidden">
+            <div
+              className="h-full bg-[#10B981]/50 transition-all"
+              style={{ width: `${Math.min(100, pendingLeads.length * 10)}%` }}
+            />
+          </div>
           <Link
             to="/qualification"
-            className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-[#10B981] hover:bg-[#10B981]/90 px-4 py-2.5 text-sm font-semibold text-[#0F111A] transition shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)]"
           >
             Review Leads →
           </Link>
@@ -285,17 +292,22 @@ function PartnersPage() {
               No open initiatives. Open a partner's Joint Business Plan to draft the next move.
             </div>
           ) : (
-            <ul className="divide-y divide-border/50 -mx-2">
+            <ul className="space-y-2 -mx-2">
               {sortActions(openActions).slice(0, 8).map((a) => {
                 const axis = AXES.find((x) => x.key === a.axis_key);
                 const due = a.due_date ? new Date(a.due_date) : null;
                 const overdue = isOverdue(a.due_date);
+                const isHigh = a.priority === "high";
                 return (
                   <li key={a.id}>
                     <Link
                       to="/partner/$partnerId/plan"
                       params={{ partnerId: a.partner_id }}
-                      className="flex items-center gap-3 px-2 py-3 rounded-lg hover:bg-surface-2/60 transition"
+                      className={`flex items-center gap-3 px-3 py-3 rounded-lg transition border ${
+                        isHigh
+                          ? "border-l-4 border-l-[#FF4444] border-y border-r border-y-[#FF4444]/20 border-r-[#FF4444]/20 bg-[#FF4444]/[0.04] shadow-[0_0_24px_-8px_rgba(255,68,68,0.45)] hover:bg-[#FF4444]/[0.07]"
+                          : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
+                      }`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -307,7 +319,7 @@ function PartnersPage() {
                               {axis.letter}
                             </span>
                           )}
-                          <span className="text-sm font-medium truncate">{a.title}</span>
+                          <span className={`text-sm truncate ${isHigh ? "font-bold text-white" : "font-medium"}`}>{a.title}</span>
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground truncate">
                           {a.partner_name}
@@ -316,7 +328,7 @@ function PartnersPage() {
                       </div>
                       <PriorityPill p={a.priority} />
                       <span
-                        className={`text-xs font-mono w-20 text-right ${overdue ? "text-red-400" : "text-muted-foreground"}`}
+                        className={`text-xs font-mono w-20 text-right ${overdue ? "text-[#FF4444] font-semibold" : "text-muted-foreground"}`}
                       >
                         {due ? formatDue(due, overdue) : "no date"}
                       </span>
@@ -492,15 +504,19 @@ function prettyStatus(s: StatusFilter): string {
 
 /* ─────────────────── presentational ─────────────────── */
 
-function KpiCard({ label, value, hint, accent }: { label: string; value: string; hint: string; accent: string }) {
+function KpiCard({ label, value, hint, accent, primary }: { label: string; value: string; hint: string; accent: string; primary?: boolean }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5 card-elev relative overflow-hidden">
+    <div className="rounded-xl border border-white/[0.05] bg-[#1A1D27] p-5 card-elev relative overflow-hidden hover:border-white/[0.1] transition">
       <div
         className="absolute top-0 left-0 h-1 w-full"
         style={{ background: `linear-gradient(90deg, var(--${accent}), transparent)` }}
       />
       <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className="mt-2 text-3xl font-display font-bold">{value}</div>
+      <div
+        className={`mt-2 text-3xl font-display font-bold ${primary ? "text-gradient" : "text-white"}`}
+      >
+        {value}
+      </div>
       <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
     </div>
   );
@@ -513,24 +529,31 @@ function HealthBadge({
   tone: "green" | "yellow" | "red";
   active: boolean; onClick: () => void;
 }) {
-  const ring = tone === "green" ? "border-emerald-500/40 bg-emerald-500/5"
-    : tone === "yellow" ? "border-yellow-500/40 bg-yellow-500/5"
-    : "border-red-500/40 bg-red-500/5";
-  const dot = tone === "green" ? "bg-emerald-400" : tone === "yellow" ? "bg-yellow-400" : "bg-red-400";
-  const text = tone === "green" ? "text-emerald-300" : tone === "yellow" ? "text-yellow-200" : "text-red-300";
+  const isZero = count === 0;
+  const ring = isZero
+    ? "border-white/[0.05] bg-white/[0.02]"
+    : tone === "green" ? "border-[#10B981]/30 bg-[#10B981]/5"
+    : tone === "yellow" ? "border-[#F59E0B]/30 bg-[#F59E0B]/5"
+    : "border-[#FF4444]/40 bg-[#FF4444]/5";
+  const dot = isZero
+    ? "bg-muted-foreground/40"
+    : tone === "green" ? "bg-[#10B981]" : tone === "yellow" ? "bg-[#F59E0B]" : "bg-[#FF4444]";
+  const text = isZero
+    ? "text-muted-foreground"
+    : tone === "green" ? "text-[#10B981]" : tone === "yellow" ? "text-[#F59E0B]" : "text-[#FF6B6B]";
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
 
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-xl border p-4 transition ${ring} ${active ? "ring-2 ring-offset-2 ring-offset-background ring-current" : "hover:bg-surface-2/40"}`}
+      className={`text-left rounded-xl border p-4 transition ${ring} ${isZero ? "opacity-40 hover:opacity-70" : "hover:bg-white/[0.04]"} ${active ? "ring-2 ring-offset-2 ring-offset-background ring-current opacity-100" : ""}`}
     >
       <div className="flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${dot}`} />
         <span className={`text-xs font-medium ${text}`}>{label}</span>
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-3xl font-display font-bold">{count}</span>
+        <span className={`text-3xl font-display font-bold ${isZero ? "text-muted-foreground" : "text-white"}`}>{count}</span>
         <span className="text-xs text-muted-foreground">{pct}%</span>
       </div>
     </button>
@@ -539,9 +562,9 @@ function HealthBadge({
 
 function PriorityPill({ p }: { p: ActionRow["priority"] }) {
   const map = {
-    high: "bg-red-500/15 text-red-300 border-red-500/30",
-    medium: "bg-yellow-500/10 text-yellow-200 border-yellow-500/30",
-    low: "bg-surface-2 text-muted-foreground border-border/60",
+    high: "bg-[#FF4444] text-white border-[#FF4444] font-bold",
+    medium: "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/40",
+    low: "bg-white/[0.03] text-muted-foreground border-white/[0.06]",
   } as const;
   return (
     <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border ${map[p]}`}>
