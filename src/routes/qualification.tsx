@@ -301,11 +301,12 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 }
 
 function LeadCard({
-  lead, onClick, onDelete,
+  lead, onClick, onDelete, onPromote,
 }: {
   lead: LeadRow;
   onClick: () => void;
   onDelete: () => void;
+  onPromote: () => void;
 }) {
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
@@ -363,6 +364,24 @@ function LeadCard({
           ) : <span />}
           {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
         </div>
+      )}
+      {lead.status === "approved" && !lead.promoted_partner_id && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onPromote(); }}
+          className="mt-2 w-full rounded-md bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 text-[11px] font-semibold px-2 py-1 transition"
+        >
+          Promote to Partner →
+        </button>
+      )}
+      {lead.promoted_partner_id && (
+        <Link
+          to="/partner/$partnerId"
+          params={{ partnerId: lead.promoted_partner_id }}
+          onClick={(e) => e.stopPropagation()}
+          className="mt-2 block w-full text-center rounded-md bg-surface text-muted-foreground hover:text-foreground text-[11px] font-semibold px-2 py-1 transition border border-border/60"
+        >
+          Open partner →
+        </Link>
       )}
     </div>
   );
