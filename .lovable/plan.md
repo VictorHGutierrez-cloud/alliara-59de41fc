@@ -1,35 +1,55 @@
-## What you're describing
+## Goal
 
-Two flows in `/qualification` should consistently funnel into the **Partner Acquisition Pipeline** (the `/partners` portfolio):
+Rename the "My maturity" nav entry and turn `/dashboard` into a **PDM performance hub** that aggregates real activity across all the PDM's partners — not just the personal OCTA maturity score.
 
-1. Clicking **"Promote to Official Partner"** should land the user on the pipeline (`/partners`) where the new partner is visible — not jump straight into the partner's deep detail page.
-2. Setting a lead's **Status → Approved** (via the dropdown) should also create the partner and surface it in the portfolio. Today the dropdown just changes a label and does nothing else, so the partner never appears.
+## Naming
 
-## Plan
+Rename top-nav link from **"My maturity"** to **"My Performance"** (keeping the `/dashboard` route URL the same to avoid breaking links). The current maturity radar stays inside the page as one section, but no longer headlines the whole experience.
 
-### 1. `src/routes/qualification.tsx` — redirect Promote to the pipeline
-- After a successful `promoteLead(active)`, replace `nav({ to: "/partner/$partnerId", ... })` with `nav({ to: "/partners" })`.
-- Keep the success toast (`"X promoted to partner"`) and clear `setActiveId(null)` so the user lands on the pipeline with the new card visible.
-- Optional polish: append `?highlight=<partnerId>` and have `/partners` briefly ring the matching card (nice-to-have, can skip if you want a minimal change).
+## New Dashboard Structure (`/dashboard`)
 
-### 2. `src/routes/qualification.tsx` — make the Status dropdown trigger promotion
-When the user changes status to `approved`:
-- If `lead.promoted_partner_id` is already set → just update status (no duplicate partner).
-- Otherwise → call `leadsStore.promoteLead(active)` instead of a raw `onUpdate({ status })`. That helper already:
-  - inserts a row in `partners` with the Factorial scorecard summary in `notes`
-  - sets the lead's `status = "approved"` and stores `promoted_partner_id`
-- Show a confirm dialog ("This will create an Official Partner in your pipeline. Continue?") to prevent accidental promotions from a casual dropdown click.
-- On success: toast + redirect to `/partners` (same as button #1).
+Built as a single page with four stacked sections:
 
-### 3. Guardrail for the "Rejected" path (small consistency fix)
-- Selecting `rejected` from the same dropdown should open the existing `RejectReasonDialog` instead of silently flipping status, mirroring the symmetry with Approved. (Already partially done via the "Reject Lead" button — we'll route the dropdown through the same handler.)
+### 1. KPI Tiles (top row)
+Five compact cards aggregating across all partners owned by the current user:
 
-### 4. Verify the portfolio side
-No code change needed: `usePortfolio` in `src/lib/partners-store.ts` already lists every row in `partners` owned by the user, so a freshly-promoted lead will appear automatically in `/partners` once the insert lands. The portfolio refreshes on mount; arriving via `nav({ to: "/partners" })` will show it immediately.
+- **Active partners** — count from `partners` where `owner_id = me` and `status = 'active'`.
+- **Open deals** — sum of latest `partner_metrics.deals_open` per partner + total `deals_open_value` (€).
+- **Won deals (YTD)** — sum of latest `deals_won` count + `deals_won_value` (€).
+- **Total MRR** — sum of latest `partner_metrics.mrr` per partner.
+- **Tasks done / open** — counts from `action_plans` (status `done` vs `todo` + `in_progress`) where `user_id = me`.
 
-## Files to edit
-- `src/routes/qualification.tsx` — redirect target after promote, status-dropdown handler, confirmation dialog wiring.
+### 2. Activity & Tasks
+Two side-by-side cards:
 
-## Out of scope
-- No DB migration. The existing `partner_leads.promoted_partner_id` + `partners` insert path covers everything.
-- No changes to `/partners` layout — just navigation target.
+- **Tasks made in the platform**: total tasks created (count of `action_plans` rows for this PDM), broken down by status (todo / in_progress / done), with a 30-day "completed this month" number. Includes an "overdue" count (due_date < today and not done).
+- **Lead pipeline**: counts from `partner_leads` by `status`, plus next 7-day `next_step_at` items.
+
+### 3. Internal PDM KPIs
+Card with role-specific KPIs:
+
+- **Stakeholders mapped**: count of `partner_stakeholders` rows across my partners + % of partners with at least 1 stakeholder.
+- **Diagnostics run**: count of `assessments` per partner (coverage = % of partners with a diagnostic).
+- **Average partner maturity**: average of latest `assessments.overall` across owned partners.
+- **Trained people**: sum of latest `partner_metrics.trained_people`.
+- **Partners with documents**: count of partners having at least one `partner_documents` row.
+
+### 4. Personal OCTA Maturity (collapsed/secondary)
+Keep the existing radar + 8 axes block, but moved below the operational KPIs and visually de-emphasized — it's still useful, just no longer the headline.
+
+## Technical Notes
+
+- All queries through the existing browser `supabase` client; RLS already restricts to the PDM's own partners.
+- "Latest metric per partner" handled client-side: fetch `partner_metrics` for owned partner ids ordered by `created_at desc`, then reduce to one row per `partner_id`.
+- New helper file `src/lib/pdm-stats.ts` exposing one `usePdmStats(userId)` hook that returns `{ partners, deals, mrr, tasks, leads, stakeholders, assessments, loading }`. Keeps the route file clean.
+- Update header link label only (route stays `/dashboard`):
+  ```
+  <Link to="/dashboard" ...>My Performance</Link>
+  ```
+- Page meta title updated to "My Performance — OCTA+".
+
+## Out of Scope
+
+- No schema changes (all data already exists in `partners`, `partner_metrics`, `action_plans`, `partner_leads`, `partner_stakeholders`, `assessments`, `partner_documents`).
+- No charts beyond the existing radar (keeps the change focused; can add trend charts later if desired).
+- No leadership/team-wide aggregates — this is the PDM's personal view.
