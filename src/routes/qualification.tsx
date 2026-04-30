@@ -384,7 +384,7 @@ function LeadDetailPanel({
                 setShowReject(true);
                 return;
               }
-              void onMoveInKanban(next);
+              void onUpdate({ status: next });
             }}
             className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1"
           >
@@ -500,21 +500,11 @@ function LeadDetailPanel({
               Reject Lead
             </button>
             <button
-              disabled={lead.status === "approved" || lead.status === "rejected"}
-              onClick={() => {
-                void (async () => {
-                  await onUpdate({ status: "approved" });
-                  if (lead.promoted_partner_id) return;
-                  if (confirm("Create partner object? This will add this lead to your Portfolio as an Official Partner.")) {
-                    await onPromote();
-                  }
-                })();
-              }}
+              disabled={lead.status !== "new"}
+              onClick={() => void onUpdate({ status: "in_review" })}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
             >
-              {lead.status === "approved"
-                ? (lead.promoted_partner_id ? "In Portfolio" : "In Pipeline")
-                : "Add to Acquisition Pipeline"}
+              {lead.status === "new" ? "Put in Qualification Pipe" : "In Qualification Pipe"}
             </button>
           </div>
         </div>
