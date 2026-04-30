@@ -7,8 +7,14 @@ interface AuthCtx {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
-  signUp: (email: string, password: string, displayName: string) => Promise<{ error?: string }>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ error?: string; needsVerification?: boolean }>;
+  resendVerification: (email: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
+}
+
+export const ALLOWED_EMAIL_DOMAIN = "factorial.co";
+export function isAllowedEmail(email: string): boolean {
+  return email.trim().toLowerCase().endsWith(`@${ALLOWED_EMAIL_DOMAIN}`);
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
@@ -39,11 +45,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error?.message };
     },
     signUp: async (email, password, displayName) => {
+      if (!isAllowedEmail(email)) {
+        return { error: `Only @${ALLOWED_EMAIL_DOMAIN} email addresses are allowed.` };
+      }
       const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined;
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { emailRedirectTo: redirectUrl, data: { display_name: displayName } },
+      });
+      if (error) return { error: error.message };
+      // If email confirmation is required, there is no session yet.
+      const needsVerification = !data.session;
+      return { needsVerification };
+    },
+    resendVerification: async (email) => {
+      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined;
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: redirectUrl },
       });
       return { error: error?.message };
     },

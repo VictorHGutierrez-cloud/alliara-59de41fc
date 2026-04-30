@@ -10,9 +10,15 @@ import {
   computeFactorialTotal,
   getDimensionValue,
   parseScorecard,
+  useLeadActivities,
+  activitySummary,
+  LEAD_SOURCES,
+  LEAD_ACTIVITY_KINDS,
   type LeadRow,
   type LeadStatus,
   type DimensionKey,
+  type LeadActivityKind,
+  type LeadActivityRow,
 } from "@/lib/leads-store";
 
 export const Route = createFileRoute("/qualification")({
@@ -196,6 +202,8 @@ function LeadCard({
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
   const host = (() => { try { return lead.website ? new URL(lead.website).host : null; } catch { return lead.website; } })();
+  const { activities } = useLeadActivities(lead.id, lead.owner_id);
+  const summary = activitySummary(activities);
 
   return (
     <div
@@ -239,6 +247,16 @@ function LeadCard({
           ))}
         </select>
       </div>
+      {(summary.openTasks > 0 || lead.next_step_at) && (
+        <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
+          {summary.openTasks > 0 ? (
+            <span className={summary.overdue > 0 ? "text-red-400" : ""}>
+              {summary.openTasks} open · {summary.overdue > 0 ? `${summary.overdue} overdue` : "on track"}
+            </span>
+          ) : <span />}
+          {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
+        </div>
+      )}
     </div>
   );
 }
@@ -321,6 +339,7 @@ function LeadDetailPanel({
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
   const [showReject, setShowReject] = useState(false);
+  const [tab, setTab] = useState<"scorecard" | "crm">("scorecard");
   useEffect(() => { setNotes(freeText); }, [lead.id, freeText]);
 
   const total = computeFactorialTotal(lead);
@@ -367,6 +386,25 @@ function LeadDetailPanel({
           )}
         </div>
 
+        <div className="mt-5 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
+          <button
+            onClick={() => setTab("scorecard")}
+            className={`px-3 py-1.5 rounded-md transition ${tab === "scorecard" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Scorecard
+          </button>
+          <button
+            onClick={() => setTab("crm")}
+            className={`px-3 py-1.5 rounded-md transition ${tab === "crm" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            CRM & Activities
+          </button>
+        </div>
+
+        {tab === "crm" ? (
+          <CrmTab lead={lead} onUpdate={onUpdate} />
+        ) : (
+        <>
         <div className="mt-6">
           <h3 className="text-sm font-semibold">Factorial 5-Dimension Scorecard</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Score each dimension Low (1) · Medium (2) · High (3). Total ranges 5–15.</p>
@@ -425,6 +463,8 @@ function LeadDetailPanel({
             placeholder="Context, source of the lead, key conversation points…"
           />
         </div>
+        </>
+        )}
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <button
@@ -541,5 +581,257 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
       <div className="mt-1">{children}</div>
     </label>
+  );
+}
+
+/* ───────────────── CRM & Activities tab ───────────────── */
+
+function CrmTab({
+  lead,
+  onUpdate,
+}: {
+  lead: LeadRow;
+  onUpdate: (patch: Partial<LeadRow>) => Promise<void>;
+}) {
+  const acts = useLeadActivities(lead.id, lead.owner_id);
+  const summary = activitySummary(acts.activities);
+  const lastActivity = acts.activities[0]?.created_at ?? null;
+
+  return (
+    <div className="mt-5 space-y-6">
+      {/* Contact block */}
+      <section>
+        <h3 className="text-sm font-semibold">Contact</h3>
+        <div className="mt-3 grid grid-cols-2 gap-3">
+          <InlineField
+            label="Email"
+            value={lead.contact_email ?? ""}
+            placeholder="name@company.com"
+            type="email"
+            onSave={(v) => onUpdate({ contact_email: v || null })}
+          />
+          <InlineField
+            label="Phone"
+            value={lead.contact_phone ?? ""}
+            placeholder="+34 …"
+            onSave={(v) => onUpdate({ contact_phone: v || null })}
+          />
+          <InlineField
+            label="Role"
+            value={lead.contact_role ?? ""}
+            placeholder="e.g. CEO, Head of HR"
+            onSave={(v) => onUpdate({ contact_role: v || null })}
+          />
+          <InlineSelect
+            label="Source"
+            value={lead.source ?? ""}
+            options={["", ...LEAD_SOURCES]}
+            onSave={(v) => onUpdate({ source: v || null })}
+          />
+          <InlineField
+            label="Next step"
+            value={lead.next_step_at ?? ""}
+            type="date"
+            onSave={(v) => onUpdate({ next_step_at: v || null })}
+          />
+        </div>
+      </section>
+
+      {/* Activities */}
+      <section>
+        <div className="flex items-baseline justify-between gap-2">
+          <h3 className="text-sm font-semibold">Activities</h3>
+          <div className="text-[11px] text-muted-foreground">
+            {summary.openTasks} open
+            {summary.overdue > 0 && <span className="text-red-400"> · {summary.overdue} overdue</span>}
+            {lastActivity && <> · last {new Date(lastActivity).toLocaleDateString()}</>}
+          </div>
+        </div>
+
+        <NewActivityForm onCreate={(input) => acts.create(input).catch((e) => toast.error((e as Error).message))} />
+
+        <div className="mt-4 space-y-2">
+          {acts.loading ? (
+            <div className="text-xs text-muted-foreground py-4 text-center">Loading…</div>
+          ) : acts.activities.length === 0 ? (
+            <div className="text-xs text-muted-foreground py-4 text-center">No activities yet — log a call, plan a task, or jot a note.</div>
+          ) : (
+            acts.activities.map((a) => (
+              <ActivityRow
+                key={a.id}
+                activity={a}
+                onToggle={() => acts.toggleDone(a).catch((e) => toast.error((e as Error).message))}
+                onDelete={() => {
+                  if (!confirm("Delete this activity?")) return;
+                  acts.remove(a.id).catch((e) => toast.error((e as Error).message));
+                }}
+              />
+            ))
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function InlineField({
+  label, value, placeholder, type = "text", onSave,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  type?: string;
+  onSave: (v: string) => Promise<void> | void;
+}) {
+  const [v, setV] = useState(value);
+  useEffect(() => { setV(value); }, [value]);
+  return (
+    <label className="block">
+      <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
+      <input
+        type={type}
+        value={v}
+        placeholder={placeholder}
+        onChange={(e) => setV(e.target.value)}
+        onBlur={() => { if (v !== value) void onSave(v); }}
+        className="input mt-1 text-sm"
+      />
+    </label>
+  );
+}
+
+function InlineSelect({
+  label, value, options, onSave,
+}: {
+  label: string;
+  value: string;
+  options: readonly string[];
+  onSave: (v: string) => Promise<void> | void;
+}) {
+  return (
+    <label className="block">
+      <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
+      <select
+        value={value}
+        onChange={(e) => void onSave(e.target.value)}
+        className="input mt-1 text-sm"
+      >
+        {options.map((o) => (
+          <option key={o} value={o}>{o || "—"}</option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function NewActivityForm({
+  onCreate,
+}: {
+  onCreate: (input: { kind: LeadActivityKind; title: string; description?: string; due_date?: string | null }) => void;
+}) {
+  const [kind, setKind] = useState<LeadActivityKind>("task");
+  const [title, setTitle] = useState("");
+  const [due, setDue] = useState("");
+  const [desc, setDesc] = useState("");
+
+  const submit = () => {
+    if (!title.trim()) return;
+    onCreate({
+      kind,
+      title: title.trim(),
+      description: desc.trim() || undefined,
+      due_date: kind === "task" ? (due || null) : null,
+    });
+    setTitle("");
+    setDesc("");
+    setDue("");
+  };
+
+  return (
+    <div className="mt-3 rounded-xl border border-border/60 bg-surface/40 p-3 space-y-2">
+      <div className="flex gap-2">
+        <select value={kind} onChange={(e) => setKind(e.target.value as LeadActivityKind)} className="input text-xs flex-shrink-0 w-28">
+          {LEAD_ACTIVITY_KINDS.map((k) => <option key={k.key} value={k.key}>{k.label}</option>)}
+        </select>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } }}
+          placeholder={kind === "task" ? "What needs to happen?" : kind === "note" ? "Quick note…" : `Log a ${kind}…`}
+          className="input text-sm flex-1"
+        />
+        {kind === "task" && (
+          <input type="date" value={due} onChange={(e) => setDue(e.target.value)} className="input text-xs w-36" />
+        )}
+      </div>
+      <div className="flex gap-2">
+        <input
+          value={desc}
+          onChange={(e) => setDesc(e.target.value)}
+          placeholder="Optional details"
+          className="input text-xs flex-1"
+        />
+        <button
+          onClick={submit}
+          disabled={!title.trim()}
+          className="rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground disabled:opacity-40"
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ActivityRow({
+  activity, onToggle, onDelete,
+}: {
+  activity: LeadActivityRow;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  const meta = LEAD_ACTIVITY_KINDS.find((k) => k.key === activity.kind);
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = activity.kind === "task" && !activity.done && activity.due_date && activity.due_date < today;
+
+  return (
+    <div className={`rounded-lg border border-border/60 bg-card/60 p-3 flex items-start gap-3 ${activity.done ? "opacity-60" : ""}`}>
+      {activity.kind === "task" ? (
+        <input
+          type="checkbox"
+          checked={activity.done}
+          onChange={onToggle}
+          className="mt-1 h-4 w-4 accent-primary cursor-pointer"
+        />
+      ) : (
+        <span className="mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-md bg-surface-2 text-xs">
+          {meta?.icon}
+        </span>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`text-sm ${activity.done ? "line-through" : ""}`}>{activity.title}</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{meta?.label}</span>
+          {activity.due_date && (
+            <span className={`text-[10px] ${overdue ? "text-red-400" : "text-muted-foreground"}`}>
+              {overdue ? "overdue · " : "due "}{activity.due_date}
+            </span>
+          )}
+        </div>
+        {activity.description && (
+          <div className="text-xs text-muted-foreground mt-0.5">{activity.description}</div>
+        )}
+        <div className="text-[10px] text-muted-foreground mt-1">
+          {new Date(activity.created_at).toLocaleString()}
+        </div>
+      </div>
+      <button
+        onClick={onDelete}
+        title="Delete"
+        className="text-muted-foreground hover:text-red-400 text-sm leading-none px-1.5 py-0.5 rounded-md hover:bg-red-500/10"
+      >
+        ✕
+      </button>
+    </div>
   );
 }
