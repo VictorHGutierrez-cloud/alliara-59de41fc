@@ -1,121 +1,100 @@
-## Visão geral
 
-Dois temas, ambos focados no pipe de **Partner Acquisition** (`/qualification`):
+# Landing redesign — "Calm Command"
 
-1. **Auth restrita ao domínio `@factorial.co`** com verificação de email obrigatória.
-2. **Mini-CRM de aquisição**: dar ao lead os campos básicos de CRM + uma lista de tarefas/atividades por lead, mantendo o pipe separado do pipe de parceiros já promovidos (`/partners`, que continua sendo o lugar do diagnóstico OCTA).
+The current landing is dark, generic, and gives the brain nothing to anchor on: a gradient title and two equal-weight buttons. We'll redesign `/` (the entry screen) using principles from cognitive load theory, Gestalt grouping, and Hick's law. The rest of the app stays dark — only the public landing changes, so the user reverts easily if they don't like it.
 
-Não vou tocar em `/partners`, `/axes`, `/intel`, `/plan` nem no diagnóstico — esses continuam sendo o "pipe 2" (parceiros ativos).
+## Design hypothesis
 
----
+Three anthropological / perceptual principles drive the redesign:
 
-## 1) Restrição de signup ao @factorial.co + verificação de email
+1. **Biophilic warmth → trust.** Warm off-whites and a single deep accent feel like paper and ink, not a dashboard. Lower cortisol on first contact = higher signup intent (Ulrich, restorative environments).
+2. **One focal point → action.** Hick's law: every extra choice adds latency. We collapse to **one primary CTA** ("Sign in with Factorial") with the secondary path ("Create account") demoted to a text link below.
+3. **Show the mental model, don't describe it.** Instead of marketing copy, render a small living **OCTA octagon** — 8 axis dots arranged radially, one labeled per side. The user *sees* the product's structure in 2 seconds (picture-superiority effect).
 
-### Frontend (`src/routes/signup.tsx` e `src/lib/auth.tsx`)
-- Validar no `signup.tsx` antes de chamar `signUp()`: se o email não terminar em `@factorial.co` (case-insensitive), bloquear com toast "Only @factorial.co emails are allowed."
-- Após `signUp` bem-sucedido, **não** redirecionar pra `/partners`. Mostrar tela "Check your email to verify your account" com botão para reenviar (`supabase.auth.resend`).
-- No `login.tsx`, se o erro for `email_not_confirmed`, mostrar mensagem específica + botão "Resend verification email".
-- Atualizar landing/copy: "Factorial PDM Command Center — sign in with your @factorial.co email."
+## What changes
 
-### Backend (defesa em profundidade)
-- Adicionar trigger no Postgres `auth.users` (BEFORE INSERT) que rejeita emails fora de `@factorial.co`. Isso impede contornar a validação client-side e cobre OAuth futuro.
-- Manter verificação de email **ligada** (não auto-confirmar). Este já é o default do Supabase — apenas confirmamos que está assim e não mexemos no `configure_auth` para auto-confirm.
+### Only `/` (the public landing)
+- Stays a single-screen entry; no scroll, no marketing fluff.
+- The app screens (`/partners`, `/qualification`, etc.) keep their dark "operator" aesthetic — context shift between "public" and "inside" is intentional and reinforces the "you've entered the cockpit" feeling.
 
-### Configuração de auth
-- Verificar redirect URLs / Site URL para que o link de confirmação volte pro app (preview + published).
+### New layout
 
-> Observação sobre emails de verificação: por padrão o Supabase já envia o email de confirmação com template padrão. Não vou scaffoldar templates customizados a menos que você peça — se quiser branding Factorial no email, me diga e eu faço num passo separado (precisa de domínio de email).
-
----
-
-## 2) Mini-CRM de aquisição no `/qualification`
-
-### Conceito (mantendo simples)
-Dois pipes claros:
-- **Pipe 1 — Acquisition (`/qualification`)**: prospecção/discovery. Aqui mora o CRM leve + tarefas + scorecard 5D. Quando promovido, vira parceiro.
-- **Pipe 2 — Active Partners (`/partners`, `/partner/$id/...`)**: parceiros oficiais. Diagnóstico OCTA, axes, intel, plan. Já está pronto, não muda.
-
-### Schema novo (uma única tabela)
-`partner_lead_activities` — atividades/tarefas amarradas a um lead:
-
-```
-id            uuid pk
-lead_id       uuid  → partner_leads(id) on delete cascade
-owner_id      uuid  (auth.uid())
-kind          enum('task','call','email','meeting','note')
-title         text
-description   text null
-due_date      date null               -- só faz sentido pra task
-done          boolean default false   -- só faz sentido pra task
-done_at       timestamptz null
-created_at    timestamptz default now()
-updated_at    timestamptz default now()
+```text
+┌──────────────────────────────────────────────────────────────┐
+│                                                              │
+│   ●  OCTA OS                              for Factorial PDMs │
+│                                                              │
+│                                                              │
+│        Orchestrate every partner                             │
+│        like it's your only one.                              │
+│                                                              │
+│        One operating system to diagnose, plan,               │
+│        and grow each partnership across 8 axes.              │
+│                                                              │
+│        [ Sign in with Factorial → ]                          │
+│                                                              │
+│        New here? Create your account                         │
+│                                                              │
+│                                          ┌────────────┐      │
+│                                          │  S    O    │      │
+│                                          │ X  ◉  R    │      │
+│                                          │  G    E    │      │
+│                                          │   T  C     │      │
+│                                          └────────────┘      │
+│                                            the OCTA model    │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-RLS espelhando `partner_leads`: dono vê/edita as suas; leadership/admin lê tudo.
+Two-column on desktop (text left, octagon right), stacked on mobile with the octagon below the CTA.
 
-### Campos de CRM adicionados em `partner_leads`
-Pra ser um CRM real sem inventar tabela nova, adicionar colunas em `partner_leads`:
-- `contact_email` text
-- `contact_phone` text
-- `contact_role` text  (ex: "CEO", "Head of HR")
-- `source` text  (ex: "Outbound", "Referral", "Event", "Inbound")
-- `next_step_at` date  (próxima ação prevista — derivada da task aberta mais próxima, mas também editável manualmente)
+### Palette (landing only)
 
-Tudo opcional, sem quebrar dados existentes.
+| Token | Value | Role |
+|---|---|---|
+| Background | warm off-white `oklch(0.985 0.008 85)` | calm canvas |
+| Ink | near-black slate `oklch(0.18 0.02 260)` | high-contrast type |
+| Accent | one deep emerald `oklch(0.52 0.16 160)` | CTA + axis nodes |
+| Muted | warm grey `oklch(0.55 0.01 80)` | secondary copy |
+| Hairlines | `oklch(0.92 0.005 80)` | structure without noise |
 
-### UI no `/qualification`
+Why this works: warm light backgrounds reduce perceived screen "alarm" vs. dark UI on first contact. The single saturated accent obeys the **60-30-10 rule** (60% canvas, 30% ink, 10% accent), so the eye lands on the CTA without thinking.
 
-**Lista (kanban atual)** — sem mexer no layout, só:
-- Mostrar no `LeadCard` um badge pequeno com nº de tarefas abertas e indicador vermelho se houver task em atraso.
-- Mostrar `next_step_at` quando existir.
+### Typography hierarchy
 
-**Side panel do lead (`LeadDetailPanel`)** — ganha duas abas no topo:
+- **Headline** (Space Grotesk, 56px, -2% tracking, weight 600): "Orchestrate every partner like it's your only one."
+- **Sub** (Inter, 17px, line-height 1.55, muted): one sentence, no jargon.
+- **CTA** (Inter, 15px, semibold, ink-on-emerald, generous 14px×24px padding, soft 12px radius).
+- **Secondary link** (Inter, 14px, underline-on-hover, muted).
 
-```
-[ Scorecard ]  [ CRM & Activities ]
-```
+### The OCTA octagon (the visual hook)
 
-- **Scorecard**: tudo que já existe hoje (5D, verdict, promote/reject).
-- **CRM & Activities** (novo):
-  - Bloco "Contact": email, phone, role, source, next step (inline edit).
-  - Bloco "Activities" (timeline reversa cronológica):
-    - Form rápido no topo: tipo (task/call/email/meeting/note), título, due date (se task), descrição opcional → "Add".
-    - Cada item: ícone por tipo, título, data, descrição. Para `task`: checkbox para marcar `done`; tasks atrasadas em vermelho. Botão excluir.
-  - Resumo no header da aba: "3 open tasks · 1 overdue · last activity 2d ago".
+A small SVG octagon (~220px) with 8 dots positioned radially, each labeled with an axis letter (S O R E C T G X) using the existing axis colors from `src/content/octa.ts` and `--octa-1..8` tokens. A subtle pulse animation rotates a soft glow around the perimeter every 8 seconds — implies "always on, always orchestrating" without being distracting. Pure decorative SVG; no interactivity needed for v1.
 
-### Store
-Estender `src/lib/leads-store.ts` com:
-- Novos campos no `createLead` / `updateLead` (contact_email, phone, role, source, next_step_at).
-- Novo hook `useLeadActivities(leadId)` com `list / create / toggleDone / delete`.
+### Microcopy rewrite
 
----
+| Old | New | Rationale |
+|---|---|---|
+| "OCTA OS" (gradient) | "OCTA OS" + tagline "for Factorial PDMs" | Specificity beats grandeur. Reduces "is this for me?" friction. |
+| "The command center for Partner Development Managers. Sign in to manage your portfolio." | "Orchestrate every partner like it's your only one." (headline) + "One operating system to diagnose, plan, and grow each partnership across 8 axes." (sub) | Concrete verb + emotional anchor. The sub tells you what the system actually does. |
+| Two buttons same weight | One emerald CTA + tiny secondary link | Hick's law. |
 
-## Detalhes técnicos
+### Header simplification on `/`
 
-**Migrations (ordem):**
-1. `alter table partner_leads add column contact_email text, contact_phone text, contact_role text, source text, next_step_at date;`
-2. `create type lead_activity_kind as enum ('task','call','email','meeting','note');`
-3. `create table partner_lead_activities (...)` com FK e índices em `(lead_id, created_at desc)` e `(lead_id, done, due_date)`.
-4. RLS policies (select/insert/update/delete) baseadas em `owner_id = auth.uid()` + leadership/admin SELECT.
-5. Trigger `set_updated_at` em `partner_lead_activities`.
-6. Trigger em `auth.users` BEFORE INSERT que dispara `raise exception` se `lower(new.email) not like '%@factorial.co'`.
+The current sticky `glass` header shows "Sign in / Get started" — duplicates the page CTA. On the landing route only, we'll hide those buttons (the page itself is the CTA), keeping just the OCTA wordmark. Less competing focal points = faster click.
 
-**Frontend:**
-- `src/lib/leads-store.ts`: estender tipos + `useLeadActivities`.
-- `src/routes/qualification.tsx`: tabs no side panel, contact block, activities timeline, badges no card.
-- `src/routes/signup.tsx`: validação de domínio + tela "check your email".
-- `src/routes/login.tsx`: tratamento de `email_not_confirmed` + resend.
-- `src/lib/auth.tsx`: expor `resendVerification(email)`.
+## Technical details
 
-**Sem mudanças em:** `/partners`, `/partner/$partnerId/*`, `/dashboard`, `/diagnostic`, `/axis/$axisKey`, edge functions, storage buckets.
+- Edit `src/routes/index.tsx`: replace the entire component with the new two-column layout and inline the warm palette via a wrapping `<div>` that sets local CSS custom properties (no global token changes — the rest of the app stays dark).
+- Inline SVG octagon component inside the same file (no new dependency); reuse axis letters/colors imported from `src/content/octa.ts` (`AXES`).
+- Edit `src/routes/__root.tsx`: in `AppFrame`, when `path === "/"` and there is no user, render the header without the Sign in / Get started buttons (keep the wordmark only). No other route is affected.
+- No database, RLS, edge function, or auth changes.
+- No new packages.
 
----
+## Out of scope (intentionally)
 
-## Pontos de decisão (posso seguir com defaults)
+- App-internal screens stay dark. We're testing the hypothesis on the public landing first; if you love it, we replicate the warmth into `/login` and `/signup` next, then evaluate softening `/partners`.
+- No marketing sections, testimonials, feature grids, or scroll. The landing is a door, not a brochure.
 
-- **Tipos de atividade**: `task | call | email | meeting | note`. Se quiser só `task + note`, eu corto.
-- **Sources padrão**: vou colocar dropdown com `Outbound, Inbound, Referral, Event, Partner network, Other`. Texto livre como fallback.
-- **Domínio único**: travado em `@factorial.co`. Se um dia precisar de subsidiárias (ex: `@factorialhr.com`), o trigger e a checagem client-side passam a aceitar uma lista — mas hoje fica só `@factorial.co`.
+## Reversibility
 
-Posso seguir.
+One file change (`src/routes/index.tsx`) plus a 4-line conditional in `__root.tsx`. Reverting is one message: "undo landing redesign."
