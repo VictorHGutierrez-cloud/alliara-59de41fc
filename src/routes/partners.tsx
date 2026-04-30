@@ -430,7 +430,7 @@ function PartnersPage() {
                             : "border-border bg-surface hover:bg-primary hover:border-primary"
                         } disabled:opacity-50`}
                       >
-                        <Check className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 text-foreground transition" />
+                        <Check className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 text-primary-foreground transition" />
                       </button>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
