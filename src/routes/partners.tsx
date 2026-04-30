@@ -10,6 +10,9 @@ import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
 import { Check, Focus, X as XIcon, Target } from "lucide-react";
+import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
+import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
+import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — OCTA OS" }] }),
@@ -28,6 +31,8 @@ function PartnersPage() {
   const [scopeFilter, setScopeFilter] = useState<"mine" | "all">("mine");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
+  const [sortKey, setSortKey] = useState<SortKey>("name_asc");
   const [openActions, setOpenActions] = useState<(ActionRow & { partner_name: string })[]>([]);
   const [actionsLoading, setActionsLoading] = useState(true);
   const [axisFilter, setAxisFilter] = useState<string | "all">("all");
@@ -101,11 +106,36 @@ function PartnersPage() {
   };
   const activeTotal = statusCounts.active + statusCounts.nurturing + statusCounts.at_risk;
 
+  const partnerIds = scoped.map((it) => it.partner.id);
+  const { map: revenueMap } = useLatestPartnerRevenue(partnerIds);
+
   const filtered = scoped.filter((it) => {
     if (statusFilter !== "all" && it.partner.status !== statusFilter) return false;
+    if (typeFilter !== "all" && it.partner.partner_type !== typeFilter) return false;
     if (query && !`${it.partner.name} ${it.partner.company ?? ""}`.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   });
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      const ra = revenueMap.get(a.partner.id);
+      const rb = revenueMap.get(b.partner.id);
+      switch (sortKey) {
+        case "name_asc": return a.partner.name.localeCompare(b.partner.name);
+        case "name_desc": return b.partner.name.localeCompare(a.partner.name);
+        case "revenue_desc": {
+          const va = (ra?.revenue ?? 0) + (ra?.dealsWonValue ?? 0);
+          const vb = (rb?.revenue ?? 0) + (rb?.dealsWonValue ?? 0);
+          return vb - va;
+        }
+        case "mrr_desc": return (rb?.mrr ?? 0) - (ra?.mrr ?? 0);
+        case "created_desc": return new Date(b.partner.created_at).getTime() - new Date(a.partner.created_at).getTime();
+        case "maturity_desc": return Number(b.latest?.overall ?? 0) - Number(a.latest?.overall ?? 0);
+      }
+    });
+    return arr;
+  }, [filtered, sortKey, revenueMap]);
 
   const aggregate = useMemo(() => {
     const scored = filtered.filter((i) => i.latest);
@@ -508,25 +538,28 @@ function PartnersPage() {
               ))}
             </div>
           )}
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search partners…"
-            className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-sm w-full sm:w-72"
+          <PartnerFilterBar
+            query={query}
+            onQuery={setQuery}
+            type={typeFilter}
+            onType={setTypeFilter}
+            sort={sortKey}
+            onSort={setSortKey}
           />
         </div>
 
         <div className="mt-5">
           {portfolio.loading ? (
             <div className="text-sm text-muted-foreground py-10 text-center">Loading partners…</div>
-          ) : filtered.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <EmptyState onAdd={() => setShowNew(true)} />
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((it) => (
+              {sorted.map((it) => (
                 <PartnerCard
                   key={it.partner.id}
                   item={it}
+                  revenue={revenueMap.get(it.partner.id)}
                   onDelete={async () => {
                     if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
                     try {
@@ -727,11 +760,12 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete }: { item: PortfolioItem; onDelete: () => void }) {
+function PartnerCard({ item, onDelete, revenue }: { item: PortfolioItem; onDelete: () => void; revenue?: { revenue: number; mrr: number; dealsWonValue: number } }) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
   const tColor = tierColor(item.partner.tier);
   const scores = (item.latest?.scores ?? {}) as Record<string, number>;
+  const totalRev = (revenue?.revenue ?? 0) + (revenue?.dealsWonValue ?? 0);
 
   return (
     <div className="relative">
@@ -755,6 +789,9 @@ function PartnerCard({ item, onDelete }: { item: PortfolioItem; onDelete: () => 
             <div className="text-xs text-muted-foreground truncate">
               {item.partner.company ?? "—"}{item.partner.segment ? ` · ${item.partner.segment}` : ""}
             </div>
+            <div className="mt-1.5">
+              <PartnerTypeChip type={item.partner.partner_type} />
+            </div>
           </div>
           <span
             className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md mr-7"
@@ -767,6 +804,11 @@ function PartnerCard({ item, onDelete }: { item: PortfolioItem; onDelete: () => 
         <div className="mt-4 flex items-baseline gap-2">
           <span className="text-3xl font-display font-bold text-gradient">{overall ? overall.toFixed(1) : "—"}</span>
           <span className="text-xs text-muted-foreground">/ 5.0 · {lvl ? `Level ${lvl}` : "Not diagnosed"}</span>
+          {totalRev > 0 && (
+            <span className="ml-auto text-xs font-mono text-muted-foreground" title="Latest revenue + won deals">
+              {fmtMoney(totalRev)}
+            </span>
+          )}
         </div>
 
         <div className="mt-3 flex gap-1 h-8">
@@ -816,6 +858,7 @@ function NewPartnerDialog({
     tier?: "strategic" | "core" | "emerging" | "long_tail";
     status?: "active" | "nurturing" | "at_risk" | "paused" | "archived";
     notes?: string;
+    partner_type?: PartnerType;
   }) => Promise<void>;
 }) {
   const [name, setName] = useState("");
@@ -823,6 +866,7 @@ function NewPartnerDialog({
   const [segment, setSegment] = useState("");
   const [tier, setTier] = useState<"strategic" | "core" | "emerging" | "long_tail">("emerging");
   const [status, setStatus] = useState<"active" | "nurturing" | "at_risk" | "paused" | "archived">("active");
+  const [partnerType, setPartnerType] = useState<PartnerType>("referral");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -840,6 +884,13 @@ function NewPartnerDialog({
             <Field label="Company"><input value={company} onChange={(e) => setCompany(e.target.value)} className="input" /></Field>
             <Field label="Segment"><input value={segment} onChange={(e) => setSegment(e.target.value)} className="input" placeholder="SI · ISV · MSP …" /></Field>
           </div>
+          <Field label="Partnership type">
+            <select value={partnerType} onChange={(e) => setPartnerType(e.target.value as PartnerType)} className="input">
+              {PARTNER_TYPES.map((t) => (
+                <option key={t.key} value={t.key}>{t.label} — {t.description}</option>
+              ))}
+            </select>
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Tier">
               <select value={tier} onChange={(e) => setTier(e.target.value as typeof tier)} className="input">
@@ -870,7 +921,7 @@ function NewPartnerDialog({
             disabled={!name.trim() || busy}
             onClick={async () => {
               setBusy(true);
-              try { await onCreate({ name: name.trim(), company: company.trim() || undefined, segment: segment.trim() || undefined, tier, status, notes: notes.trim() || undefined }); }
+              try { await onCreate({ name: name.trim(), company: company.trim() || undefined, segment: segment.trim() || undefined, tier, status, notes: notes.trim() || undefined, partner_type: partnerType }); }
               finally { setBusy(false); }
             }}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"

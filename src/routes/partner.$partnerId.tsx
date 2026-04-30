@@ -5,6 +5,8 @@ import { usePartner, levelFromAvg, statusLabel, tierColor, type PartnerRow } fro
 import { AXES } from "../content/octa";
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
+import { PARTNER_TYPES, type PartnerType } from "@/lib/partner-types";
+import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 
 export const Route = createFileRoute("/partner/$partnerId")({
   head: () => ({ meta: [{ title: "Partner — OCTA OS" }] }),
@@ -73,6 +75,7 @@ function PartnerLayout() {
                 >
                   {data.partner.tier.replace("_", " ")}
                 </span>
+                <PartnerTypeChip type={data.partner.partner_type} />
                 <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md bg-surface-2 text-muted-foreground">
                   {statusLabel(data.partner.status)}
                 </span>
@@ -400,6 +403,7 @@ function EditPartnerDialog({
   const [segment, setSegment] = useState(partner.segment ?? "");
   const [tier, setTier] = useState(partner.tier);
   const [status, setStatus] = useState(partner.status);
+  const [partnerType, setPartnerType] = useState<PartnerType>(partner.partner_type ?? "referral");
   const [notes, setNotes] = useState(partner.notes ?? "");
   const [busy, setBusy] = useState(false);
 
@@ -413,6 +417,13 @@ function EditPartnerDialog({
             <Field label="Company"><input value={company} onChange={(e) => setCompany(e.target.value)} className="input" /></Field>
             <Field label="Segment"><input value={segment} onChange={(e) => setSegment(e.target.value)} className="input" /></Field>
           </div>
+          <Field label="Partnership type">
+            <select value={partnerType} onChange={(e) => setPartnerType(e.target.value as PartnerType)} className="input">
+              {PARTNER_TYPES.map((t) => (
+                <option key={t.key} value={t.key}>{t.label} — {t.description}</option>
+              ))}
+            </select>
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Tier">
               <select value={tier} onChange={(e) => setTier(e.target.value as typeof tier)} className="input">
@@ -450,7 +461,7 @@ function EditPartnerDialog({
               disabled={!name.trim() || busy}
               onClick={async () => {
                 setBusy(true);
-                try { await onSave({ name: name.trim(), company: company.trim() || null, segment: segment.trim() || null, tier, status, notes: notes.trim() || null }); }
+                try { await onSave({ name: name.trim(), company: company.trim() || null, segment: segment.trim() || null, tier, status, notes: notes.trim() || null, partner_type: partnerType }); }
                 finally { setBusy(false); }
               }}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"

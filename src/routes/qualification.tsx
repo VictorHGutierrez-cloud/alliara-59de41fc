@@ -14,12 +14,16 @@ import {
   activitySummary,
   LEAD_SOURCES,
   LEAD_ACTIVITY_KINDS,
+  useAllLeadTasks,
   type LeadRow,
   type LeadStatus,
   type DimensionKey,
   type LeadActivityKind,
   type LeadActivityRow,
+  type LeadTaskRow,
 } from "@/lib/leads-store";
+import { PARTNER_TYPES, type PartnerType, LEAD_SORTS, type LeadSortKey } from "@/lib/partner-types";
+import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 
 export const Route = createFileRoute("/qualification")({
   head: () => ({ meta: [{ title: "Partner Qualification — OCTA OS" }] }),
@@ -32,6 +36,10 @@ function QualificationPage() {
   const leadsStore = useLeads(user?.id);
   const [showNew, setShowNew] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
+  const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
+  const leadTasks = useAllLeadTasks(user?.id, leadsStore.leads);
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
@@ -42,6 +50,25 @@ function QualificationPage() {
   }, [leadsStore.leads]);
 
   const active = leadsStore.leads.find((l) => l.id === activeId) ?? null;
+
+  // Filter + sort the leads used by the Kanban
+  const visibleLeads = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = leadsStore.leads.filter((l) => {
+      if (typeFilter !== "all" && l.partner_type !== typeFilter) return false;
+      if (q && !`${l.company_name} ${l.contact_person ?? ""}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    return [...filtered].sort((a, b) => {
+      switch (sortKey) {
+        case "name_asc": return a.company_name.localeCompare(b.company_name);
+        case "name_desc": return b.company_name.localeCompare(a.company_name);
+        case "score_desc": return (computeFactorialTotal(b) ?? -1) - (computeFactorialTotal(a) ?? -1);
+        case "created_desc":
+        default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+  }, [leadsStore.leads, query, typeFilter, sortKey]);
 
   const moveLeadInQualificationKanban = async (lead: LeadRow, next: LeadStatus) => {
     if (next === lead.status && !(next === "approved" && !lead.promoted_partner_id)) return;
@@ -86,6 +113,54 @@ function QualificationPage() {
         ))}
       </div>
 
+      {/* Lead Tasks · Next moves */}
+      <LeadTasksSection
+        tasks={leadTasks.tasks}
+        loading={leadTasks.loading}
+        onComplete={async (id) => {
+          try { await leadTasks.completeTask(id); toast.success("Task done"); }
+          catch (e) { toast.error((e as Error).message); }
+        }}
+        onOpenLead={(leadId) => setActiveId(leadId)}
+      />
+
+      {/* Filter bar */}
+      <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search leads…"
+          className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-sm w-full sm:w-56"
+        />
+        <div className="inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
+          <button
+            onClick={() => setTypeFilter("all")}
+            className={`px-2.5 py-1.5 rounded-md transition ${typeFilter === "all" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            All types
+          </button>
+          {PARTNER_TYPES.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTypeFilter(t.key)}
+              className={`px-2.5 py-1.5 rounded-md transition ${typeFilter === t.key ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              style={typeFilter === t.key ? { color: `var(--${t.color})` } : {}}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <select
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value as LeadSortKey)}
+          className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs"
+        >
+          {LEAD_SORTS.map((s) => (
+            <option key={s.key} value={s.key}>Sort: {s.label}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="mt-6">
         {leadsStore.loading ? (
           <div className="text-sm text-muted-foreground py-10 text-center">Loading leads…</div>
@@ -94,7 +169,7 @@ function QualificationPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {LEAD_STATUSES.map((col) => {
-              const items = leadsStore.leads.filter((l) => l.status === col.key);
+              const items = visibleLeads.filter((l) => l.status === col.key);
               return (
                 <div
                   key={col.key}
@@ -236,6 +311,9 @@ function LeadCard({
           <div className="text-xs text-muted-foreground truncate mt-0.5">
             {lead.contact_person ?? "—"}{host ? ` · ${host}` : ""}
           </div>
+          {lead.partner_type && (
+            <div className="mt-1.5"><PartnerTypeChip type={lead.partner_type} /></div>
+          )}
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
@@ -284,11 +362,18 @@ function NewLeadDialog({
   onClose, onCreate,
 }: {
   onClose: () => void;
-  onCreate: (input: { company_name: string; contact_person?: string; website?: string }) => Promise<void>;
+  onCreate: (input: {
+    company_name: string; contact_person?: string; website?: string;
+    partner_type?: PartnerType;
+    firstTask?: { title: string; due_date?: string | null } | null;
+  }) => Promise<void>;
 }) {
   const [companyName, setCompanyName] = useState("");
   const [contact, setContact] = useState("");
   const [website, setWebsite] = useState("");
+  const [partnerType, setPartnerType] = useState<PartnerType>("referral");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDue, setTaskDue] = useState("");
   const [busy, setBusy] = useState(false);
 
   return (
@@ -307,6 +392,30 @@ function NewLeadDialog({
           <Field label="Website">
             <input value={website} onChange={(e) => setWebsite(e.target.value)} className="input" placeholder="https://…" />
           </Field>
+          <Field label="Partnership type">
+            <select value={partnerType} onChange={(e) => setPartnerType(e.target.value as PartnerType)} className="input">
+              {PARTNER_TYPES.map((t) => (
+                <option key={t.key} value={t.key}>{t.label} — {t.description}</option>
+              ))}
+            </select>
+          </Field>
+          <div className="rounded-lg border border-border/60 bg-surface/30 p-3">
+            <div className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+              First next step (optional)
+            </div>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <input
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                placeholder="e.g. Send intro email, schedule discovery call…"
+                className="input text-sm"
+              />
+              <input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} className="input text-xs w-36" />
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Attach a task so the lead never sits idle. You can always add more later.
+            </p>
+          </div>
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
@@ -320,6 +429,10 @@ function NewLeadDialog({
                   company_name: companyName.trim(),
                   contact_person: contact.trim() || undefined,
                   website: website.trim() || undefined,
+                  partner_type: partnerType,
+                  firstTask: taskTitle.trim()
+                    ? { title: taskTitle.trim(), due_date: taskDue || null }
+                    : null,
                 });
               } finally {
                 setBusy(false);
@@ -388,6 +501,24 @@ function LeadDetailPanel({
               Reason: {meta.rejection_reason}
             </span>
           )}
+        </div>
+
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Type</span>
+          <select
+            value={lead.partner_type ?? ""}
+            onChange={(e) => {
+              const v = e.target.value as PartnerType | "";
+              void onUpdate({ partner_type: v ? v : null });
+            }}
+            className="rounded-md bg-surface border border-border/60 px-2 py-1 text-xs"
+          >
+            <option value="">— Not set —</option>
+            {PARTNER_TYPES.map((t) => (
+              <option key={t.key} value={t.key}>{t.label}</option>
+            ))}
+          </select>
+          {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
         </div>
 
         <div className="mt-5 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
@@ -837,5 +968,87 @@ function ActivityRow({
         ✕
       </button>
     </div>
+  );
+}
+/* ───────────────── Lead Tasks · Next moves ───────────────── */
+
+function LeadTasksSection({
+  tasks, loading, onComplete, onOpenLead,
+}: {
+  tasks: LeadTaskRow[];
+  loading: boolean;
+  onComplete: (id: string) => void | Promise<void>;
+  onOpenLead: (leadId: string) => void;
+}) {
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = tasks.filter((t) => t.due_date && t.due_date < today).length;
+  const top = tasks.slice(0, 6);
+
+  return (
+    <section id="lead-tasks" className="mt-6 rounded-2xl border border-border/60 bg-card p-5 card-elev">
+      <div className="flex items-baseline justify-between gap-2 flex-wrap">
+        <div>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Lead Tasks · Next moves
+          </p>
+          <h2 className="mt-1 text-lg font-semibold">
+            {tasks.length} open
+            {overdue > 0 && <span className="ml-2 text-sm font-mono text-red-400">· {overdue} overdue</span>}
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Tasks attached to leads in the qualification pipeline. Sorted by due date.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-4">
+        {loading ? (
+          <div className="text-sm text-muted-foreground py-4 text-center">Loading tasks…</div>
+        ) : top.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border/60 bg-surface/40 p-6 text-center text-sm text-muted-foreground">
+            No open tasks on any lead. Add one inside a lead's CRM tab to keep things moving.
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {top.map((t) => {
+              const isOverdue = !!(t.due_date && t.due_date < today);
+              return (
+                <li
+                  key={t.id}
+                  className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 transition cursor-pointer hover:bg-surface-2 ${
+                    isOverdue ? "border-red-500/30 bg-red-500/5" : "border-border bg-surface"
+                  }`}
+                  onClick={() => onOpenLead(t.lead_id)}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); void onComplete(t.id); }}
+                    title="Mark complete"
+                    className="shrink-0 h-5 w-5 rounded border border-border bg-card hover:bg-primary hover:border-primary transition"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{t.title}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {t.lead_company}
+                      {t.lead_status === "rejected" || t.lead_status === "approved"
+                        ? ` · ${t.lead_status}`
+                        : ""}
+                    </div>
+                  </div>
+                  <span className={`text-xs font-mono ${isOverdue ? "text-red-400 font-semibold" : "text-muted-foreground"}`}>
+                    {t.due_date ?? "no date"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {tasks.length > top.length && (
+          <p className="mt-3 text-[11px] text-center font-mono text-muted-foreground">
+            +{tasks.length - top.length} more · open a lead to see all its tasks
+          </p>
+        )}
+      </div>
+    </section>
   );
 }
