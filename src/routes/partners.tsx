@@ -858,6 +858,7 @@ function NewPartnerDialog({
     tier?: "strategic" | "core" | "emerging" | "long_tail";
     status?: "active" | "nurturing" | "at_risk" | "paused" | "archived";
     notes?: string;
+    partner_type?: PartnerType;
   }) => Promise<void>;
 }) {
   const [name, setName] = useState("");
@@ -865,6 +866,7 @@ function NewPartnerDialog({
   const [segment, setSegment] = useState("");
   const [tier, setTier] = useState<"strategic" | "core" | "emerging" | "long_tail">("emerging");
   const [status, setStatus] = useState<"active" | "nurturing" | "at_risk" | "paused" | "archived">("active");
+  const [partnerType, setPartnerType] = useState<PartnerType>("referral");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -882,6 +884,13 @@ function NewPartnerDialog({
             <Field label="Company"><input value={company} onChange={(e) => setCompany(e.target.value)} className="input" /></Field>
             <Field label="Segment"><input value={segment} onChange={(e) => setSegment(e.target.value)} className="input" placeholder="SI · ISV · MSP …" /></Field>
           </div>
+          <Field label="Partnership type">
+            <select value={partnerType} onChange={(e) => setPartnerType(e.target.value as PartnerType)} className="input">
+              {PARTNER_TYPES.map((t) => (
+                <option key={t.key} value={t.key}>{t.label} — {t.description}</option>
+              ))}
+            </select>
+          </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Tier">
               <select value={tier} onChange={(e) => setTier(e.target.value as typeof tier)} className="input">
@@ -912,7 +921,7 @@ function NewPartnerDialog({
             disabled={!name.trim() || busy}
             onClick={async () => {
               setBusy(true);
-              try { await onCreate({ name: name.trim(), company: company.trim() || undefined, segment: segment.trim() || undefined, tier, status, notes: notes.trim() || undefined }); }
+              try { await onCreate({ name: name.trim(), company: company.trim() || undefined, segment: segment.trim() || undefined, tier, status, notes: notes.trim() || undefined, partner_type: partnerType }); }
               finally { setBusy(false); }
             }}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
