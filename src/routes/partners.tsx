@@ -10,6 +10,9 @@ import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
 import { Check, Focus, X as XIcon, Target } from "lucide-react";
+import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
+import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
+import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — OCTA OS" }] }),
@@ -28,6 +31,8 @@ function PartnersPage() {
   const [scopeFilter, setScopeFilter] = useState<"mine" | "all">("mine");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
+  const [sortKey, setSortKey] = useState<SortKey>("name_asc");
   const [openActions, setOpenActions] = useState<(ActionRow & { partner_name: string })[]>([]);
   const [actionsLoading, setActionsLoading] = useState(true);
   const [axisFilter, setAxisFilter] = useState<string | "all">("all");
@@ -101,11 +106,36 @@ function PartnersPage() {
   };
   const activeTotal = statusCounts.active + statusCounts.nurturing + statusCounts.at_risk;
 
+  const partnerIds = scoped.map((it) => it.partner.id);
+  const { map: revenueMap } = useLatestPartnerRevenue(partnerIds);
+
   const filtered = scoped.filter((it) => {
     if (statusFilter !== "all" && it.partner.status !== statusFilter) return false;
+    if (typeFilter !== "all" && it.partner.partner_type !== typeFilter) return false;
     if (query && !`${it.partner.name} ${it.partner.company ?? ""}`.toLowerCase().includes(query.toLowerCase())) return false;
     return true;
   });
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    arr.sort((a, b) => {
+      const ra = revenueMap.get(a.partner.id);
+      const rb = revenueMap.get(b.partner.id);
+      switch (sortKey) {
+        case "name_asc": return a.partner.name.localeCompare(b.partner.name);
+        case "name_desc": return b.partner.name.localeCompare(a.partner.name);
+        case "revenue_desc": {
+          const va = (ra?.revenue ?? 0) + (ra?.dealsWonValue ?? 0);
+          const vb = (rb?.revenue ?? 0) + (rb?.dealsWonValue ?? 0);
+          return vb - va;
+        }
+        case "mrr_desc": return (rb?.mrr ?? 0) - (ra?.mrr ?? 0);
+        case "created_desc": return new Date(b.partner.created_at).getTime() - new Date(a.partner.created_at).getTime();
+        case "maturity_desc": return Number(b.latest?.overall ?? 0) - Number(a.latest?.overall ?? 0);
+      }
+    });
+    return arr;
+  }, [filtered, sortKey, revenueMap]);
 
   const aggregate = useMemo(() => {
     const scored = filtered.filter((i) => i.latest);
@@ -508,25 +538,28 @@ function PartnersPage() {
               ))}
             </div>
           )}
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search partners…"
-            className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-sm w-full sm:w-72"
+          <PartnerFilterBar
+            query={query}
+            onQuery={setQuery}
+            type={typeFilter}
+            onType={setTypeFilter}
+            sort={sortKey}
+            onSort={setSortKey}
           />
         </div>
 
         <div className="mt-5">
           {portfolio.loading ? (
             <div className="text-sm text-muted-foreground py-10 text-center">Loading partners…</div>
-          ) : filtered.length === 0 ? (
+          ) : sorted.length === 0 ? (
             <EmptyState onAdd={() => setShowNew(true)} />
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filtered.map((it) => (
+              {sorted.map((it) => (
                 <PartnerCard
                   key={it.partner.id}
                   item={it}
+                  revenue={revenueMap.get(it.partner.id)}
                   onDelete={async () => {
                     if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
                     try {
