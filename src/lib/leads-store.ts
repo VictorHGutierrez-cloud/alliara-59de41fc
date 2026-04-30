@@ -4,6 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 
 export type LeadRow = Database["public"]["Tables"]["partner_leads"]["Row"];
 export type LeadStatus = Database["public"]["Enums"]["partner_lead_status"];
+export type PartnerType = Database["public"]["Enums"]["partner_type"];
 
 export type LeadActivityKind = "task" | "call" | "email" | "meeting" | "note";
 export type LeadActivityRow = {
@@ -216,6 +217,8 @@ export function useLeads(userId: string | undefined) {
 
   const createLead = useCallback(async (input: {
     company_name: string; contact_person?: string; website?: string;
+    partner_type?: PartnerType | null;
+    firstTask?: { title: string; due_date?: string | null } | null;
   }) => {
     if (!userId) throw new Error("Not signed in");
     const { data, error } = await supabase.from("partner_leads").insert({
@@ -223,8 +226,19 @@ export function useLeads(userId: string | undefined) {
       company_name: input.company_name,
       contact_person: input.contact_person ?? null,
       website: input.website ?? null,
+      partner_type: input.partner_type ?? null,
     }).select("*").single();
     if (error) throw error;
+    // Optional: attach a first task in one go so something is always queued
+    if (input.firstTask && input.firstTask.title.trim() && data) {
+      await supabase.from("partner_lead_activities" as never).insert({
+        lead_id: (data as LeadRow).id,
+        owner_id: userId,
+        kind: "task",
+        title: input.firstTask.title.trim(),
+        due_date: input.firstTask.due_date ?? null,
+      } as never);
+    }
     await refresh();
     return data as LeadRow;
   }, [userId, refresh]);
@@ -304,6 +318,7 @@ export function useLeads(userId: string | undefined) {
         tier: "emerging",
         status: "active",
         notes: combinedNotes,
+        partner_type: lead.partner_type ?? "referral",
       })
       .select("*")
       .single();
