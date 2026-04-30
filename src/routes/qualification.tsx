@@ -44,9 +44,9 @@ function QualificationPage() {
   const active = leadsStore.leads.find((l) => l.id === activeId) ?? null;
 
   const moveLeadInQualificationKanban = async (lead: LeadRow, next: LeadStatus) => {
-    if (next === lead.status) return;
+    if (next === lead.status && !(next === "approved" && !lead.promoted_partner_id)) return;
     try {
-      await leadsStore.updateLead(lead.id, { status: next });
+      if (next !== lead.status) await leadsStore.updateLead(lead.id, { status: next });
       if (next !== "approved" || lead.promoted_partner_id) return;
 
       if (confirm("Create partner object? This will add this approved lead to your Portfolio as an Official Partner.")) {
@@ -375,23 +375,9 @@ function LeadDetailPanel({
 
         <div className="mt-4 flex items-center gap-2 flex-wrap">
           <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Status</span>
-          <select
-            value={lead.status}
-            onChange={(e) => {
-              const next = e.target.value as LeadStatus;
-              if (next === lead.status) return;
-              if (next === "rejected") {
-                setShowReject(true);
-                return;
-              }
-              void onUpdate({ status: next });
-            }}
-            className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1"
-          >
-            {LEAD_STATUSES.map((s) => (
-              <option key={s.key} value={s.key}>{s.label}</option>
-            ))}
-          </select>
+          <span className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1">
+            {LEAD_STATUSES.find((s) => s.key === lead.status)?.label ?? lead.status}
+          </span>
           {lead.promoted_partner_id && (
             <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">
               Promoted
