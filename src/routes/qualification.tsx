@@ -14,12 +14,16 @@ import {
   activitySummary,
   LEAD_SOURCES,
   LEAD_ACTIVITY_KINDS,
+  useAllLeadTasks,
   type LeadRow,
   type LeadStatus,
   type DimensionKey,
   type LeadActivityKind,
   type LeadActivityRow,
+  type LeadTaskRow,
 } from "@/lib/leads-store";
+import { PARTNER_TYPES, type PartnerType, LEAD_SORTS, type LeadSortKey } from "@/lib/partner-types";
+import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 
 export const Route = createFileRoute("/qualification")({
   head: () => ({ meta: [{ title: "Partner Qualification — OCTA OS" }] }),
@@ -32,6 +36,10 @@ function QualificationPage() {
   const leadsStore = useLeads(user?.id);
   const [showNew, setShowNew] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
+  const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
+  const leadTasks = useAllLeadTasks(user?.id, leadsStore.leads);
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
@@ -42,6 +50,25 @@ function QualificationPage() {
   }, [leadsStore.leads]);
 
   const active = leadsStore.leads.find((l) => l.id === activeId) ?? null;
+
+  // Filter + sort the leads used by the Kanban
+  const visibleLeads = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const filtered = leadsStore.leads.filter((l) => {
+      if (typeFilter !== "all" && l.partner_type !== typeFilter) return false;
+      if (q && !`${l.company_name} ${l.contact_person ?? ""}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    return [...filtered].sort((a, b) => {
+      switch (sortKey) {
+        case "name_asc": return a.company_name.localeCompare(b.company_name);
+        case "name_desc": return b.company_name.localeCompare(a.company_name);
+        case "score_desc": return (computeFactorialTotal(b) ?? -1) - (computeFactorialTotal(a) ?? -1);
+        case "created_desc":
+        default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+  }, [leadsStore.leads, query, typeFilter, sortKey]);
 
   const moveLeadInQualificationKanban = async (lead: LeadRow, next: LeadStatus) => {
     if (next === lead.status && !(next === "approved" && !lead.promoted_partner_id)) return;
@@ -86,6 +113,54 @@ function QualificationPage() {
         ))}
       </div>
 
+      {/* Lead Tasks · Next moves */}
+      <LeadTasksSection
+        tasks={leadTasks.tasks}
+        loading={leadTasks.loading}
+        onComplete={async (id) => {
+          try { await leadTasks.completeTask(id); toast.success("Task done"); }
+          catch (e) { toast.error((e as Error).message); }
+        }}
+        onOpenLead={(leadId) => setActiveId(leadId)}
+      />
+
+      {/* Filter bar */}
+      <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search leads…"
+          className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-sm w-full sm:w-56"
+        />
+        <div className="inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
+          <button
+            onClick={() => setTypeFilter("all")}
+            className={`px-2.5 py-1.5 rounded-md transition ${typeFilter === "all" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            All types
+          </button>
+          {PARTNER_TYPES.map((t) => (
+            <button
+              key={t.key}
+              onClick={() => setTypeFilter(t.key)}
+              className={`px-2.5 py-1.5 rounded-md transition ${typeFilter === t.key ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              style={typeFilter === t.key ? { color: `var(--${t.color})` } : {}}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <select
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value as LeadSortKey)}
+          className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs"
+        >
+          {LEAD_SORTS.map((s) => (
+            <option key={s.key} value={s.key}>Sort: {s.label}</option>
+          ))}
+        </select>
+      </div>
+
       <div className="mt-6">
         {leadsStore.loading ? (
           <div className="text-sm text-muted-foreground py-10 text-center">Loading leads…</div>
@@ -94,7 +169,7 @@ function QualificationPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {LEAD_STATUSES.map((col) => {
-              const items = leadsStore.leads.filter((l) => l.status === col.key);
+              const items = visibleLeads.filter((l) => l.status === col.key);
               return (
                 <div
                   key={col.key}
