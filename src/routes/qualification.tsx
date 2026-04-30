@@ -486,7 +486,7 @@ function NewLeadDialog({
 }
 
 function LeadDetailPanel({
-  lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete,
+  lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
 }: {
   lead: LeadRow;
   onClose: () => void;
@@ -495,6 +495,7 @@ function LeadDetailPanel({
   onUpdateNotes: (text: string) => Promise<void>;
   onReject: (reason: string) => Promise<void>;
   onDelete: () => Promise<void>;
+  onPromote: () => void;
 }) {
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
@@ -504,6 +505,7 @@ function LeadDetailPanel({
 
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
+  const canPromote = !lead.promoted_partner_id && lead.status !== "rejected" && verdict?.tone !== "red";
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-background/70 backdrop-blur-sm" onClick={onClose}>
@@ -557,6 +559,40 @@ function LeadDetailPanel({
           </select>
           {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
         </div>
+
+        {lead.status !== "rejected" && (
+          <div className="mt-4 rounded-xl border border-border/60 bg-surface/40 p-3 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-sm font-semibold">
+                {lead.promoted_partner_id ? "Already in your portfolio" : "Ready to add to portfolio?"}
+              </div>
+              <div className="text-xs text-muted-foreground mt-0.5">
+                {lead.promoted_partner_id
+                  ? "This lead has been promoted to a partner."
+                  : verdict?.tone === "red"
+                    ? "Score the lead first — current verdict is too low to promote."
+                    : "Promotes the lead and opens the new partner workspace."}
+              </div>
+            </div>
+            {lead.promoted_partner_id ? (
+              <Link
+                to="/partner/$partnerId"
+                params={{ partnerId: lead.promoted_partner_id }}
+                className="shrink-0 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-surface-2"
+              >
+                Open partner →
+              </Link>
+            ) : (
+              <button
+                onClick={onPromote}
+                disabled={!canPromote}
+                className="shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground glow-ring disabled:opacity-40"
+              >
+                Promote to Partner →
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="mt-5 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
           <button
