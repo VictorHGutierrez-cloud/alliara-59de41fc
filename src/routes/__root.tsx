@@ -89,8 +89,8 @@ function AppFrame() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-display font-bold tracking-tight text-foreground">
             <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--octa-1)] via-[var(--octa-4)] to-[var(--octa-5)]" />
-            <span>
-              OCTA<span className="text-muted-foreground">.os</span>
+            <span className="whitespace-pre-wrap flex items-baseline gap-1">
+              OCTA+ <span className="text-[10px] font-normal text-muted-foreground opacity-70 ml-2">Created by Victor Gutierrez - Factorial RH PDM</span>
             </span>
           </Link>
           <nav className="flex items-center gap-2 text-sm">
