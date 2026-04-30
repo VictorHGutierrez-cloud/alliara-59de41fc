@@ -503,6 +503,24 @@ function LeadDetailPanel({
           )}
         </div>
 
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Type</span>
+          <select
+            value={lead.partner_type ?? ""}
+            onChange={(e) => {
+              const v = e.target.value as PartnerType | "";
+              void onUpdate({ partner_type: v ? v : null });
+            }}
+            className="rounded-md bg-surface border border-border/60 px-2 py-1 text-xs"
+          >
+            <option value="">— Not set —</option>
+            {PARTNER_TYPES.map((t) => (
+              <option key={t.key} value={t.key}>{t.label}</option>
+            ))}
+          </select>
+          {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
+        </div>
+
         <div className="mt-5 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
           <button
             onClick={() => setTab("scorecard")}
