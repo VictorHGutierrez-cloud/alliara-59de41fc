@@ -367,7 +367,29 @@ function LeadDetailPanel({
           <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Status</span>
           <select
             value={lead.status}
-            onChange={(e) => onUpdate({ status: e.target.value as LeadStatus })}
+            onChange={(e) => {
+              const next = e.target.value as LeadStatus;
+              if (next === lead.status) return;
+              if (next === "approved") {
+                if (lead.promoted_partner_id) {
+                  void onUpdate({ status: "approved" });
+                  return;
+                }
+                if (total === null) {
+                  toast.error("Score all 5 dimensions before promoting.");
+                  return;
+                }
+                if (confirm("This will create an Official Partner in your Partner Acquisition Pipeline. Continue?")) {
+                  void onPromote();
+                }
+                return;
+              }
+              if (next === "rejected") {
+                setShowReject(true);
+                return;
+              }
+              void onUpdate({ status: next });
+            }}
             className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1"
           >
             {LEAD_STATUSES.map((s) => (
