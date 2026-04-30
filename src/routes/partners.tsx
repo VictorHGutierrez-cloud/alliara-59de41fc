@@ -760,11 +760,12 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete }: { item: PortfolioItem; onDelete: () => void }) {
+function PartnerCard({ item, onDelete, revenue }: { item: PortfolioItem; onDelete: () => void; revenue?: { revenue: number; mrr: number; dealsWonValue: number } }) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
   const tColor = tierColor(item.partner.tier);
   const scores = (item.latest?.scores ?? {}) as Record<string, number>;
+  const totalRev = (revenue?.revenue ?? 0) + (revenue?.dealsWonValue ?? 0);
 
   return (
     <div className="relative">
@@ -788,6 +789,9 @@ function PartnerCard({ item, onDelete }: { item: PortfolioItem; onDelete: () => 
             <div className="text-xs text-muted-foreground truncate">
               {item.partner.company ?? "—"}{item.partner.segment ? ` · ${item.partner.segment}` : ""}
             </div>
+            <div className="mt-1.5">
+              <PartnerTypeChip type={item.partner.partner_type} />
+            </div>
           </div>
           <span
             className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md mr-7"
@@ -800,6 +804,11 @@ function PartnerCard({ item, onDelete }: { item: PortfolioItem; onDelete: () => 
         <div className="mt-4 flex items-baseline gap-2">
           <span className="text-3xl font-display font-bold text-gradient">{overall ? overall.toFixed(1) : "—"}</span>
           <span className="text-xs text-muted-foreground">/ 5.0 · {lvl ? `Level ${lvl}` : "Not diagnosed"}</span>
+          {totalRev > 0 && (
+            <span className="ml-auto text-xs font-mono text-muted-foreground" title="Latest revenue + won deals">
+              {fmtMoney(totalRev)}
+            </span>
+          )}
         </div>
 
         <div className="mt-3 flex gap-1 h-8">
