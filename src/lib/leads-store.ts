@@ -5,6 +5,38 @@ import type { Database } from "@/integrations/supabase/types";
 export type LeadRow = Database["public"]["Tables"]["partner_leads"]["Row"];
 export type LeadStatus = Database["public"]["Enums"]["partner_lead_status"];
 
+export type LeadActivityKind = "task" | "call" | "email" | "meeting" | "note";
+export type LeadActivityRow = {
+  id: string;
+  lead_id: string;
+  owner_id: string;
+  kind: LeadActivityKind;
+  title: string;
+  description: string | null;
+  due_date: string | null;
+  done: boolean;
+  done_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export const LEAD_SOURCES = [
+  "Outbound",
+  "Inbound",
+  "Referral",
+  "Event",
+  "Partner network",
+  "Other",
+] as const;
+
+export const LEAD_ACTIVITY_KINDS: { key: LeadActivityKind; label: string; icon: string }[] = [
+  { key: "task", label: "Task", icon: "✓" },
+  { key: "call", label: "Call", icon: "☎" },
+  { key: "email", label: "Email", icon: "✉" },
+  { key: "meeting", label: "Meeting", icon: "◧" },
+  { key: "note", label: "Note", icon: "✎" },
+];
+
 export const LEAD_STATUSES: { key: LeadStatus; label: string }[] = [
   { key: "new", label: "New Lead" },
   { key: "in_review", label: "In Review" },
