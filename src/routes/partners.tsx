@@ -499,15 +499,19 @@ function prettyStatus(s: StatusFilter): string {
 
 /* ─────────────────── presentational ─────────────────── */
 
-function KpiCard({ label, value, hint, accent }: { label: string; value: string; hint: string; accent: string }) {
+function KpiCard({ label, value, hint, accent, primary }: { label: string; value: string; hint: string; accent: string; primary?: boolean }) {
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5 card-elev relative overflow-hidden">
+    <div className="rounded-xl border border-white/[0.05] bg-[#1A1D27] p-5 card-elev relative overflow-hidden hover:border-white/[0.1] transition">
       <div
         className="absolute top-0 left-0 h-1 w-full"
         style={{ background: `linear-gradient(90deg, var(--${accent}), transparent)` }}
       />
       <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className="mt-2 text-3xl font-display font-bold">{value}</div>
+      <div
+        className={`mt-2 text-3xl font-display font-bold ${primary ? "text-gradient" : "text-white"}`}
+      >
+        {value}
+      </div>
       <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
     </div>
   );
@@ -520,24 +524,31 @@ function HealthBadge({
   tone: "green" | "yellow" | "red";
   active: boolean; onClick: () => void;
 }) {
-  const ring = tone === "green" ? "border-emerald-500/40 bg-emerald-500/5"
-    : tone === "yellow" ? "border-yellow-500/40 bg-yellow-500/5"
-    : "border-red-500/40 bg-red-500/5";
-  const dot = tone === "green" ? "bg-emerald-400" : tone === "yellow" ? "bg-yellow-400" : "bg-red-400";
-  const text = tone === "green" ? "text-emerald-300" : tone === "yellow" ? "text-yellow-200" : "text-red-300";
+  const isZero = count === 0;
+  const ring = isZero
+    ? "border-white/[0.05] bg-white/[0.02]"
+    : tone === "green" ? "border-[#10B981]/30 bg-[#10B981]/5"
+    : tone === "yellow" ? "border-[#F59E0B]/30 bg-[#F59E0B]/5"
+    : "border-[#FF4444]/40 bg-[#FF4444]/5";
+  const dot = isZero
+    ? "bg-muted-foreground/40"
+    : tone === "green" ? "bg-[#10B981]" : tone === "yellow" ? "bg-[#F59E0B]" : "bg-[#FF4444]";
+  const text = isZero
+    ? "text-muted-foreground"
+    : tone === "green" ? "text-[#10B981]" : tone === "yellow" ? "text-[#F59E0B]" : "text-[#FF6B6B]";
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
 
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-xl border p-4 transition ${ring} ${active ? "ring-2 ring-offset-2 ring-offset-background ring-current" : "hover:bg-surface-2/40"}`}
+      className={`text-left rounded-xl border p-4 transition ${ring} ${isZero ? "opacity-40 hover:opacity-70" : "hover:bg-white/[0.04]"} ${active ? "ring-2 ring-offset-2 ring-offset-background ring-current opacity-100" : ""}`}
     >
       <div className="flex items-center gap-2">
         <span className={`h-2 w-2 rounded-full ${dot}`} />
         <span className={`text-xs font-medium ${text}`}>{label}</span>
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-3xl font-display font-bold">{count}</span>
+        <span className={`text-3xl font-display font-bold ${isZero ? "text-muted-foreground" : "text-white"}`}>{count}</span>
         <span className="text-xs text-muted-foreground">{pct}%</span>
       </div>
     </button>
@@ -546,9 +557,9 @@ function HealthBadge({
 
 function PriorityPill({ p }: { p: ActionRow["priority"] }) {
   const map = {
-    high: "bg-red-500/15 text-red-300 border-red-500/30",
-    medium: "bg-yellow-500/10 text-yellow-200 border-yellow-500/30",
-    low: "bg-surface-2 text-muted-foreground border-border/60",
+    high: "bg-[#FF4444] text-white border-[#FF4444] font-bold",
+    medium: "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/40",
+    low: "bg-white/[0.03] text-muted-foreground border-white/[0.06]",
   } as const;
   return (
     <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border ${map[p]}`}>
