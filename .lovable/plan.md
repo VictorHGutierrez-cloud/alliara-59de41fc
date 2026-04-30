@@ -1,84 +1,48 @@
-## Goal
+## Problem
 
-Two things the user asked for:
+Right now the only way to add a partner from /qualification to the portfolio is to **drag a lead into the "Approved" column** and confirm a native `window.confirm()` popup. There is no visible button. If a user clicks on a lead, opens the side panel, or has a lead that is already in "Approved" but not yet promoted, there is no way to push it to the portfolio. That's why it feels like the feature disappeared.
 
-1. **Consistent filters & sorting across the platform** — alphabetical, by partnership **type** (Referral / Reseller / Expert), and by **revenue** they brought in. Apply to Portfolio, Qualification, and the Dashboard's partner lists.
-2. **Tasks attached to leads entering the pipe** — leads already have an activities table (`partner_lead_activities`) but tasks are buried inside the lead detail panel. We need them surfaced and aggregated like partner Growth Initiatives are.
+The backend logic still works — `leadsStore.promoteLead(lead)` in `src/lib/leads-store.ts` creates the partner row and stamps `promoted_partner_id` on the lead. We just need to surface it in the UI.
 
-## 1. New field: Partnership Type (Referral / Reseller / Expert)
+## Plan
 
-Today `partners.tier` = `strategic | core | emerging | long_tail` — that's a maturity/value tier, not the **commercial relationship**. We need a separate field.
+Add an explicit **"Promote to Partner"** action in two places, and keep the current drag-to-Approved behavior as a shortcut.
 
-### Schema
-- New enum `partner_type` with values: `referral`, `reseller`, `expert`.
-- New column `partners.partner_type partner_type not null default 'referral'`.
-- New column `partner_leads.partner_type partner_type` (nullable while qualifying — set on promotion).
-- Backfill all current partners to `referral` (most common starting point); user can re-classify in bulk later from the portfolio table.
+### 1. Lead detail panel (`LeadDetailPanel` in `src/routes/qualification.tsx`)
 
-### UI
-- Add type selector to:
-  - New partner dialog (`partners.tsx` → `New partner` modal)
-  - Partner header on `/partner/$partnerId`
-  - New lead dialog + lead detail panel on `/qualification`
-  - When a lead is promoted (`promoteLead`), copy `partner_type` from lead to partner.
-- Render a small colored chip everywhere a partner card shows tier (Referral = blue, Reseller = violet, Expert = amber).
+Just under the Status/Type row at the top of the side panel, render one of three states:
 
-## 2. Shared Filter / Sort Bar
+- **Not yet promoted** → a primary button **"Promote to Partner →"**.  
+  - Disabled until the lead has `partner_type` set and a Factorial total ≥ a "Promote" verdict (we already compute `factorialVerdict(total)` — reuse it; if it is `red` we disable and show a hint "Score the lead first").
+  - On click: confirm dialog → call `leadsStore.promoteLead(lead)` → toast → navigate to `/partner/$partnerId` using the returned id, so the user lands directly on the new partner workspace.
+- **Already promoted** → show the existing green "Promoted" chip plus a small **"Open partner →"** link to `/partner/$promoted_partner_id`.
+- **Rejected** → keep current behavior (no promote button).
 
-Build one reusable component `src/components/PartnerFilterBar.tsx`:
+### 2. Lead card (`LeadCard` in the same file)
 
-```
-[Search…] [Type ▾ All|Referral|Reseller|Expert] [Status ▾ …] [Sort ▾ A-Z | Z-A | Revenue ↓ | Recently added | Maturity]
-```
+On the Kanban card, in the footer row, add a tiny **"Promote →"** button visible only when:
+- `lead.status === "approved"` AND
+- `!lead.promoted_partner_id`
 
-- State held in URL search params via TanStack zod adapter so filters survive refresh and are shareable. Schema: `{ q, type, status, sort }` with `fallback()` defaults.
-- Sort options:
-  - `name_asc` (alphabetical, default), `name_desc`
-  - `revenue_desc` — sums latest `partner_metrics.revenue + deals_won_value` per partner
-  - `mrr_desc` — latest `partner_metrics.mrr`
-  - `created_desc` — recently added
-  - `maturity_desc` — `assessments.overall`
+This catches the case where someone moved a lead to Approved but cancelled the confirm dialog. Clicking it stops propagation, runs the same promote flow, and shows a toast.
 
-### Where it goes
-- **`/partners`** (Portfolio) — replaces the current ad-hoc search box and adds Type + Sort. The existing Health-status badges keep working (they sync with the same `status` URL param).
-- **`/qualification`** — adds the same bar above the Kanban so PDMs can filter leads by Type, sort by score or alphabetically, and search.
-- **`/dashboard`** — small read-only "Top partners" list that respects the same sort.
+### 3. Keep drag-to-Approved as a shortcut
 
-### Reusable hook
-`src/lib/partner-revenue.ts` exposing `useLatestPartnerRevenue(partnerIds[])` → returns `Map<partnerId, { revenue, mrr, dealsWonValue }>` from `partner_metrics`. Used by sort logic and by KPIs that already exist on the dashboard so we don't duplicate queries.
+`moveLeadInQualificationKanban` stays as is — drag-to-Approved still offers the confirm-and-promote shortcut. We only **add** explicit buttons; we don't remove the existing path.
 
-## 3. Tasks for Leads in the Pipe
+### 4. Empty-pipeline hint
 
-Lead activities (`partner_lead_activities`) already exist and store `kind, title, due_date, done`. Today they only appear inside the lead detail panel. We'll surface them like partner Growth Initiatives.
+In `EmptyState`, no change needed — it already nudges users to add a lead first.
 
-### Changes
-- **Aggregate hook** `useAllLeadTasks(userId)` in `src/lib/leads-store.ts`: fetches all open `task` activities across the user's leads, joined with `lead.company_name`. Returns `{ tasks, overdueCount, dueThisWeek }`.
-- **Qualification page** (`/qualification`):
-  - New section above the Kanban: **"Lead tasks · Next moves"** showing the next 5 open tasks across all leads, sorted by due date (overdue first, then this week). Each row: lead name · task title · due date · "Mark done" button.
-  - On every Kanban `LeadCard`, the existing "X open · Y overdue" footer becomes clickable → opens lead panel pre-filtered to the CRM tab.
-- **Dashboard** (`/dashboard`):
-  - Add a "Lead tasks" tile to the existing **Activity & Tasks** section, mirroring the partner action_plans tile (open / overdue / done this week).
-  - Add to **Briefing copy** on `/partners`: "X overdue lead tasks" call-to-action chip linking to `/qualification#lead-tasks`.
-- **New-lead dialog**: optional "First next step" field (kind=task, title, due_date) — if filled, creates a `partner_lead_activities` row right after the lead is inserted. Removes friction so a task is always attached when a lead enters the pipe.
+## Technical notes
 
-## 4. Technical Notes
+- Files touched: only `src/routes/qualification.tsx`. No schema changes, no new files, no new hooks.
+- `promoteLead` already returns the new `partner_id` (string). Use it for navigation: `nav({ to: "/partner/$partnerId", params: { partnerId } })`.
+- Reuse `PARTNER_TYPES` / `factorialVerdict` already imported at the top.
+- Replace the native `window.confirm()` for promotion with the existing custom-styled confirm pattern if one exists; otherwise keep `confirm()` for now (out of scope to introduce a new modal component just for this).
 
-- **Schema migration** (one migration):
-  - `create type partner_type as enum ('referral','reseller','expert');`
-  - `alter table partners add column partner_type partner_type not null default 'referral';`
-  - `alter table partner_leads add column partner_type partner_type;`
-- **No RLS changes** — both columns inherit existing partner/lead policies.
-- **TypeScript** — `src/integrations/supabase/types.ts` regenerates automatically; `partners-store.ts` and `leads-store.ts` will pick up the new field with no manual edits beyond creating helpers.
-- **URL search params** use `zodValidator` + `fallback()` per the TanStack pattern; sort/filter state survives navigation between Portfolio ↔ Partner detail ↔ back.
-- **Sort by revenue** is computed client-side after fetching latest metrics per partner (same "reduce by partner_id" pattern already used by `usePdmStats`).
+## Out of scope
 
-## 5. Out of Scope
-
-- Bulk-edit UI for re-classifying many partners at once (can be added later — for now individual edit on each partner page is enough).
-- Saved filter presets per user.
-- Team-wide leaderboard sorted by revenue (this plan is the PDM's own view).
-
-## Files touched
-
-- New: `supabase` migration · `src/components/PartnerFilterBar.tsx` · `src/lib/partner-revenue.ts`
-- Edited: `src/routes/partners.tsx` · `src/routes/qualification.tsx` · `src/routes/dashboard.tsx` · `src/routes/partner.$partnerId.tsx` · `src/lib/leads-store.ts` · `src/lib/partners-store.ts`
+- Bulk-promote multiple approved leads at once.
+- Auto-promote on reaching a high score (still requires explicit user action).
+- Redesigning the Kanban or detail panel beyond adding the button.
