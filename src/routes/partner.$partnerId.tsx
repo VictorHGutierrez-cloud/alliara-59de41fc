@@ -5,6 +5,8 @@ import { usePartner, levelFromAvg, statusLabel, tierColor, type PartnerRow } fro
 import { AXES } from "../content/octa";
 import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
+import { PARTNER_TYPES, type PartnerType } from "@/lib/partner-types";
+import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 
 export const Route = createFileRoute("/partner/$partnerId")({
   head: () => ({ meta: [{ title: "Partner — OCTA OS" }] }),
@@ -73,6 +75,7 @@ function PartnerLayout() {
                 >
                   {data.partner.tier.replace("_", " ")}
                 </span>
+                <PartnerTypeChip type={data.partner.partner_type} />
                 <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md bg-surface-2 text-muted-foreground">
                   {statusLabel(data.partner.status)}
                 </span>
