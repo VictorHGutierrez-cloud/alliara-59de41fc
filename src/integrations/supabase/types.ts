@@ -316,6 +316,7 @@ export type Database = {
           next_step_at: string | null
           notes: string | null
           owner_id: string
+          partner_type: Database["public"]["Enums"]["partner_type"] | null
           promoted_partner_id: string | null
           sales_score: number | null
           source: string | null
@@ -337,6 +338,7 @@ export type Database = {
           next_step_at?: string | null
           notes?: string | null
           owner_id: string
+          partner_type?: Database["public"]["Enums"]["partner_type"] | null
           promoted_partner_id?: string | null
           sales_score?: number | null
           source?: string | null
@@ -358,6 +360,7 @@ export type Database = {
           next_step_at?: string | null
           notes?: string | null
           owner_id?: string
+          partner_type?: Database["public"]["Enums"]["partner_type"] | null
           promoted_partner_id?: string | null
           sales_score?: number | null
           source?: string | null
@@ -463,6 +466,7 @@ export type Database = {
           name: string
           notes: string | null
           owner_id: string
+          partner_type: Database["public"]["Enums"]["partner_type"]
           segment: string | null
           status: Database["public"]["Enums"]["partner_status"]
           tier: Database["public"]["Enums"]["partner_tier"]
@@ -475,6 +479,7 @@ export type Database = {
           name: string
           notes?: string | null
           owner_id: string
+          partner_type?: Database["public"]["Enums"]["partner_type"]
           segment?: string | null
           status?: Database["public"]["Enums"]["partner_status"]
           tier?: Database["public"]["Enums"]["partner_tier"]
@@ -487,6 +492,7 @@ export type Database = {
           name?: string
           notes?: string | null
           owner_id?: string
+          partner_type?: Database["public"]["Enums"]["partner_type"]
           segment?: string | null
           status?: Database["public"]["Enums"]["partner_status"]
           tier?: Database["public"]["Enums"]["partner_tier"]
@@ -563,6 +569,7 @@ export type Database = {
       partner_lead_status: "new" | "in_review" | "approved" | "rejected"
       partner_status: "active" | "nurturing" | "at_risk" | "paused" | "archived"
       partner_tier: "strategic" | "core" | "emerging" | "long_tail"
+      partner_type: "referral" | "reseller" | "expert"
       stakeholder_role: "ceo" | "it" | "ae" | "marketing" | "other"
     }
     CompositeTypes: {
@@ -698,6 +705,7 @@ export const Constants = {
       partner_lead_status: ["new", "in_review", "approved", "rejected"],
       partner_status: ["active", "nurturing", "at_risk", "paused", "archived"],
       partner_tier: ["strategic", "core", "emerging", "long_tail"],
+      partner_type: ["referral", "reseller", "expert"],
       stakeholder_role: ["ceo", "it", "ae", "marketing", "other"],
     },
   },
