@@ -339,6 +339,7 @@ function LeadDetailPanel({
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
   const [showReject, setShowReject] = useState(false);
+  const [tab, setTab] = useState<"scorecard" | "crm">("scorecard");
   useEffect(() => { setNotes(freeText); }, [lead.id, freeText]);
 
   const total = computeFactorialTotal(lead);
@@ -385,6 +386,25 @@ function LeadDetailPanel({
           )}
         </div>
 
+        <div className="mt-5 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
+          <button
+            onClick={() => setTab("scorecard")}
+            className={`px-3 py-1.5 rounded-md transition ${tab === "scorecard" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            Scorecard
+          </button>
+          <button
+            onClick={() => setTab("crm")}
+            className={`px-3 py-1.5 rounded-md transition ${tab === "crm" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            CRM & Activities
+          </button>
+        </div>
+
+        {tab === "crm" ? (
+          <CrmTab lead={lead} onUpdate={onUpdate} />
+        ) : (
+        <>
         <div className="mt-6">
           <h3 className="text-sm font-semibold">Factorial 5-Dimension Scorecard</h3>
           <p className="text-xs text-muted-foreground mt-0.5">Score each dimension Low (1) · Medium (2) · High (3). Total ranges 5–15.</p>
@@ -443,6 +463,8 @@ function LeadDetailPanel({
             placeholder="Context, source of the lead, key conversation points…"
           />
         </div>
+        </>
+        )}
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <button
