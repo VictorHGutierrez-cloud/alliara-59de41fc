@@ -49,6 +49,7 @@
 
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-danger: var(--danger);
 
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
@@ -66,67 +67,77 @@
   --color-chart-5: var(--octa-2);
 }
 
-/* Dark-first OS aesthetic */
+/* "Calm Command" — warm, light, single-accent system.
+ * Anthropology: warm off-white reduces alarm; one deep emerald accent
+ * carries every primary action. 60% canvas / 30% ink / 10% accent.
+ */
 :root {
   --radius: 0.875rem;
 
-  --background: oklch(0.16 0.022 265);
-  --foreground: oklch(0.97 0.005 250);
+  /* Canvas */
+  --background: oklch(0.985 0.008 85);
+  --foreground: oklch(0.18 0.02 260);
 
-  --surface: oklch(0.205 0.024 265);
-  --surface-2: oklch(0.245 0.026 265);
+  /* Surfaces */
+  --surface: oklch(0.975 0.01 80);
+  --surface-2: oklch(0.955 0.012 80);
 
-  --card: oklch(0.205 0.024 265);
-  --card-foreground: oklch(0.97 0.005 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.02 260);
 
-  --popover: oklch(0.22 0.025 265);
-  --popover-foreground: oklch(0.97 0.005 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.02 260);
 
-  --primary: oklch(0.78 0.18 155);
-  --primary-foreground: oklch(0.16 0.04 160);
+  /* Single deep emerald accent */
+  --primary: oklch(0.52 0.16 160);
+  --primary-foreground: oklch(0.985 0.008 85);
 
-  --secondary: oklch(0.27 0.03 265);
-  --secondary-foreground: oklch(0.97 0.005 250);
+  --secondary: oklch(0.94 0.012 80);
+  --secondary-foreground: oklch(0.25 0.02 260);
 
-  --muted: oklch(0.255 0.025 265);
-  --muted-foreground: oklch(0.7 0.02 260);
+  --muted: oklch(0.95 0.01 80);
+  --muted-foreground: oklch(0.5 0.012 80);
 
-  --accent: oklch(0.72 0.19 295);
-  --accent-foreground: oklch(0.16 0.03 295);
+  --accent: oklch(0.94 0.025 160);
+  --accent-foreground: oklch(0.3 0.08 160);
 
-  --destructive: oklch(0.66 0.22 25);
-  --destructive-foreground: oklch(0.98 0.005 250);
+  --destructive: oklch(0.58 0.2 27);
+  --destructive-foreground: oklch(0.99 0.005 80);
 
-  --success: oklch(0.78 0.18 155);
-  --warning: oklch(0.83 0.16 80);
+  --success: oklch(0.52 0.16 160);
+  --warning: oklch(0.7 0.16 65);
+  --danger: oklch(0.58 0.2 27);
 
-  --border: oklch(0.3 0.025 265 / 60%);
-  --input: oklch(0.28 0.025 265);
-  --ring: oklch(0.78 0.18 155);
+  --border: oklch(0.9 0.008 80);
+  --input: oklch(0.97 0.008 80);
+  --ring: oklch(0.52 0.16 160 / 50%);
 
-  /* OCTA axis palette — 8 distinct hues with consistent chroma/lightness */
-  --octa-1: oklch(0.78 0.18 155); /* mint — Strategy */
-  --octa-2: oklch(0.78 0.16 195); /* cyan — Offer */
-  --octa-3: oklch(0.74 0.16 235); /* sky — Recruit */
-  --octa-4: oklch(0.72 0.18 280); /* violet — Enable */
-  --octa-5: oklch(0.74 0.2 320);  /* magenta — Co-sell */
-  --octa-6: oklch(0.78 0.18 25);  /* coral — Tech/Ops */
-  --octa-7: oklch(0.83 0.16 70);  /* amber — Growth */
-  --octa-8: oklch(0.85 0.16 105); /* lime — Success */
+  /* OCTA axes — re-tuned for legibility on light surfaces */
+  --octa-1: oklch(0.52 0.16 160); /* emerald — Strategy */
+  --octa-2: oklch(0.55 0.14 200); /* teal — Offer */
+  --octa-3: oklch(0.52 0.16 240); /* indigo — Recruit */
+  --octa-4: oklch(0.5 0.18 285);  /* violet — Enable */
+  --octa-5: oklch(0.55 0.2 325);  /* magenta — Co-sell */
+  --octa-6: oklch(0.58 0.2 30);   /* coral — Tech/Ops */
+  --octa-7: oklch(0.65 0.16 70);  /* amber — Growth */
+  --octa-8: oklch(0.6 0.18 110);  /* olive — Success */
 
-  --gradient-hero: radial-gradient(ellipse at top left, oklch(0.78 0.18 155 / 0.18), transparent 60%),
-                   radial-gradient(ellipse at bottom right, oklch(0.72 0.19 295 / 0.18), transparent 60%);
+  --gradient-hero:
+    radial-gradient(ellipse 80% 60% at 80% 30%, oklch(0.97 0.02 75 / 0.7), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 10% 90%, oklch(0.95 0.025 160 / 0.5), transparent 60%);
   --gradient-glow: linear-gradient(135deg, var(--octa-1), var(--octa-4));
-  --shadow-glow: 0 10px 40px -10px oklch(0.78 0.18 155 / 0.45);
-  --shadow-card: 0 1px 0 0 oklch(1 0 0 / 6%) inset, 0 8px 24px -12px oklch(0 0 0 / 0.5);
+  --shadow-glow: 0 10px 30px -12px oklch(0.52 0.16 160 / 0.35);
+  --shadow-card:
+    0 1px 2px 0 oklch(0.2 0.02 260 / 0.04),
+    0 8px 24px -12px oklch(0.2 0.02 260 / 0.08);
 
-  --sidebar: oklch(0.185 0.023 265);
-  --sidebar-foreground: oklch(0.92 0.01 250);
+  --sidebar: oklch(0.97 0.008 80);
+  --sidebar-foreground: oklch(0.25 0.02 260);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.245 0.026 265);
-  --sidebar-accent-foreground: oklch(0.97 0.005 250);
-  --sidebar-border: oklch(0.3 0.025 265 / 60%);
+  --sidebar-accent: oklch(0.95 0.01 80);
+  --sidebar-accent-foreground: oklch(0.25 0.02 260);
+  --sidebar-border: oklch(0.9 0.008 80);
   --sidebar-ring: var(--ring);
 }
 
@@ -147,19 +158,19 @@
 
   h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
 
-  ::selection { background: oklch(0.78 0.18 155 / 0.35); }
+  ::selection { background: oklch(0.52 0.16 160 / 0.2); }
 }
 
 @layer utilities {
   .glass {
-    background: color-mix(in oklab, var(--surface) 70%, transparent);
+    background: color-mix(in oklab, oklch(1 0 0) 80%, transparent);
     backdrop-filter: blur(12px);
-    border: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
   }
   .glow-ring { box-shadow: var(--shadow-glow); }
   .card-elev { box-shadow: var(--shadow-card); }
   .text-gradient {
-    background: linear-gradient(135deg, var(--octa-1), var(--octa-4) 60%, var(--octa-5));
+    background: linear-gradient(135deg, var(--octa-1), var(--octa-4) 70%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -172,7 +183,7 @@
     width: 100%;
     border-radius: 0.5rem;
     border: 1px solid var(--border);
-    background: color-mix(in oklab, var(--surface) 70%, transparent);
+    background: oklch(1 0 0);
     color: var(--foreground);
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
@@ -181,11 +192,11 @@
     transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
   }
   .input::placeholder { color: var(--muted-foreground); }
-  .input:hover { background: var(--surface-2); }
+  .input:hover { background: var(--surface); }
   .input:focus,
   .input:focus-visible {
     border-color: color-mix(in oklab, var(--primary) 60%, var(--border));
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 22%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent);
   }
   textarea.input { min-height: 2.5rem; resize: vertical; }
   select.input { appearance: none; padding-right: 1.75rem; }
