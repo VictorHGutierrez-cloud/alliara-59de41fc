@@ -37,9 +37,6 @@ function PartnerLayout() {
   const tColor = tierColor(data.partner.tier);
   const isOwner = data.partner.owner_id === user.id;
 
-  const scores = (data.latest?.scores ?? {}) as Record<string, number>;
-  const radarData = AXES.map((a) => ({ axis: a.letter, fullName: a.name, score: scores[a.key] ?? 0 }));
-
   const tabs: { key: string; label: string; to: string }[] = [
     { key: "overview", label: "Overview", to: `/partner/${partnerId}` },
     { key: "diagnostic", label: data.latest ? "Re-run Assessment" : "Readiness Assessment", to: `/partner/${partnerId}/diagnostic` },
@@ -155,16 +152,39 @@ function PartnerLayout() {
 
 function Overview({
   partnerId,
-  radarData,
   data,
-  scores,
 }: {
   partnerId: string;
-  radarData: { axis: string; fullName: string; score: number }[];
   data: ReturnType<typeof usePartner>;
-  scores: Record<string, number>;
 }) {
   const hasDiagnostic = !!data.latest;
+  const history = data.history;
+  const [selectedId, setSelectedId] = useState<string | null>(history[0]?.id ?? null);
+  const [compareId, setCompareId] = useState<string | null>(null);
+
+  // Keep selection valid if history changes
+  useEffect(() => {
+    if (!selectedId && history[0]) setSelectedId(history[0].id);
+    if (selectedId && !history.find((h) => h.id === selectedId)) setSelectedId(history[0]?.id ?? null);
+    if (compareId && !history.find((h) => h.id === compareId)) setCompareId(null);
+  }, [history, selectedId, compareId]);
+
+  const selected = history.find((h) => h.id === selectedId) ?? history[0] ?? null;
+  const compare = compareId ? history.find((h) => h.id === compareId) ?? null : null;
+  const scores = (selected?.scores ?? {}) as Record<string, number>;
+  const compareScores = (compare?.scores ?? {}) as Record<string, number>;
+  const radarData = AXES.map((a) => ({
+    axis: a.letter,
+    fullName: a.name,
+    score: scores[a.key] ?? 0,
+    compare: compareScores[a.key] ?? 0,
+  }));
+
+  const fmtDate = (iso: string) => {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });
+  };
+
   const lowest = [...AXES]
     .map((a) => ({ a, s: scores[a.key] ?? 0 }))
     .sort((x, y) => x.s - y.s)
@@ -187,17 +207,70 @@ function Overview({
   return (
     <div className="grid lg:grid-cols-5 gap-4">
       <div className="lg:col-span-2 rounded-2xl bg-card border border-border/60 p-4 card-elev">
-        <h2 className="font-semibold px-2 pt-2">Maturity radar</h2>
+        <div className="flex items-center justify-between px-2 pt-2 gap-2 flex-wrap">
+          <h2 className="font-semibold">Maturity radar</h2>
+          {history.length > 0 && (
+            <div className="flex items-center gap-1 text-xs">
+              <select
+                value={selectedId ?? ""}
+                onChange={(e) => setSelectedId(e.target.value)}
+                className="input h-8 py-0 text-xs"
+                aria-label="Select assessment version"
+              >
+                {history.map((h, i) => (
+                  <option key={h.id} value={h.id}>
+                    {i === 0 ? "Latest · " : `v${history.length - i} · `}{fmtDate(h.created_at)} ({Number(h.overall).toFixed(1)})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
+        {history.length > 1 && (
+          <div className="px-2 mt-2 flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground font-mono uppercase tracking-widest text-[10px]">Compare</span>
+            <select
+              value={compareId ?? ""}
+              onChange={(e) => setCompareId(e.target.value || null)}
+              className="input h-8 py-0 text-xs flex-1"
+              aria-label="Compare with another assessment"
+            >
+              <option value="">None</option>
+              {history
+                .filter((h) => h.id !== selectedId)
+                .map((h, i) => (
+                  <option key={h.id} value={h.id}>
+                    {fmtDate(h.created_at)} ({Number(h.overall).toFixed(1)})
+                  </option>
+                ))}
+            </select>
+          </div>
+        )}
         <div className="h-[340px]">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData} outerRadius="75%">
               <PolarGrid stroke="oklch(0.4 0.02 265 / 0.4)" />
               <PolarAngleAxis dataKey="axis" tick={{ fill: "oklch(0.85 0.01 250)", fontSize: 12, fontFamily: "Space Grotesk" }} />
               <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: "oklch(0.6 0.02 260)", fontSize: 10 }} />
-              <Radar name={data.partner!.name} dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.35} />
+              {compare && (
+                <Radar name={`Previous · ${fmtDate(compare.created_at)}`} dataKey="compare" stroke="var(--muted-foreground)" fill="var(--muted-foreground)" fillOpacity={0.15} />
+              )}
+              <Radar name={selected ? fmtDate(selected.created_at) : data.partner!.name} dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.35} />
             </RadarChart>
           </ResponsiveContainer>
         </div>
+        {selected && (
+          <div className="px-2 pb-2 text-xs text-muted-foreground flex items-center justify-between">
+            <span>
+              Showing <span className="text-foreground font-medium">{fmtDate(selected.created_at)}</span> · Overall {Number(selected.overall).toFixed(1)}
+            </span>
+            {compare && (
+              <span className="font-mono">
+                Δ {(Number(selected.overall) - Number(compare.overall)).toFixed(1)}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="lg:col-span-3 space-y-4">
