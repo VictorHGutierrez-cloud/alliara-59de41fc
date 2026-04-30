@@ -82,28 +82,22 @@ function AppFrame() {
       <header
         className={
           isLanding && !user
-            ? "sticky top-0 z-40 bg-transparent border-b border-transparent"
+            ? "sticky top-0 z-40 bg-transparent"
             : "sticky top-0 z-40 glass"
         }
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 font-display font-bold tracking-tight">
+          <Link to="/" className="flex items-center gap-2 font-display font-bold tracking-tight text-foreground">
             <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--octa-1)] via-[var(--octa-4)] to-[var(--octa-5)]" />
-            <span style={isLanding && !user ? { color: "oklch(0.18 0.02 260)" } : undefined}>
-              OCTA
-              <span
-                className={isLanding && !user ? "" : "text-muted-foreground"}
-                style={isLanding && !user ? { color: "oklch(0.55 0.01 80)" } : undefined}
-              >
-                .os
-              </span>
+            <span>
+              OCTA<span className="text-muted-foreground">.os</span>
             </span>
           </Link>
           <nav className="flex items-center gap-2 text-sm">
             {user ? (
               <>
-                <Link to="/partners" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2" }}>Portfolio</Link>
-                <Link to="/qualification" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2" }}>Qualification</Link>
+                <Link to="/partners" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>Portfolio</Link>
+                <Link to="/qualification" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>Qualification</Link>
                 <Link to="/dashboard" className="px-3 py-1.5 rounded-md hover:bg-surface-2 text-muted-foreground" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>My maturity</Link>
                 <button onClick={() => signOut()} className="ml-2 text-muted-foreground hover:text-foreground">Sign out</button>
               </>
