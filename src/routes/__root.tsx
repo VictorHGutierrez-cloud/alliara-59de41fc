@@ -71,6 +71,7 @@ function AppFrame() {
   const { user, loading, signOut } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isApp = path.startsWith("/dashboard") || path.startsWith("/diagnostic") || path.startsWith("/axis") || path.startsWith("/profile");
+  const isLanding = path === "/";
 
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
@@ -78,11 +79,25 @@ function AppFrame() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="sticky top-0 z-40 glass">
+      <header
+        className={
+          isLanding && !user
+            ? "sticky top-0 z-40 bg-transparent border-b border-transparent"
+            : "sticky top-0 z-40 glass"
+        }
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-display font-bold tracking-tight">
             <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--octa-1)] via-[var(--octa-4)] to-[var(--octa-5)]" />
-            <span>OCTA<span className="text-muted-foreground">.os</span></span>
+            <span style={isLanding && !user ? { color: "oklch(0.18 0.02 260)" } : undefined}>
+              OCTA
+              <span
+                className={isLanding && !user ? "" : "text-muted-foreground"}
+                style={isLanding && !user ? { color: "oklch(0.55 0.01 80)" } : undefined}
+              >
+                .os
+              </span>
+            </span>
           </Link>
           <nav className="flex items-center gap-2 text-sm">
             {user ? (
@@ -92,7 +107,7 @@ function AppFrame() {
                 <Link to="/dashboard" className="px-3 py-1.5 rounded-md hover:bg-surface-2 text-muted-foreground" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>My maturity</Link>
                 <button onClick={() => signOut()} className="ml-2 text-muted-foreground hover:text-foreground">Sign out</button>
               </>
-            ) : (
+            ) : isLanding ? null : (
               <>
                 <Link to="/login" className="px-3 py-1.5 rounded-md hover:bg-surface-2">Sign in</Link>
                 <Link to="/signup" className="ml-1 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90">Get started</Link>
@@ -106,9 +121,11 @@ function AppFrame() {
         <Outlet />
       </main>
 
-      <footer className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
-        OCTA OS · A partnership operating system for B2B teams
-      </footer>
+      {!isLanding && (
+        <footer className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
+          OCTA OS · A partnership operating system for B2B teams
+        </footer>
+      )}
     </div>
   );
 }
