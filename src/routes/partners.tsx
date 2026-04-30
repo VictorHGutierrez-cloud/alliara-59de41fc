@@ -891,3 +891,184 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </label>
   );
 }
+
+/* ─────────────────── Action Detail Sheet ─────────────────── */
+
+function ActionDetailSheet({
+  action, onClose, onComplete, completing,
+}: {
+  action: EnrichedAction;
+  onClose: () => void;
+  onComplete: () => void;
+  completing: boolean;
+}) {
+  const axis: Axis | undefined = AXES.find((x) => x.key === action.axis_key);
+  const due = action.due_date ? new Date(action.due_date) : null;
+  const overdue = isOverdue(action.due_date);
+  const isHigh = action.priority === "high";
+
+  // Build a practical checklist from the axis levers + lesson exercises
+  const checklist = axis
+    ? [
+        ...axis.levers.slice(0, 3).map((l) => ({ kind: "lever" as const, text: l })),
+        ...axis.lessons.slice(0, 3).map((l) => ({ kind: "exercise" as const, text: l.exercise })),
+      ]
+    : [];
+  const targetLevel = action.target_level
+    ? axis?.levels.find((l) => l.level === action.target_level)
+    : undefined;
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="h-full w-full max-w-xl overflow-y-auto bg-[#1A1D27] border-l border-white/[0.06] shadow-2xl"
+      >
+        {/* Header */}
+        <div className={`relative px-6 pt-6 pb-5 border-b border-white/[0.05] ${isHigh ? "bg-gradient-to-b from-[#FF4444]/10 to-transparent" : ""}`}>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 h-8 w-8 rounded-md border border-white/[0.06] bg-white/[0.03] text-muted-foreground hover:text-foreground hover:bg-white/[0.08] flex items-center justify-center transition"
+            aria-label="Close"
+          >
+            <XIcon className="h-4 w-4" />
+          </button>
+          <div className="flex items-center gap-2 flex-wrap">
+            {axis && (
+              <span
+                className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded"
+                style={{ background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`, color: `var(--${axis.color})` }}
+              >
+                {axis.letter} · {axis.name}
+              </span>
+            )}
+            <PriorityPill p={action.priority} />
+            {overdue && (
+              <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border border-[#FF4444]/40 bg-[#FF4444]/10 text-[#FF6B6B]">
+                overdue
+              </span>
+            )}
+          </div>
+          <h2 className={`mt-3 text-xl font-semibold ${isHigh ? "text-white" : ""}`}>{action.title}</h2>
+          <p className="mt-1.5 text-sm text-muted-foreground">
+            {action.partner_name}
+            {due && <> · due {formatDue(due, overdue)}</>}
+            {action.status === "doing" && <> · in motion</>}
+          </p>
+          {action.description && (
+            <p className="mt-3 text-sm text-foreground/90 leading-relaxed">{action.description}</p>
+          )}
+        </div>
+
+        {/* Body */}
+        <div className="px-6 py-5 space-y-6">
+          {/* Axis context */}
+          {axis && (
+            <Section title="Axis context" subtitle="Why this work matters">
+              <p className="text-sm text-foreground/85 leading-relaxed">{axis.mentalModel}</p>
+              {targetLevel && (
+                <div
+                  className="mt-3 rounded-lg border p-3"
+                  style={{
+                    borderColor: `color-mix(in oklab, var(--${axis.color}) 35%, transparent)`,
+                    background: `color-mix(in oklab, var(--${axis.color}) 8%, transparent)`,
+                  }}
+                >
+                  <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: `var(--${axis.color})` }}>
+                    Target · Level {targetLevel.level} — {targetLevel.name}
+                  </p>
+                  <p className="mt-1 text-sm text-foreground/90">{targetLevel.summary}</p>
+                  <p className="mt-2 text-xs text-muted-foreground"><strong className="text-foreground/80">Next step:</strong> {targetLevel.nextStep}</p>
+                </div>
+              )}
+            </Section>
+          )}
+
+          {/* Metrics */}
+          {axis && axis.metrics.length > 0 && (
+            <Section title="Metrics to move" subtitle="What to measure as you progress">
+              <ul className="space-y-1.5">
+                {axis.metrics.map((m, i) => (
+                  <li key={i} className="flex gap-2 text-sm">
+                    <span className="text-[#10B981] mt-0.5">▸</span>
+                    <span className="text-foreground/85">{m}</span>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+
+          {/* Common mistakes */}
+          {axis && axis.commonMistakes.length > 0 && (
+            <Section title="Common mistakes" subtitle="Don't fall into these traps">
+              <ul className="space-y-1.5">
+                {axis.commonMistakes.map((m, i) => (
+                  <li key={i} className="flex gap-2 text-sm">
+                    <span className="text-[#FF4444] mt-0.5">✕</span>
+                    <span className="text-foreground/85">{m}</span>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+
+          {/* Practical checklist */}
+          {checklist.length > 0 && (
+            <Section title="Practical checklist" subtitle="Concrete moves to execute this initiative">
+              <ul className="space-y-2">
+                {checklist.map((c, i) => (
+                  <li
+                    key={i}
+                    className="flex items-start gap-3 rounded-lg border border-white/[0.05] bg-white/[0.02] p-3"
+                  >
+                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border border-white/[0.1] bg-white/[0.03] text-[10px] font-mono text-muted-foreground">
+                      {i + 1}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm text-foreground/90">{c.text}</p>
+                      <p className="mt-0.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                        {c.kind === "lever" ? "Lever" : "Exercise"}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </Section>
+          )}
+        </div>
+
+        {/* Footer actions */}
+        <div className="sticky bottom-0 border-t border-white/[0.05] bg-[#1A1D27]/95 backdrop-blur px-6 py-4 flex items-center justify-between gap-3">
+          <Link
+            to="/partner/$partnerId/plan"
+            params={{ partnerId: action.partner_id }}
+            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
+          >
+            Open Joint Business Plan →
+          </Link>
+          <button
+            onClick={onComplete}
+            disabled={completing}
+            className="inline-flex items-center gap-2 rounded-lg bg-[#10B981] hover:bg-[#10B981]/90 px-4 py-2 text-sm font-semibold text-[#0F111A] transition shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)] disabled:opacity-50"
+          >
+            <Check className="h-4 w-4" />
+            {completing ? "Saving…" : "Mark complete"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{title}</p>
+      {subtitle && <p className="mt-0.5 text-xs text-muted-foreground/70">{subtitle}</p>}
+      <div className="mt-2.5">{children}</div>
+    </div>
+  );
+}
