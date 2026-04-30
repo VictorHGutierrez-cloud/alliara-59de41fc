@@ -241,11 +241,12 @@ function PartnersPage() {
         </div>
 
         {/* Qualification Queue */}
-        <div className="rounded-2xl border border-border/60 bg-card p-6 card-elev relative overflow-hidden">
-          <div className="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-[var(--octa-5)]/20 blur-3xl pointer-events-none" />
+        <div className="rounded-2xl border border-white/[0.06] bg-[#1A1D27] p-6 card-elev">
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Qualification Queue</p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-5xl font-display font-bold text-gradient">{pendingLeads.length}</span>
+            <span className={`text-5xl font-display font-bold ${pendingLeads.length > 0 ? "text-white" : "text-muted-foreground/60"}`}>
+              {pendingLeads.length}
+            </span>
             <span className="text-sm text-muted-foreground">pending IPP scoring</span>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
@@ -253,9 +254,15 @@ function PartnersPage() {
               ? "All caught up. Inbox is clean."
               : `${leads.leads.filter((l) => l.status === "new").length} new · ${leads.leads.filter((l) => l.status === "in_review").length} in review`}
           </p>
+          <div className="mt-4 h-1 rounded-full bg-white/[0.05] overflow-hidden">
+            <div
+              className="h-full bg-[#10B981]/50 transition-all"
+              style={{ width: `${Math.min(100, pendingLeads.length * 10)}%` }}
+            />
+          </div>
           <Link
             to="/qualification"
-            className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring"
+            className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-[#10B981] hover:bg-[#10B981]/90 px-4 py-2.5 text-sm font-semibold text-[#0F111A] transition shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)]"
           >
             Review Leads →
           </Link>
