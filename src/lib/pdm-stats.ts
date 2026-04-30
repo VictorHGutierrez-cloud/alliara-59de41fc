@@ -15,7 +15,7 @@ export interface PdmStats {
   tasks: {
     total: number;
     todo: number;
-    in_progress: number;
+    doing: number;
     done: number;
     overdue: number;
     completedLast30: number;
@@ -32,7 +32,7 @@ const empty: PdmStats = {
   deals: { open_count: 0, open_value: 0, won_count: 0, won_value: 0 },
   mrr: 0,
   trainedPeople: 0,
-  tasks: { total: 0, todo: 0, in_progress: 0, done: 0, overdue: 0, completedLast30: 0 },
+  tasks: { total: 0, todo: 0, doing: 0, done: 0, overdue: 0, completedLast30: 0 },
   leads: { total: 0, byStatus: {}, nextWeek: 0 },
   stakeholders: { total: 0, coverage: 0 },
   assessments: { total: 0, coverage: 0, avgOverall: null },
@@ -116,10 +116,10 @@ export function usePdmStats(userId: string | undefined) {
     // Tasks
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
-    let todo = 0, in_progress = 0, done = 0, overdue = 0, completedLast30 = 0;
+    let todo = 0, doing = 0, done = 0, overdue = 0, completedLast30 = 0;
     (tasks ?? []).forEach((t) => {
       if (t.status === "todo") todo++;
-      else if (t.status === "in_progress") in_progress++;
+      else if (t.status === "doing") doing++;
       else if (t.status === "done") done++;
       if (t.status !== "done" && t.due_date && new Date(t.due_date) < today) overdue++;
       if (t.status === "done" && t.completed_at && new Date(t.completed_at) >= thirtyAgo) completedLast30++;
@@ -166,7 +166,7 @@ export function usePdmStats(userId: string | undefined) {
       deals: { open_count, open_value, won_count, won_value },
       mrr,
       trainedPeople,
-      tasks: { total: tasks?.length ?? 0, todo, in_progress, done, overdue, completedLast30 },
+      tasks: { total: tasks?.length ?? 0, todo, doing, done, overdue, completedLast30 },
       leads: { total: leads?.length ?? 0, byStatus, nextWeek },
       stakeholders: { total: stakeholders?.length ?? 0, coverage: stakeCoverage },
       assessments: { total: assessments?.length ?? 0, coverage: assessCoverage, avgOverall },
