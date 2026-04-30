@@ -311,6 +311,9 @@ function LeadCard({
           <div className="text-xs text-muted-foreground truncate mt-0.5">
             {lead.contact_person ?? "—"}{host ? ` · ${host}` : ""}
           </div>
+          {lead.partner_type && (
+            <div className="mt-1.5"><PartnerTypeChip type={lead.partner_type} /></div>
+          )}
         </div>
         <button
           onClick={(e) => { e.stopPropagation(); onDelete(); }}
