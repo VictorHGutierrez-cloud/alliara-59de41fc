@@ -41,7 +41,9 @@ function PartnerLayout() {
     { key: "overview", label: "Overview", to: `/partner/${partnerId}` },
     { key: "diagnostic", label: data.latest ? "Re-run Assessment" : "Readiness Assessment", to: `/partner/${partnerId}/diagnostic` },
     { key: "axes", label: "Axes", to: `/partner/${partnerId}/axes` },
-    { key: "plan", label: `JBP${data.openActions.length ? ` (${data.openActions.length})` : ""}`, to: `/partner/${partnerId}/plan` },
+    { key: "plan", label: `Tasks${data.openActions.length ? ` (${data.openActions.length})` : ""}`, to: `/partner/${partnerId}/plan` },
+    { key: "stakeholders", label: "Stakeholders", to: `/partner/${partnerId}/stakeholders` },
+    { key: "metrics", label: "Metrics", to: `/partner/${partnerId}/metrics` },
     { key: "intel", label: "Intel", to: `/partner/${partnerId}/intel` },
     { key: "coach", label: "Ecosystem Copilot", to: `/partner/${partnerId}/coach` },
   ];
@@ -307,8 +309,8 @@ function Overview({
 
         <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Joint Business Plan (JBP)</h2>
-            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open JBP →</Link>
+            <h2 className="font-semibold">Tasks</h2>
+            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open Tasks →</Link>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-3 text-center">
             <Stat label="Open" value={String(data.openActions.length)} />

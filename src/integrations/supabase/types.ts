@@ -372,8 +372,11 @@ export type Database = {
         Row: {
           created_at: string
           deals_open: number | null
+          deals_open_value: number | null
           deals_won: number | null
+          deals_won_value: number | null
           id: string
+          mrr: number | null
           notes: string | null
           partner_id: string
           period: string | null
@@ -384,8 +387,11 @@ export type Database = {
         Insert: {
           created_at?: string
           deals_open?: number | null
+          deals_open_value?: number | null
           deals_won?: number | null
+          deals_won_value?: number | null
           id?: string
+          mrr?: number | null
           notes?: string | null
           partner_id: string
           period?: string | null
@@ -396,13 +402,55 @@ export type Database = {
         Update: {
           created_at?: string
           deals_open?: number | null
+          deals_open_value?: number | null
           deals_won?: number | null
+          deals_won_value?: number | null
           id?: string
+          mrr?: number | null
           notes?: string | null
           partner_id?: string
           period?: string | null
           revenue?: number | null
           trained_people?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      partner_stakeholders: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          partner_id: string
+          position: string | null
+          role: Database["public"]["Enums"]["stakeholder_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          partner_id: string
+          position?: string | null
+          role?: Database["public"]["Enums"]["stakeholder_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          partner_id?: string
+          position?: string | null
+          role?: Database["public"]["Enums"]["stakeholder_role"]
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -515,6 +563,7 @@ export type Database = {
       partner_lead_status: "new" | "in_review" | "approved" | "rejected"
       partner_status: "active" | "nurturing" | "at_risk" | "paused" | "archived"
       partner_tier: "strategic" | "core" | "emerging" | "long_tail"
+      stakeholder_role: "ceo" | "it" | "ae" | "marketing" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -649,6 +698,7 @@ export const Constants = {
       partner_lead_status: ["new", "in_review", "approved", "rejected"],
       partner_status: ["active", "nurturing", "at_risk", "paused", "archived"],
       partner_tier: ["strategic", "core", "emerging", "long_tail"],
+      stakeholder_role: ["ceo", "it", "ae", "marketing", "other"],
     },
   },
 } as const
