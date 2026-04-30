@@ -702,7 +702,7 @@ function HealthBadge({
 
 function PriorityPill({ p }: { p: ActionRow["priority"] }) {
   const map = {
-    high: "bg-destructive text-foreground border-destructive font-bold",
+    high: "bg-destructive text-destructive-foreground border-destructive font-bold",
     medium: "bg-warning/10 text-warning border-warning/40",
     low: "bg-surface text-muted-foreground border-border",
   } as const;
