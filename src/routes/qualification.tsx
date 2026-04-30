@@ -180,16 +180,6 @@ function QualificationPage() {
             toast.success("Lead deleted");
             setActiveId(null);
           }}
-          onPromote={async () => {
-            try {
-              await leadsStore.promoteLead(active);
-              toast.success(`${active.company_name} promoted to partner`);
-              setActiveId(null);
-              nav({ to: "/partners" });
-            } catch (e) {
-              toast.error((e as Error).message);
-            }
-          }}
         />
       )}
     </div>
@@ -358,17 +348,15 @@ function NewLeadDialog({
 }
 
 function LeadDetailPanel({
-  lead, onClose, onUpdate, onMoveInKanban, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
+  lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete,
 }: {
   lead: LeadRow;
   onClose: () => void;
   onUpdate: (patch: Partial<LeadRow>) => Promise<void>;
-  onMoveInKanban: (status: LeadStatus) => Promise<void>;
   onSetDimension: (key: DimensionKey, v: 1 | 2 | 3) => Promise<void>;
   onUpdateNotes: (text: string) => Promise<void>;
   onReject: (reason: string) => Promise<void>;
   onDelete: () => Promise<void>;
-  onPromote: () => Promise<void>;
 }) {
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
