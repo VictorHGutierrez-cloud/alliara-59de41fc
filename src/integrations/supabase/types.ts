@@ -252,18 +252,73 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_lead_activities: {
+        Row: {
+          created_at: string
+          description: string | null
+          done: boolean
+          done_at: string | null
+          due_date: string | null
+          id: string
+          kind: Database["public"]["Enums"]["lead_activity_kind"]
+          lead_id: string
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          done?: boolean
+          done_at?: string | null
+          due_date?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["lead_activity_kind"]
+          lead_id: string
+          owner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          done?: boolean
+          done_at?: string | null
+          due_date?: string | null
+          id?: string
+          kind?: Database["public"]["Enums"]["lead_activity_kind"]
+          lead_id?: string
+          owner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "partner_leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_leads: {
         Row: {
           company_name: string
+          contact_email: string | null
           contact_person: string | null
+          contact_phone: string | null
+          contact_role: string | null
           created_at: string
           expertise_score: number | null
           fit_score: number | null
           id: string
+          next_step_at: string | null
           notes: string | null
           owner_id: string
           promoted_partner_id: string | null
           sales_score: number | null
+          source: string | null
           status: Database["public"]["Enums"]["partner_lead_status"]
           total_score: number | null
           updated_at: string
@@ -271,15 +326,20 @@ export type Database = {
         }
         Insert: {
           company_name: string
+          contact_email?: string | null
           contact_person?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
           created_at?: string
           expertise_score?: number | null
           fit_score?: number | null
           id?: string
+          next_step_at?: string | null
           notes?: string | null
           owner_id: string
           promoted_partner_id?: string | null
           sales_score?: number | null
+          source?: string | null
           status?: Database["public"]["Enums"]["partner_lead_status"]
           total_score?: number | null
           updated_at?: string
@@ -287,15 +347,20 @@ export type Database = {
         }
         Update: {
           company_name?: string
+          contact_email?: string | null
           contact_person?: string | null
+          contact_phone?: string | null
+          contact_role?: string | null
           created_at?: string
           expertise_score?: number | null
           fit_score?: number | null
           id?: string
+          next_step_at?: string | null
           notes?: string | null
           owner_id?: string
           promoted_partner_id?: string | null
           sales_score?: number | null
+          source?: string | null
           status?: Database["public"]["Enums"]["partner_lead_status"]
           total_score?: number | null
           updated_at?: string
@@ -446,6 +511,7 @@ export type Database = {
       action_priority: "low" | "medium" | "high"
       action_status: "todo" | "doing" | "done"
       app_role: "pdm" | "leadership" | "admin"
+      lead_activity_kind: "task" | "call" | "email" | "meeting" | "note"
       partner_lead_status: "new" | "in_review" | "approved" | "rejected"
       partner_status: "active" | "nurturing" | "at_risk" | "paused" | "archived"
       partner_tier: "strategic" | "core" | "emerging" | "long_tail"
@@ -579,6 +645,7 @@ export const Constants = {
       action_priority: ["low", "medium", "high"],
       action_status: ["todo", "doing", "done"],
       app_role: ["pdm", "leadership", "admin"],
+      lead_activity_kind: ["task", "call", "email", "meeting", "note"],
       partner_lead_status: ["new", "in_review", "approved", "rejected"],
       partner_status: ["active", "nurturing", "at_risk", "paused", "archived"],
       partner_tier: ["strategic", "core", "emerging", "long_tail"],
