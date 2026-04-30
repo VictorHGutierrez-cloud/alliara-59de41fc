@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
@@ -50,6 +50,22 @@ function QualificationPage() {
   }, [leadsStore.leads]);
 
   const active = leadsStore.leads.find((l) => l.id === activeId) ?? null;
+
+  const promoteLeadToPartner = async (lead: LeadRow) => {
+    if (lead.promoted_partner_id) {
+      nav({ to: "/partner/$partnerId", params: { partnerId: lead.promoted_partner_id } });
+      return;
+    }
+    if (!confirm(`Promote "${lead.company_name}" to your partner portfolio?`)) return;
+    try {
+      const partnerId = await leadsStore.promoteLead(lead);
+      toast.success(`${lead.company_name} added to portfolio`);
+      setActiveId(null);
+      nav({ to: "/partner/$partnerId", params: { partnerId } });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
 
   // Filter + sort the leads used by the Kanban
   const visibleLeads = useMemo(() => {
@@ -194,6 +210,7 @@ function QualificationPage() {
                         key={lead.id}
                         lead={lead}
                         onClick={() => setActiveId(lead.id)}
+                        onPromote={() => promoteLeadToPartner(lead)}
                         onDelete={async () => {
                           if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
                           try {
@@ -240,6 +257,7 @@ function QualificationPage() {
           onUpdate={(patch) => leadsStore.updateLead(active.id, patch)}
           onSetDimension={(key, v) => leadsStore.setDimension(active, key, v)}
           onUpdateNotes={(text) => leadsStore.updateFreeNotes(active, text)}
+          onPromote={() => promoteLeadToPartner(active)}
           onReject={async (reason) => {
             try {
               await leadsStore.rejectLead(active, reason);
