@@ -124,9 +124,7 @@ function PartnerLayout() {
         {isOverview ? (
           <Overview
             partnerId={partnerId}
-            radarData={radarData}
             data={data}
-            scores={scores}
           />
         ) : (
           <Outlet />
