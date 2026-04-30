@@ -154,10 +154,10 @@ function QualificationPage() {
           }}
           onPromote={async () => {
             try {
-              const partnerId = await leadsStore.promoteLead(active);
+              await leadsStore.promoteLead(active);
               toast.success(`${active.company_name} promoted to partner`);
               setActiveId(null);
-              nav({ to: "/partner/$partnerId", params: { partnerId } });
+              nav({ to: "/partners" });
             } catch (e) {
               toast.error((e as Error).message);
             }
