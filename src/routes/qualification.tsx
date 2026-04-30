@@ -119,7 +119,6 @@ function QualificationPage() {
                         key={lead.id}
                         lead={lead}
                         onClick={() => setActiveId(lead.id)}
-                        onStatusChange={(s) => void moveLeadInQualificationKanban(lead, s)}
                         onDelete={async () => {
                           if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
                           try {
@@ -164,7 +163,6 @@ function QualificationPage() {
           lead={active}
           onClose={() => setActiveId(null)}
           onUpdate={(patch) => leadsStore.updateLead(active.id, patch)}
-          onMoveInKanban={(status) => moveLeadInQualificationKanban(active, status)}
           onSetDimension={(key, v) => leadsStore.setDimension(active, key, v)}
           onUpdateNotes={(text) => leadsStore.updateFreeNotes(active, text)}
           onReject={async (reason) => {
