@@ -423,3 +423,55 @@ export function activitySummary(activities: LeadActivityRow[]): {
   }
   return { openTasks, overdue, nextDue };
 }
+
+/* ───────────── Aggregated open lead tasks across the whole pipe ───────────── */
+
+export type LeadTaskRow = LeadActivityRow & { lead_company: string; lead_status: LeadStatus };
+
+export function useAllLeadTasks(userId: string | undefined, leads: LeadRow[]) {
+  const [tasks, setTasks] = useState<LeadTaskRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const leadKey = leads.map((l) => l.id).sort().join(",");
+
+  const refresh = useCallback(async () => {
+    if (!userId || leads.length === 0) {
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+    setLoading(true);
+    const ids = leads.map((l) => l.id);
+    const { data } = await supabase
+      .from("partner_lead_activities" as never)
+      .select("*")
+      .in("lead_id", ids)
+      .eq("kind", "task")
+      .eq("done", false)
+      .order("due_date", { ascending: true, nullsFirst: false });
+    const meta = new Map(leads.map((l) => [l.id, { name: l.company_name, status: l.status }]));
+    const enriched = ((data as unknown) as LeadActivityRow[] | null ?? []).map((a) => ({
+      ...a,
+      lead_company: meta.get(a.lead_id)?.name ?? "—",
+      lead_status: meta.get(a.lead_id)?.status ?? ("new" as LeadStatus),
+    }));
+    setTasks(enriched);
+    setLoading(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, leadKey]);
+
+  useEffect(() => { void refresh(); }, [refresh]);
+
+  const completeTask = useCallback(async (taskId: string) => {
+    const { error } = await supabase
+      .from("partner_lead_activities" as never)
+      .update({ done: true, done_at: new Date().toISOString() } as never)
+      .eq("id", taskId);
+    if (error) throw error;
+    setTasks((prev) => prev.filter((t) => t.id !== taskId));
+  }, []);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const overdue = tasks.filter((t) => t.due_date && t.due_date < today);
+
+  return { tasks, loading, overdue, refresh, completeTask };
+}
