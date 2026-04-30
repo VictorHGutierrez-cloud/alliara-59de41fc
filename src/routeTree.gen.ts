@@ -18,6 +18,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartnerPartnerIdRouteImport } from './routes/partner.$partnerId'
 import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
+import { Route as PartnerPartnerIdStakeholdersRouteImport } from './routes/partner.$partnerId.stakeholders'
 import { Route as PartnerPartnerIdPlanRouteImport } from './routes/partner.$partnerId.plan'
 import { Route as PartnerPartnerIdIntelRouteImport } from './routes/partner.$partnerId.intel'
 import { Route as PartnerPartnerIdDiagnosticRouteImport } from './routes/partner.$partnerId.diagnostic'
@@ -69,6 +70,12 @@ const AxisAxisKeyRoute = AxisAxisKeyRouteImport.update({
   path: '/axis/$axisKey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnerPartnerIdStakeholdersRoute =
+  PartnerPartnerIdStakeholdersRouteImport.update({
+    id: '/stakeholders',
+    path: '/stakeholders',
+    getParentRoute: () => PartnerPartnerIdRoute,
+  } as any)
 const PartnerPartnerIdPlanRoute = PartnerPartnerIdPlanRouteImport.update({
   id: '/plan',
   path: '/plan',
@@ -111,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
   '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
   '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
+  '/partner/$partnerId/stakeholders': typeof PartnerPartnerIdStakeholdersRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -127,6 +135,7 @@ export interface FileRoutesByTo {
   '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
   '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
   '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
+  '/partner/$partnerId/stakeholders': typeof PartnerPartnerIdStakeholdersRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -144,6 +153,7 @@ export interface FileRoutesById {
   '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
   '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
   '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
+  '/partner/$partnerId/stakeholders': typeof PartnerPartnerIdStakeholdersRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -162,6 +172,7 @@ export interface FileRouteTypes {
     | '/partner/$partnerId/diagnostic'
     | '/partner/$partnerId/intel'
     | '/partner/$partnerId/plan'
+    | '/partner/$partnerId/stakeholders'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -178,6 +189,7 @@ export interface FileRouteTypes {
     | '/partner/$partnerId/diagnostic'
     | '/partner/$partnerId/intel'
     | '/partner/$partnerId/plan'
+    | '/partner/$partnerId/stakeholders'
   id:
     | '__root__'
     | '/'
@@ -194,6 +206,7 @@ export interface FileRouteTypes {
     | '/partner/$partnerId/diagnostic'
     | '/partner/$partnerId/intel'
     | '/partner/$partnerId/plan'
+    | '/partner/$partnerId/stakeholders'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -273,6 +286,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AxisAxisKeyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partner/$partnerId/stakeholders': {
+      id: '/partner/$partnerId/stakeholders'
+      path: '/stakeholders'
+      fullPath: '/partner/$partnerId/stakeholders'
+      preLoaderRoute: typeof PartnerPartnerIdStakeholdersRouteImport
+      parentRoute: typeof PartnerPartnerIdRoute
+    }
     '/partner/$partnerId/plan': {
       id: '/partner/$partnerId/plan'
       path: '/plan'
@@ -317,6 +337,7 @@ interface PartnerPartnerIdRouteChildren {
   PartnerPartnerIdDiagnosticRoute: typeof PartnerPartnerIdDiagnosticRoute
   PartnerPartnerIdIntelRoute: typeof PartnerPartnerIdIntelRoute
   PartnerPartnerIdPlanRoute: typeof PartnerPartnerIdPlanRoute
+  PartnerPartnerIdStakeholdersRoute: typeof PartnerPartnerIdStakeholdersRoute
 }
 
 const PartnerPartnerIdRouteChildren: PartnerPartnerIdRouteChildren = {
@@ -325,6 +346,7 @@ const PartnerPartnerIdRouteChildren: PartnerPartnerIdRouteChildren = {
   PartnerPartnerIdDiagnosticRoute: PartnerPartnerIdDiagnosticRoute,
   PartnerPartnerIdIntelRoute: PartnerPartnerIdIntelRoute,
   PartnerPartnerIdPlanRoute: PartnerPartnerIdPlanRoute,
+  PartnerPartnerIdStakeholdersRoute: PartnerPartnerIdStakeholdersRoute,
 }
 
 const PartnerPartnerIdRouteWithChildren =
