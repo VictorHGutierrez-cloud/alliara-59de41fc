@@ -1,10 +1,8 @@
 // rev: pdm-performance
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/lib/auth";
-import { useOctaData, levelFromAvg } from "../lib/octa-store";
+import { useOctaData } from "../lib/octa-store";
 import { usePdmStats, fmtMoney } from "../lib/pdm-stats";
-import { AXES } from "../content/octa";
-import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer } from "recharts";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/dashboard")({
@@ -23,13 +21,6 @@ function Dashboard() {
   }, [loading, user, nav]);
 
   if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
-
-  const scores = data.latest?.scores ?? {};
-  const radarData = AXES.map((a) => ({
-    axis: a.letter,
-    fullName: a.name,
-    score: scores[a.key] ?? 0,
-  }));
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -108,66 +99,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Personal OCTA Maturity (secondary) */}
-      <div className="mt-10">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Personal learning</p>
-            <h2 className="text-xl font-semibold mt-1">My OCTA maturity</h2>
-          </div>
-          <Link to="/diagnostic" className="text-xs text-primary hover:underline">{data.latest ? "Re-run diagnostic" : "Take diagnostic"} →</Link>
-        </div>
-      </div>
-      <div className="mt-4 grid lg:grid-cols-5 gap-4">
-        <div className="lg:col-span-2 rounded-2xl bg-card border border-border/60 p-4 card-elev">
-          <h2 className="font-semibold px-2 pt-2">Maturity radar</h2>
-          <div className="h-[340px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <RadarChart data={radarData} outerRadius="75%">
-                <PolarGrid stroke="oklch(0.4 0.02 265 / 0.4)" />
-                <PolarAngleAxis dataKey="axis" tick={{ fill: "oklch(0.85 0.01 250)", fontSize: 12, fontFamily: "Space Grotesk" }} />
-                <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: "oklch(0.6 0.02 260)", fontSize: 10 }} />
-                <Radar name="You" dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.35} />
-              </RadarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        <div className="lg:col-span-3 rounded-2xl bg-card border border-border/60 p-6 card-elev">
-          <h2 className="font-semibold">Your 8 axes</h2>
-          <div className="mt-4 grid sm:grid-cols-2 gap-3">
-            {AXES.map((a) => {
-              const score = scores[a.key] ?? 0;
-              const lvl = score ? levelFromAvg(score) : 0;
-              const pct = data.axisCompletionPct(a.key);
-              return (
-                <Link
-                  key={a.key}
-                  to="/axis/$axisKey"
-                  params={{ axisKey: a.key }}
-                  className="group block rounded-xl border border-border/60 bg-surface/50 p-4 hover:bg-surface-2 transition"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-md flex items-center justify-center font-display font-bold" style={{ background: `color-mix(in oklab, var(--${a.color}) 22%, transparent)`, color: `var(--${a.color})` }}>
-                        {a.letter}
-                      </div>
-                      <div>
-                        <div className="font-medium text-sm">{a.name}</div>
-                        <div className="text-xs text-muted-foreground">{lvl ? `Level ${lvl} / 5` : "Not assessed"}</div>
-                      </div>
-                    </div>
-                    <span className="text-xs font-mono text-muted-foreground">{pct}%</span>
-                  </div>
-                  <div className="mt-3 h-1.5 rounded-full bg-surface-2 overflow-hidden">
-                    <div className="h-full" style={{ width: `${pct}%`, background: `var(--${a.color})` }} />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
