@@ -362,11 +362,18 @@ function NewLeadDialog({
   onClose, onCreate,
 }: {
   onClose: () => void;
-  onCreate: (input: { company_name: string; contact_person?: string; website?: string }) => Promise<void>;
+  onCreate: (input: {
+    company_name: string; contact_person?: string; website?: string;
+    partner_type?: PartnerType;
+    firstTask?: { title: string; due_date?: string | null } | null;
+  }) => Promise<void>;
 }) {
   const [companyName, setCompanyName] = useState("");
   const [contact, setContact] = useState("");
   const [website, setWebsite] = useState("");
+  const [partnerType, setPartnerType] = useState<PartnerType>("referral");
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDue, setTaskDue] = useState("");
   const [busy, setBusy] = useState(false);
 
   return (
@@ -385,6 +392,30 @@ function NewLeadDialog({
           <Field label="Website">
             <input value={website} onChange={(e) => setWebsite(e.target.value)} className="input" placeholder="https://…" />
           </Field>
+          <Field label="Partnership type">
+            <select value={partnerType} onChange={(e) => setPartnerType(e.target.value as PartnerType)} className="input">
+              {PARTNER_TYPES.map((t) => (
+                <option key={t.key} value={t.key}>{t.label} — {t.description}</option>
+              ))}
+            </select>
+          </Field>
+          <div className="rounded-lg border border-border/60 bg-surface/30 p-3">
+            <div className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground mb-2">
+              First next step (optional)
+            </div>
+            <div className="grid grid-cols-[1fr_auto] gap-2">
+              <input
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                placeholder="e.g. Send intro email, schedule discovery call…"
+                className="input text-sm"
+              />
+              <input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} className="input text-xs w-36" />
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
+              Attach a task so the lead never sits idle. You can always add more later.
+            </p>
+          </div>
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
@@ -398,6 +429,10 @@ function NewLeadDialog({
                   company_name: companyName.trim(),
                   contact_person: contact.trim() || undefined,
                   website: website.trim() || undefined,
+                  partner_type: partnerType,
+                  firstTask: taskTitle.trim()
+                    ? { title: taskTitle.trim(), due_date: taskDue || null }
+                    : null,
                 });
               } finally {
                 setBusy(false);
