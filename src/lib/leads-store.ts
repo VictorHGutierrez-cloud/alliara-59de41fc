@@ -325,3 +325,86 @@ export function useLeads(userId: string | undefined) {
     setDimension, updateFreeNotes, rejectLead, promoteLead,
   };
 }
+
+/* ───────────────── Lead activities (mini-CRM) ───────────────── */
+
+export function useLeadActivities(leadId: string | undefined, userId: string | undefined) {
+  const [activities, setActivities] = useState<LeadActivityRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refresh = useCallback(async () => {
+    if (!leadId) { setActivities([]); setLoading(false); return; }
+    setLoading(true);
+    const { data } = await supabase
+      .from("partner_lead_activities" as never)
+      .select("*")
+      .eq("lead_id", leadId)
+      .order("created_at", { ascending: false });
+    setActivities(((data as unknown) as LeadActivityRow[]) ?? []);
+    setLoading(false);
+  }, [leadId]);
+
+  useEffect(() => { void refresh(); }, [refresh]);
+
+  const create = useCallback(async (input: {
+    kind: LeadActivityKind;
+    title: string;
+    description?: string;
+    due_date?: string | null;
+  }) => {
+    if (!userId || !leadId) throw new Error("Not signed in");
+    const { error } = await supabase
+      .from("partner_lead_activities" as never)
+      .insert({
+        lead_id: leadId,
+        owner_id: userId,
+        kind: input.kind,
+        title: input.title,
+        description: input.description ?? null,
+        due_date: input.due_date ?? null,
+      } as never);
+    if (error) throw error;
+    await refresh();
+  }, [leadId, userId, refresh]);
+
+  const toggleDone = useCallback(async (a: LeadActivityRow) => {
+    const next = !a.done;
+    const { error } = await supabase
+      .from("partner_lead_activities" as never)
+      .update({ done: next, done_at: next ? new Date().toISOString() : null } as never)
+      .eq("id", a.id);
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
+  const remove = useCallback(async (id: string) => {
+    const { error } = await supabase
+      .from("partner_lead_activities" as never)
+      .delete()
+      .eq("id", id);
+    if (error) throw error;
+    await refresh();
+  }, [refresh]);
+
+  return { activities, loading, refresh, create, toggleDone, remove };
+}
+
+export function activitySummary(activities: LeadActivityRow[]): {
+  openTasks: number;
+  overdue: number;
+  nextDue: string | null;
+} {
+  const today = new Date().toISOString().slice(0, 10);
+  let openTasks = 0;
+  let overdue = 0;
+  let nextDue: string | null = null;
+  for (const a of activities) {
+    if (a.kind !== "task" || a.done) continue;
+    openTasks++;
+    if (a.due_date) {
+      if (a.due_date < today) overdue++;
+      if (!nextDue || a.due_date < nextDue) nextDue = a.due_date;
+    }
+  }
+  return { openTasks, overdue, nextDue };
+}
