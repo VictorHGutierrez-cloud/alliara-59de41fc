@@ -164,6 +164,7 @@ function QualificationPage() {
           lead={active}
           onClose={() => setActiveId(null)}
           onUpdate={(patch) => leadsStore.updateLead(active.id, patch)}
+          onMoveInKanban={(status) => moveLeadInQualificationKanban(active, status)}
           onSetDimension={(key, v) => leadsStore.setDimension(active, key, v)}
           onUpdateNotes={(text) => leadsStore.updateFreeNotes(active, text)}
           onReject={async (reason) => {
@@ -357,11 +358,12 @@ function NewLeadDialog({
 }
 
 function LeadDetailPanel({
-  lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
+  lead, onClose, onUpdate, onMoveInKanban, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
 }: {
   lead: LeadRow;
   onClose: () => void;
   onUpdate: (patch: Partial<LeadRow>) => Promise<void>;
+  onMoveInKanban: (status: LeadStatus) => Promise<void>;
   onSetDimension: (key: DimensionKey, v: 1 | 2 | 3) => Promise<void>;
   onUpdateNotes: (text: string) => Promise<void>;
   onReject: (reason: string) => Promise<void>;
@@ -402,21 +404,11 @@ function LeadDetailPanel({
             onChange={(e) => {
               const next = e.target.value as LeadStatus;
               if (next === lead.status) return;
-              if (next === "approved") {
-                void (async () => {
-                  await onUpdate({ status: "approved" });
-                  if (lead.promoted_partner_id) return;
-                  if (confirm("Create partner object? This will add this lead to your Portfolio as an Official Partner.")) {
-                    await onPromote();
-                  }
-                })();
-                return;
-              }
               if (next === "rejected") {
                 setShowReject(true);
                 return;
               }
-              void onUpdate({ status: next });
+              void onMoveInKanban(next);
             }}
             className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1"
           >
