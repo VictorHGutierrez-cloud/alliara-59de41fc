@@ -110,38 +110,37 @@ function PartnersPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
-      {/* 1. AI Morning Briefing */}
-      <section className="rounded-3xl border border-border/60 bg-gradient-to-br from-card via-card to-surface/40 p-6 sm:p-8 card-elev relative overflow-hidden">
-        <div className="absolute top-0 right-0 h-40 w-40 rounded-full bg-gradient-to-br from-[var(--octa-1)]/20 via-[var(--octa-4)]/10 to-transparent blur-3xl pointer-events-none" />
+      {/* 1. Compact header */}
+      <section className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface-2/60 px-2.5 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-[var(--octa-4)] opacity-60 animate-ping" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[var(--octa-4)]" />
-            </span>
-            AI Morning Briefing · {greeting()}
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          </span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Command Center · {greeting()}
           </span>
         </div>
-        <h1 className="mt-4 text-2xl sm:text-3xl font-semibold tracking-tight">
-          {greeting()}, <span className="text-gradient">{displayName}</span>
+        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-white">
+          {greeting()}, {displayName}
         </h1>
-        <p className="mt-3 max-w-3xl text-base text-muted-foreground leading-relaxed">
+        <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
           {briefing}
         </p>
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           {statusCounts.at_risk > 0 && (
             <button
               onClick={() => setStatusFilter("at_risk")}
-              className="inline-flex items-center gap-2 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-300 hover:bg-red-500/15 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#FF4444]/40 bg-[#FF4444]/10 px-3 py-1.5 text-xs font-medium text-[#FF6B6B] hover:bg-[#FF4444]/20 transition"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-red-400" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#FF4444]" />
               Review {statusCounts.at_risk} Churn Risk
             </button>
           )}
           {pendingLeads.length > 0 && (
             <Link
               to="/qualification"
-              className="inline-flex items-center gap-2 rounded-lg border border-border/60 bg-surface-2/60 px-3 py-1.5 text-xs font-medium hover:bg-surface-2 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.03] px-3 py-1.5 text-xs font-medium hover:bg-white/[0.06] transition"
             >
               Qualify {pendingLeads.length} lead{pendingLeads.length === 1 ? "" : "s"} →
             </Link>
@@ -149,7 +148,7 @@ function PartnersPage() {
           {overdueActions.length > 0 && (
             <a
               href="#growth-initiatives"
-              className="inline-flex items-center gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-1.5 text-xs font-medium text-yellow-200 hover:bg-yellow-500/15 transition"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#F59E0B]/30 bg-[#F59E0B]/10 px-3 py-1.5 text-xs font-medium text-[#F59E0B] hover:bg-[#F59E0B]/15 transition"
             >
               {overdueActions.length} overdue initiative{overdueActions.length === 1 ? "" : "s"}
             </a>
@@ -170,6 +169,7 @@ function PartnersPage() {
           value="$150k"
           hint="ARR in motion · forecast"
           accent="octa-4"
+          primary
         />
         <KpiCard
           label="Active partners"
