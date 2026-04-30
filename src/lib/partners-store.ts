@@ -82,6 +82,7 @@ export function usePortfolio(userId: string | undefined) {
   const createPartner = useCallback(async (input: {
     name: string; company?: string; segment?: string;
     tier?: PartnerRow["tier"]; status?: PartnerRow["status"]; notes?: string;
+    partner_type?: PartnerRow["partner_type"];
   }) => {
     if (!userId) throw new Error("Not signed in");
     const { data, error } = await supabase.from("partners").insert({
@@ -92,6 +93,7 @@ export function usePortfolio(userId: string | undefined) {
       tier: input.tier ?? "emerging",
       status: input.status ?? "active",
       notes: input.notes ?? null,
+      partner_type: input.partner_type ?? "referral",
     }).select("*").single();
     if (error) throw error;
     await refresh();
