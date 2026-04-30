@@ -292,17 +292,22 @@ function PartnersPage() {
               No open initiatives. Open a partner's Joint Business Plan to draft the next move.
             </div>
           ) : (
-            <ul className="divide-y divide-border/50 -mx-2">
+            <ul className="space-y-2 -mx-2">
               {sortActions(openActions).slice(0, 8).map((a) => {
                 const axis = AXES.find((x) => x.key === a.axis_key);
                 const due = a.due_date ? new Date(a.due_date) : null;
                 const overdue = isOverdue(a.due_date);
+                const isHigh = a.priority === "high";
                 return (
                   <li key={a.id}>
                     <Link
                       to="/partner/$partnerId/plan"
                       params={{ partnerId: a.partner_id }}
-                      className="flex items-center gap-3 px-2 py-3 rounded-lg hover:bg-surface-2/60 transition"
+                      className={`flex items-center gap-3 px-3 py-3 rounded-lg transition border ${
+                        isHigh
+                          ? "border-l-4 border-l-[#FF4444] border-y border-r border-y-[#FF4444]/20 border-r-[#FF4444]/20 bg-[#FF4444]/[0.04] shadow-[0_0_24px_-8px_rgba(255,68,68,0.45)] hover:bg-[#FF4444]/[0.07]"
+                          : "border-white/[0.05] bg-white/[0.02] hover:bg-white/[0.04]"
+                      }`}
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
@@ -314,7 +319,7 @@ function PartnersPage() {
                               {axis.letter}
                             </span>
                           )}
-                          <span className="text-sm font-medium truncate">{a.title}</span>
+                          <span className={`text-sm truncate ${isHigh ? "font-bold text-white" : "font-medium"}`}>{a.title}</span>
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground truncate">
                           {a.partner_name}
@@ -323,7 +328,7 @@ function PartnersPage() {
                       </div>
                       <PriorityPill p={a.priority} />
                       <span
-                        className={`text-xs font-mono w-20 text-right ${overdue ? "text-red-400" : "text-muted-foreground"}`}
+                        className={`text-xs font-mono w-20 text-right ${overdue ? "text-[#FF4444] font-semibold" : "text-muted-foreground"}`}
                       >
                         {due ? formatDue(due, overdue) : "no date"}
                       </span>
