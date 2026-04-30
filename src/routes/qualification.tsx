@@ -500,11 +500,21 @@ function LeadDetailPanel({
               Reject Lead
             </button>
             <button
-              disabled={total === null || lead.status === "approved"}
-              onClick={onPromote}
+              disabled={lead.status === "approved" || lead.status === "rejected"}
+              onClick={() => {
+                void (async () => {
+                  await onUpdate({ status: "approved" });
+                  if (lead.promoted_partner_id) return;
+                  if (confirm("Create partner object? This will add this lead to your Portfolio as an Official Partner.")) {
+                    await onPromote();
+                  }
+                })();
+              }}
               className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
             >
-              {lead.status === "approved" ? "Already promoted" : "Promote to Official Partner"}
+              {lead.status === "approved"
+                ? (lead.promoted_partner_id ? "In Portfolio" : "In Pipeline")
+                : "Add to Acquisition Pipeline"}
             </button>
           </div>
         </div>
