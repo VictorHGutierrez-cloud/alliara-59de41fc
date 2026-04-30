@@ -87,6 +87,16 @@ function QualificationPage() {
                         lead={lead}
                         onClick={() => setActiveId(lead.id)}
                         onStatusChange={(s) => leadsStore.updateLead(lead.id, { status: s })}
+                        onDelete={async () => {
+                          if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
+                          try {
+                            await leadsStore.deleteLead(lead.id);
+                            toast.success("Lead deleted");
+                            if (activeId === lead.id) setActiveId(null);
+                          } catch (e) {
+                            toast.error((e as Error).message);
+                          }
+                        }}
                       />
                     ))}
                     {items.length === 0 && (
@@ -176,11 +186,12 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 }
 
 function LeadCard({
-  lead, onClick, onStatusChange,
+  lead, onClick, onStatusChange, onDelete,
 }: {
   lead: LeadRow;
   onClick: () => void;
   onStatusChange: (s: LeadStatus) => void;
+  onDelete: () => void;
 }) {
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
@@ -191,9 +202,21 @@ function LeadCard({
       onClick={onClick}
       className="rounded-xl bg-card border border-border/60 p-3 cursor-pointer hover:-translate-y-0.5 transition card-elev"
     >
-      <div className="font-semibold truncate">{lead.company_name}</div>
-      <div className="text-xs text-muted-foreground truncate mt-0.5">
-        {lead.contact_person ?? "—"}{host ? ` · ${host}` : ""}
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold truncate">{lead.company_name}</div>
+          <div className="text-xs text-muted-foreground truncate mt-0.5">
+            {lead.contact_person ?? "—"}{host ? ` · ${host}` : ""}
+          </div>
+        </div>
+        <button
+          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          title="Delete lead"
+          aria-label="Delete lead"
+          className="shrink-0 text-muted-foreground hover:text-red-400 text-sm leading-none px-1.5 py-0.5 rounded-md hover:bg-red-500/10"
+        >
+          ✕
+        </button>
       </div>
       <div className="mt-3 flex items-center justify-between gap-2">
         {verdict && total !== null ? (
