@@ -10,9 +10,15 @@ import {
   computeFactorialTotal,
   getDimensionValue,
   parseScorecard,
+  useLeadActivities,
+  activitySummary,
+  LEAD_SOURCES,
+  LEAD_ACTIVITY_KINDS,
   type LeadRow,
   type LeadStatus,
   type DimensionKey,
+  type LeadActivityKind,
+  type LeadActivityRow,
 } from "@/lib/leads-store";
 
 export const Route = createFileRoute("/qualification")({
