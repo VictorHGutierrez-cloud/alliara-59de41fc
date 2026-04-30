@@ -371,17 +371,13 @@ function LeadDetailPanel({
               const next = e.target.value as LeadStatus;
               if (next === lead.status) return;
               if (next === "approved") {
-                if (lead.promoted_partner_id) {
-                  void onUpdate({ status: "approved" });
-                  return;
-                }
-                if (total === null) {
-                  toast.error("Score all 5 dimensions before promoting.");
-                  return;
-                }
-                if (confirm("This will create an Official Partner in your Partner Acquisition Pipeline. Continue?")) {
-                  void onPromote();
-                }
+                void (async () => {
+                  await onUpdate({ status: "approved" });
+                  if (lead.promoted_partner_id) return;
+                  if (confirm("Create partner object? This will add this lead to your Portfolio as an Official Partner.")) {
+                    await onPromote();
+                  }
+                })();
                 return;
               }
               if (next === "rejected") {
