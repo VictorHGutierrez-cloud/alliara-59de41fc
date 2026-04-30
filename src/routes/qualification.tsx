@@ -43,6 +43,23 @@ function QualificationPage() {
 
   const active = leadsStore.leads.find((l) => l.id === activeId) ?? null;
 
+  const moveLeadInQualificationKanban = async (lead: LeadRow, next: LeadStatus) => {
+    if (next === lead.status) return;
+    try {
+      await leadsStore.updateLead(lead.id, { status: next });
+      if (next !== "approved" || lead.promoted_partner_id) return;
+
+      if (confirm("Create partner object? This will add this approved lead to your Portfolio as an Official Partner.")) {
+        await leadsStore.promoteLead(lead);
+        toast.success(`${lead.company_name} added to portfolio`);
+      } else {
+        toast.success(`${lead.company_name} approved in qualification`);
+      }
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
   if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
 
   return (
@@ -79,7 +96,17 @@ function QualificationPage() {
             {LEAD_STATUSES.map((col) => {
               const items = leadsStore.leads.filter((l) => l.status === col.key);
               return (
-                <div key={col.key} className="rounded-2xl bg-surface/40 border border-border/60 p-3 min-h-[200px]">
+                <div
+                  key={col.key}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    const leadId = e.dataTransfer.getData("text/plain");
+                    const lead = leadsStore.leads.find((l) => l.id === leadId);
+                    if (lead) void moveLeadInQualificationKanban(lead, col.key);
+                  }}
+                  className="rounded-2xl bg-surface/40 border border-border/60 p-3 min-h-[200px]"
+                >
                   <div className="flex items-center justify-between px-1 pb-2">
                     <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
                       {col.label}
@@ -92,7 +119,7 @@ function QualificationPage() {
                         key={lead.id}
                         lead={lead}
                         onClick={() => setActiveId(lead.id)}
-                        onStatusChange={(s) => leadsStore.updateLead(lead.id, { status: s })}
+                        onStatusChange={(s) => void moveLeadInQualificationKanban(lead, s)}
                         onDelete={async () => {
                           if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
                           try {
