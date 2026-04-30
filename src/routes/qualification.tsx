@@ -208,11 +208,10 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 }
 
 function LeadCard({
-  lead, onClick, onStatusChange, onDelete,
+  lead, onClick, onDelete,
 }: {
   lead: LeadRow;
   onClick: () => void;
-  onStatusChange: (s: LeadStatus) => void;
   onDelete: () => void;
 }) {
   const total = computeFactorialTotal(lead);
@@ -257,16 +256,7 @@ function LeadCard({
         ) : (
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Not scored</span>
         )}
-        <select
-          value={lead.status}
-          onClick={(e) => e.stopPropagation()}
-          onChange={(e) => onStatusChange(e.target.value as LeadStatus)}
-          className="text-xs rounded-md bg-surface border border-border/60 px-1.5 py-1"
-        >
-          {LEAD_STATUSES.map((s) => (
-              <option key={s.key} value={s.key}>{s.label}</option>
-          ))}
-        </select>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Drag to move</span>
       </div>
       {(summary.openTasks > 0 || lead.next_step_at) && (
         <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
