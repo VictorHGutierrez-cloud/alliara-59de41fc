@@ -309,8 +309,8 @@ function Overview({
 
         <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Joint Business Plan (JBP)</h2>
-            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open JBP →</Link>
+            <h2 className="font-semibold">Tasks</h2>
+            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open Tasks →</Link>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-3 text-center">
             <Stat label="Open" value={String(data.openActions.length)} />
