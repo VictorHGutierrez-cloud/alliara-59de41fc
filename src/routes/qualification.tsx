@@ -234,8 +234,13 @@ function LeadCard({
 
   return (
     <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", lead.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
       onClick={onClick}
-      className="rounded-xl bg-card border border-border/60 p-3 cursor-pointer hover:-translate-y-0.5 transition card-elev"
+      className="rounded-xl bg-card border border-border/60 p-3 cursor-grab active:cursor-grabbing hover:-translate-y-0.5 transition card-elev"
     >
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
@@ -270,7 +275,7 @@ function LeadCard({
           className="text-xs rounded-md bg-surface border border-border/60 px-1.5 py-1"
         >
           {LEAD_STATUSES.map((s) => (
-            <option key={s.key} value={s.key}>{s.label}</option>
+              <option key={s.key} value={s.key}>{s.label}</option>
           ))}
         </select>
       </div>
