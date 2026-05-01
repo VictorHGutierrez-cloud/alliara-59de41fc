@@ -67,50 +67,48 @@
   --color-chart-5: var(--octa-2);
 }
 
-/* "Calm Command" — warm, light, single-accent system.
- * Anthropology: warm off-white reduces alarm; one deep emerald accent
- * carries every primary action. 60% canvas / 30% ink / 10% accent.
+/* Candy theme — applied globally.
+ * Pastel pink primary, sky-blue secondary, yellow accent, soft surfaces.
  */
 :root {
-  --radius: 0.875rem;
+  --radius: 0.5rem;
 
   /* Canvas */
-  --background: oklch(0.985 0.008 85);
-  --foreground: oklch(0.18 0.02 260);
+  --background: #f7f9fa;
+  --foreground: #333333;
 
   /* Surfaces */
-  --surface: oklch(0.975 0.01 80);
-  --surface-2: oklch(0.955 0.012 80);
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.02 260);
+  --card: #ffffff;
+  --card-foreground: #333333;
 
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 260);
+  --popover: #ffffff;
+  --popover-foreground: #333333;
 
-  /* Single deep emerald accent */
-  --primary: oklch(0.52 0.16 160);
-  --primary-foreground: oklch(0.985 0.008 85);
+  --primary: #ffc0cb;
+  --primary-foreground: #1a1a1a;
 
-  --secondary: oklch(0.94 0.012 80);
-  --secondary-foreground: oklch(0.25 0.02 260);
+  --secondary: #87ceeb;
+  --secondary-foreground: #1a1a1a;
 
-  --muted: oklch(0.95 0.01 80);
-  --muted-foreground: oklch(0.5 0.012 80);
+  --muted: #ddd9c4;
+  --muted-foreground: #6e6e6e;
 
-  --accent: oklch(0.94 0.025 160);
-  --accent-foreground: oklch(0.3 0.08 160);
+  --accent: #ffff00;
+  --accent-foreground: #1a1a1a;
 
-  --destructive: oklch(0.58 0.2 27);
-  --destructive-foreground: oklch(0.99 0.005 80);
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
 
-  --success: oklch(0.52 0.16 160);
-  --warning: oklch(0.7 0.16 65);
-  --danger: oklch(0.58 0.2 27);
+  --success: #33cc33;
+  --warning: #ffcc00;
+  --danger: #ef4444;
 
-  --border: oklch(0.9 0.008 80);
-  --input: oklch(0.97 0.008 80);
-  --ring: oklch(0.52 0.16 160 / 50%);
+  --border: #d4d4d4;
+  --input: #d4d4d4;
+  --ring: #ffc0cb;
 
   /* OCTA axes — re-tuned for legibility on light surfaces */
   --octa-1: oklch(0.52 0.16 160); /* emerald — Strategy */
@@ -126,18 +124,18 @@
     radial-gradient(ellipse 80% 60% at 80% 30%, oklch(0.97 0.02 75 / 0.7), transparent 60%),
     radial-gradient(ellipse 60% 50% at 10% 90%, oklch(0.95 0.025 160 / 0.5), transparent 60%);
   --gradient-glow: linear-gradient(135deg, var(--octa-1), var(--octa-4));
-  --shadow-glow: 0 10px 30px -12px oklch(0.52 0.16 160 / 0.35);
+  --shadow-glow: 0 10px 30px -12px rgba(255, 192, 203, 0.45);
   --shadow-card:
-    0 1px 2px 0 oklch(0.2 0.02 260 / 0.04),
-    0 8px 24px -12px oklch(0.2 0.02 260 / 0.08);
+    0 1px 2px 0 rgba(0, 0, 0, 0.04),
+    0 8px 24px -12px rgba(0, 0, 0, 0.08);
 
-  --sidebar: oklch(0.97 0.008 80);
-  --sidebar-foreground: oklch(0.25 0.02 260);
+  --sidebar: #ffffff;
+  --sidebar-foreground: #333333;
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: oklch(0.95 0.01 80);
-  --sidebar-accent-foreground: oklch(0.25 0.02 260);
-  --sidebar-border: oklch(0.9 0.008 80);
+  --sidebar-accent: #f0f2f5;
+  --sidebar-accent-foreground: #333333;
+  --sidebar-border: #d4d4d4;
   --sidebar-ring: var(--ring);
 }
 
