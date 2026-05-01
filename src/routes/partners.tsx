@@ -164,6 +164,20 @@ function PartnersPage() {
   const partnerIds = scoped.map((it) => it.partner.id);
   const { map: revenueMap } = useLatestPartnerRevenue(partnerIds);
 
+  // Real partner-sourced pipeline: open + won deals across all visible partners
+  const sourcedPipeline = useMemo(() => {
+    let total = 0;
+    let withMetrics = 0;
+    for (const id of partnerIds) {
+      const r = revenueMap.get(id);
+      if (!r) continue;
+      const v = (r.dealsOpenValue ?? 0) + (r.dealsWonValue ?? 0);
+      if (v > 0) withMetrics += 1;
+      total += v;
+    }
+    return { total, withMetrics };
+  }, [partnerIds, revenueMap]);
+
   const filtered = scoped.filter((it) => {
     if (statusFilter !== "all" && it.partner.status !== statusFilter) return false;
     if (typeFilter !== "all" && it.partner.partner_type !== typeFilter) return false;
@@ -282,17 +296,15 @@ function PartnersPage() {
       </section>
 
       {/* 2. Revenue & Ecosystem Impact KPIs */}
-      <section className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard
-          label="EQLs this month"
-          value={String(estimateEqlsThisMonth(portfolio.items))}
-          hint="Ecosystem Qualified Leads"
-          accent="octa-1"
-        />
+      <section className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard
           label="Partner-sourced pipeline"
-          value="$150k"
-          hint="ARR in motion · forecast"
+          value={sourcedPipeline.total > 0 ? fmtMoney(sourcedPipeline.total) : "—"}
+          hint={
+            sourcedPipeline.withMetrics > 0
+              ? `Open + won deals · ${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting`
+              : "Add metrics on a partner page to populate"
+          }
           accent="octa-4"
           primary
         />
