@@ -29,7 +29,7 @@ function PartnerLayout() {
   // empty "Run Readiness Assessment" state even after the assessment is saved.
   const isOnDiagnostic = path.endsWith("/diagnostic");
   useEffect(() => {
-    if (!isOnDiagnostic) void data.refresh();
+    if (!isOnDiagnostic) void data.refresh({ silent: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnDiagnostic, partnerId]);
 
