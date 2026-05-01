@@ -13,6 +13,7 @@ import { Check, Focus, X as XIcon, Target } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
+import { TiltCard } from "@/components/ui/tilt-card";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Conduit" }] }),
@@ -556,20 +557,29 @@ function PartnersPage() {
           ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {sorted.map((it) => (
-                <PartnerCard
+                <TiltCard
                   key={it.partner.id}
-                  item={it}
-                  revenue={revenueMap.get(it.partner.id)}
-                  onDelete={async () => {
-                    if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
-                    try {
-                      await portfolio.deletePartner(it.partner.id);
-                      toast.success(`${it.partner.name} deleted`);
-                    } catch (e) {
-                      toast.error((e as Error).message);
-                    }
-                  }}
-                />
+                  tiltLimit={6}
+                  scale={1.02}
+                  perspective={1400}
+                  effect="evade"
+                  spotlight
+                  className="rounded-2xl"
+                >
+                  <PartnerCard
+                    item={it}
+                    revenue={revenueMap.get(it.partner.id)}
+                    onDelete={async () => {
+                      if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
+                      try {
+                        await portfolio.deletePartner(it.partner.id);
+                        toast.success(`${it.partner.name} deleted`);
+                      } catch (e) {
+                        toast.error((e as Error).message);
+                      }
+                    }}
+                  />
+                </TiltCard>
               ))}
             </div>
           )}
