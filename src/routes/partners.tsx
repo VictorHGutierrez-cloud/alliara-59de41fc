@@ -9,7 +9,7 @@ import {
 import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
-import { Check, Focus, X as XIcon, Target } from "lucide-react";
+import { Check, Focus, X as XIcon, Target, Trash2, ChevronDown } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
@@ -39,6 +39,61 @@ function PartnersPage() {
   const [focusMode, setFocusMode] = useState(false);
   const [selectedAction, setSelectedAction] = useState<EnrichedAction | null>(null);
   const [completing, setCompleting] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const bulkUpdate = async (patch: { status?: string; tier?: string; partner_type?: string }, label: string) => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    try {
+      const ids = [...selectedIds];
+      const { error, count } = await supabase
+        .from("partners")
+        .update(patch as never, { count: "exact" })
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} → ${label}`);
+      clearSelection();
+      await portfolio.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = [...selectedIds];
+    const names = portfolio.items
+      .filter((it) => ids.includes(it.partner.id))
+      .map((it) => it.partner.name);
+    if (!confirm(`Delete ${ids.length} partner${ids.length === 1 ? "" : "s"}?\n\n${names.join(", ")}\n\nThis permanently removes diagnostics, plans, intel runs and documents.`)) return;
+    setBulkBusy(true);
+    try {
+      const { error, count } = await supabase
+        .from("partners")
+        .delete({ count: "exact" })
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} deleted`);
+      clearSelection();
+      await portfolio.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const completeAction = async (a: EnrichedAction) => {
     setCompleting(a.id);
@@ -108,6 +163,20 @@ function PartnersPage() {
 
   const partnerIds = scoped.map((it) => it.partner.id);
   const { map: revenueMap } = useLatestPartnerRevenue(partnerIds);
+
+  // Real partner-sourced pipeline: open + won deals across all visible partners
+  const sourcedPipeline = useMemo(() => {
+    let total = 0;
+    let withMetrics = 0;
+    for (const id of partnerIds) {
+      const r = revenueMap.get(id);
+      if (!r) continue;
+      const v = (r.dealsOpenValue ?? 0) + (r.dealsWonValue ?? 0);
+      if (v > 0) withMetrics += 1;
+      total += v;
+    }
+    return { total, withMetrics };
+  }, [partnerIds, revenueMap]);
 
   const filtered = scoped.filter((it) => {
     if (statusFilter !== "all" && it.partner.status !== statusFilter) return false;
@@ -227,17 +296,15 @@ function PartnersPage() {
       </section>
 
       {/* 2. Revenue & Ecosystem Impact KPIs */}
-      <section className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <KpiCard
-          label="EQLs this month"
-          value={String(estimateEqlsThisMonth(portfolio.items))}
-          hint="Ecosystem Qualified Leads"
-          accent="octa-1"
-        />
+      <section className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard
           label="Partner-sourced pipeline"
-          value="$150k"
-          hint="ARR in motion · forecast"
+          value={sourcedPipeline.total > 0 ? fmtMoney(sourcedPipeline.total) : "—"}
+          hint={
+            sourcedPipeline.withMetrics > 0
+              ? `Open + won deals · ${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting`
+              : "Add metrics on a partner page to populate"
+          }
           accent="octa-4"
           primary
         />
@@ -554,24 +621,71 @@ function PartnersPage() {
           ) : sorted.length === 0 ? (
             <EmptyState onAdd={() => setShowNew(true)} />
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sorted.map((it) => (
-                <PartnerCard
-                  key={it.partner.id}
-                  item={it}
-                  revenue={revenueMap.get(it.partner.id)}
-                  onDelete={async () => {
-                    if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
-                    try {
-                      await portfolio.deletePartner(it.partner.id);
-                      toast.success(`${it.partner.name} deleted`);
-                    } catch (e) {
-                      toast.error((e as Error).message);
-                    }
-                  }}
+            <>
+              {/* Select-all toolbar */}
+              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
+                <label className="inline-flex items-center gap-2 cursor-pointer hover:text-foreground transition">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-border accent-[color:var(--primary)]"
+                    checked={sorted.length > 0 && sorted.every((it) => selectedIds.has(it.partner.id))}
+                    ref={(el) => {
+                      if (el) {
+                        const some = sorted.some((it) => selectedIds.has(it.partner.id));
+                        const all = sorted.every((it) => selectedIds.has(it.partner.id));
+                        el.indeterminate = some && !all;
+                      }
+                    }}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedIds(new Set(sorted.map((it) => it.partner.id)));
+                      } else {
+                        clearSelection();
+                      }
+                    }}
+                  />
+                  Select all visible ({sorted.length})
+                </label>
+                {selectedIds.size > 0 && (
+                  <button onClick={clearSelection} className="underline hover:text-foreground">
+                    Clear ({selectedIds.size})
+                  </button>
+                )}
+              </div>
+
+              {selectedIds.size > 0 && (
+                <BulkActionBar
+                  count={selectedIds.size}
+                  busy={bulkBusy}
+                  onSetStatus={(s, label) => bulkUpdate({ status: s }, label)}
+                  onSetTier={(t, label) => bulkUpdate({ tier: t }, label)}
+                  onSetType={(t, label) => bulkUpdate({ partner_type: t }, label)}
+                  onDelete={bulkDelete}
+                  onClear={clearSelection}
                 />
-              ))}
-            </div>
+              )}
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sorted.map((it) => (
+                  <PartnerCard
+                    key={it.partner.id}
+                    item={it}
+                    revenue={revenueMap.get(it.partner.id)}
+                    selected={selectedIds.has(it.partner.id)}
+                    onToggleSelect={() => toggleSelect(it.partner.id)}
+                    onDelete={async () => {
+                      if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
+                      try {
+                        await portfolio.deletePartner(it.partner.id);
+                        toast.success(`${it.partner.name} deleted`);
+                      } catch (e) {
+                        toast.error((e as Error).message);
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
       </section>
@@ -656,16 +770,6 @@ function buildBriefing({
   const last = parts.pop()!;
   const joined = parts.length ? parts.join(", ") + ", and " + last : last;
   return `You have ${joined}. Tackle the red items first to compound the week.`;
-}
-
-function estimateEqlsThisMonth(items: PortfolioItem[]): number {
-  // Heuristic placeholder until pipeline data lands: 1 EQL per active partner/month, +2 for strategic
-  const now = new Date();
-  return items.reduce((s, it) => {
-    if (it.partner.status === "archived" || it.partner.status === "paused") return s;
-    if (new Date(it.partner.created_at) > now) return s;
-    return s + (it.partner.tier === "strategic" ? 3 : it.partner.tier === "core" ? 2 : 1);
-  }, 0);
 }
 
 function prettyStatus(s: StatusFilter): string {
@@ -760,7 +864,13 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete, revenue }: { item: PortfolioItem; onDelete: () => void; revenue?: { revenue: number; mrr: number; dealsWonValue: number } }) {
+function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect }: {
+  item: PortfolioItem;
+  onDelete: () => void;
+  revenue?: { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number };
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
   const tColor = tierColor(item.partner.tier);
@@ -768,7 +878,21 @@ function PartnerCard({ item, onDelete, revenue }: { item: PortfolioItem; onDelet
   const totalRev = (revenue?.revenue ?? 0) + (revenue?.dealsWonValue ?? 0);
 
   return (
-    <div className="relative">
+    <div className={`relative rounded-2xl transition ${selected ? "ring-2 ring-[color:var(--primary)] ring-offset-2 ring-offset-background" : ""}`}>
+      {onToggleSelect && (
+        <label
+          className="absolute top-2 left-2 z-10 inline-flex items-center justify-center h-6 w-6 rounded-md bg-card/90 backdrop-blur border border-border/60 cursor-pointer hover:border-[color:var(--primary)] transition"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded accent-[color:var(--primary)] cursor-pointer"
+            checked={!!selected}
+            onChange={onToggleSelect}
+            aria-label="Select partner"
+          />
+        </label>
+      )}
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
@@ -784,7 +908,7 @@ function PartnerCard({ item, onDelete, revenue }: { item: PortfolioItem; onDelet
         className="block rounded-2xl bg-card border border-border/60 p-5 card-elev hover:-translate-y-0.5 transition"
       >
         <div className="flex items-start justify-between">
-          <div className="min-w-0">
+          <div className={`min-w-0 ${onToggleSelect ? "pl-8" : ""}`}>
             <div className="font-semibold truncate">{item.partner.name}</div>
             <div className="text-xs text-muted-foreground truncate">
               {item.partner.company ?? "—"}{item.partner.segment ? ` · ${item.partner.segment}` : ""}
@@ -1120,6 +1244,104 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
       <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{title}</p>
       {subtitle && <p className="mt-0.5 text-xs text-muted-foreground/70">{subtitle}</p>}
       <div className="mt-2.5">{children}</div>
+    </div>
+  );
+}
+
+/* ─────────────────── Bulk action bar ─────────────────── */
+
+const BULK_STATUSES: { value: "active" | "nurturing" | "at_risk" | "paused" | "archived"; label: string }[] = [
+  { value: "active", label: "Scaling" },
+  { value: "nurturing", label: "Developing" },
+  { value: "at_risk", label: "Churn Risk" },
+  { value: "paused", label: "Paused" },
+  { value: "archived", label: "Archived" },
+];
+const BULK_TIERS: { value: "strategic" | "core" | "emerging" | "long_tail"; label: string }[] = [
+  { value: "strategic", label: "Strategic" },
+  { value: "core", label: "Core" },
+  { value: "emerging", label: "Emerging" },
+  { value: "long_tail", label: "Long tail" },
+];
+
+function BulkActionBar({
+  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear,
+}: {
+  count: number;
+  busy: boolean;
+  onSetStatus: (value: "active" | "nurturing" | "at_risk" | "paused" | "archived", label: string) => void;
+  onSetTier: (value: "strategic" | "core" | "emerging" | "long_tail", label: string) => void;
+  onSetType: (value: PartnerType, label: string) => void;
+  onDelete: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="sticky top-2 z-30 mb-4 rounded-xl border border-[color:var(--primary)]/40 bg-card/95 backdrop-blur p-3 shadow-[0_8px_24px_-8px_rgba(255,192,203,0.5)] flex flex-wrap items-center gap-2">
+      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[color:var(--primary)]/15 text-foreground text-sm font-medium">
+        <Check className="h-3.5 w-3.5" />
+        {count} selected
+      </span>
+
+      <BulkMenu label="Set status" disabled={busy}>
+        {BULK_STATUSES.map((s) => (
+          <button key={s.value} onClick={() => onSetStatus(s.value, s.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
+            {s.label}
+          </button>
+        ))}
+      </BulkMenu>
+
+      <BulkMenu label="Set tier" disabled={busy}>
+        {BULK_TIERS.map((t) => (
+          <button key={t.value} onClick={() => onSetTier(t.value, t.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
+            {t.label}
+          </button>
+        ))}
+      </BulkMenu>
+
+      <BulkMenu label="Set type" disabled={busy}>
+        {PARTNER_TYPES.map((t) => (
+          <button key={t.key} onClick={() => onSetType(t.key, t.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
+            {t.label}
+          </button>
+        ))}
+      </BulkMenu>
+
+      <button
+        onClick={onDelete}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive px-3 py-1.5 text-sm font-medium hover:bg-destructive/20 transition disabled:opacity-50"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+        Delete
+      </button>
+
+      <button onClick={onClear} disabled={busy} className="ml-auto text-xs text-muted-foreground hover:text-foreground underline disabled:opacity-50">
+        Clear selection
+      </button>
+    </div>
+  );
+}
+
+function BulkMenu({ label, disabled, children }: { label: string; disabled?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm hover:bg-surface-2 transition disabled:opacity-50"
+      >
+        {label}
+        <ChevronDown className="h-3.5 w-3.5" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 z-20 min-w-[10rem] rounded-lg border border-border bg-card p-1 shadow-lg">
+            <div onClick={() => setOpen(false)}>{children}</div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
