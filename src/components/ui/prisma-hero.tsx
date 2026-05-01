@@ -79,9 +79,9 @@ export const WordsPullUpMultiStyle = ({ segments, className = "", style }: Words
 /* ---------------- PrismaHero ---------------- */
 interface PrismaHeroProps {
   videoSrc?: string;
-  eyebrow?: string;
+  eyebrow?: string | null;
   headlineSegments?: Segment[];
-  description?: string;
+  description?: string | null;
   primaryCta?: ReactNode;
   secondaryCta?: ReactNode;
 }
@@ -174,16 +174,20 @@ export const PrismaHero = ({
       <div className="relative z-10 h-full flex items-center px-6 sm:px-10">
         <div className="mx-auto max-w-6xl w-full animate-fade-in">
           <div className="max-w-2xl text-white">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur px-3 py-1 text-xs text-white/80">
-              <span className="h-1.5 w-1.5 rounded-full bg-white" />
-              <span className="font-mono uppercase tracking-[0.18em]">{eyebrow}</span>
-            </div>
+            {eyebrow && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur px-3 py-1 text-xs text-white/80">
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                <span className="font-mono uppercase tracking-[0.18em]">{eyebrow}</span>
+              </div>
+            )}
 
-            <h1 className="mt-7 font-display font-semibold tracking-[-0.025em] text-[44px] leading-[1.05] sm:text-[64px] sm:leading-[1.02] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]">
+            <h1 className={`${eyebrow ? "mt-7" : ""} font-display font-semibold tracking-[-0.025em] text-[44px] leading-[1.05] sm:text-[64px] sm:leading-[1.02] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]`}>
               <WordsPullUpMultiStyle segments={segments} />
             </h1>
 
-            <p className="mt-6 max-w-md text-[17px] leading-[1.55] text-white/85">{description}</p>
+            {description && (
+              <p className="mt-6 max-w-md text-[17px] leading-[1.55] text-white/85">{description}</p>
+            )}
 
             {(primaryCta || secondaryCta) && (
               <div className="mt-9 flex flex-col items-start gap-4">
