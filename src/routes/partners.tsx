@@ -874,7 +874,13 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete, revenue }: { item: PortfolioItem; onDelete: () => void; revenue?: { revenue: number; mrr: number; dealsWonValue: number } }) {
+function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect }: {
+  item: PortfolioItem;
+  onDelete: () => void;
+  revenue?: { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number };
+  selected?: boolean;
+  onToggleSelect?: () => void;
+}) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
   const tColor = tierColor(item.partner.tier);
@@ -882,7 +888,21 @@ function PartnerCard({ item, onDelete, revenue }: { item: PortfolioItem; onDelet
   const totalRev = (revenue?.revenue ?? 0) + (revenue?.dealsWonValue ?? 0);
 
   return (
-    <div className="relative">
+    <div className={`relative rounded-2xl transition ${selected ? "ring-2 ring-[color:var(--primary)] ring-offset-2 ring-offset-background" : ""}`}>
+      {onToggleSelect && (
+        <label
+          className="absolute top-2 left-2 z-10 inline-flex items-center justify-center h-6 w-6 rounded-md bg-card/90 backdrop-blur border border-border/60 cursor-pointer hover:border-[color:var(--primary)] transition"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <input
+            type="checkbox"
+            className="h-4 w-4 rounded accent-[color:var(--primary)] cursor-pointer"
+            checked={!!selected}
+            onChange={onToggleSelect}
+            aria-label="Select partner"
+          />
+        </label>
+      )}
       <button
         type="button"
         onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
@@ -898,7 +918,7 @@ function PartnerCard({ item, onDelete, revenue }: { item: PortfolioItem; onDelet
         className="block rounded-2xl bg-card border border-border/60 p-5 card-elev hover:-translate-y-0.5 transition"
       >
         <div className="flex items-start justify-between">
-          <div className="min-w-0">
+          <div className={`min-w-0 ${onToggleSelect ? "pl-8" : ""}`}>
             <div className="font-semibold truncate">{item.partner.name}</div>
             <div className="text-xs text-muted-foreground truncate">
               {item.partner.company ?? "—"}{item.partner.segment ? ` · ${item.partner.segment}` : ""}
