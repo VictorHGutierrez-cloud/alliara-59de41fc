@@ -201,3 +201,45 @@
   textarea.input { min-height: 2.5rem; resize: vertical; }
   select.input { appearance: none; padding-right: 1.75rem; }
 }
+
+/* Candy theme — scoped override for /dashboard (My Performance).
+ * Pastel pink primary, sky-blue secondary, yellow accent, white cards.
+ * Only applied inside elements with the .theme-candy class.
+ */
+.theme-candy {
+  --background: #f7f9fa;
+  --foreground: #333333;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --card: #ffffff;
+  --card-foreground: #333333;
+  --popover: #ffffff;
+  --popover-foreground: #333333;
+  --primary: #ffc0cb;
+  --primary-foreground: #000000;
+  --secondary: #87ceeb;
+  --secondary-foreground: #000000;
+  --muted: #ddd9c4;
+  --muted-foreground: #6e6e6e;
+  --accent: #ffff00;
+  --accent-foreground: #000000;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #d4d4d4;
+  --input: #d4d4d4;
+  --ring: #ffc0cb;
+  --radius: 0.5rem;
+  --success: #33cc33;
+  --warning: #ffcc00;
+  --danger: #ef4444;
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
+}
+.theme-candy h1,
+.theme-candy h2,
+.theme-candy h3,
+.theme-candy h4 {
+  font-family: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
