@@ -23,7 +23,8 @@ function Dashboard() {
   if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
+    <div className="theme-candy min-h-screen">
+      <div className="mx-auto max-w-7xl px-6 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
@@ -99,6 +100,7 @@ function Dashboard() {
         </div>
       </div>
 
+      </div>
     </div>
   );
 }
