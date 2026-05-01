@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { usePartner, type ActionRow } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
+import { AgentPlan, type AgentTask } from "@/components/ui/agent-plan";
 
 export const Route = createFileRoute("/partner/$partnerId/plan")({
   head: () => ({ meta: [{ title: "Joint Business Plan — OCTA OS" }] }),
@@ -17,13 +18,20 @@ function PartnerPlan() {
   const [filterAxis, setFilterAxis] = useState<string>("all");
   const [showNew, setShowNew] = useState(false);
 
-  const grouped = useMemo(() => {
-    const m: Record<ActionRow["status"], ActionRow[]> = { todo: [], doing: [], done: [] };
-    for (const a of data.actions) {
-      if (filterAxis !== "all" && a.axis_key !== filterAxis) continue;
-      m[a.status].push(a);
-    }
-    return m;
+  const agentTasks = useMemo<AgentTask[]>(() => {
+    return data.actions
+      .filter((a) => filterAxis === "all" || a.axis_key === filterAxis)
+      .map((a) => ({
+        id: a.id,
+        title: a.title,
+        description: a.description ?? undefined,
+        status: a.status,
+        priority: a.priority,
+        axisKey: a.axis_key,
+        dueDate: a.due_date,
+        targetLevel: a.target_level,
+        source: a.source,
+      }));
   }, [data.actions, filterAxis]);
 
   if (data.loading || !user) return <div className="text-muted-foreground">Loading…</div>;
@@ -59,17 +67,24 @@ function PartnerPlan() {
           </p>
         </div>
       ) : (
-        <div className="mt-6 grid lg:grid-cols-3 gap-4">
-          {(["todo", "doing", "done"] as const).map((s) => (
-            <Column
-              key={s}
-              title={({ todo: "Planned", doing: "In Motion", done: "Delivered" } as const)[s]}
-              items={grouped[s]}
-              isOwner={isOwner}
-              onUpdate={(id, patch) => data.updateAction(id, patch).catch((e) => toast.error((e as Error).message))}
-              onDelete={(id) => data.deleteAction(id).catch((e) => toast.error((e as Error).message))}
-            />
-          ))}
+        <div className="mt-6">
+          <AgentPlan
+            tasks={agentTasks}
+            isOwner={isOwner}
+            onCycleStatus={(id) => {
+              const current = data.actions.find((a) => a.id === id);
+              if (!current) return;
+              const next: ActionRow["status"] =
+                current.status === "todo" ? "doing" : current.status === "doing" ? "done" : "todo";
+              data
+                .updateAction(id, {
+                  status: next,
+                  completed_at: next === "done" ? new Date().toISOString() : null,
+                })
+                .catch((e) => toast.error((e as Error).message));
+            }}
+            onDelete={(id) => data.deleteAction(id).catch((e) => toast.error((e as Error).message))}
+          />
         </div>
       )}
 
