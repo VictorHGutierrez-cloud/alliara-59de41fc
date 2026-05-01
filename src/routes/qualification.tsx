@@ -26,7 +26,7 @@ import { PARTNER_TYPES, type PartnerType, LEAD_SORTS, type LeadSortKey } from "@
 import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 
 export const Route = createFileRoute("/qualification")({
-  head: () => ({ meta: [{ title: "Partner Qualification — OCTA OS" }] }),
+  head: () => ({ meta: [{ title: "Partner Qualification — Conduit" }] }),
   component: QualificationPage,
 });
 

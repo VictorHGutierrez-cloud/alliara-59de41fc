@@ -7,7 +7,7 @@ import { AXES } from "../content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/partner/$partnerId/intel")({
-  head: () => ({ meta: [{ title: "Intel — OCTA OS" }] }),
+  head: () => ({ meta: [{ title: "Intel — Conduit" }] }),
   component: PartnerIntel,
 });
 

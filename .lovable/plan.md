@@ -1,115 +1,75 @@
 ## Goals
 
-Three changes:
+Four changes:
 
-1. Replace the Joint Business Plan task cards with the new **agent-plan** layout (expandable tasks + subtasks, animated status icons).
-2. Make the **OCTA+** header logo always go to `/` (the landing with the video) — even when signed in.
-3. Clean up the landing hero copy: remove the "for Factorial PDMs" eyebrow chip and the description line, and change the primary CTA from "Sign in with Factorial" to just "Sign in".
+1. **Rename the app** — drop "OCTA+" for something better (need your pick).
+2. **Reuse the `AgentPlan` task layout on the landing page** — show a small live demo of the task system below the hero so visitors immediately see the product.
+3. **Apply the "Candy" theme to `My Performance`** — pinks, sky blue, yellow accents, Poppins font, scoped to that route only (won't pollute the rest of the app).
+4. **Add the `TiltCard` 3D hover effect to partner cards on `/partners`** — spotlight + tilt-on-hover wrapper around each `PartnerCard`.
 
 ---
 
-## 1. New task card component — `src/components/ui/agent-plan.tsx`
+## 1. App name
 
-Port the snippet you sent into a generic, controlled component (no `useState` of demo data — it consumes our real `ActionRow[]`).
+I want you to pick. A few options I'd suggest, all in a similar register (operator-y, partnership-flavored, short):
 
-Public API:
+- **Conduit** — "the channel between you and every partner"
+- **Lattice** — structural, 8-axes vibe
+- **Prism** — the hero video already is one; ties branding to the asset
+- **Orbit** — partners orbiting the PDM
+- **Keystone** — the load-bearing piece of the partnership
+- **Anchor / Tether / Beacon** — relationship-led
+- **Polaris** — north-star for PDMs
 
-```ts
-type AgentTask = {
-  id: string;
-  title: string;
-  description?: string;
-  status: "todo" | "doing" | "done" | "need-help" | "failed";
-  priority: "low" | "medium" | "high";
-  axisKey?: string;        // for the axis chip
-  dueDate?: string | null;
-  targetLevel?: number | null;
-  source?: string | null;  // "ai" → shows AI badge
-  subtasks?: AgentSubtask[];
-};
-type AgentSubtask = {
-  id: string;
-  title: string;
-  description?: string;
-  status: AgentTask["status"];
-};
+I'll ask you to pick (or write your own) before applying. The rename touches: header logo text, page `<title>`s ("OCTA+", "OCTA OS"), 404 page, footer, og/twitter meta in `__root.tsx`.
 
-<AgentPlan
-  tasks={AgentTask[]}
-  isOwner={boolean}
-  onCycleStatus={(taskId) => void}      // todo → doing → done → todo
-  onDelete={(taskId) => void}
-  onEditSubtask={...}                   // optional — phase 2
-/>
-```
+## 2. Tasks on the landing page
 
-Visual spec (matches your snippet):
+Below the hero (after the video viewport), add a new section "See it in motion" that renders `<AgentPlan />` with **3 hard-coded sample tasks** (no DB, no auth needed) so unauthenticated visitors can see the live status-cycling + expandable subtasks behavior. Sample data:
 
-- Each task is an expandable row. Click the title area to expand subtasks; click the left status icon to cycle status.
-- Status icons (lucide): `CheckCircle2` (done), `CircleDotDashed` (doing), `CircleAlert` (need-help), `CircleX` (failed), `Circle` (todo).
-- Animated with `framer-motion` (`LayoutGroup`, `AnimatePresence`, spring transitions). Honors `prefers-reduced-motion`.
-- Subtasks render in an indented column with a vertical connector line aligned to the parent's status icon.
-- Right side of each row: axis chip (uses our existing `AXES` color tokens), priority chip, `→ L{targetLevel}` if set, status badge.
+- **Recruit 2 new ISVs in DACH** · axis Recruit · high · 2 subtasks · `doing`
+- **Launch co-marketing webinar with Acme** · axis Co-sell · medium · 3 subtasks · `todo`
+- **Close enablement gap on integration certification** · axis Enable · high · 2 subtasks · `done`
 
-Styling uses existing tokens (`bg-card`, `border-border/60`, `text-muted-foreground`, `var(--octa-*)`) — no new CSS. Subtask details panel uses `subtaskDetailsVariants` from the snippet for the smooth height transition.
+`onCycleStatus` will use local `useState` so visitors can click status icons and see the animation. No persistence.
 
-## 2. Wire it into `partner.$partnerId.plan.tsx`
+Edit: `src/routes/index.tsx` only.
 
-Right now actions are split into 3 columns (Planned / In Motion / Delivered). Replace the columns layout with a **single vertical AgentPlan list**, grouping by status visually inside each card via the status icon (the agent-plan card already conveys status, so columns become redundant).
+## 3. Candy theme on `My Performance`
 
-Mapping:
+Scope-limited so it doesn't break the rest of the app:
 
-- `ActionRow.status: "todo" | "doing" | "done"` → agent-plan `"todo" | "doing" | "done"`.
-- We don't have subtasks in the DB. **Phase 1**: render tasks with `subtasks: []` (no subtask UI). The expandable area instead shows the action's `description`, due date, and (eventually) AI rationale.
-- Filter bar (axis filter + Add Growth Initiative button) and `NewActionDialog` stay as-is.
-- Delete + status cycling wire to existing `data.updateAction` / `data.deleteAction`.
+- Add a new CSS class `.theme-candy` in `src/styles.css` that overrides `--background`, `--card`, `--primary`, `--secondary`, `--accent`, `--border`, `--ring`, `--muted`, `--foreground`, `--card-foreground`, `--muted-foreground`, `--destructive`, chart colors, and `--radius` with the values from your snippet (light variant only — we don't ship dark mode yet).
+- Load Poppins + Roboto Mono fonts in `__root.tsx` `head().links` (already loading Inter/Space Grotesk/JetBrains Mono — just append).
+- In `src/routes/dashboard.tsx`, wrap the outermost `<div className="mx-auto max-w-7xl …">` in a parent `<div className="theme-candy min-h-screen" style={{ fontFamily: "Poppins, sans-serif" }}>` so the variables and font apply only inside My Performance.
+- Update the page `<title>` to match the new app name from step 1.
 
-The `Column` helper and old card markup are removed.
+Result: pastel pink primary buttons, sky-blue secondary, yellow accent, white cards, soft gray border — only on `/dashboard`. Rest of the app stays "Calm Command".
 
-If you later want real subtasks, we'd add an `action_subtasks` table. Out of scope here unless you say so.
+## 4. Tilt cards on `/partners`
 
-## 3. Header logo always points to `/`
-
-In `src/routes/__root.tsx`, change:
-
-```tsx
-<Link to={user ? "/partners" : "/"} ...>
-```
-to:
-```tsx
-<Link to="/" ...>
-```
-
-So OCTA+ in the header always opens the landing page with the video, even for signed-in users.
-
-## 4. Landing page cleanup — `src/routes/index.tsx`
-
-In `<PrismaHero>` props:
-
-- Remove the eyebrow chip → pass `eyebrow={null}` and update `prisma-hero.tsx` to skip rendering when `eyebrow` is falsy.
-- Remove the description line → pass `description={null}` and skip rendering when falsy.
-- Change the primary CTA label from `Sign in with Factorial` to `Sign in` (keep the arrow, keep the link to `/login`).
-- The "New here? Create your account" secondary link stays.
-
-Small tweak in `prisma-hero.tsx`:
-
-```tsx
-{eyebrow && <div className="...eyebrow chip..."><span ...>{eyebrow}</span></div>}
-{description && <p className="...">{description}</p>}
-```
-
-Type changes: `eyebrow?: string | null`, `description?: string | null`.
+- **Create** `src/components/ui/tilt-card.tsx` — port your snippet exactly. `"use client"` directive can stay (no-op in TanStack but harmless). Spotlight uses a CSS radial gradient overlay positioned by `--x` / `--y` CSS vars.
+- In `src/routes/partners.tsx` around line 558, wrap each `<PartnerCard … />` inside the roster grid with `<TiltCard tiltLimit={8} scale={1.02} effect="evade" spotlight>`. Smaller tilt than the demo so the grid doesn't get nauseating with 12+ cards.
+- The `PartnerCard` itself stays unchanged — `TiltCard` is a presentational wrapper.
 
 ## Files
 
-- **create** `src/components/ui/agent-plan.tsx`
-- **edit** `src/routes/partner.$partnerId.plan.tsx` (swap kanban columns for `<AgentPlan />`)
-- **edit** `src/routes/__root.tsx` (header link → `/`)
-- **edit** `src/routes/index.tsx` (drop eyebrow/description, rename CTA)
-- **edit** `src/components/ui/prisma-hero.tsx` (allow nullable eyebrow + description)
+- **edit** `src/routes/index.tsx` — sample tasks section
+- **edit** `src/routes/dashboard.tsx` — wrap in `theme-candy`
+- **edit** `src/routes/partners.tsx` — wrap cards in `<TiltCard>`
+- **edit** `src/routes/__root.tsx` — rename, load Poppins
+- **edit** `src/styles.css` — add `.theme-candy` block
+- **create** `src/components/ui/tilt-card.tsx`
+- **edit** any other file with the literal "OCTA+" / "OCTA OS" once name is chosen (head titles in route files)
 
 ## Out of scope
 
-- Adding real subtasks to actions in the DB (needs a new table — say the word and we'll do it).
-- Changing the kanban behavior on any other route.
-- Touching login/signup pages (they don't mention Factorial today; only the landing CTA did).
+- Dark variant of the candy theme (no dark mode in the app today).
+- Re-skinning `/partners`, `/qualification`, etc. with candy — only `My Performance` per your ask.
+- Persisting status changes from the landing demo tasks.
+
+---
+
+## Need from you before I start
+
+**Pick the new app name.** Once you say the word (or give me your own), I'll apply all 4 changes in one pass.

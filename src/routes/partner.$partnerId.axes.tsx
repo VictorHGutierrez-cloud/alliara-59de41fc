@@ -4,7 +4,7 @@ import { usePartner, levelFromAvg } from "../lib/partners-store";
 import { AXES, type Axis } from "../content/octa";
 
 export const Route = createFileRoute("/partner/$partnerId/axes")({
-  head: () => ({ meta: [{ title: "Axes — OCTA OS" }] }),
+  head: () => ({ meta: [{ title: "Axes — Conduit" }] }),
   component: PartnerAxes,
 });
 

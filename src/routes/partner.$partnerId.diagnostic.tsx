@@ -6,7 +6,7 @@ import { AXES } from "../content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/partner/$partnerId/diagnostic")({
-  head: () => ({ meta: [{ title: "Readiness Assessment — OCTA OS" }] }),
+  head: () => ({ meta: [{ title: "Readiness Assessment — Conduit" }] }),
   component: PartnerDiagnostic,
 });
 
