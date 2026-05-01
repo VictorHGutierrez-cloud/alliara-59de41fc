@@ -6,7 +6,7 @@ import { usePdmStats, fmtMoney } from "../lib/pdm-stats";
 import { useEffect } from "react";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({ meta: [{ title: "My Performance — OCTA+" }] }),
+  head: () => ({ meta: [{ title: "My Performance — Conduit" }] }),
   component: Dashboard,
 });
 

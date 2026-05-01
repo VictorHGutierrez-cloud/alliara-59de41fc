@@ -15,7 +15,7 @@ import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 
 export const Route = createFileRoute("/partners")({
-  head: () => ({ meta: [{ title: "PDM Command Center — OCTA OS" }] }),
+  head: () => ({ meta: [{ title: "PDM Command Center — Conduit" }] }),
   component: PartnersPage,
 });
 

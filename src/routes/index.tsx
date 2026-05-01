@@ -5,7 +5,7 @@ import { PrismaHero } from "@/components/ui/prisma-hero";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "OCTA OS — Orchestrate every partner like it's your only one" },
+      { title: "Conduit — Orchestrate every partner like it's your only one" },
       { name: "description", content: "An operating system for Factorial Partner Development Managers. Diagnose, plan, and grow each partnership across 8 axes." },
     ],
   }),
