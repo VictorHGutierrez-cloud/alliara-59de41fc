@@ -119,9 +119,9 @@ export function usePartner(partnerId: string | undefined) {
   const [recs, setRecs] = useState<AiRecRow[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (opts?: { silent?: boolean }) => {
     if (!partnerId) return;
-    setLoading(true);
+    if (!opts?.silent) setLoading(true);
     const [{ data: p }, { data: ass }, { data: acts }, { data: r }] = await Promise.all([
       supabase.from("partners").select("*").eq("id", partnerId).maybeSingle(),
       supabase.from("assessments").select("*").eq("partner_id", partnerId).order("created_at", { ascending: false }),
