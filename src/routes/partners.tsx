@@ -51,14 +51,14 @@ function PartnersPage() {
   };
   const clearSelection = () => setSelectedIds(new Set());
 
-  const bulkUpdate = async (patch: Record<string, string>, label: string) => {
+  const bulkUpdate = async (patch: { status?: string; tier?: string; partner_type?: string }, label: string) => {
     if (selectedIds.size === 0) return;
     setBulkBusy(true);
     try {
       const ids = [...selectedIds];
       const { error, count } = await supabase
         .from("partners")
-        .update(patch, { count: "exact" })
+        .update(patch as never, { count: "exact" })
         .in("id", ids);
       if (error) throw error;
       toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} → ${label}`);
