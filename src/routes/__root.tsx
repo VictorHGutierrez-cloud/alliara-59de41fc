@@ -91,7 +91,7 @@ function AppFrame() {
             <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--octa-1)] via-[var(--octa-4)] to-[var(--octa-5)]" />
             <div className="flex flex-col leading-none">
               <span className="flex items-baseline">
-                Conduit <span className="ml-4 font-normal text-muted-foreground opacity-60 whitespace-nowrap text-base text-zinc-800">Created, designed and delivered by Victor Gutierrez - Factorial RH/ROW</span>
+                Conduit <span className="ml-4 font-normal text-muted-foreground opacity-60 whitespace-nowrap text-zinc-800 text-xs">Created, designed and delivered by Victor Gutierrez </span>
               </span>
             </div>
           </Link>
