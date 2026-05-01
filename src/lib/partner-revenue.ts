@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type PartnerRevenue = { revenue: number; mrr: number; dealsWonValue: number };
+export type PartnerRevenue = { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue: number };
 
 /**
  * Fetch latest metric row per partner and reduce to a small
@@ -22,7 +22,7 @@ export function useLatestPartnerRevenue(partnerIds: string[]) {
     void (async () => {
       const { data } = await supabase
         .from("partner_metrics")
-        .select("partner_id, revenue, mrr, deals_won_value, created_at")
+        .select("partner_id, revenue, mrr, deals_won_value, deals_open_value, created_at")
         .in("partner_id", partnerIds)
         .order("created_at", { ascending: false });
       if (cancelled) return;
@@ -34,6 +34,7 @@ export function useLatestPartnerRevenue(partnerIds: string[]) {
           revenue: Number((row as { revenue: number | null }).revenue ?? 0),
           mrr: Number((row as { mrr: number | null }).mrr ?? 0),
           dealsWonValue: Number((row as { deals_won_value: number | null }).deals_won_value ?? 0),
+          dealsOpenValue: Number((row as { deals_open_value: number | null }).deals_open_value ?? 0),
         });
       }
       setMap(m);
