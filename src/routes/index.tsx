@@ -15,7 +15,7 @@ export const Route = createFileRoute("/")({
 function Landing() {
   return (
     <PrismaHero
-      videoSrc="/prisma-hero.mp4"
+      videoSrc="https://hbarmsaprabwwickdudg.supabase.co/storage/v1/object/public/public-assets/prisma-hero.mp4"
       eyebrow="for Factorial PDMs"
       headlineSegments={[
         { text: "Orchestrate every partner", className: "text-white" },
