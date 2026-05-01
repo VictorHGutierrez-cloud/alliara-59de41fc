@@ -9,7 +9,7 @@ import {
 import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
-import { Check, Focus, X as XIcon, Target } from "lucide-react";
+import { Check, Focus, X as XIcon, Target, Trash2, ChevronDown } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
@@ -39,6 +39,61 @@ function PartnersPage() {
   const [focusMode, setFocusMode] = useState(false);
   const [selectedAction, setSelectedAction] = useState<EnrichedAction | null>(null);
   const [completing, setCompleting] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkBusy, setBulkBusy] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const bulkUpdate = async (patch: Record<string, string>, label: string) => {
+    if (selectedIds.size === 0) return;
+    setBulkBusy(true);
+    try {
+      const ids = [...selectedIds];
+      const { error, count } = await supabase
+        .from("partners")
+        .update(patch, { count: "exact" })
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} → ${label}`);
+      clearSelection();
+      await portfolio.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const bulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    const ids = [...selectedIds];
+    const names = portfolio.items
+      .filter((it) => ids.includes(it.partner.id))
+      .map((it) => it.partner.name);
+    if (!confirm(`Delete ${ids.length} partner${ids.length === 1 ? "" : "s"}?\n\n${names.join(", ")}\n\nThis permanently removes diagnostics, plans, intel runs and documents.`)) return;
+    setBulkBusy(true);
+    try {
+      const { error, count } = await supabase
+        .from("partners")
+        .delete({ count: "exact" })
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} deleted`);
+      clearSelection();
+      await portfolio.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBulkBusy(false);
+    }
+  };
 
   const completeAction = async (a: EnrichedAction) => {
     setCompleting(a.id);
