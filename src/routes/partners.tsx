@@ -1257,3 +1257,101 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
     </div>
   );
 }
+
+/* ─────────────────── Bulk action bar ─────────────────── */
+
+const BULK_STATUSES: { value: "active" | "nurturing" | "at_risk" | "paused" | "archived"; label: string }[] = [
+  { value: "active", label: "Scaling" },
+  { value: "nurturing", label: "Developing" },
+  { value: "at_risk", label: "Churn Risk" },
+  { value: "paused", label: "Paused" },
+  { value: "archived", label: "Archived" },
+];
+const BULK_TIERS: { value: "strategic" | "core" | "emerging" | "long_tail"; label: string }[] = [
+  { value: "strategic", label: "Strategic" },
+  { value: "core", label: "Core" },
+  { value: "emerging", label: "Emerging" },
+  { value: "long_tail", label: "Long tail" },
+];
+
+function BulkActionBar({
+  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear,
+}: {
+  count: number;
+  busy: boolean;
+  onSetStatus: (value: "active" | "nurturing" | "at_risk" | "paused" | "archived", label: string) => void;
+  onSetTier: (value: "strategic" | "core" | "emerging" | "long_tail", label: string) => void;
+  onSetType: (value: PartnerType, label: string) => void;
+  onDelete: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="sticky top-2 z-30 mb-4 rounded-xl border border-[color:var(--primary)]/40 bg-card/95 backdrop-blur p-3 shadow-[0_8px_24px_-8px_rgba(255,192,203,0.5)] flex flex-wrap items-center gap-2">
+      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[color:var(--primary)]/15 text-foreground text-sm font-medium">
+        <Check className="h-3.5 w-3.5" />
+        {count} selected
+      </span>
+
+      <BulkMenu label="Set status" disabled={busy}>
+        {BULK_STATUSES.map((s) => (
+          <button key={s.value} onClick={() => onSetStatus(s.value, s.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
+            {s.label}
+          </button>
+        ))}
+      </BulkMenu>
+
+      <BulkMenu label="Set tier" disabled={busy}>
+        {BULK_TIERS.map((t) => (
+          <button key={t.value} onClick={() => onSetTier(t.value, t.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
+            {t.label}
+          </button>
+        ))}
+      </BulkMenu>
+
+      <BulkMenu label="Set type" disabled={busy}>
+        {PARTNER_TYPES.map((t) => (
+          <button key={t.key} onClick={() => onSetType(t.key, t.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
+            {t.label}
+          </button>
+        ))}
+      </BulkMenu>
+
+      <button
+        onClick={onDelete}
+        disabled={busy}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive px-3 py-1.5 text-sm font-medium hover:bg-destructive/20 transition disabled:opacity-50"
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+        Delete
+      </button>
+
+      <button onClick={onClear} disabled={busy} className="ml-auto text-xs text-muted-foreground hover:text-foreground underline disabled:opacity-50">
+        Clear selection
+      </button>
+    </div>
+  );
+}
+
+function BulkMenu({ label, disabled, children }: { label: string; disabled?: boolean; children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        disabled={disabled}
+        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm hover:bg-surface-2 transition disabled:opacity-50"
+      >
+        {label}
+        <ChevronDown className="h-3.5 w-3.5" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute top-full left-0 mt-1 z-20 min-w-[10rem] rounded-lg border border-border bg-card p-1 shadow-lg">
+            <div onClick={() => setOpen(false)}>{children}</div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
