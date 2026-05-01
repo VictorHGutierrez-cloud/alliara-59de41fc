@@ -1,70 +1,115 @@
-## Goal
+## Goals
 
-Replace the current landing (`/`) with the **Prisma Hero** animated background, keeping the OCTA copy and CTAs in English. Remove the component's internal navbar (we already have a global header). Make the background gracefully degrade when no video URL is provided.
+Three changes:
 
-## What gets built
+1. Replace the Joint Business Plan task cards with the new **agent-plan** layout (expandable tasks + subtasks, animated status icons).
+2. Make the **OCTA+** header logo always go to `/` (the landing with the video) — even when signed in.
+3. Clean up the landing hero copy: remove the "for Factorial PDMs" eyebrow chip and the description line, and change the primary CTA from "Sign in with Factorial" to just "Sign in".
 
-### 1. New component — `src/components/ui/prisma-hero.tsx`
+---
 
-Faithful port of the 21st.dev `prisma-hero` snippet, with two changes:
+## 1. New task card component — `src/components/ui/agent-plan.tsx`
 
-- **Navbar removed** — we already have the global `OCTA+` header in `__root.tsx`. Duplicating navigation is bad UX.
-- **Video source is a prop with a CSS fallback** — Google Drive share URLs cannot be used as `<video src>` (Drive serves an HTML viewer, not the MP4, and blocks hotlinking). The component will accept an optional `videoSrc` prop. When omitted, it renders an animated **conic-gradient prismatic background** in pure CSS (no extra deps), so it never shows a black screen.
+Port the snippet you sent into a generic, controlled component (no `useState` of demo data — it consumes our real `ActionRow[]`).
 
-Exports kept identical to the source so the snippet stays compatible:
-- `WordsPullUp`
-- `WordsPullUpMultiStyle`
-- `PrismaHero` (now accepts `{ videoSrc?, eyebrow?, headlineSegments?, description?, ctaLabel?, ctaHref? }`)
+Public API:
 
-### 2. New dependency
+```ts
+type AgentTask = {
+  id: string;
+  title: string;
+  description?: string;
+  status: "todo" | "doing" | "done" | "need-help" | "failed";
+  priority: "low" | "medium" | "high";
+  axisKey?: string;        // for the axis chip
+  dueDate?: string | null;
+  targetLevel?: number | null;
+  source?: string | null;  // "ai" → shows AI badge
+  subtasks?: AgentSubtask[];
+};
+type AgentSubtask = {
+  id: string;
+  title: string;
+  description?: string;
+  status: AgentTask["status"];
+};
 
-- `framer-motion` — required by the snippet for the `WordsPullUp` animations.
+<AgentPlan
+  tasks={AgentTask[]}
+  isOwner={boolean}
+  onCycleStatus={(taskId) => void}      // todo → doing → done → todo
+  onDelete={(taskId) => void}
+  onEditSubtask={...}                   // optional — phase 2
+/>
+```
 
-### 3. Updated landing — `src/routes/index.tsx`
+Visual spec (matches your snippet):
 
-Render `<PrismaHero />` with OCTA-specific content (English, as requested):
+- Each task is an expandable row. Click the title area to expand subtasks; click the left status icon to cycle status.
+- Status icons (lucide): `CheckCircle2` (done), `CircleDotDashed` (doing), `CircleAlert` (need-help), `CircleX` (failed), `Circle` (todo).
+- Animated with `framer-motion` (`LayoutGroup`, `AnimatePresence`, spring transitions). Honors `prefers-reduced-motion`.
+- Subtasks render in an indented column with a vertical connector line aligned to the parent's status icon.
+- Right side of each row: axis chip (uses our existing `AXES` color tokens), priority chip, `→ L{targetLevel}` if set, status badge.
 
-- **Eyebrow chip**: `for Factorial PDMs`
-- **Headline (multi-style, word-by-word pull-up)**:
-  - "Orchestrate every partner" — light foreground
-  - "like it's your only one." — accent (uses `--primary`)
-- **Description**: "One operating system to diagnose, plan, and grow each partnership across 8 axes."
-- **Primary CTA**: `Sign in with Factorial →` → `/login`
-- **Secondary link below**: `New here? Create your account` → `/signup`
+Styling uses existing tokens (`bg-card`, `border-border/60`, `text-muted-foreground`, `var(--octa-*)`) — no new CSS. Subtask details panel uses `subtaskDetailsVariants` from the snippet for the smooth height transition.
 
-Both CTAs use TanStack `<Link>` (not raw `<a>`).
+## 2. Wire it into `partner.$partnerId.plan.tsx`
 
-### 4. Layout adjustments
+Right now actions are split into 3 columns (Planned / In Motion / Delivered). Replace the columns layout with a **single vertical AgentPlan list**, grouping by status visually inside each card via the status icon (the agent-plan card already conveys status, so columns become redundant).
 
-- The hero is full-bleed (`h-screen`, `w-screen`) and rendered under the sticky global header. We negate the header offset with `-mt-14` (already used in current index) so the prism fills the viewport behind the translucent `glass` header.
-- `__root.tsx` already keeps the header transparent on `/` when signed-out (`isLanding && !user`), which is exactly what we want — no edits needed there.
-- Footer is already hidden on `/` via `!isLanding` check — no edits needed.
+Mapping:
 
-### 5. Background behavior
+- `ActionRow.status: "todo" | "doing" | "done"` → agent-plan `"todo" | "doing" | "done"`.
+- We don't have subtasks in the DB. **Phase 1**: render tasks with `subtasks: []` (no subtask UI). The expandable area instead shows the action's `description`, due date, and (eventually) AI rationale.
+- Filter bar (axis filter + Add Growth Initiative button) and `NewActionDialog` stay as-is.
+- Delete + status cycling wire to existing `data.updateAction` / `data.deleteAction`.
 
-Layered (back → front):
-1. Animated conic-gradient base (always on) — uses OCTA palette tokens (`--octa-1` … `--octa-5`) rotating slowly via CSS `@keyframes`. Lives in `prisma-hero.tsx` as a styled div with inline `style` — no `styles.css` edits needed (uses Tailwind arbitrary values + a tiny inline `<style>` tag inside the component for the keyframe).
-2. Optional `<video>` (only if `videoSrc` prop given) — `autoplay muted loop playsinline`, `object-cover`.
-3. Noise overlay — SVG data-URI, `mix-blend-overlay`, ~6% opacity.
-4. Gradient vignette — radial dark fade from edges so text stays readable.
+The `Column` helper and old card markup are removed.
 
-### 6. Video URL (Drive caveat)
+If you later want real subtasks, we'd add an `action_subtasks` table. Out of scope here unless you say so.
 
-The Drive link you sent (`drive.google.com/file/d/1_ASoxBPm…/view`) won't play in a `<video>` tag. To plug in a real video later, host the MP4 on one of:
-- Supabase Storage (already wired in this project)
-- Cloudflare R2
-- Cloudinary
+## 3. Header logo always points to `/`
 
-Then pass it: `<PrismaHero videoSrc="https://…/prisma.mp4" />`. Until then, the CSS prism fallback renders.
+In `src/routes/__root.tsx`, change:
+
+```tsx
+<Link to={user ? "/partners" : "/"} ...>
+```
+to:
+```tsx
+<Link to="/" ...>
+```
+
+So OCTA+ in the header always opens the landing page with the video, even for signed-in users.
+
+## 4. Landing page cleanup — `src/routes/index.tsx`
+
+In `<PrismaHero>` props:
+
+- Remove the eyebrow chip → pass `eyebrow={null}` and update `prisma-hero.tsx` to skip rendering when `eyebrow` is falsy.
+- Remove the description line → pass `description={null}` and skip rendering when falsy.
+- Change the primary CTA label from `Sign in with Factorial` to `Sign in` (keep the arrow, keep the link to `/login`).
+- The "New here? Create your account" secondary link stays.
+
+Small tweak in `prisma-hero.tsx`:
+
+```tsx
+{eyebrow && <div className="...eyebrow chip..."><span ...>{eyebrow}</span></div>}
+{description && <p className="...">{description}</p>}
+```
+
+Type changes: `eyebrow?: string | null`, `description?: string | null`.
 
 ## Files
 
-- **create** `src/components/ui/prisma-hero.tsx`
-- **edit** `src/routes/index.tsx` (replace current `Landing` body with `<PrismaHero …/>`; remove the `OctaMark` octagon and `AXES` import since the prism replaces the right-side visual)
-- **dependency** `bun add framer-motion`
+- **create** `src/components/ui/agent-plan.tsx`
+- **edit** `src/routes/partner.$partnerId.plan.tsx` (swap kanban columns for `<AgentPlan />`)
+- **edit** `src/routes/__root.tsx` (header link → `/`)
+- **edit** `src/routes/index.tsx` (drop eyebrow/description, rename CTA)
+- **edit** `src/components/ui/prisma-hero.tsx` (allow nullable eyebrow + description)
 
 ## Out of scope
 
-- Hosting/uploading the MP4 (need a public URL; Drive won't work).
-- Touching auth, partners, qualification, or any other route.
-- Changing the global header or footer.
+- Adding real subtasks to actions in the DB (needs a new table — say the word and we'll do it).
+- Changing the kanban behavior on any other route.
+- Touching login/signup pages (they don't mention Factorial today; only the landing CTA did).

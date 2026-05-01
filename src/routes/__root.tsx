@@ -87,7 +87,7 @@ function AppFrame() {
         }
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-14 flex items-center justify-between">
-          <Link to={user ? "/partners" : "/"} className="flex items-center gap-2 font-display font-bold tracking-tight text-foreground">
+          <Link to="/" className="flex items-center gap-2 font-display font-bold tracking-tight text-foreground">
             <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--octa-1)] via-[var(--octa-4)] to-[var(--octa-5)]" />
             <div className="flex flex-col leading-none">
               <span className="flex items-baseline">

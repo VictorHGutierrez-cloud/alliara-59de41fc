@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/auth";
 import { usePartner, type ActionRow } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
+import { AgentPlan, type AgentTask } from "@/components/ui/agent-plan";
 
 export const Route = createFileRoute("/partner/$partnerId/plan")({
   head: () => ({ meta: [{ title: "Joint Business Plan — OCTA OS" }] }),
@@ -17,13 +18,20 @@ function PartnerPlan() {
   const [filterAxis, setFilterAxis] = useState<string>("all");
   const [showNew, setShowNew] = useState(false);
 
-  const grouped = useMemo(() => {
-    const m: Record<ActionRow["status"], ActionRow[]> = { todo: [], doing: [], done: [] };
-    for (const a of data.actions) {
-      if (filterAxis !== "all" && a.axis_key !== filterAxis) continue;
-      m[a.status].push(a);
-    }
-    return m;
+  const agentTasks = useMemo<AgentTask[]>(() => {
+    return data.actions
+      .filter((a) => filterAxis === "all" || a.axis_key === filterAxis)
+      .map((a) => ({
+        id: a.id,
+        title: a.title,
+        description: a.description ?? undefined,
+        status: a.status,
+        priority: a.priority,
+        axisKey: a.axis_key,
+        dueDate: a.due_date,
+        targetLevel: a.target_level,
+        source: a.source,
+      }));
   }, [data.actions, filterAxis]);
 
   if (data.loading || !user) return <div className="text-muted-foreground">Loading…</div>;
@@ -59,17 +67,24 @@ function PartnerPlan() {
           </p>
         </div>
       ) : (
-        <div className="mt-6 grid lg:grid-cols-3 gap-4">
-          {(["todo", "doing", "done"] as const).map((s) => (
-            <Column
-              key={s}
-              title={({ todo: "Planned", doing: "In Motion", done: "Delivered" } as const)[s]}
-              items={grouped[s]}
-              isOwner={isOwner}
-              onUpdate={(id, patch) => data.updateAction(id, patch).catch((e) => toast.error((e as Error).message))}
-              onDelete={(id) => data.deleteAction(id).catch((e) => toast.error((e as Error).message))}
-            />
-          ))}
+        <div className="mt-6">
+          <AgentPlan
+            tasks={agentTasks}
+            isOwner={isOwner}
+            onCycleStatus={(id) => {
+              const current = data.actions.find((a) => a.id === id);
+              if (!current) return;
+              const next: ActionRow["status"] =
+                current.status === "todo" ? "doing" : current.status === "doing" ? "done" : "todo";
+              data
+                .updateAction(id, {
+                  status: next,
+                  completed_at: next === "done" ? new Date().toISOString() : null,
+                })
+                .catch((e) => toast.error((e as Error).message));
+            }}
+            onDelete={(id) => data.deleteAction(id).catch((e) => toast.error((e as Error).message))}
+          />
         </div>
       )}
 
@@ -87,79 +102,6 @@ function PartnerPlan() {
       )}
     </div>
   );
-}
-
-function Column({
-  title, items, isOwner, onUpdate, onDelete,
-}: {
-  title: string;
-  items: ActionRow[];
-  isOwner: boolean;
-  onUpdate: (id: string, patch: Partial<ActionRow>) => void;
-  onDelete: (id: string) => void;
-}) {
-  return (
-    <div className="rounded-2xl bg-surface/40 border border-border/60 p-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold">{title}</h3>
-        <span className="text-xs font-mono text-muted-foreground">{items.length}</span>
-      </div>
-      <div className="space-y-2">
-        {items.map((a) => {
-          const axis = AXES.find((x) => x.key === a.axis_key);
-          return (
-            <div key={a.id} className="rounded-xl bg-card border border-border/60 p-3">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {axis && (
-                      <span
-                        className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
-                        style={{ background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`, color: `var(--${axis.color})` }}
-                      >
-                        {axis.letter} · {axis.name}
-                      </span>
-                    )}
-                    {a.source === "ai" && (
-                      <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-surface-2 text-muted-foreground">AI</span>
-                    )}
-                    <PriorityChip p={a.priority} />
-                    {a.target_level && <span className="text-[10px] font-mono text-muted-foreground">→ L{a.target_level}</span>}
-                  </div>
-                  <div className="mt-1.5 text-sm font-medium">{a.title}</div>
-                  {a.description && <div className="text-xs text-muted-foreground mt-1 line-clamp-3">{a.description}</div>}
-                  {a.due_date && <div className="text-[10px] font-mono text-muted-foreground mt-2">due {a.due_date}</div>}
-                </div>
-              </div>
-              {isOwner && (
-                <div className="mt-3 flex items-center justify-between">
-                  <select
-                    value={a.status}
-                    onChange={(e) => onUpdate(a.id, {
-                      status: e.target.value as ActionRow["status"],
-                      completed_at: e.target.value === "done" ? new Date().toISOString() : null,
-                    })}
-                    className="text-xs rounded-md bg-surface-2 border border-border/60 px-2 py-1"
-                  >
-                    <option value="todo">Planned</option>
-                    <option value="doing">In Motion</option>
-                    <option value="done">Delivered</option>
-                  </select>
-                  <button onClick={() => onDelete(a.id)} className="text-xs text-destructive hover:underline">Delete</button>
-                </div>
-              )}
-            </div>
-          );
-        })}
-        {items.length === 0 && <div className="text-xs text-muted-foreground text-center py-4">Empty</div>}
-      </div>
-    </div>
-  );
-}
-
-function PriorityChip({ p }: { p: ActionRow["priority"] }) {
-  const cls = p === "high" ? "text-warning" : p === "medium" ? "text-foreground" : "text-muted-foreground";
-  return <span className={`text-[10px] font-mono uppercase tracking-widest ${cls}`}>{p}</span>;
 }
 
 function NewActionDialog({

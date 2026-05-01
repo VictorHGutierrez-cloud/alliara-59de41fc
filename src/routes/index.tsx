@@ -16,18 +16,18 @@ function Landing() {
   return (
     <PrismaHero
       videoSrc="https://hbarmsaprabwwickdudg.supabase.co/storage/v1/object/public/public-assets/prisma-hero.mp4"
-      eyebrow="for Factorial PDMs"
+      eyebrow={null}
       headlineSegments={[
         { text: "Orchestrate every partner", className: "text-white" },
         { text: "like it's your only one.", className: "italic text-white/70" },
       ]}
-      description="One operating system to diagnose, plan, and grow each partnership across 8 axes."
+      description={null}
       primaryCta={
         <Link
           to="/login"
           className="group inline-flex items-center gap-2 rounded-xl bg-white text-black px-6 py-3.5 text-[15px] font-semibold transition hover:-translate-y-0.5 hover:bg-white/90"
         >
-          Sign in with Factorial
+          Sign in
           <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
         </Link>
       }
