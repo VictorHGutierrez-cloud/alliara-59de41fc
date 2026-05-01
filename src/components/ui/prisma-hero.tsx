@@ -115,33 +115,11 @@ export const PrismaHero = ({
     ];
 
   return (
-    <section className="relative w-full h-[calc(100vh-3.5rem)] -mt-14 pt-14 overflow-hidden">
+    <section className="relative w-full h-[calc(100vh-3.5rem)] -mt-14 pt-14 overflow-hidden bg-black">
       <style dangerouslySetInnerHTML={{ __html: PRISMA_KEYFRAMES }} />
 
-      {/* Layer 1 — Animated prismatic conic gradient (CSS fallback, always on) */}
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "conic-gradient(from 0deg at 50% 50%, var(--octa-1), var(--octa-2), var(--octa-3), var(--octa-4), var(--octa-5), var(--octa-6), var(--octa-7), var(--octa-8), var(--octa-1))",
-          filter: "blur(80px) saturate(140%)",
-          animation: "prisma-spin 40s linear infinite",
-          opacity: 0.55,
-        }}
-      />
-      <div
-        aria-hidden
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            "radial-gradient(ellipse 70% 60% at 30% 70%, color-mix(in oklab, var(--octa-4) 40%, transparent), transparent 60%), radial-gradient(ellipse 60% 50% at 80% 20%, color-mix(in oklab, var(--octa-2) 40%, transparent), transparent 60%)",
-          animation: "prisma-drift 18s ease-in-out infinite",
-        }}
-      />
-
-      {/* Layer 2 — Optional video on top of the prism */}
-      {videoSrc && (
+      {/* Layer 1 — Background video (full-bleed) */}
+      {videoSrc ? (
         <video
           className="absolute inset-0 w-full h-full object-cover"
           src={videoSrc}
@@ -150,39 +128,62 @@ export const PrismaHero = ({
           loop
           playsInline
         />
+      ) : (
+        <>
+          <div
+            aria-hidden
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "conic-gradient(from 0deg at 50% 50%, var(--octa-1), var(--octa-2), var(--octa-3), var(--octa-4), var(--octa-5), var(--octa-6), var(--octa-7), var(--octa-8), var(--octa-1))",
+              filter: "blur(80px) saturate(140%)",
+              animation: "prisma-spin 40s linear infinite",
+              opacity: 0.55,
+            }}
+          />
+          <div
+            aria-hidden
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 60% at 30% 70%, color-mix(in oklab, var(--octa-4) 40%, transparent), transparent 60%), radial-gradient(ellipse 60% 50% at 80% 20%, color-mix(in oklab, var(--octa-2) 40%, transparent), transparent 60%)",
+              animation: "prisma-drift 18s ease-in-out infinite",
+            }}
+          />
+        </>
       )}
 
-      {/* Layer 3 — Noise texture */}
+      {/* Layer 2 — Noise texture */}
       <div
         aria-hidden
-        className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-[0.08]"
+        className="absolute inset-0 pointer-events-none mix-blend-overlay opacity-[0.12]"
         style={{ backgroundImage: `url("${NOISE_SVG}")` }}
       />
 
-      {/* Layer 4 — Vignette to keep text readable */}
+      {/* Layer 3 — Dark vignette to keep text readable on the video */}
       <div
         aria-hidden
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse 90% 80% at 50% 60%, transparent 40%, color-mix(in oklab, var(--background) 70%, transparent) 100%)",
+            "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.15) 65%, rgba(0,0,0,0.6) 100%)",
         }}
       />
 
       {/* Hero content */}
       <div className="relative z-10 h-full flex items-center px-6 sm:px-10">
         <div className="mx-auto max-w-6xl w-full animate-fade-in">
-          <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 backdrop-blur px-3 py-1 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-              <span className="font-mono">{eyebrow}</span>
+          <div className="max-w-2xl text-white">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 backdrop-blur px-3 py-1 text-xs text-white/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-white" />
+              <span className="font-mono uppercase tracking-[0.18em]">{eyebrow}</span>
             </div>
 
-            <h1 className="mt-7 font-display font-semibold tracking-[-0.025em] text-[44px] leading-[1.05] sm:text-[60px] sm:leading-[1.02]">
+            <h1 className="mt-7 font-display font-semibold tracking-[-0.025em] text-[44px] leading-[1.05] sm:text-[64px] sm:leading-[1.02] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]">
               <WordsPullUpMultiStyle segments={segments} />
             </h1>
 
-            <p className="mt-6 max-w-md text-[17px] leading-[1.55] text-muted-foreground">{description}</p>
+            <p className="mt-6 max-w-md text-[17px] leading-[1.55] text-white/85">{description}</p>
 
             {(primaryCta || secondaryCta) && (
               <div className="mt-9 flex flex-col items-start gap-4">

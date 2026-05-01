@@ -15,24 +15,25 @@ export const Route = createFileRoute("/")({
 function Landing() {
   return (
     <PrismaHero
+      videoSrc="/prisma-hero.mp4"
       eyebrow="for Factorial PDMs"
       headlineSegments={[
-        { text: "Orchestrate every partner", className: "text-foreground" },
-        { text: "like it's your only one.", className: "text-primary" },
+        { text: "Orchestrate every partner", className: "text-white" },
+        { text: "like it's your only one.", className: "italic text-white/70" },
       ]}
       description="One operating system to diagnose, plan, and grow each partnership across 8 axes."
       primaryCta={
         <Link
           to="/login"
-          className="group inline-flex items-center gap-2 rounded-xl bg-primary text-primary-foreground px-6 py-3.5 text-[15px] font-semibold transition hover:-translate-y-0.5 glow-ring"
+          className="group inline-flex items-center gap-2 rounded-xl bg-white text-black px-6 py-3.5 text-[15px] font-semibold transition hover:-translate-y-0.5 hover:bg-white/90"
         >
           Sign in with Factorial
           <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
         </Link>
       }
       secondaryCta={
-        <Link to="/signup" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-          New here? <span className="text-foreground">Create your account</span>
+        <Link to="/signup" className="text-sm text-white/70 underline-offset-4 hover:underline hover:text-white">
+          New here? <span className="text-white font-medium">Create your account</span>
         </Link>
       }
     />
