@@ -41,6 +41,8 @@ function PartnersPage() {
   const [completing, setCompleting] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [ownerFilter, setOwnerFilter] = useState<string | "all">("all");
+  const [ownerNames, setOwnerNames] = useState<Map<string, string>>(new Map());
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -115,6 +117,27 @@ function PartnersPage() {
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
+  // Fetch display names for all unique owners (leadership view)
+  useEffect(() => {
+    if (!portfolio.isLeadership || portfolio.items.length === 0) return;
+    const ids = Array.from(new Set(portfolio.items.map((it) => it.partner.owner_id)));
+    const missing = ids.filter((id) => !ownerNames.has(id));
+    if (missing.length === 0) return;
+    let cancelled = false;
+    void (async () => {
+      const { data } = await supabase.from("profiles").select("id, display_name").in("id", missing);
+      if (cancelled || !data) return;
+      setOwnerNames((prev) => {
+        const next = new Map(prev);
+        for (const row of data as { id: string; display_name: string | null }[]) {
+          next.set(row.id, row.display_name ?? "Unnamed PDM");
+        }
+        return next;
+      });
+    })();
+    return () => { cancelled = true; };
+  }, [portfolio.isLeadership, portfolio.items, ownerNames]);
+
   // Aggregate open growth initiatives across all visible partners
   useEffect(() => {
     let cancelled = false;
@@ -150,7 +173,15 @@ function PartnersPage() {
   // Scoped portfolio (mine vs all for leadership)
   const scoped = portfolio.items.filter((it) =>
     scopeFilter === "all" ? true : it.partner.owner_id === user.id
+  ).filter((it) =>
+    ownerFilter === "all" || scopeFilter !== "all" ? true : it.partner.owner_id === ownerFilter
   );
+
+  // Owners present in current scope (for the dropdown)
+  const ownersInScope = useMemo(() => {
+    const ids = Array.from(new Set(portfolio.items.map((it) => it.partner.owner_id)));
+    return ids.map((id) => ({ id, name: ownerNames.get(id) ?? id.slice(0, 8) }));
+  }, [portfolio.items, ownerNames]);
 
   const statusCounts = {
     active: scoped.filter((i) => i.partner.status === "active").length,
@@ -593,16 +624,34 @@ function PartnersPage() {
         {/* Filters */}
         <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           {portfolio.isLeadership && (
-            <div className="inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-sm">
-              {(["mine", "all"] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setScopeFilter(f)}
-                  className={`px-3 py-1.5 rounded-md transition ${scopeFilter === f ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-sm">
+                {(["mine", "all"] as const).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => { setScopeFilter(f); if (f === "mine") setOwnerFilter("all"); }}
+                    className={`px-3 py-1.5 rounded-md transition ${scopeFilter === f ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  >
+                    {f === "mine" ? "My partners" : "All partners"}
+                  </button>
+                ))}
+              </div>
+              {scopeFilter === "all" && ownersInScope.length > 1 && (
+                <select
+                  value={ownerFilter}
+                  onChange={(e) => setOwnerFilter(e.target.value)}
+                  className="rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-sm"
+                  title="Filter by PDM"
                 >
-                  {f === "mine" ? "My partners" : "All partners"}
-                </button>
-              ))}
+                  <option value="all">PDM: All ({ownersInScope.length})</option>
+                  {ownersInScope
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((o) => (
+                      <option key={o.id} value={o.id}>PDM: {o.name}</option>
+                    ))}
+                </select>
+              )}
             </div>
           )}
           <PartnerFilterBar

@@ -75,6 +75,7 @@ function PartnerIntel() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [freeText, setFreeText] = useState("");
+  const [deletingRunId, setDeletingRunId] = useState<string | null>(null);
 
   const isOwner = !!data.partner && !!user && data.partner.owner_id === user.id;
 
@@ -94,6 +95,34 @@ function PartnerIntel() {
   useEffect(() => { void refresh(); }, [refresh]);
 
   if (data.loading || !data.partner) return <div className="text-muted-foreground">Loading…</div>;
+
+  const deleteRun = async (id: string) => {
+    if (!confirm("Delete this decoded signal run? This cannot be undone.")) return;
+    setDeletingRunId(id);
+    try {
+      const { error } = await supabase.from("partner_intel_runs").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Run deleted");
+      await refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setDeletingRunId(null);
+    }
+  };
+
+  const clearAllRuns = async () => {
+    if (runs.length === 0) return;
+    if (!confirm(`Delete all ${runs.length} decoded signal run${runs.length === 1 ? "" : "s"} for this partner? This cannot be undone.`)) return;
+    try {
+      const { error } = await supabase.from("partner_intel_runs").delete().eq("partner_id", partnerId);
+      if (error) throw error;
+      toast.success("All runs cleared");
+      await refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
 
   const generate = async () => {
     if (!isOwner) return;
@@ -174,8 +203,8 @@ function PartnerIntel() {
         />
 
         <div className="rounded-2xl bg-card border border-border/60 p-5 card-elev">
-          <h2 className="font-semibold">Quick context</h2>
-          <p className="text-xs text-muted-foreground mt-1">Anything else the AI should know? Recent calls, deal context, market shifts…</p>
+          <h2 className="font-semibold">Notes for this decode</h2>
+          <p className="text-xs text-muted-foreground mt-1">One-shot context the AI uses for the next decode only — not saved to the partner profile. Recent calls, deal context, market shifts…</p>
           <textarea
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
@@ -197,8 +226,21 @@ function PartnerIntel() {
 
       <div className="space-y-4">
         <div className="rounded-2xl bg-card border border-border/60 p-5 card-elev">
-          <h2 className="font-semibold">Decoded Partner Signals</h2>
-          <p className="text-xs text-muted-foreground mt-1">Each decode is saved to the partner's signal history.</p>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <h2 className="font-semibold">Decoded Partner Signals</h2>
+              <p className="text-xs text-muted-foreground mt-1">Each decode is saved to the partner's signal history.</p>
+            </div>
+            {isOwner && runs.length > 0 && (
+              <button
+                onClick={clearAllRuns}
+                className="text-xs text-destructive hover:underline shrink-0"
+                title="Delete all decoded runs"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
           {loading ? (
             <div className="mt-4 text-sm text-muted-foreground">Loading…</div>
           ) : runs.length === 0 ? (
@@ -213,6 +255,8 @@ function PartnerIntel() {
                   run={r}
                   partnerId={partnerId}
                   isOwner={isOwner}
+                  onDelete={() => deleteRun(r.id)}
+                  deleting={deletingRunId === r.id}
                   onAddAction={async (a) => {
                     if (!user) return;
                     try {
@@ -481,31 +525,45 @@ function MetricsCard({
 /* ─────────────────────── Run card ─────────────────────── */
 
 function RunCard({
-  run, partnerId, isOwner, onAddAction,
+  run, partnerId, isOwner, onAddAction, onDelete, deleting,
 }: {
   run: RunRow;
   partnerId: string;
   isOwner: boolean;
   onAddAction: (a: IntelOutput["suggested_actions"][number]) => Promise<void>;
+  onDelete: () => Promise<void>;
+  deleting: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const out = run.output;
 
   return (
     <div className="rounded-xl border border-border/60 bg-surface/50">
-      <button onClick={() => setOpen((v) => !v)} className="w-full p-4 text-left hover:bg-surface-2 transition rounded-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-xs font-mono text-muted-foreground">{new Date(run.created_at).toLocaleString()}</div>
-            <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Ecosystem Executive Vision</div>
-            <div className="mt-1 text-sm font-medium line-clamp-2">{out.executive_summary}</div>
+      <div className="relative">
+        <button onClick={() => setOpen((v) => !v)} className="w-full p-4 text-left hover:bg-surface-2 transition rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0 pr-16">
+              <div className="text-xs font-mono text-muted-foreground">{new Date(run.created_at).toLocaleString()}</div>
+              <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Ecosystem Executive Vision</div>
+              <div className="mt-1 text-sm font-medium line-clamp-2">{out.executive_summary}</div>
+            </div>
+            <span className="text-muted-foreground ml-2">{open ? "−" : "+"}</span>
           </div>
-          <span className="text-muted-foreground ml-2">{open ? "−" : "+"}</span>
-        </div>
-        <div className="mt-2 text-[10px] font-mono text-muted-foreground">
-          {run.input_summary ?? ""} · {run.model}
-        </div>
-      </button>
+          <div className="mt-2 text-[10px] font-mono text-muted-foreground">
+            {run.input_summary ?? ""} · {run.model}
+          </div>
+        </button>
+        {isOwner && (
+          <button
+            onClick={(e) => { e.stopPropagation(); void onDelete(); }}
+            disabled={deleting}
+            title="Delete this run"
+            className="absolute top-3 right-9 text-[11px] text-destructive hover:underline disabled:opacity-40"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+        )}
+      </div>
 
       {open && (
         <div className="px-4 pb-4 space-y-4 border-t border-border/60 pt-4">
