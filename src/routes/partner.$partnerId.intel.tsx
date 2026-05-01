@@ -525,31 +525,45 @@ function MetricsCard({
 /* ─────────────────────── Run card ─────────────────────── */
 
 function RunCard({
-  run, partnerId, isOwner, onAddAction,
+  run, partnerId, isOwner, onAddAction, onDelete, deleting,
 }: {
   run: RunRow;
   partnerId: string;
   isOwner: boolean;
   onAddAction: (a: IntelOutput["suggested_actions"][number]) => Promise<void>;
+  onDelete: () => Promise<void>;
+  deleting: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const out = run.output;
 
   return (
     <div className="rounded-xl border border-border/60 bg-surface/50">
-      <button onClick={() => setOpen((v) => !v)} className="w-full p-4 text-left hover:bg-surface-2 transition rounded-xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-xs font-mono text-muted-foreground">{new Date(run.created_at).toLocaleString()}</div>
-            <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Ecosystem Executive Vision</div>
-            <div className="mt-1 text-sm font-medium line-clamp-2">{out.executive_summary}</div>
+      <div className="relative">
+        <button onClick={() => setOpen((v) => !v)} className="w-full p-4 text-left hover:bg-surface-2 transition rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0 pr-16">
+              <div className="text-xs font-mono text-muted-foreground">{new Date(run.created_at).toLocaleString()}</div>
+              <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Ecosystem Executive Vision</div>
+              <div className="mt-1 text-sm font-medium line-clamp-2">{out.executive_summary}</div>
+            </div>
+            <span className="text-muted-foreground ml-2">{open ? "−" : "+"}</span>
           </div>
-          <span className="text-muted-foreground ml-2">{open ? "−" : "+"}</span>
-        </div>
-        <div className="mt-2 text-[10px] font-mono text-muted-foreground">
-          {run.input_summary ?? ""} · {run.model}
-        </div>
-      </button>
+          <div className="mt-2 text-[10px] font-mono text-muted-foreground">
+            {run.input_summary ?? ""} · {run.model}
+          </div>
+        </button>
+        {isOwner && (
+          <button
+            onClick={(e) => { e.stopPropagation(); void onDelete(); }}
+            disabled={deleting}
+            title="Delete this run"
+            className="absolute top-3 right-9 text-[11px] text-destructive hover:underline disabled:opacity-40"
+          >
+            {deleting ? "Deleting…" : "Delete"}
+          </button>
+        )}
+      </div>
 
       {open && (
         <div className="px-4 pb-4 space-y-4 border-t border-border/60 pt-4">
