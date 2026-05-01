@@ -621,24 +621,71 @@ function PartnersPage() {
           ) : sorted.length === 0 ? (
             <EmptyState onAdd={() => setShowNew(true)} />
           ) : (
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {sorted.map((it) => (
-                <PartnerCard
-                  key={it.partner.id}
-                  item={it}
-                  revenue={revenueMap.get(it.partner.id)}
-                  onDelete={async () => {
-                    if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
-                    try {
-                      await portfolio.deletePartner(it.partner.id);
-                      toast.success(`${it.partner.name} deleted`);
-                    } catch (e) {
-                      toast.error((e as Error).message);
-                    }
-                  }}
+            <>
+              {/* Select-all toolbar */}
+              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
+                <label className="inline-flex items-center gap-2 cursor-pointer hover:text-foreground transition">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-border accent-[color:var(--primary)]"
+                    checked={sorted.length > 0 && sorted.every((it) => selectedIds.has(it.partner.id))}
+                    ref={(el) => {
+                      if (el) {
+                        const some = sorted.some((it) => selectedIds.has(it.partner.id));
+                        const all = sorted.every((it) => selectedIds.has(it.partner.id));
+                        el.indeterminate = some && !all;
+                      }
+                    }}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedIds(new Set(sorted.map((it) => it.partner.id)));
+                      } else {
+                        clearSelection();
+                      }
+                    }}
+                  />
+                  Select all visible ({sorted.length})
+                </label>
+                {selectedIds.size > 0 && (
+                  <button onClick={clearSelection} className="underline hover:text-foreground">
+                    Clear ({selectedIds.size})
+                  </button>
+                )}
+              </div>
+
+              {selectedIds.size > 0 && (
+                <BulkActionBar
+                  count={selectedIds.size}
+                  busy={bulkBusy}
+                  onSetStatus={(s, label) => bulkUpdate({ status: s }, label)}
+                  onSetTier={(t, label) => bulkUpdate({ tier: t }, label)}
+                  onSetType={(t, label) => bulkUpdate({ partner_type: t }, label)}
+                  onDelete={bulkDelete}
+                  onClear={clearSelection}
                 />
-              ))}
-            </div>
+              )}
+
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {sorted.map((it) => (
+                  <PartnerCard
+                    key={it.partner.id}
+                    item={it}
+                    revenue={revenueMap.get(it.partner.id)}
+                    selected={selectedIds.has(it.partner.id)}
+                    onToggleSelect={() => toggleSelect(it.partner.id)}
+                    onDelete={async () => {
+                      if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
+                      try {
+                        await portfolio.deletePartner(it.partner.id);
+                        toast.success(`${it.partner.name} deleted`);
+                      } catch (e) {
+                        toast.error((e as Error).message);
+                      }
+                    }}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
       </section>
