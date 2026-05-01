@@ -23,6 +23,11 @@ function PartnerLayout() {
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
+  // Refetch when navigating between sub-routes (e.g., returning from /diagnostic
+  // after saving an assessment). The child route uses a separate usePartner
+  // instance, so the layout's cache would otherwise stay stale.
+  useEffect(() => { void data.refresh(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [path, partnerId]);
+
   if (loading || !user || data.loading) return <div className="p-10 text-muted-foreground">Loading…</div>;
   if (!data.partner) {
     return (
