@@ -772,16 +772,6 @@ function buildBriefing({
   return `You have ${joined}. Tackle the red items first to compound the week.`;
 }
 
-function estimateEqlsThisMonth(items: PortfolioItem[]): number {
-  // Heuristic placeholder until pipeline data lands: 1 EQL per active partner/month, +2 for strategic
-  const now = new Date();
-  return items.reduce((s, it) => {
-    if (it.partner.status === "archived" || it.partner.status === "paused") return s;
-    if (new Date(it.partner.created_at) > now) return s;
-    return s + (it.partner.tier === "strategic" ? 3 : it.partner.tier === "core" ? 2 : 1);
-  }, 0);
-}
-
 function prettyStatus(s: StatusFilter): string {
   if (s === "active") return "Scaling";
   if (s === "nurturing") return "Developing";
