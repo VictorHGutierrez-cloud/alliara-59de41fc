@@ -23,6 +23,16 @@ function PartnerLayout() {
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
+  // Refetch when leaving the diagnostic sub-route. The diagnostic page uses a
+  // separate usePartner instance, so saving a new assessment there doesn't
+  // update the layout's cache — without this, the overview keeps showing the
+  // empty "Run Readiness Assessment" state even after the assessment is saved.
+  const isOnDiagnostic = path.endsWith("/diagnostic");
+  useEffect(() => {
+    if (!isOnDiagnostic) void data.refresh({ silent: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOnDiagnostic, partnerId]);
+
   if (loading || !user || data.loading) return <div className="p-10 text-muted-foreground">Loading…</div>;
   if (!data.partner) {
     return (
