@@ -226,7 +226,7 @@ function PartnersPage() {
     for (const id of partnerIds) {
       const r = revenueMap.get(id);
       if (!r) continue;
-      const v = (r.dealsOpenValue ?? 0) + (r.dealsWonValue ?? 0);
+      const v = r.mrr ?? 0;
       if (v > 0) withMetrics += 1;
       total += v;
     }
