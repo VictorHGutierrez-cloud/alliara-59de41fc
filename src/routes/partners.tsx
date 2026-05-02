@@ -353,12 +353,12 @@ function PartnersPage() {
       {/* 2. Revenue & Ecosystem Impact KPIs */}
       <section className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard
-          label="Partner-sourced pipeline"
+          label="Total Open MRR"
           value={sourcedPipeline.total > 0 ? fmtMoney(sourcedPipeline.total) : "—"}
           hint={
             sourcedPipeline.withMetrics > 0
-              ? `Open + won deals · ${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting`
-              : "Add metrics on a partner page to populate"
+              ? `${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting MRR`
+              : "Add MRR on a partner page to populate"
           }
           accent="octa-4"
           primary
