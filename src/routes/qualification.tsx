@@ -266,6 +266,7 @@ function QualificationPage() {
                         isLeadership={leadsStore.isLeadership}
                         ownerName={ownerNames.get(lead.owner_id) ?? null}
                         pdms={pdmRoster.pdms}
+                        canReassign={leadsStore.isLeadership || lead.owner_id === user.id}
                         onReassign={(newOwnerId, name) => reassignLead(lead.id, newOwnerId, name)}
                         onDelete={async () => {
                           if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
