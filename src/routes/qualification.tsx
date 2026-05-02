@@ -570,6 +570,7 @@ function NewLeadDialog({
 
 function LeadDetailPanel({
   lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
+  isLeadership, ownerName, pdms, onReassign,
 }: {
   lead: LeadRow;
   onClose: () => void;
@@ -579,6 +580,10 @@ function LeadDetailPanel({
   onReject: (reason: string) => Promise<void>;
   onDelete: () => Promise<void>;
   onPromote: () => void;
+  isLeadership?: boolean;
+  ownerName?: string | null;
+  pdms?: PdmEntry[];
+  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
 }) {
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
