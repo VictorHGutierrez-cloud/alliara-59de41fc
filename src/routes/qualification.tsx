@@ -25,6 +25,9 @@ import {
 import { PARTNER_TYPES, type PartnerType, LEAD_SORTS, type LeadSortKey } from "@/lib/partner-types";
 import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useOwnerScope } from "@/lib/use-owner-scope";
+import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
+import { supabase } from "@/integrations/supabase/client";
+import { ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/qualification")({
   head: () => ({ meta: [{ title: "Partner Qualification — Conduit" }] }),
@@ -48,7 +51,22 @@ function QualificationPage() {
     isLeadership: leadsStore.isLeadership,
     currentUserId: user?.id,
   });
-  const { scope, setScope, ownerFilter, setOwnerFilter, ownersInScope } = ownerScope;
+  const { scope, setScope, ownerFilter, setOwnerFilter, ownersInScope, ownerNames } = ownerScope;
+  const pdmRoster = usePdmRoster();
+
+  const reassignLead = async (leadId: string, newOwnerId: string, newOwnerName: string) => {
+    try {
+      const { error } = await supabase
+        .from("partner_leads")
+        .update({ owner_id: newOwnerId })
+        .eq("id", leadId);
+      if (error) throw error;
+      toast.success(`Lead reassigned to ${newOwnerName}`);
+      await leadsStore.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
@@ -254,6 +272,10 @@ function QualificationPage() {
                         lead={lead}
                         onClick={() => setActiveId(lead.id)}
                         onPromote={() => promoteLeadToPartner(lead)}
+                        isLeadership={leadsStore.isLeadership}
+                        ownerName={ownerNames.get(lead.owner_id) ?? null}
+                        pdms={pdmRoster.pdms}
+                        onReassign={(newOwnerId, name) => reassignLead(lead.id, newOwnerId, name)}
                         onDelete={async () => {
                           if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
                           try {
@@ -301,6 +323,10 @@ function QualificationPage() {
           onSetDimension={(key, v) => leadsStore.setDimension(active, key, v)}
           onUpdateNotes={(text) => leadsStore.updateFreeNotes(active, text)}
           onPromote={() => promoteLeadToPartner(active)}
+          isLeadership={leadsStore.isLeadership}
+          ownerName={ownerNames.get(active.owner_id) ?? null}
+          pdms={pdmRoster.pdms}
+          onReassign={(newOwnerId, name) => reassignLead(active.id, newOwnerId, name)}
           onReject={async (reason) => {
             try {
               await leadsStore.rejectLead(active, reason);
@@ -344,12 +370,16 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 }
 
 function LeadCard({
-  lead, onClick, onDelete, onPromote,
+  lead, onClick, onDelete, onPromote, isLeadership, ownerName, pdms, onReassign,
 }: {
   lead: LeadRow;
   onClick: () => void;
   onDelete: () => void;
   onPromote: () => void;
+  isLeadership?: boolean;
+  ownerName?: string | null;
+  pdms?: PdmEntry[];
+  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
 }) {
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
@@ -406,6 +436,16 @@ function LeadCard({
             </span>
           ) : <span />}
           {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
+        </div>
+      )}
+      {isLeadership && (
+        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+          <LeadOwnerChip
+            currentName={ownerName ?? "Unassigned"}
+            currentOwnerId={lead.owner_id}
+            pdms={pdms ?? []}
+            onReassign={onReassign}
+          />
         </div>
       )}
       {lead.status === "approved" && !lead.promoted_partner_id && (
@@ -530,6 +570,7 @@ function NewLeadDialog({
 
 function LeadDetailPanel({
   lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
+  isLeadership, ownerName, pdms, onReassign,
 }: {
   lead: LeadRow;
   onClose: () => void;
@@ -539,6 +580,10 @@ function LeadDetailPanel({
   onReject: (reason: string) => Promise<void>;
   onDelete: () => Promise<void>;
   onPromote: () => void;
+  isLeadership?: boolean;
+  ownerName?: string | null;
+  pdms?: PdmEntry[];
+  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
 }) {
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
@@ -602,6 +647,18 @@ function LeadDetailPanel({
           </select>
           {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
         </div>
+
+        {isLeadership && (
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">PDM</span>
+            <LeadOwnerChip
+              currentName={ownerName ?? "Unassigned"}
+              currentOwnerId={lead.owner_id}
+              pdms={pdms ?? []}
+              onReassign={onReassign}
+            />
+          </div>
+        )}
 
         {lead.status !== "rejected" && (
           <div className="mt-4 rounded-xl border border-border/60 bg-surface/40 p-3 flex items-center justify-between gap-3">
@@ -1166,5 +1223,68 @@ function LeadTasksSection({
         )}
       </div>
     </section>
+  );
+}
+
+function LeadOwnerChip({
+  currentName, currentOwnerId, pdms, onReassign,
+}: {
+  currentName: string;
+  currentOwnerId: string;
+  pdms: PdmEntry[];
+  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!onReassign || pdms.length === 0) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]/70" />
+        {currentName}
+      </span>
+    );
+  }
+  return (
+    <div className="relative inline-block">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
+        title="Reassign to another PDM"
+        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-[color:var(--primary)]/60 transition"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]/70" />
+        {currentName}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-30"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); }}
+          />
+          <div
+            className="absolute left-0 top-full mt-1 z-40 min-w-[12rem] rounded-lg border border-border bg-card p-1 shadow-lg"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          >
+            <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Reassign to…
+            </div>
+            {pdms.map((p) => (
+              <button
+                key={p.id}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpen(false);
+                  if (p.id !== currentOwnerId) void onReassign(p.id, p.name);
+                }}
+                className={`block w-full text-left px-3 py-1.5 text-sm rounded ${p.id === currentOwnerId ? "bg-surface-2 text-foreground" : "hover:bg-surface-2 text-muted-foreground hover:text-foreground"}`}
+              >
+                {p.name}{p.id === currentOwnerId ? " · current" : ""}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

@@ -14,6 +14,7 @@ import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-typ
 import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 import { useOwnerScope } from "@/lib/use-owner-scope";
+import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Conduit" }] }),
@@ -48,7 +49,22 @@ function PartnersPage() {
     isLeadership: portfolio.isLeadership,
     currentUserId: user?.id,
   });
-  const { scope: scopeFilter, setScope: setScopeFilter, ownerFilter, setOwnerFilter, ownersInScope } = ownerScope;
+  const { scope: scopeFilter, setScope: setScopeFilter, ownerFilter, setOwnerFilter, ownersInScope, ownerNames } = ownerScope;
+  const pdmRoster = usePdmRoster();
+
+  const reassignPartner = async (partnerId: string, newOwnerId: string, newOwnerName: string) => {
+    try {
+      const { error } = await supabase
+        .from("partners")
+        .update({ owner_id: newOwnerId })
+        .eq("id", partnerId);
+      if (error) throw error;
+      toast.success(`Reassigned to ${newOwnerName}`);
+      await portfolio.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -59,7 +75,7 @@ function PartnersPage() {
   };
   const clearSelection = () => setSelectedIds(new Set());
 
-  const bulkUpdate = async (patch: { status?: string; tier?: string; partner_type?: string }, label: string) => {
+  const bulkUpdate = async (patch: { status?: string; tier?: string; partner_type?: string; owner_id?: string }, label: string) => {
     if (selectedIds.size === 0) return;
     setBulkBusy(true);
     try {
@@ -684,6 +700,8 @@ function PartnersPage() {
                   onSetType={(t, label) => bulkUpdate({ partner_type: t }, label)}
                   onDelete={bulkDelete}
                   onClear={clearSelection}
+                  pdms={portfolio.isLeadership ? pdmRoster.pdms : []}
+                  onAssign={(ownerId, name) => bulkUpdate({ owner_id: ownerId }, name)}
                 />
               )}
 
@@ -695,6 +713,10 @@ function PartnersPage() {
                     revenue={revenueMap.get(it.partner.id)}
                     selected={selectedIds.has(it.partner.id)}
                     onToggleSelect={() => toggleSelect(it.partner.id)}
+                    isLeadership={portfolio.isLeadership}
+                    ownerName={ownerNames.get(it.partner.owner_id) ?? null}
+                    pdms={pdmRoster.pdms}
+                    onReassign={(newOwnerId, newOwnerName) => reassignPartner(it.partner.id, newOwnerId, newOwnerName)}
                     onDelete={async () => {
                       if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
                       try {
@@ -886,12 +908,16 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect }: {
+function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLeadership, ownerName, pdms, onReassign }: {
   item: PortfolioItem;
   onDelete: () => void;
   revenue?: { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number };
   selected?: boolean;
   onToggleSelect?: () => void;
+  isLeadership?: boolean;
+  ownerName?: string | null;
+  pdms?: PdmEntry[];
+  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
 }) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
@@ -972,13 +998,87 @@ function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect }: {
           })}
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-xs">
+        <div className="mt-4 flex items-center justify-between gap-2 text-xs">
           <StatusChip status={item.partner.status} />
-          {item.isLeadershipView && (
-            <span className="font-mono text-muted-foreground">leadership view</span>
+          {isLeadership ? (
+            <OwnerChip
+              currentName={ownerName ?? "Unassigned"}
+              currentOwnerId={item.partner.owner_id}
+              pdms={pdms ?? []}
+              onReassign={onReassign}
+            />
+          ) : (
+            ownerName && (
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground truncate max-w-[10rem]">
+                {ownerName}
+              </span>
+            )
           )}
         </div>
       </Link>
+    </div>
+  );
+}
+
+function OwnerChip({
+  currentName, currentOwnerId, pdms, onReassign,
+}: {
+  currentName: string;
+  currentOwnerId: string;
+  pdms: PdmEntry[];
+  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!onReassign || pdms.length === 0) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground truncate max-w-[10rem]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]/70" />
+        {currentName}
+      </span>
+    );
+  }
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
+        title="Reassign to another PDM"
+        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-[color:var(--primary)]/60 transition truncate max-w-[10rem]"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]/70" />
+        {currentName}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-30"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); }}
+          />
+          <div
+            className="absolute right-0 bottom-full mb-1 z-40 min-w-[12rem] rounded-lg border border-border bg-card p-1 shadow-lg"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          >
+            <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Reassign to…
+            </div>
+            {pdms.map((p) => (
+              <button
+                key={p.id}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpen(false);
+                  if (p.id !== currentOwnerId) void onReassign(p.id, p.name);
+                }}
+                className={`block w-full text-left px-3 py-1.5 text-sm rounded ${p.id === currentOwnerId ? "bg-surface-2 text-foreground" : "hover:bg-surface-2 text-muted-foreground hover:text-foreground"}`}
+              >
+                {p.name}{p.id === currentOwnerId ? " · current" : ""}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -1287,7 +1387,7 @@ const BULK_TIERS: { value: "strategic" | "core" | "emerging" | "long_tail"; labe
 ];
 
 function BulkActionBar({
-  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear,
+  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear, pdms, onAssign,
 }: {
   count: number;
   busy: boolean;
@@ -1296,6 +1396,8 @@ function BulkActionBar({
   onSetType: (value: PartnerType, label: string) => void;
   onDelete: () => void;
   onClear: () => void;
+  pdms?: PdmEntry[];
+  onAssign?: (ownerId: string, name: string) => void;
 }) {
   return (
     <div className="sticky top-2 z-30 mb-4 rounded-xl border border-[color:var(--primary)]/40 bg-card/95 backdrop-blur p-3 shadow-[0_8px_24px_-8px_rgba(255,192,203,0.5)] flex flex-wrap items-center gap-2">
@@ -1303,6 +1405,20 @@ function BulkActionBar({
         <Check className="h-3.5 w-3.5" />
         {count} selected
       </span>
+
+      {pdms && pdms.length > 0 && onAssign && (
+        <BulkMenu label="Assign to PDM" disabled={busy}>
+          {pdms.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => onAssign(p.id, p.name)}
+              className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded"
+            >
+              {p.name}
+            </button>
+          ))}
+        </BulkMenu>
+      )}
 
       <BulkMenu label="Set status" disabled={busy}>
         {BULK_STATUSES.map((s) => (

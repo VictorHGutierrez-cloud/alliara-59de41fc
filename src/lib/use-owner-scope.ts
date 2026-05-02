@@ -69,5 +69,5 @@ export function useOwnerScope<T>(opts: {
     return true;
   };
 
-  return { scope, setScope, ownerFilter, setOwnerFilter, ownersInScope, applyFilter };
+  return { scope, setScope, ownerFilter, setOwnerFilter, ownersInScope, ownerNames, applyFilter };
 }
