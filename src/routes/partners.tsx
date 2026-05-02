@@ -791,6 +791,24 @@ function PartnersPage() {
           completing={completing === selectedAction.id}
         />
       )}
+
+      <BulkReassignDialog
+        open={reassignOpen}
+        items={[...selectedIds]
+          .map((id) => portfolio.items.find((it) => it.partner.id === id))
+          .filter((it): it is typeof portfolio.items[number] => Boolean(it))
+          .map<ReassignItem>((it) => ({
+            id: it.partner.id,
+            name: it.partner.name,
+            currentOwnerId: it.partner.owner_id,
+            currentOwnerName: ownerNames.get(it.partner.owner_id) ?? "—",
+          }))}
+        pdms={pdmRoster.pdms}
+        entityLabel="partner"
+        busy={bulkBusy}
+        onClose={() => setReassignOpen(false)}
+        onConfirm={bulkReassign}
+      />
     </div>
   );
 }
