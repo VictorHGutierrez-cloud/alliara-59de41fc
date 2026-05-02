@@ -648,6 +648,18 @@ function LeadDetailPanel({
           {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
         </div>
 
+        {isLeadership && (
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">PDM</span>
+            <LeadOwnerChip
+              currentName={ownerName ?? "Unassigned"}
+              currentOwnerId={lead.owner_id}
+              pdms={pdms ?? []}
+              onReassign={onReassign}
+            />
+          </div>
+        )}
+
         {lead.status !== "rejected" && (
           <div className="mt-4 rounded-xl border border-border/60 bg-surface/40 p-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
