@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import * as XLSX from "xlsx";
 
 export const Route = createFileRoute("/partner/$partnerId/metrics")({
-  head: () => ({ meta: [{ title: "Metrics — Conduit" }] }),
+  head: () => ({ meta: [{ title: "Metrics — Alliara" }] }),
   component: MetricsPage,
 });
 

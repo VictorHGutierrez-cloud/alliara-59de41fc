@@ -23,13 +23,13 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Conduit — The Partnership Operating System" },
+      { title: "Alliara — The Partnership Operating System" },
       { name: "description", content: "Diagnose, learn, and operate a high-performing B2B partner ecosystem with the OCTA methodology — 8 axes, maturity scoring, and gamified execution." },
-      { property: "og:title", content: "Conduit — The Partnership Operating System" },
+      { property: "og:title", content: "Alliara — The Partnership Operating System" },
       { property: "og:description", content: "Diagnose, learn, and operate a high-performing B2B partner ecosystem with the OCTA methodology — 8 axes, maturity scoring, and gamified execution." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "Conduit — The Partnership Operating System" },
+      { name: "twitter:title", content: "Alliara — The Partnership Operating System" },
       { name: "twitter:description", content: "Diagnose, learn, and operate a high-performing B2B partner ecosystem with the OCTA methodology — 8 axes, maturity scoring, and gamified execution." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b671999f-c800-483e-8705-a1f8b91f08c8/id-preview-685829ca--946109ff-f6ed-4998-9035-4d09cbe35aac.lovable.app-1777462114181.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/b671999f-c800-483e-8705-a1f8b91f08c8/id-preview-685829ca--946109ff-f6ed-4998-9035-4d09cbe35aac.lovable.app-1777462114181.png" },
@@ -91,7 +91,7 @@ function AppFrame() {
             <span className="inline-block h-6 w-6 rounded-md bg-gradient-to-br from-[var(--octa-1)] via-[var(--octa-4)] to-[var(--octa-5)]" />
             <div className="flex flex-col leading-none">
               <span className="flex items-baseline">
-                Conduit <span className="ml-4 font-normal text-muted-foreground opacity-60 whitespace-nowrap text-zinc-800 text-xs">Created, designed and delivered by Victor Gutierrez </span>
+                Alliara <span className="ml-4 font-normal text-muted-foreground opacity-60 whitespace-nowrap text-zinc-800 text-xs">Created, designed and delivered by Victor Gutierrez </span>
               </span>
             </div>
           </Link>
@@ -119,7 +119,7 @@ function AppFrame() {
 
       {!isLanding && (
         <footer className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
-          Conduit · A partnership operating system for B2B teams
+          Alliara · A partnership operating system for B2B teams
         </footer>
       )}
     </div>

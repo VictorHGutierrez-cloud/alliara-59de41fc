@@ -9,7 +9,7 @@ import { PARTNER_TYPES, type PartnerType } from "@/lib/partner-types";
 import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 
 export const Route = createFileRoute("/partner/$partnerId")({
-  head: () => ({ meta: [{ title: "Partner — Conduit" }] }),
+  head: () => ({ meta: [{ title: "Partner — Alliara" }] }),
   component: PartnerLayout,
 });
 

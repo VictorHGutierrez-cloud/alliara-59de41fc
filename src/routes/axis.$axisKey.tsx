@@ -9,7 +9,7 @@ import { toast } from "sonner";
 export const Route = createFileRoute("/axis/$axisKey")({
   head: ({ params }) => {
     const a = AXES.find((x) => x.key === params.axisKey);
-    return { meta: [{ title: a ? `${a.name} — Conduit` : "Axis — Conduit" }] };
+    return { meta: [{ title: a ? `${a.name} — Alliara` : "Axis — Alliara" }] };
   },
   component: AxisPage,
   notFoundComponent: () => (

@@ -30,7 +30,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/qualification")({
-  head: () => ({ meta: [{ title: "Partner Qualification — Conduit" }] }),
+  head: () => ({ meta: [{ title: "Partner Qualification — Alliara" }] }),
   component: QualificationPage,
 });
 
