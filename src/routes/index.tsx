@@ -40,6 +40,7 @@ function Landing() {
               waitTime={1800}
               className="italic"
               cursorClassName="ml-1"
+              cursorChar="|"
             />
           </span>
         </span>
