@@ -466,7 +466,7 @@ function LeadCard({
           />
         </div>
       )}
-      {lead.status === "approved" && !lead.promoted_partner_id && (
+      {!lead.promoted_partner_id && lead.status !== "rejected" && (
         <button
           onClick={(e) => { e.stopPropagation(); onPromote(); }}
           className="mt-2 w-full rounded-md bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 text-[11px] font-semibold px-2 py-1 transition"
