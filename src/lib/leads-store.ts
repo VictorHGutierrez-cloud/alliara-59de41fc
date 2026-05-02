@@ -201,14 +201,16 @@ export function factorialVerdict(total: number | null) {
 export function useLeads(userId: string | undefined) {
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLeadership, setIsLeadership] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
-    const { data } = await supabase
-      .from("partner_leads")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const [{ data: roles }, { data }] = await Promise.all([
+      supabase.from("user_roles").select("role").eq("user_id", userId),
+      supabase.from("partner_leads").select("*").order("created_at", { ascending: false }),
+    ]);
+    setIsLeadership((roles ?? []).some((r) => r.role === "leadership" || r.role === "admin"));
     setLeads((data ?? []) as LeadRow[]);
     setLoading(false);
   }, [userId]);
@@ -335,7 +337,7 @@ export function useLeads(userId: string | undefined) {
   }, [userId, refresh]);
 
   return {
-    leads, loading, refresh,
+    leads, loading, isLeadership, refresh,
     createLead, updateLead, deleteLead,
     setDimension, updateFreeNotes, rejectLead, promoteLead,
   };
