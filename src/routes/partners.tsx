@@ -226,7 +226,7 @@ function PartnersPage() {
     for (const id of partnerIds) {
       const r = revenueMap.get(id);
       if (!r) continue;
-      const v = (r.dealsOpenValue ?? 0) + (r.dealsWonValue ?? 0);
+      const v = r.mrr ?? 0;
       if (v > 0) withMetrics += 1;
       total += v;
     }
@@ -353,12 +353,12 @@ function PartnersPage() {
       {/* 2. Revenue & Ecosystem Impact KPIs */}
       <section className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <KpiCard
-          label="Partner-sourced pipeline"
+          label="Total Open MRR"
           value={sourcedPipeline.total > 0 ? fmtMoney(sourcedPipeline.total) : "—"}
           hint={
             sourcedPipeline.withMetrics > 0
-              ? `Open + won deals · ${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting`
-              : "Add metrics on a partner page to populate"
+              ? `${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting MRR`
+              : "Add MRR on a partner page to populate"
           }
           accent="octa-4"
           primary
@@ -383,8 +383,8 @@ function PartnersPage() {
         <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card p-6 card-elev">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Portfolio Health</p>
-              <h2 className="mt-1 text-lg font-semibold">Status snapshot</h2>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">How your partners are doing</p>
+              <h2 className="mt-1 text-lg font-semibold">Right now</h2>
             </div>
             {statusFilter !== "all" && (
               <button onClick={() => setStatusFilter("all")} className="text-xs text-muted-foreground hover:text-foreground underline">
@@ -639,7 +639,7 @@ function PartnersPage() {
           </div>
           <button
             onClick={() => setShowNew(true)}
-            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring"
+            className="btn-candy"
           >
             + Add partner
           </button>
@@ -649,29 +649,38 @@ function PartnersPage() {
         <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           {portfolio.isLeadership && (
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-sm">
+              <div className="seg-candy">
                 {(["mine", "all"] as const).map((f) => (
                   <button
                     key={f}
                     onClick={() => setScopeFilter(f)}
-                    className={`px-3 py-1.5 rounded-md transition ${scopeFilter === f ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    className="seg-candy-item"
+                    data-active={scopeFilter === f}
                   >
                     {f === "mine" ? "My partners" : "All partners"}
                   </button>
                 ))}
               </div>
-              {scopeFilter === "all" && ownersInScope.length > 1 && (
+              {scopeFilter === "all" && (pdmRoster.pdms.length > 0 || ownersInScope.length > 1) && (
                 <select
                   value={ownerFilter}
                   onChange={(e) => setOwnerFilter(e.target.value)}
-                  className="rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-sm"
+                  className="select-candy"
                   title="Filter by PDM"
                 >
-                  <option value="all">PDM: All ({ownersInScope.length})</option>
-                  {ownersInScope
-                    .map((o) => (
-                      <option key={o.id} value={o.id}>PDM: {o.name}</option>
-                    ))}
+                  {(() => {
+                    const roster: PdmEntry[] = pdmRoster.pdms.length > 0
+                      ? pdmRoster.pdms
+                      : ownersInScope;
+                    return (
+                      <>
+                        <option value="all">PDM: All ({roster.length})</option>
+                        {roster.map((o) => (
+                          <option key={o.id} value={o.id}>PDM: {o.name}</option>
+                        ))}
+                      </>
+                    );
+                  })()}
                 </select>
               )}
             </div>
