@@ -333,6 +333,31 @@ function QualificationPage() {
           }}
         />
       )}
+
+      {promoteLead && (
+        <PromoteLeadDialog
+          open
+          companyName={promoteLead.company_name}
+          defaultType={promoteLead.partner_type}
+          ownerName={ownerNames.get(promoteLead.owner_id) ?? "current owner"}
+          busy={promoteBusy}
+          onClose={() => { if (!promoteBusy) setPromoteLead(null); }}
+          onConfirm={async ({ partner_type }) => {
+            setPromoteBusy(true);
+            try {
+              const partnerId = await leadsStore.promoteLead(promoteLead, { partner_type });
+              toast.success(`${promoteLead.company_name} added to portfolio`);
+              setPromoteLead(null);
+              setActiveId(null);
+              nav({ to: "/partner/$partnerId", params: { partnerId } });
+            } catch (e) {
+              toast.error((e as Error).message);
+            } finally {
+              setPromoteBusy(false);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }
