@@ -7,7 +7,7 @@ import { AXES } from "../content/octa";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/partner/$partnerId/coach")({
-  head: () => ({ meta: [{ title: "Ecosystem Copilot — Conduit" }] }),
+  head: () => ({ meta: [{ title: "Ecosystem Copilot — Alliara" }] }),
   component: PartnerCoach,
 });
 

@@ -17,7 +17,7 @@ import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 
 export const Route = createFileRoute("/partners")({
-  head: () => ({ meta: [{ title: "PDM Command Center — Conduit" }] }),
+  head: () => ({ meta: [{ title: "PDM Command Center — Alliara" }] }),
   component: PartnersPage,
 });
 

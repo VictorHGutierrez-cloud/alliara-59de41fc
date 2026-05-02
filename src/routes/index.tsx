@@ -7,7 +7,7 @@ import { AgentPlan, type AgentTask, type AgentStatus } from "@/components/ui/age
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Conduit — Orchestrate every partner like it's your only one" },
+      { title: "Alliara — Orchestrate every partner like it's your only one" },
       { name: "description", content: "An operating system for Factorial Partner Development Managers. Diagnose, plan, and grow each partnership across 8 axes." },
     ],
   }),

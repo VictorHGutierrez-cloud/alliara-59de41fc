@@ -6,7 +6,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/partner/$partnerId/stakeholders")({
-  head: () => ({ meta: [{ title: "Stakeholders — Conduit" }] }),
+  head: () => ({ meta: [{ title: "Stakeholders — Alliara" }] }),
   component: StakeholdersPage,
 });
 

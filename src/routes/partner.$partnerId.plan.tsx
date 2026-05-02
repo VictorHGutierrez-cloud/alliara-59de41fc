@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { AgentPlan, type AgentTask } from "@/components/ui/agent-plan";
 
 export const Route = createFileRoute("/partner/$partnerId/plan")({
-  head: () => ({ meta: [{ title: "Joint Business Plan — Conduit" }] }),
+  head: () => ({ meta: [{ title: "Joint Business Plan — Alliara" }] }),
   component: PartnerPlan,
 });
 
