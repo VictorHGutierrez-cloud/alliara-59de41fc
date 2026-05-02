@@ -14,6 +14,7 @@ import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-typ
 import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 import { useOwnerScope } from "@/lib/use-owner-scope";
+import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Conduit" }] }),
@@ -48,7 +49,22 @@ function PartnersPage() {
     isLeadership: portfolio.isLeadership,
     currentUserId: user?.id,
   });
-  const { scope: scopeFilter, setScope: setScopeFilter, ownerFilter, setOwnerFilter, ownersInScope } = ownerScope;
+  const { scope: scopeFilter, setScope: setScopeFilter, ownerFilter, setOwnerFilter, ownersInScope, ownerNames } = ownerScope;
+  const pdmRoster = usePdmRoster();
+
+  const reassignPartner = async (partnerId: string, newOwnerId: string, newOwnerName: string) => {
+    try {
+      const { error } = await supabase
+        .from("partners")
+        .update({ owner_id: newOwnerId })
+        .eq("id", partnerId);
+      if (error) throw error;
+      toast.success(`Reassigned to ${newOwnerName}`);
+      await portfolio.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -59,7 +75,7 @@ function PartnersPage() {
   };
   const clearSelection = () => setSelectedIds(new Set());
 
-  const bulkUpdate = async (patch: { status?: string; tier?: string; partner_type?: string }, label: string) => {
+  const bulkUpdate = async (patch: { status?: string; tier?: string; partner_type?: string; owner_id?: string }, label: string) => {
     if (selectedIds.size === 0) return;
     setBulkBusy(true);
     try {
