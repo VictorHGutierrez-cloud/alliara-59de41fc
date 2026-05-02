@@ -95,14 +95,21 @@ function AppFrame() {
             </span>
           </Link>
           <nav className="flex items-center gap-2 text-sm">
-            {user ? (
+            {isLanding ? (
+              user ? (
+                <>
+                  <Link to="/partners" className="px-3 py-1.5 rounded-md text-white/90 hover:text-white hover:bg-white/10">Access</Link>
+                  <button onClick={() => signOut()} className="ml-2 text-white/70 hover:text-white">Sign out</button>
+                </>
+              ) : null
+            ) : user ? (
               <>
                 <Link to="/partners" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>Portfolio</Link>
                 <Link to="/qualification" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>Qualification</Link>
                 <Link to="/dashboard" className="px-3 py-1.5 rounded-md hover:bg-surface-2 text-muted-foreground" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>My Performance</Link>
                 <button onClick={() => signOut()} className="ml-2 text-muted-foreground hover:text-foreground">Sign out</button>
               </>
-            ) : isLanding ? null : (
+            ) : (
               <>
                 <Link to="/login" className="px-3 py-1.5 rounded-md hover:bg-surface-2">Sign in</Link>
                 <Link to="/signup" className="ml-1 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90">Get started</Link>
