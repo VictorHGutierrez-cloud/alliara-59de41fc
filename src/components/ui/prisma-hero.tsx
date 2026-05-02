@@ -112,11 +112,8 @@ export const PrismaHero = ({
   secondaryCta,
   overlayOpacity = 0.55,
 }: PrismaHeroProps) => {
-  const segments: Segment[] =
-    headlineSegments ?? [
-      { text: "Orchestrate every partner", className: "text-foreground" },
-      { text: "like it's your only one.", className: "text-primary" },
-    ];
+  const hasHeadline = headlineNode != null || headlineSegments != null;
+  const segments: Segment[] = headlineSegments ?? [];
 
   return (
     <section className="relative w-full h-[calc(100vh-5rem)] -mt-20 pt-20 overflow-hidden bg-black">
@@ -175,7 +172,7 @@ export const PrismaHero = ({
       />
 
       {/* Hero content */}
-      <div className="relative z-10 h-full flex items-center px-6 sm:px-10">
+      <div className="relative z-10 h-full flex items-end px-6 sm:px-10 pb-16 sm:pb-24">
         <div className="mx-auto max-w-6xl w-full animate-fade-in">
           <div className="max-w-2xl text-white">
             {eyebrow && (
@@ -185,16 +182,18 @@ export const PrismaHero = ({
               </div>
             )}
 
-            <h1 className={`${eyebrow ? "mt-7" : ""} font-display font-semibold tracking-[-0.025em] text-[44px] leading-[1.05] sm:text-[64px] sm:leading-[1.02] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]`}>
-              {headlineNode ?? <WordsPullUpMultiStyle segments={segments} />}
-            </h1>
+            {hasHeadline && (
+              <h1 className={`${eyebrow ? "mt-7" : ""} font-display font-semibold tracking-[-0.025em] text-[44px] leading-[1.05] sm:text-[64px] sm:leading-[1.02] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]`}>
+                {headlineNode ?? <WordsPullUpMultiStyle segments={segments} />}
+              </h1>
+            )}
 
             {description && (
               <p className="mt-6 max-w-md text-[17px] leading-[1.55] text-white/85">{description}</p>
             )}
 
             {(primaryCta || secondaryCta) && (
-              <div className="mt-9 flex flex-col items-start gap-4">
+              <div className={`${(hasHeadline || description) ? "mt-9" : ""} flex flex-col items-start gap-4`}>
                 {primaryCta}
                 {secondaryCta}
               </div>
