@@ -1,74 +1,84 @@
-## Goals
 
-1. **Edição em massa de PDMs com preview** — selecionar vários parceiros/leads e ver lado-a-lado quem está com quem antes de confirmar.
-2. **Atribuir parceiro a qualquer pessoa** (não só ao usuário logado), com as regras de permissão certas para liderança.
-3. **Workflow de promoção lead → parceiro** que funciona sempre, incluindo o caso atual em que o lead "ITGest" aponta para um partner deletado e o botão "Open partner" quebra.
+# Reestruturar a landing como home institucional
 
----
+A página inicial vira um site de verdade: o vídeo dinâmico fica só como pano de fundo do topo, o texto "We exist to…" passa para uma seção própria sobre fundo claro, e logo abaixo aparecem previews reais do que o usuário vê depois do sign in (Portfólio de Parceiros, os 8 Eixos OCTA, e o Joint Business Plan que já existe).
 
-## O que descobri
+## Nova estrutura da home (`src/routes/index.tsx`)
 
-- O bulk "Assign to PDM" já existe em `src/routes/partners.tsx` mas atribui direto, sem preview.
-- A liderança já consegue reassignar (RLS atualizado em migrations anteriores), mas só liderança. PDMs comuns ainda não conseguem co-trabalhar / passar parceiro adiante.
-- O erro "ver parceiro dá erro" tem causa real no banco: o lead **ITGest** tem `promoted_partner_id = 1fdfab05…` mas esse partner **não existe mais** (foi deletado). O botão "Open partner →" leva pra `/partner/<id>` e cai em "Partner not found".
-- Ao promover lead, o `promoteLead` cria o parceiro com `owner_id = userId` (quem clicou). Se a liderança promove um lead de outro PDM, o parceiro vai parar no portfólio do líder, não do PDM dono do lead. Isso explica o "não foi pro portfolio" da pessoa certa.
+```text
+┌─────────────────────────────────────────┐
+│ 1. HERO VIDEO (full-bleed, 100vh)       │
+│    Vídeo + overlay escuro                │
+│    Apenas CTA "Sign in" + "Create acc." │
+│    (sem texto grande, sem typewriter)   │
+├─────────────────────────────────────────┤
+│ 2. MANIFESTO (fundo claro #F7F7F8)      │
+│    "We exist                             │
+│     to [partner / co-create / …]"       │
+│    (typewriter em rosa #EC1E79)         │
+├─────────────────────────────────────────┤
+│ 3. PREVIEW — Portfolio                   │
+│    "Every partner in one command center"│
+│    Mockup de cards de parceiros          │
+├─────────────────────────────────────────┤
+│ 4. PREVIEW — 8 Eixos OCTA                │
+│    "Diagnose maturity across 8 axes"    │
+│    Grid 4×2 dos eixos (de AXES)          │
+├─────────────────────────────────────────┤
+│ 5. PREVIEW — Joint Business Plan         │
+│    (o AgentPlan que já está lá)          │
+├─────────────────────────────────────────┤
+│ 6. CTA final + footer leve               │
+└─────────────────────────────────────────┘
+```
 
----
+## Mudanças por seção
 
-## Plano
+### 1. Hero (vídeo)
+- Manter `PrismaHero` com `videoSrc`, mas remover `headlineNode` e `description`.
+- Aumentar opacidade do overlay escuro (`overlayOpacity` ~0.45) para o vídeo respirar mais — não precisa mais "esconder" texto pesado.
+- Manter os dois CTAs (Sign in / Create your account) centralizados ou no canto inferior esquerdo.
 
-### 1. Bulk reassign com preview (parceiros e leads)
+### 2. Manifesto (typewriter)
+- Nova seção logo abaixo do hero, fundo `bg-[#F7F7F8]` (cinza/branco).
+- Texto grande (`text-5xl sm:text-7xl`), preto:
+  - Linha 1: `We exist`
+  - Linha 2: `to <Typewriter rosa>` com a lista atual de palavras.
+- Padding generoso (`py-32`), centralizado.
 
-- Criar componente compartilhado `BulkReassignDialog` (`src/components/BulkReassignDialog.tsx`):
-  - Recebe a lista de itens selecionados (id, nome, owner atual) e o roster de PDMs.
-  - Mostra uma tabela: **Item · PDM atual → Novo PDM**.
-  - Permite escolher um PDM de destino único OU usar o modo "round-robin" (distribuir igualmente entre N PDMs escolhidos).
-  - Botão "Confirm reassignment" só dispara o update depois do usuário ver o preview.
-- Em `src/routes/partners.tsx`: trocar o `Assign to PDM` direto do `BulkActionBar` por abrir esse dialog.
-- Em `src/routes/qualification.tsx`: adicionar checkboxes nos `LeadCard`s + barra de bulk equivalente (hoje não existe bulk em leads), reutilizando o `BulkReassignDialog`.
+### 3. Preview — Portfolio de Parceiros
+- Mock estático (sem chamar Supabase) com 3–4 cards de parceiros fake mostrando: nome, tipo (Reseller/ISV/SI), tier color, score OCTA, status.
+- Reusar tokens visuais de `partners.tsx` (tier color, status label) mas com dados hardcoded — é uma vitrine, não a tela real.
+- Título: "Every partner, in one command center."
+- Subtítulo curto explicando o que é o portfólio.
 
-### 2. Atribuir parceiro a qualquer pessoa (não-leadership também)
+### 4. Preview — 8 Eixos OCTA
+- Importar `AXES` de `@/content/octa`.
+- Grid 4×2 (responsive: 2×4 no mobile) com um card por eixo mostrando: letra grande (S/T/E/…), nome, tagline, ícone Lucide pelo nome em `axis.icon`, cor pelo token `octa-N`.
+- Título: "Eight axes. One operating system."
+- Subtítulo: explica que cada parceiro é avaliado em 8 dimensões de maturidade.
 
-- Manter regra atual: liderança/admin reassigna qualquer parceiro/lead.
-- Adicionar caso novo: o **dono atual** pode "passar" seu parceiro/lead para outro PDM (handoff). Já permitido pelas RLS (owner pode update). Só precisamos expor o botão "Reassign…" no `OwnerChip` / `LeadOwnerChip` também quando `isOwner === true`, não só quando `isLeadership`.
-- Validação visual: badge "Handed off by <nome>" no histórico (campo `notes` do parceiro), pra liderança auditar.
+### 5. Preview — Joint Business Plan
+- Manter o `DemoTasks` / `AgentPlan` já existente, com label de seção atualizado para "Every partner gets their own Joint Business Plan."
 
-### 3. Workflow de promoção lead → parceiro robusto
+### 6. CTA final
+- Faixa simples com fundo escuro, headline curto ("Ready to orchestrate your ecosystem?") e botão "Create your account" → `/signup`.
 
-Três correções:
+## Detalhes técnicos
 
-**a) Auto-cura de referências quebradas**
-- Em `useLeads.refresh`, depois de carregar leads aprovados, fazer um `select id from partners where id in (...)` com os `promoted_partner_id` não nulos. Se algum partner não existe mais, limpar o `promoted_partner_id` do lead (update) e voltar status pra `in_review`. Assim "ITGest" volta a ser promovível.
-- Alternativa server-side: migration que faz `UPDATE partner_leads SET promoted_partner_id = NULL, status = 'in_review' WHERE promoted_partner_id NOT IN (SELECT id FROM partners)` uma única vez, e adicionar uma FK `ON DELETE SET NULL` em `partner_leads.promoted_partner_id` pra evitar recidiva. Vou aplicar as duas (limpeza + FK).
+- Arquivo principal a alterar: `src/routes/index.tsx`.
+- Ajuste pequeno em `src/components/ui/prisma-hero.tsx`: permitir esconder completamente o bloco de texto quando `headlineNode` e `description` forem nulos (apenas CTAs ficam visíveis), e centralizar verticalmente CTAs no hero.
+- Sem mudanças no header (`__root.tsx`) — já está com fundo branco e logo grande.
+- Sem novas dependências, sem chamadas a Supabase nas previews (são mocks visuais).
+- Usar `lucide-react` dinamicamente para o grid de eixos:
+  ```ts
+  import * as Icons from "lucide-react";
+  const Icon = (Icons as any)[axis.icon] ?? Icons.Circle;
+  ```
+- Cores dos eixos: usar as CSS vars `--octa-1`…`--octa-8` que já existem no tema.
+- Rosa do logo já está em uso (`#EC1E79`) — manter para o typewriter e como accent nas seções.
 
-**b) `promoteLead` respeita o dono real do lead**
-- Mudar `promoteLead(lead)` em `src/lib/leads-store.ts` pra usar `owner_id: lead.owner_id` (não `userId`). Assim, quando liderança promove um lead da Magdalena, o parceiro nasce no portfólio dela.
-- Bloquear no client + checar via RLS: só o dono do lead OU liderança/admin pode promover. Mostrar mensagem clara se não pode.
-
-**c) Botão "Promote to Partner" sempre visível e claro**
-- No `LeadDetailPanel` e no `LeadCard`, mostrar o botão "Promote to Partner →" em qualquer status que não seja `rejected`, contanto que o scorecard esteja completo (today já acontece pra `approved`; estender pra `new` e `in_review`).
-- Quando `promoted_partner_id` existir mas o partner não existe mais, mostrar botão "Re-promote" em vez de "Open partner".
-- Substituir o `confirm()` nativo por um pequeno modal que pré-visualiza: nome do parceiro, dono que vai receber, tier inicial, tipo. Confirma → cria.
-
-### 4. Pequenos ajustes de UX
-
-- No `BulkActionBar` de partners, mostrar "Reassign…" (abre dialog) em vez de "Assign to PDM" (que sugeria override silencioso).
-- Toast pós-bulk: "X partners reassigned · Y stayed unchanged" baseado em `count` de fato afetado.
-
----
-
-## Arquivos que vou tocar
-
-- **Criar**: `src/components/BulkReassignDialog.tsx`, `src/components/PromoteLeadDialog.tsx`, migration nova.
-- **Editar**: `src/routes/partners.tsx`, `src/routes/qualification.tsx`, `src/lib/leads-store.ts`, `src/lib/use-pdm-roster.ts` (já usado).
-- **SQL migration**:
-  - Limpar `promoted_partner_id` órfãos.
-  - Adicionar FK `partner_leads.promoted_partner_id → partners(id) ON DELETE SET NULL`.
-  - (Opcional) policy de promoção se decidirmos restringir mais no servidor.
-
----
-
-## Não vou mexer
-
-- Schema do scorecard, tabela `partners` core, autenticação, branding Alliara (já feito).
-- Não vou criar nova tabela "portfolio" — o portfólio **é** a tabela `partners`. A confusão era só o owner errado + partner deletado.
+## O que NÃO muda
+- Header, logo, autenticação, rotas internas (`/partners`, `/dashboard`, etc.).
+- Componente `Typewriter` e `AgentPlan`.
+- Nenhuma lógica de backend.
