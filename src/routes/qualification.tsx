@@ -28,6 +28,7 @@ import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown } from "lucide-react";
+import { PromoteLeadDialog } from "@/components/PromoteLeadDialog";
 
 export const Route = createFileRoute("/qualification")({
   head: () => ({ meta: [{ title: "Partner Qualification — Alliara" }] }),
@@ -40,6 +41,8 @@ function QualificationPage() {
   const leadsStore = useLeads(user?.id);
   const [showNew, setShowNew] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [promoteLead, setPromoteLead] = useState<LeadRow | null>(null);
+  const [promoteBusy, setPromoteBusy] = useState(false);
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
   const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
@@ -89,15 +92,7 @@ function QualificationPage() {
       nav({ to: "/partner/$partnerId", params: { partnerId: lead.promoted_partner_id } });
       return;
     }
-    if (!confirm(`Promote "${lead.company_name}" to your partner portfolio?`)) return;
-    try {
-      const partnerId = await leadsStore.promoteLead(lead);
-      toast.success(`${lead.company_name} added to portfolio`);
-      setActiveId(null);
-      nav({ to: "/partner/$partnerId", params: { partnerId } });
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
+    setPromoteLead(lead);
   };
 
   // Filter + sort the leads used by the Kanban
