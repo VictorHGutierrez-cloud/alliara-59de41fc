@@ -639,7 +639,7 @@ function PartnersPage() {
           </div>
           <button
             onClick={() => setShowNew(true)}
-            className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring"
+            className="btn-candy"
           >
             + Add partner
           </button>
@@ -649,29 +649,38 @@ function PartnersPage() {
         <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           {portfolio.isLeadership && (
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-sm">
+              <div className="seg-candy">
                 {(["mine", "all"] as const).map((f) => (
                   <button
                     key={f}
                     onClick={() => setScopeFilter(f)}
-                    className={`px-3 py-1.5 rounded-md transition ${scopeFilter === f ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    className="seg-candy-item"
+                    data-active={scopeFilter === f}
                   >
                     {f === "mine" ? "My partners" : "All partners"}
                   </button>
                 ))}
               </div>
-              {scopeFilter === "all" && ownersInScope.length > 1 && (
+              {scopeFilter === "all" && (pdmRoster.pdms.length > 0 || ownersInScope.length > 1) && (
                 <select
                   value={ownerFilter}
                   onChange={(e) => setOwnerFilter(e.target.value)}
-                  className="rounded-lg border border-border/60 bg-surface/60 px-3 py-1.5 text-sm"
+                  className="select-candy"
                   title="Filter by PDM"
                 >
-                  <option value="all">PDM: All ({ownersInScope.length})</option>
-                  {ownersInScope
-                    .map((o) => (
-                      <option key={o.id} value={o.id}>PDM: {o.name}</option>
-                    ))}
+                  {(() => {
+                    const roster: PdmEntry[] = pdmRoster.pdms.length > 0
+                      ? pdmRoster.pdms
+                      : ownersInScope;
+                    return (
+                      <>
+                        <option value="all">PDM: All ({roster.length})</option>
+                        {roster.map((o) => (
+                          <option key={o.id} value={o.id}>PDM: {o.name}</option>
+                        ))}
+                      </>
+                    );
+                  })()}
                 </select>
               )}
             </div>
