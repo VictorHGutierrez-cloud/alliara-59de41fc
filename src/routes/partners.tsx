@@ -13,6 +13,7 @@ import { Check, Focus, X as XIcon, Target, Trash2, ChevronDown } from "lucide-re
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
+import { useOwnerScope } from "@/lib/use-owner-scope";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Conduit" }] }),
@@ -28,7 +29,6 @@ function PartnersPage() {
   const portfolio = usePortfolio(user?.id);
   const leads = useLeads(user?.id);
   const [showNew, setShowNew] = useState(false);
-  const [scopeFilter, setScopeFilter] = useState<"mine" | "all">("mine");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
@@ -41,8 +41,14 @@ function PartnersPage() {
   const [completing, setCompleting] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
-  const [ownerFilter, setOwnerFilter] = useState<string | "all">("all");
-  const [ownerNames, setOwnerNames] = useState<Map<string, string>>(new Map());
+
+  const ownerScope = useOwnerScope({
+    items: portfolio.items,
+    getOwnerId: (it) => it.partner.owner_id,
+    isLeadership: portfolio.isLeadership,
+    currentUserId: user?.id,
+  });
+  const { scope: scopeFilter, setScope: setScopeFilter, ownerFilter, setOwnerFilter, ownersInScope } = ownerScope;
 
   const toggleSelect = (id: string) => {
     setSelectedIds((prev) => {
@@ -117,27 +123,6 @@ function PartnersPage() {
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
-  // Fetch display names for all unique owners (leadership view)
-  useEffect(() => {
-    if (!portfolio.isLeadership || portfolio.items.length === 0) return;
-    const ids = Array.from(new Set(portfolio.items.map((it) => it.partner.owner_id)));
-    const missing = ids.filter((id) => !ownerNames.has(id));
-    if (missing.length === 0) return;
-    let cancelled = false;
-    void (async () => {
-      const { data } = await supabase.from("profiles").select("id, display_name").in("id", missing);
-      if (cancelled || !data) return;
-      setOwnerNames((prev) => {
-        const next = new Map(prev);
-        for (const row of data as { id: string; display_name: string | null }[]) {
-          next.set(row.id, row.display_name ?? "Unnamed PDM");
-        }
-        return next;
-      });
-    })();
-    return () => { cancelled = true; };
-  }, [portfolio.isLeadership, portfolio.items, ownerNames]);
-
   // Aggregate open growth initiatives across all visible partners
   useEffect(() => {
     let cancelled = false;
@@ -170,18 +155,8 @@ function PartnersPage() {
 
   if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
 
-  // Scoped portfolio (mine vs all for leadership)
-  const scoped = portfolio.items.filter((it) =>
-    scopeFilter === "all" ? true : it.partner.owner_id === user.id
-  ).filter((it) =>
-    ownerFilter === "all" || scopeFilter !== "all" ? true : it.partner.owner_id === ownerFilter
-  );
-
-  // Owners present in current scope (for the dropdown)
-  const ownersInScope = useMemo(() => {
-    const ids = Array.from(new Set(portfolio.items.map((it) => it.partner.owner_id)));
-    return ids.map((id) => ({ id, name: ownerNames.get(id) ?? id.slice(0, 8) }));
-  }, [portfolio.items, ownerNames]);
+  // Scoped portfolio (mine vs all for leadership, plus optional PDM filter)
+  const scoped = portfolio.items.filter(ownerScope.applyFilter);
 
   const statusCounts = {
     active: scoped.filter((i) => i.partner.status === "active").length,
@@ -629,7 +604,7 @@ function PartnersPage() {
                 {(["mine", "all"] as const).map((f) => (
                   <button
                     key={f}
-                    onClick={() => { setScopeFilter(f); if (f === "mine") setOwnerFilter("all"); }}
+                    onClick={() => setScopeFilter(f)}
                     className={`px-3 py-1.5 rounded-md transition ${scopeFilter === f ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
                   >
                     {f === "mine" ? "My partners" : "All partners"}
@@ -645,8 +620,6 @@ function PartnersPage() {
                 >
                   <option value="all">PDM: All ({ownersInScope.length})</option>
                   {ownersInScope
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name))
                     .map((o) => (
                       <option key={o.id} value={o.id}>PDM: {o.name}</option>
                     ))}
