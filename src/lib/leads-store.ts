@@ -317,7 +317,10 @@ export function useLeads(userId: string | undefined) {
     await refresh();
   }, [refresh]);
 
-  const promoteLead = useCallback(async (lead: LeadRow): Promise<string> => {
+  const promoteLead = useCallback(async (
+    lead: LeadRow,
+    overrides?: { partner_type?: PartnerType }
+  ): Promise<string> => {
     if (!userId) throw new Error("Not signed in");
     const { freeText } = parseScorecard(lead.notes);
     const total = computeFactorialTotal(lead);
@@ -343,7 +346,7 @@ export function useLeads(userId: string | undefined) {
         tier: "emerging",
         status: "active",
         notes: combinedNotes,
-        partner_type: lead.partner_type ?? "referral",
+        partner_type: overrides?.partner_type ?? lead.partner_type ?? "referral",
       })
       .select("*")
       .single();
