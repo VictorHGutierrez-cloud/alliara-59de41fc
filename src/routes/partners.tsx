@@ -733,8 +733,8 @@ function PartnersPage() {
                   onSetType={(t, label) => bulkUpdate({ partner_type: t }, label)}
                   onDelete={bulkDelete}
                   onClear={clearSelection}
-                  pdms={portfolio.isLeadership ? pdmRoster.pdms : []}
-                  onAssign={(ownerId, name) => bulkUpdate({ owner_id: ownerId }, name)}
+                  pdms={pdmRoster.pdms}
+                  onOpenReassign={() => setReassignOpen(true)}
                 />
               )}
 
