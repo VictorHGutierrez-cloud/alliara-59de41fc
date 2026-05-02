@@ -1,50 +1,43 @@
-## Contexto
+## Diagnóstico
 
-Você é admin/leadership e quer ver de todo mundo por padrão, com filtro por PDM tanto em **/partners** quanto em **/qualification**.
+O dropdown de PDM **existe** no código (`src/routes/partners.tsx` linhas 599-628) mas está condicionado a `portfolio.isLeadership === true`. Verifiquei o banco:
 
-O filtro por PDM já existe em /partners (dropdown "PDM: All / Leon / Jack / …") — mas ele só aparece quando você troca o toggle de "My partners" para "All partners". A view abre em "Mine" por padrão, então você não enxerga o filtro até clicar.
+| Email | Role atual |
+|---|---|
+| victor.gutierrez@factorial.co | `pdm` |
+| leon.ribeiro@factorial.co | `pdm` |
+| jack.carey@factorial.co | `pdm` |
 
-A página /qualification não tem nada disso ainda — ela mostra só os leads do usuário logado por padrão. RLS já permite leadership ver todos (`Owners view own leads or leadership views all`), então é só expor isso na UI.
+Você (Victor) está como `pdm`, então:
+1. A UI esconde o toggle "My/All partners" e o dropdown de PDM.
+2. A RLS de `partners` (`PDMs view own partners or leadership views all`) só te devolve os seus parceiros — então mesmo se a UI mostrasse o filtro, você não veria os parceiros do Leon nem do Jack.
 
-## Mudanças
+Mesma coisa em `/qualification` (RLS de `partner_leads` é igual).
 
-### 1. `/partners` — abrir em "All partners" para leadership
+## Mudança
 
-`src/routes/partners.tsx`:
-- Mudar `useState<"mine" | "all">("mine")` → inicializar com `"all"` quando `portfolio.isLeadership === true`, `"mine"` caso contrário.
-- Como `isLeadership` só fica disponível depois do fetch, usar um `useEffect` que seta o scope inicial uma vez quando `isLeadership` vira `true` e o usuário ainda não interagiu (flag `userTouchedScope`).
-- Resultado: ao abrir /partners você já vê os 98 parceiros e o dropdown "PDM: All (8)" aparece imediatamente.
+**Migration única**: promover seu usuário para `leadership` (mantendo o `pdm` também, já que você disse que é PDM e gestor).
 
-### 2. `/qualification` — adicionar scope toggle + filtro por PDM
+```sql
+INSERT INTO public.user_roles (user_id, role)
+SELECT id, 'leadership'::app_role
+FROM auth.users
+WHERE email = 'victor.gutierrez@factorial.co'
+ON CONFLICT (user_id, role) DO NOTHING;
+```
 
-`src/routes/qualification.tsx`:
-- Detectar leadership: ler `user_roles` no mount (ou expor `isLeadership` via `useLeads` — vou colocar dentro do store para reaproveitar lógica do `usePortfolio`).
-- Adicionar à filter bar (linha ~144), apenas para leadership:
-  - Toggle "My leads / All leads" (default: "All" para leadership)
-  - Dropdown "PDM: All / Leon / Jack / …" quando scope=All e houver >1 owner nos leads visíveis.
-- Buscar `display_name` dos owners únicos via `profiles` (mesmo padrão do partners.tsx).
-- Aplicar filtro em `visibleLeads`:
-  - `scope==="mine"` → só `lead.owner_id === user.id`
-  - `ownerFilter !== "all"` → só `lead.owner_id === ownerFilter`
-- Os contadores de KPIs (`counts`) devem refletir o escopo ativo, não o total cru.
+Depois disso, ao recarregar `/partners`:
+- Toggle "My partners / All partners" aparece (default: **All**, conforme já implementado).
+- Dropdown "PDM: All (N) / Leon / Jack / …" aparece quando há mais de um owner nos resultados.
+- KPIs e roster passam a contar todos os parceiros visíveis.
+- `/qualification` ganha o mesmo comportamento.
 
-### 3. (pequeno) Extrair lógica comum
+## Pergunta opcional
 
-Para não duplicar, criar `src/lib/use-owner-scope.ts`:
-- Hook `useOwnerScope({ items, getOwnerId, isLeadership })` que retorna `{ scope, setScope, ownerFilter, setOwnerFilter, ownersInScope, applyFilter }`.
-- Usar nos dois routes.
-
-Opcional — se você preferir simplicidade sobre DRY, eu inlino a lógica nos dois lugares (mais código duplicado, mas zero abstração nova). Me diga.
+Quer que eu já promova **outros usuários** a `leadership` também? Por exemplo, algum diretor além de você. Se for só você por enquanto, sigo só com o seu.
 
 ## Arquivos tocados
 
-- `src/routes/partners.tsx` — default scope "all" para leadership
-- `src/routes/qualification.tsx` — toggle + dropdown PDM + filtro
-- `src/lib/leads-store.ts` — expor `isLeadership` no `useLeads` (uma query a mais em `user_roles`)
-- (opcional) `src/lib/use-owner-scope.ts` — hook compartilhado
+- 1 migration nova em `supabase/migrations/` — apenas `INSERT` em `user_roles`.
 
-Sem migration. Sem RLS nova. Sem mudança de schema.
-
-## Pergunta
-
-**A) Hook compartilhado** (mais limpo, 1 arquivo novo) ou **B) inlinar nos 2 routes** (mais simples, mais repetição)? Default: **A**.
+Sem mudança de código React, sem nova RLS, sem mudança de schema.
