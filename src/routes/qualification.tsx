@@ -24,6 +24,7 @@ import {
 } from "@/lib/leads-store";
 import { PARTNER_TYPES, type PartnerType, LEAD_SORTS, type LeadSortKey } from "@/lib/partner-types";
 import { PartnerTypeChip } from "@/components/PartnerFilterBar";
+import { useOwnerScope } from "@/lib/use-owner-scope";
 
 export const Route = createFileRoute("/qualification")({
   head: () => ({ meta: [{ title: "Partner Qualification — Conduit" }] }),
@@ -41,13 +42,27 @@ function QualificationPage() {
   const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
   const leadTasks = useAllLeadTasks(user?.id, leadsStore.leads);
 
+  const ownerScope = useOwnerScope({
+    items: leadsStore.leads,
+    getOwnerId: (l) => l.owner_id,
+    isLeadership: leadsStore.isLeadership,
+    currentUserId: user?.id,
+  });
+  const { scope, setScope, ownerFilter, setOwnerFilter, ownersInScope } = ownerScope;
+
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
+
+  // Apply scope (mine/all + per-PDM) before counting and filtering.
+  const scopedLeads = useMemo(
+    () => leadsStore.leads.filter(ownerScope.applyFilter),
+    [leadsStore.leads, ownerScope]
+  );
 
   const counts = useMemo(() => {
     const c: Record<LeadStatus, number> = { new: 0, in_review: 0, approved: 0, rejected: 0 };
-    for (const l of leadsStore.leads) c[l.status]++;
+    for (const l of scopedLeads) c[l.status]++;
     return c;
-  }, [leadsStore.leads]);
+  }, [scopedLeads]);
 
   const active = leadsStore.leads.find((l) => l.id === activeId) ?? null;
 
@@ -70,7 +85,7 @@ function QualificationPage() {
   // Filter + sort the leads used by the Kanban
   const visibleLeads = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const filtered = leadsStore.leads.filter((l) => {
+    const filtered = scopedLeads.filter((l) => {
       if (typeFilter !== "all" && l.partner_type !== typeFilter) return false;
       if (q && !`${l.company_name} ${l.contact_person ?? ""}`.toLowerCase().includes(q)) return false;
       return true;
@@ -84,7 +99,7 @@ function QualificationPage() {
         default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
-  }, [leadsStore.leads, query, typeFilter, sortKey]);
+  }, [scopedLeads, query, typeFilter, sortKey]);
 
   const moveLeadInQualificationKanban = async (lead: LeadRow, next: LeadStatus) => {
     if (next === lead.status && !(next === "approved" && !lead.promoted_partner_id)) return;
@@ -142,6 +157,34 @@ function QualificationPage() {
 
       {/* Filter bar */}
       <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-2 flex-wrap">
+        {leadsStore.isLeadership && (
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-sm">
+              {(["mine", "all"] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setScope(f)}
+                  className={`px-3 py-1.5 rounded-md transition ${scope === f ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  {f === "mine" ? "My leads" : "All leads"}
+                </button>
+              ))}
+            </div>
+            {scope === "all" && ownersInScope.length > 1 && (
+              <select
+                value={ownerFilter}
+                onChange={(e) => setOwnerFilter(e.target.value)}
+                className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-sm"
+                title="Filter by PDM"
+              >
+                <option value="all">PDM: All ({ownersInScope.length})</option>
+                {ownersInScope.map((o) => (
+                  <option key={o.id} value={o.id}>PDM: {o.name}</option>
+                ))}
+              </select>
+            )}
+          </div>
+        )}
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
