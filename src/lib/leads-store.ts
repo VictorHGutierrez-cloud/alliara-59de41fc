@@ -211,7 +211,26 @@ export function useLeads(userId: string | undefined) {
       supabase.from("partner_leads").select("*").order("created_at", { ascending: false }),
     ]);
     setIsLeadership((roles ?? []).some((r) => r.role === "leadership" || r.role === "admin"));
-    setLeads((data ?? []) as LeadRow[]);
+    let leadRows = (data ?? []) as LeadRow[];
+    // Defensive: if any approved lead points to a partner that no longer exists,
+    // the FK should NULL it out automatically — but we double-check on the
+    // client to surface "Re-promote" UI instantly without waiting for a refresh.
+    const promotedIds = leadRows
+      .map((l) => l.promoted_partner_id)
+      .filter((id): id is string => Boolean(id));
+    if (promotedIds.length > 0) {
+      const { data: existing } = await supabase
+        .from("partners")
+        .select("id")
+        .in("id", promotedIds);
+      const alive = new Set((existing ?? []).map((p) => (p as { id: string }).id));
+      leadRows = leadRows.map((l) =>
+        l.promoted_partner_id && !alive.has(l.promoted_partner_id)
+          ? { ...l, promoted_partner_id: null, status: l.status === "approved" ? "in_review" : l.status }
+          : l
+      );
+    }
+    setLeads(leadRows);
     setLoading(false);
   }, [userId]);
 
