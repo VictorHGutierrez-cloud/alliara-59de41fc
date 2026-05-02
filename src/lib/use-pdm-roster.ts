@@ -15,23 +15,15 @@ export function usePdmRoster() {
     let cancelled = false;
     void (async () => {
       setLoading(true);
-      const { data: roleRows } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
-        .in("role", ["pdm", "leadership", "admin"]);
-      const ids = Array.from(new Set((roleRows ?? []).map((r) => r.user_id)));
-      if (ids.length === 0) {
-        if (!cancelled) { setPdms([]); setLoading(false); }
+      const { data, error } = await supabase.rpc("list_pdm_roster");
+      if (cancelled) return;
+      if (error || !data) {
+        setPdms([]);
+        setLoading(false);
         return;
       }
-      const { data: profiles } = await supabase
-        .from("profiles")
-        .select("id, display_name")
-        .in("id", ids);
-      if (cancelled) return;
-      const byId = new Map((profiles ?? []).map((p) => [p.id, p.display_name ?? "Unnamed"]));
-      const list: PdmEntry[] = ids
-        .map((id) => ({ id, name: byId.get(id) ?? id.slice(0, 8) }))
+      const list: PdmEntry[] = (data as { id: string; display_name: string | null }[])
+        .map((r) => ({ id: r.id, name: r.display_name?.trim() || r.id.slice(0, 8) }))
         .sort((a, b) => a.name.localeCompare(b.name));
       setPdms(list);
       setLoading(false);
