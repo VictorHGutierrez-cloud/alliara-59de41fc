@@ -386,7 +386,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 }
 
 function LeadCard({
-  lead, onClick, onDelete, onPromote, isLeadership, ownerName, pdms, onReassign,
+  lead, onClick, onDelete, onPromote, isLeadership, ownerName, pdms, onReassign, canReassign,
 }: {
   lead: LeadRow;
   onClick: () => void;
@@ -396,6 +396,7 @@ function LeadCard({
   ownerName?: string | null;
   pdms?: PdmEntry[];
   onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+  canReassign?: boolean;
 }) {
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
@@ -454,7 +455,7 @@ function LeadCard({
           {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
         </div>
       )}
-      {isLeadership && (
+      {(canReassign ?? isLeadership) && (
         <div className="mt-2" onClick={(e) => e.stopPropagation()}>
           <LeadOwnerChip
             currentName={ownerName ?? "Unassigned"}
