@@ -20,12 +20,13 @@ export function PartnerFilterBar({
           value={query}
           onChange={(e) => onQuery(e.target.value)}
           placeholder="Search…"
-          className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-sm w-full sm:w-56"
+          className="rounded-xl border border-border bg-surface px-3 py-2 text-sm w-full sm:w-56 focus:outline-none focus:border-[color-mix(in_oklab,var(--primary)_60%,var(--border))] focus:ring-[3px] focus:ring-[color-mix(in_oklab,var(--primary)_18%,transparent)]"
         />
-        <div className="inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
+        <div className="seg-candy">
           <button
             onClick={() => onType("all")}
-            className={`px-2.5 py-1.5 rounded-md transition ${type === "all" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className="seg-candy-item"
+            data-active={type === "all"}
           >
             All types
           </button>
@@ -34,7 +35,8 @@ export function PartnerFilterBar({
               key={t.key}
               onClick={() => onType(t.key)}
               title={t.description}
-              className={`px-2.5 py-1.5 rounded-md transition ${type === t.key ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+              className="seg-candy-item"
+              data-active={type === t.key}
               style={type === t.key ? { color: `var(--${t.color})` } : {}}
             >
               {t.label}
@@ -44,7 +46,7 @@ export function PartnerFilterBar({
         <select
           value={sort}
           onChange={(e) => onSort(e.target.value as SortKey)}
-          className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs"
+          className="select-candy"
         >
           {PARTNER_SORTS.map((s) => (
             <option key={s.key} value={s.key}>Sort: {s.label}</option>
