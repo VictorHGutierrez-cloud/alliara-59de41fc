@@ -81,9 +81,11 @@ interface PrismaHeroProps {
   videoSrc?: string;
   eyebrow?: string | null;
   headlineSegments?: Segment[];
+  headlineNode?: ReactNode;
   description?: string | null;
   primaryCta?: ReactNode;
   secondaryCta?: ReactNode;
+  overlayOpacity?: number;
 }
 
 const PRISMA_KEYFRAMES = `
@@ -104,9 +106,11 @@ export const PrismaHero = ({
   videoSrc,
   eyebrow = "for Factorial PDMs",
   headlineSegments,
+  headlineNode,
   description = "One operating system to diagnose, plan, and grow each partnership across 8 axes.",
   primaryCta,
   secondaryCta,
+  overlayOpacity = 0.55,
 }: PrismaHeroProps) => {
   const segments: Segment[] =
     headlineSegments ?? [
@@ -166,7 +170,7 @@ export const PrismaHero = ({
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 40%, rgba(0,0,0,0.15) 65%, rgba(0,0,0,0.6) 100%)",
+            `linear-gradient(180deg, rgba(0,0,0,${overlayOpacity}) 0%, rgba(0,0,0,${overlayOpacity * 0.75}) 40%, rgba(0,0,0,${overlayOpacity * 0.7}) 65%, rgba(0,0,0,${Math.min(overlayOpacity + 0.1, 1)}) 100%)`,
         }}
       />
 
@@ -182,7 +186,7 @@ export const PrismaHero = ({
             )}
 
             <h1 className={`${eyebrow ? "mt-7" : ""} font-display font-semibold tracking-[-0.025em] text-[44px] leading-[1.05] sm:text-[64px] sm:leading-[1.02] text-white drop-shadow-[0_2px_20px_rgba(0,0,0,0.35)]`}>
-              <WordsPullUpMultiStyle segments={segments} />
+              {headlineNode ?? <WordsPullUpMultiStyle segments={segments} />}
             </h1>
 
             {description && (
