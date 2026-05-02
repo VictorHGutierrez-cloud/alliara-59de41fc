@@ -1,84 +1,92 @@
+# Candy UI pass + Partners fixes
 
-# Reestruturar a landing como home institucional
+Five focused changes. The biggest one is making "Candy" the real button language across the product — not just a theme name in CSS.
 
-A página inicial vira um site de verdade: o vídeo dinâmico fica só como pano de fundo do topo, o texto "We exist to…" passa para uma seção própria sobre fundo claro, e logo abaixo aparecem previews reais do que o usuário vê depois do sign in (Portfólio de Parceiros, os 8 Eixos OCTA, e o Joint Business Plan que já existe).
+---
 
-## Nova estrutura da home (`src/routes/index.tsx`)
+## 1. PDM filter shows the full roster (not just PDMs with partners)
+
+**Problem:** On `/partners`, the `PDM:` dropdown is built from `ownersInScope`, which only lists PDMs who already own at least one partner currently in view. So if Jack/Leon/Nicholas/Victor have no partners (or are filtered out), they disappear from the dropdown.
+
+**Fix:** Source the dropdown from `usePdmRoster()` (already imported) instead of `ownersInScope`. Keep the count next to "All" honest:
 
 ```text
-┌─────────────────────────────────────────┐
-│ 1. HERO VIDEO (full-bleed, 100vh)       │
-│    Vídeo + overlay escuro                │
-│    Apenas CTA "Sign in" + "Create acc." │
-│    (sem texto grande, sem typewriter)   │
-├─────────────────────────────────────────┤
-│ 2. MANIFESTO (fundo claro #F7F7F8)      │
-│    "We exist                             │
-│     to [partner / co-create / …]"       │
-│    (typewriter em rosa #EC1E79)         │
-├─────────────────────────────────────────┤
-│ 3. PREVIEW — Portfolio                   │
-│    "Every partner in one command center"│
-│    Mockup de cards de parceiros          │
-├─────────────────────────────────────────┤
-│ 4. PREVIEW — 8 Eixos OCTA                │
-│    "Diagnose maturity across 8 axes"    │
-│    Grid 4×2 dos eixos (de AXES)          │
-├─────────────────────────────────────────┤
-│ 5. PREVIEW — Joint Business Plan         │
-│    (o AgentPlan que já está lá)          │
-├─────────────────────────────────────────┤
-│ 6. CTA final + footer leve               │
-└─────────────────────────────────────────┘
+PDM: All (4)        ← all roster PDMs
+PDM: Jack Carey     ← always shown, even if 0 partners
+PDM: Leon Ribeiro Alves
+PDM: Nicholas Mahon
+PDM: Victor Gutierrez
 ```
 
-## Mudanças por seção
+Sort alphabetically, fall back to `ownersInScope` only if the roster RPC returns empty.
 
-### 1. Hero (vídeo)
-- Manter `PrismaHero` com `videoSrc`, mas remover `headlineNode` e `description`.
-- Aumentar opacidade do overlay escuro (`overlayOpacity` ~0.45) para o vídeo respirar mais — não precisa mais "esconder" texto pesado.
-- Manter os dois CTAs (Sign in / Create your account) centralizados ou no canto inferior esquerdo.
+---
 
-### 2. Manifesto (typewriter)
-- Nova seção logo abaixo do hero, fundo `bg-[#F7F7F8]` (cinza/branco).
-- Texto grande (`text-5xl sm:text-7xl`), preto:
-  - Linha 1: `We exist`
-  - Linha 2: `to <Typewriter rosa>` com a lista atual de palavras.
-- Padding generoso (`py-32`), centralizado.
+## 2. Candy button system (applied everywhere)
 
-### 3. Preview — Portfolio de Parceiros
-- Mock estático (sem chamar Supabase) com 3–4 cards de parceiros fake mostrando: nome, tipo (Reseller/ISV/SI), tier color, score OCTA, status.
-- Reusar tokens visuais de `partners.tsx` (tier color, status label) mas com dados hardcoded — é uma vitrine, não a tela real.
-- Título: "Every partner, in one command center."
-- Subtítulo curto explicando o que é o portfólio.
+Create one shared button language so every control in the app feels the same. Add to `src/styles.css` under `@layer components`:
 
-### 4. Preview — 8 Eixos OCTA
-- Importar `AXES` de `@/content/octa`.
-- Grid 4×2 (responsive: 2×4 no mobile) com um card por eixo mostrando: letra grande (S/T/E/…), nome, tagline, ícone Lucide pelo nome em `axis.icon`, cor pelo token `octa-N`.
-- Título: "Eight axes. One operating system."
-- Subtítulo: explica que cada parceiro é avaliado em 8 dimensões de maturidade.
+- `.btn-candy` — pastel pink primary CTA: `bg-[--primary]`, `text-[--primary-foreground]`, rounded-xl, soft pink shadow, `hover:-translate-y-0.5`, focus ring.
+- `.btn-candy-secondary` — sky-blue secondary using `--secondary`.
+- `.btn-candy-ghost` — transparent with pink hover bg, for low-emphasis actions.
+- `.seg-candy` / `.seg-candy-item` — segmented-control pill (used for "My partners / All partners", "All types / Referral / Reseller / Expert"). Active item: white surface + soft pink ring; inactive: muted text.
+- `.select-candy` — selects (PDM filter, Sort) restyled to match: rounded-xl, white surface, pink focus ring, custom chevron.
 
-### 5. Preview — Joint Business Plan
-- Manter o `DemoTasks` / `AgentPlan` já existente, com label de seção atualizado para "Every partner gets their own Joint Business Plan."
+Then apply across the Partners page (`src/routes/partners.tsx`):
 
-### 6. CTA final
-- Faixa simples com fundo escuro, headline curto ("Ready to orchestrate your ecosystem?") e botão "Create your account" → `/signup`.
+- **`+ Add partner`** → `.btn-candy`
+- **My partners / All partners** toggle → `.seg-candy`
+- **PDM: …** dropdown → `.select-candy`
+- **All types / Referral / Reseller / Expert** (in `PartnerFilterBar`) → `.seg-candy`
+- **Sort: …** select → `.select-candy`
+- **Clear filter / quick action chips** at the top of Health Snapshot → `.btn-candy-ghost`
+- **Bulk action bar** buttons (reassign, change tier, delete) → `.btn-candy-secondary` / destructive variant
 
-## Detalhes técnicos
+Also retouch `src/components/PartnerFilterBar.tsx` to use the new classes (one source of truth for the filter row).
 
-- Arquivo principal a alterar: `src/routes/index.tsx`.
-- Ajuste pequeno em `src/components/ui/prisma-hero.tsx`: permitir esconder completamente o bloco de texto quando `headlineNode` e `description` forem nulos (apenas CTAs ficam visíveis), e centralizar verticalmente CTAs no hero.
-- Sem mudanças no header (`__root.tsx`) — já está com fundo branco e logo grande.
-- Sem novas dependências, sem chamadas a Supabase nas previews (são mocks visuais).
-- Usar `lucide-react` dinamicamente para o grid de eixos:
-  ```ts
-  import * as Icons from "lucide-react";
-  const Icon = (Icons as any)[axis.icon] ?? Icons.Circle;
-  ```
-- Cores dos eixos: usar as CSS vars `--octa-1`…`--octa-8` que já existem no tema.
-- Rosa do logo já está em uso (`#EC1E79`) — manter para o typewriter e como accent nas seções.
+---
 
-## O que NÃO muda
-- Header, logo, autenticação, rotas internas (`/partners`, `/dashboard`, etc.).
-- Componente `Typewriter` e `AgentPlan`.
-- Nenhuma lógica de backend.
+## 3. Hero CTAs in Candy format
+
+In `src/routes/index.tsx` (`<PrismaHero>` block):
+
+- **Sign in** primary button → `.btn-candy` (pastel pink, rounded-xl, glow). Keeps the arrow.
+- **Create your account** secondary → `.btn-candy-secondary` so it's a real button, not a text link.
+- Drop the white-on-white rectangle look; both buttons sit side-by-side at the bottom-left of the video.
+
+Also apply the same Candy buttons to the **Final CTA** section so the homepage is consistent end-to-end.
+
+---
+
+## 4. KPI rename: "Partner-sourced pipeline" → "Total Open MRR"
+
+In `src/routes/partners.tsx`:
+
+- Replace the `sourcedPipeline` calculation with a real **open MRR** sum:
+  - `total = Σ revenueMap.get(id).mrr` over visible partners
+  - `withMetrics = count of partners where mrr > 0`
+- Update the `KpiCard`:
+  - **label**: `Total Open MRR`
+  - **value**: `fmtMoney(totalOpenMrr)` (or `—` if 0)
+  - **hint**: `${withMetrics} partner${s} reporting MRR` / `Add MRR on a partner page to populate`
+
+---
+
+## 5. "Status snapshot" → simpler language
+
+In the Portfolio Health card:
+
+- Eyebrow `Portfolio Health` → **`How your partners are doing`**
+- Title `Status snapshot` → **`Right now`**
+- (Optional) Tweak the three badges to match the simpler tone: `Scaling` / `Developing` / `Churn Risk` stay (already plain English).
+
+---
+
+## Files touched
+
+- `src/styles.css` — add `.btn-candy`, `.btn-candy-secondary`, `.btn-candy-ghost`, `.seg-candy*`, `.select-candy`.
+- `src/routes/partners.tsx` — PDM roster source, KPI swap, header copy, button classes.
+- `src/components/PartnerFilterBar.tsx` — use `.seg-candy` / `.select-candy`.
+- `src/routes/index.tsx` — hero + final CTA buttons in Candy.
+
+No DB changes, no new dependencies.
