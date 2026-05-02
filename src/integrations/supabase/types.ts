@@ -560,6 +560,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_pdm_roster: {
+        Args: never
+        Returns: {
+          display_name: string
+          id: string
+        }[]
+      }
     }
     Enums: {
       action_priority: "low" | "medium" | "high"

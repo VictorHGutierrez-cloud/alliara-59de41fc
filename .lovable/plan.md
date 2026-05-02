@@ -1,112 +1,72 @@
 ## Diagnóstico
 
-Investiguei 4 problemas conectados:
+Os 7 PDMs (Conall, Jack, Magdalena, Fredrick, Nicholas, Paolo, Leon) **já existem** em `auth.users`, com role `pdm` e `display_name` corretos no banco. O motivo pelo qual você só consegue assignar para si mesmo é **RLS**:
 
-| # | Problema | Causa raiz |
-|---|---|---|
-| 1 | "Nome em código" no dropdown PDM | Seu profile (Victor) tem `display_name = NULL`. O fallback do hook é `id.slice(0,8)` → `df86a49b`. |
-| 2 | 75 parceiros mostrando UUID como owner | Esses 75 são seus (`df86a49b...` = victor.gutierrez), criados antes dos outros PDMs existirem. |
-| 3 | Card de parceiro não mostra o PDM responsável | UI só mostra tag genérica "leadership view" — sem nome. |
-| 4 | Não dá pra reassignar parceiro (individual nem em massa) | UI não tem ação de "Assign owner". RLS de UPDATE em `partners` é `auth.uid() = owner_id`, então mesmo leadership não consegue reassignar via RLS. |
+- `user_roles` SELECT: `auth.uid() = user_id OR has_role(admin)` — leadership não passa.
+- `profiles` SELECT: `auth.uid() = id` — só o próprio perfil.
+
+Resultado: `usePdmRoster` no cliente só retorna o Victor. Não é dado faltando — é visibilidade.
+
+Também: a marca atual é "Conduit" em ~15 arquivos de rotas e no `__root.tsx`. Vamos trocar por "Alliara".
 
 ## Plano
 
-### 1. Backfill: criar profile do Victor + reassignar parceiros órfãos
+### 1. Expor o roster de PDMs com segurança (sem afrouxar RLS)
 
-Migration única:
-
-```sql
--- 1a. Criar profile faltante para Victor
-INSERT INTO public.profiles (id, display_name)
-SELECT id, 'Victor Gutierrez'
-FROM auth.users
-WHERE email = 'victor.gutierrez@factorial.co'
-ON CONFLICT (id) DO UPDATE SET display_name = EXCLUDED.display_name;
-```
-
-Resultado imediato: o dropdown PDM passa a mostrar **"Victor Gutierrez"** em vez de `df86a49b`. Os 75 parceiros continuam seus, mas agora identificados pelo nome correto. Você usa a UI nova (passo 3) para distribuir entre Leon, Jack e os outros conforme quiser.
-
-### 2. RLS: permitir leadership/admin reassignar qualquer parceiro
-
-Migration que substitui a policy de UPDATE em `partners`:
+Criar uma função SQL `SECURITY DEFINER` que retorna apenas `(id, display_name)` de todos os usuários com role `pdm`/`leadership`/`admin`. Restrita a quem é `pdm`, `leadership` ou `admin` (não vaza dados para qualquer usuário autenticado).
 
 ```sql
-DROP POLICY "PDMs update own partners" ON public.partners;
-
-CREATE POLICY "PDMs update own or leadership updates all"
-ON public.partners FOR UPDATE TO authenticated
-USING (
-  auth.uid() = owner_id
-  OR private.has_role(auth.uid(), 'leadership'::app_role)
-  OR private.has_role(auth.uid(), 'admin'::app_role)
-)
-WITH CHECK (
-  auth.uid() = owner_id
-  OR private.has_role(auth.uid(), 'leadership'::app_role)
-  OR private.has_role(auth.uid(), 'admin'::app_role)
-);
+create or replace function public.list_pdm_roster()
+returns table (id uuid, display_name text)
+language sql stable security definer set search_path = public, private as $$
+  select p.id, coalesce(p.display_name, '')
+  from public.profiles p
+  where exists (
+    select 1 from public.user_roles ur
+    where ur.user_id = p.id and ur.role in ('pdm','leadership','admin')
+  )
+    and (
+      private.has_role(auth.uid(),'pdm')
+      or private.has_role(auth.uid(),'leadership')
+      or private.has_role(auth.uid(),'admin')
+    );
+$$;
+grant execute on function public.list_pdm_roster() to authenticated;
 ```
 
-Mesma policy para `partner_leads` (qualification page já tem reassign na lógica? Não — adicionar consistência):
+Também adicionar política de SELECT em `profiles` para leadership/admin verem nomes (necessário no `useOwnerScope` que faz `from('profiles').in('id', ...)` para resolver nomes nos chips/filtros):
 
 ```sql
-DROP POLICY "Owners update own leads" ON public.partner_leads;
-CREATE POLICY "Owners update own or leadership updates all"
-ON public.partner_leads FOR UPDATE TO authenticated
-USING ( ...mesmo padrão... ) WITH CHECK ( ...mesmo padrão... );
+create policy "Leadership and admin view all profiles"
+on public.profiles for select to authenticated
+using (private.has_role(auth.uid(),'leadership') or private.has_role(auth.uid(),'admin'));
 ```
 
-### 3. UI: mostrar PDM no card + reassignar (individual e em massa)
+### 2. Atualizar `src/lib/use-pdm-roster.ts`
 
-**a) Mostrar nome do PDM no card** (`src/routes/partners.tsx`, ~linha 977)
+Trocar a query atual por `supabase.rpc('list_pdm_roster')`. Mantém a mesma assinatura `{ pdms, loading }`, então `partners.tsx` e `qualification.tsx` continuam funcionando — passam a listar todos os 8 PDMs (Conall, Fredrick, Jack, Leon, Magdalena, Nicholas, Paolo, Victor).
 
-Substituir a tag "leadership view" por um chip com avatar+nome do owner, sempre visível para leadership (não só quando `owner_id !== user.id`):
+### 3. Rebrand para Alliara
 
-```
-[Status: Scaling]   [👤 Leon Ribeiro]
-```
+- Copiar o logo enviado para `src/assets/alliara-logo.png`.
+- Substituir todas as ocorrências de "Conduit" por "Alliara" nos 15 arquivos de rota (títulos, meta tags, navbar, headings, footer).
+- Atualizar `__root.tsx`:
+  - title/og:title/twitter:title → "Alliara — SaaS for Partners"
+  - description/og:description: trocar "Conduit" por "Alliara" (manter menção à metodologia OCTA, que é separada da marca).
+  - `og:image` apontando para o novo logo.
+- Atualizar o componente da navbar (provavelmente em `__root.tsx` ou `partners.tsx`) para renderizar o logo Alliara em vez do texto/ícone atual.
+- Atualizar `<title>` do `index.html` se houver, e o favicon (gerar a partir do logo ou apenas referenciar o PNG por enquanto).
 
-Reaproveita o `ownerNames` Map já fetched pelo `useOwnerScope` — basta exportá-lo do hook.
+### 4. Verificação
 
-**b) Reassign individual: dropdown no card**
+Após o deploy: abrir `/partners`, abrir o popover "Assign to PDM" e confirmar que aparecem os 8 nomes. Testar reassignar um partner para Jack e voltar.
 
-Clique no chip do PDM abre um pequeno popover com lista de PDMs (Leon, Jack, Victor, Conall, Magdalena, Fredrick, Nicholas, Paolo). Selecionar → `UPDATE partners SET owner_id=$new WHERE id=$id`. Toast "Reassigned to {Name}".
+## Arquivos afetados
 
-Só visível para leadership.
+- **Migração SQL nova**: função `list_pdm_roster` + política em `profiles`.
+- **Modificados**: `src/lib/use-pdm-roster.ts`, `src/routes/__root.tsx`, e os ~15 arquivos com a string "Conduit".
+- **Novo asset**: `src/assets/alliara-logo.png`.
 
-**c) Reassign em massa: nova ação na bulk bar**
+## Perguntas
 
-A bulk bar atual (`bulkUpdate`) suporta status/tier/type. Adicionar **"Assign to PDM…"** com mesmo padrão — dropdown que dispara `bulkUpdate({ owner_id: pdmId }, displayName)`.
-
-Fluxo típico:
-1. Você marca os checkboxes dos seus 75 parceiros (ou filtra por algum critério).
-2. Bulk bar aparece: "75 selected · Assign · Status · Tier · Delete"
-3. Clica "Assign" → escolhe Leon → todos viram do Leon.
-
-**d) Lista de PDMs disponíveis**
-
-Buscar via `supabase.from("user_roles").select("user_id").eq("role", "pdm")` + join com `profiles`. Cachear em hook `usePdmRoster()` em `src/lib/use-pdm-roster.ts` — reaproveitável em `/partners` e `/qualification`.
-
-### 4. (bônus) Garantir que profile sempre exista
-
-Olhando o `handle_new_user` do schema, ele já cria profile no signup. Mas seu usuário Victor é antigo (pré-trigger ou trigger falhou). O backfill no passo 1 resolve. Não precisa mexer no trigger.
-
-## Arquivos tocados
-
-- **Migration nova** (1 arquivo): backfill profile + 2 policies de UPDATE.
-- **`src/lib/use-owner-scope.ts`**: exportar `ownerNames` Map para uso no card.
-- **`src/lib/use-pdm-roster.ts`** (novo): lista de PDMs com display_name para os dropdowns de assign.
-- **`src/routes/partners.tsx`**:
-  - Card: substituir "leadership view" por chip clicável com nome do PDM + popover de reassign.
-  - Bulk bar: adicionar botão "Assign to PDM…".
-- **`src/routes/qualification.tsx`**: mesmo padrão (chip + reassign individual; bulk reassign se já houver bulk bar lá — verifico ao implementar).
-
-## Resultado final
-
-- Dropdown PDM mostra nomes reais: Victor Gutierrez, Leon Ribeiro, Jack Carey, etc.
-- Cada card mostra qual PDM é dono.
-- Clica no chip → reassigna 1 parceiro em segundos.
-- Marca vários + bulk "Assign to PDM" → distribui em massa (perfeito para limpar seus 75 órfãos).
-- Funciona pra `/partners` e `/qualification`.
-
-Posso seguir?
+Nenhuma — sigo com o plano assim que você aprovar.
