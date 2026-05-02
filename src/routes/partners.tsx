@@ -959,7 +959,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLeadership, ownerName, pdms, onReassign }: {
+function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLeadership, ownerName, pdms, onReassign, canReassign }: {
   item: PortfolioItem;
   onDelete: () => void;
   revenue?: { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number };
@@ -969,6 +969,7 @@ function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLead
   ownerName?: string | null;
   pdms?: PdmEntry[];
   onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+  canReassign?: boolean;
 }) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
@@ -1051,7 +1052,7 @@ function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLead
 
         <div className="mt-4 flex items-center justify-between gap-2 text-xs">
           <StatusChip status={item.partner.status} />
-          {isLeadership ? (
+          {canReassign ?? isLeadership ? (
             <OwnerChip
               currentName={ownerName ?? "Unassigned"}
               currentOwnerId={item.partner.owner_id}
