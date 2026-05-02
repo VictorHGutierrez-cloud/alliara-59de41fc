@@ -383,8 +383,8 @@ function PartnersPage() {
         <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card p-6 card-elev">
           <div className="flex items-start justify-between">
             <div>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Portfolio Health</p>
-              <h2 className="mt-1 text-lg font-semibold">Status snapshot</h2>
+              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">How your partners are doing</p>
+              <h2 className="mt-1 text-lg font-semibold">Right now</h2>
             </div>
             {statusFilter !== "all" && (
               <button onClick={() => setStatusFilter("all")} className="text-xs text-muted-foreground hover:text-foreground underline">
