@@ -318,6 +318,7 @@ function QualificationPage() {
           isLeadership={leadsStore.isLeadership}
           ownerName={ownerNames.get(active.owner_id) ?? null}
           pdms={pdmRoster.pdms}
+          canReassign={leadsStore.isLeadership || active.owner_id === user.id}
           onReassign={(newOwnerId, name) => reassignLead(active.id, newOwnerId, name)}
           onReject={async (reason) => {
             try {
