@@ -272,6 +272,10 @@ function QualificationPage() {
                         lead={lead}
                         onClick={() => setActiveId(lead.id)}
                         onPromote={() => promoteLeadToPartner(lead)}
+                        isLeadership={leadsStore.isLeadership}
+                        ownerName={ownerNames.get(lead.owner_id) ?? null}
+                        pdms={pdmRoster.pdms}
+                        onReassign={(newOwnerId, name) => reassignLead(lead.id, newOwnerId, name)}
                         onDelete={async () => {
                           if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
                           try {
@@ -319,6 +323,10 @@ function QualificationPage() {
           onSetDimension={(key, v) => leadsStore.setDimension(active, key, v)}
           onUpdateNotes={(text) => leadsStore.updateFreeNotes(active, text)}
           onPromote={() => promoteLeadToPartner(active)}
+          isLeadership={leadsStore.isLeadership}
+          ownerName={ownerNames.get(active.owner_id) ?? null}
+          pdms={pdmRoster.pdms}
+          onReassign={(newOwnerId, name) => reassignLead(active.id, newOwnerId, name)}
           onReject={async (reason) => {
             try {
               await leadsStore.rejectLead(active, reason);
