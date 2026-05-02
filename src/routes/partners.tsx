@@ -700,6 +700,8 @@ function PartnersPage() {
                   onSetType={(t, label) => bulkUpdate({ partner_type: t }, label)}
                   onDelete={bulkDelete}
                   onClear={clearSelection}
+                  pdms={portfolio.isLeadership ? pdmRoster.pdms : []}
+                  onAssign={(ownerId, name) => bulkUpdate({ owner_id: ownerId }, name)}
                 />
               )}
 
@@ -711,6 +713,10 @@ function PartnersPage() {
                     revenue={revenueMap.get(it.partner.id)}
                     selected={selectedIds.has(it.partner.id)}
                     onToggleSelect={() => toggleSelect(it.partner.id)}
+                    isLeadership={portfolio.isLeadership}
+                    ownerName={ownerNames.get(it.partner.owner_id) ?? null}
+                    pdms={pdmRoster.pdms}
+                    onReassign={(newOwnerId, newOwnerName) => reassignPartner(it.partner.id, newOwnerId, newOwnerName)}
                     onDelete={async () => {
                       if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
                       try {
