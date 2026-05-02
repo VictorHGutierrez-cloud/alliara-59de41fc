@@ -2,7 +2,7 @@ import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } f
 import appCss from "../styles.css?url";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
-import alliaraLogo from "@/assets/alliara-logo.svg";
+import alliaraLogo from "@/assets/alliara-logo.png";
 
 function NotFoundComponent() {
   return (
