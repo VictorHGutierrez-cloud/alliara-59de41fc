@@ -998,13 +998,87 @@ function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLead
           })}
         </div>
 
-        <div className="mt-4 flex items-center justify-between text-xs">
+        <div className="mt-4 flex items-center justify-between gap-2 text-xs">
           <StatusChip status={item.partner.status} />
-          {item.isLeadershipView && (
-            <span className="font-mono text-muted-foreground">leadership view</span>
+          {isLeadership ? (
+            <OwnerChip
+              currentName={ownerName ?? "Unassigned"}
+              currentOwnerId={item.partner.owner_id}
+              pdms={pdms ?? []}
+              onReassign={onReassign}
+            />
+          ) : (
+            ownerName && (
+              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground truncate max-w-[10rem]">
+                {ownerName}
+              </span>
+            )
           )}
         </div>
       </Link>
+    </div>
+  );
+}
+
+function OwnerChip({
+  currentName, currentOwnerId, pdms, onReassign,
+}: {
+  currentName: string;
+  currentOwnerId: string;
+  pdms: PdmEntry[];
+  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(false);
+  if (!onReassign || pdms.length === 0) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground truncate max-w-[10rem]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]/70" />
+        {currentName}
+      </span>
+    );
+  }
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
+        title="Reassign to another PDM"
+        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-[color:var(--primary)]/60 transition truncate max-w-[10rem]"
+      >
+        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]/70" />
+        {currentName}
+        <ChevronDown className="h-3 w-3 opacity-60" />
+      </button>
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-30"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); }}
+          />
+          <div
+            className="absolute right-0 bottom-full mb-1 z-40 min-w-[12rem] rounded-lg border border-border bg-card p-1 shadow-lg"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+          >
+            <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Reassign to…
+            </div>
+            {pdms.map((p) => (
+              <button
+                key={p.id}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setOpen(false);
+                  if (p.id !== currentOwnerId) void onReassign(p.id, p.name);
+                }}
+                className={`block w-full text-left px-3 py-1.5 text-sm rounded ${p.id === currentOwnerId ? "bg-surface-2 text-foreground" : "hover:bg-surface-2 text-muted-foreground hover:text-foreground"}`}
+              >
+                {p.name}{p.id === currentOwnerId ? " · current" : ""}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
