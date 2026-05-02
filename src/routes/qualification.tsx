@@ -588,7 +588,7 @@ function NewLeadDialog({
 
 function LeadDetailPanel({
   lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
-  isLeadership, ownerName, pdms, onReassign,
+  isLeadership, ownerName, pdms, onReassign, canReassign,
 }: {
   lead: LeadRow;
   onClose: () => void;
@@ -602,6 +602,7 @@ function LeadDetailPanel({
   ownerName?: string | null;
   pdms?: PdmEntry[];
   onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+  canReassign?: boolean;
 }) {
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
@@ -666,7 +667,7 @@ function LeadDetailPanel({
           {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
         </div>
 
-        {isLeadership && (
+        {(canReassign ?? isLeadership) && (
           <div className="mt-3 flex items-center gap-2 flex-wrap">
             <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">PDM</span>
             <LeadOwnerChip
