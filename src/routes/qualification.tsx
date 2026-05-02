@@ -25,6 +25,9 @@ import {
 import { PARTNER_TYPES, type PartnerType, LEAD_SORTS, type LeadSortKey } from "@/lib/partner-types";
 import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useOwnerScope } from "@/lib/use-owner-scope";
+import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
+import { supabase } from "@/integrations/supabase/client";
+import { ChevronDown } from "lucide-react";
 
 export const Route = createFileRoute("/qualification")({
   head: () => ({ meta: [{ title: "Partner Qualification — Conduit" }] }),
@@ -48,7 +51,22 @@ function QualificationPage() {
     isLeadership: leadsStore.isLeadership,
     currentUserId: user?.id,
   });
-  const { scope, setScope, ownerFilter, setOwnerFilter, ownersInScope } = ownerScope;
+  const { scope, setScope, ownerFilter, setOwnerFilter, ownersInScope, ownerNames } = ownerScope;
+  const pdmRoster = usePdmRoster();
+
+  const reassignLead = async (leadId: string, newOwnerId: string, newOwnerName: string) => {
+    try {
+      const { error } = await supabase
+        .from("partner_leads")
+        .update({ owner_id: newOwnerId })
+        .eq("id", leadId);
+      if (error) throw error;
+      toast.success(`Lead reassigned to ${newOwnerName}`);
+      await leadsStore.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
