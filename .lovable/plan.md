@@ -1,72 +1,74 @@
-## Diagnóstico
+## Goals
 
-Os 7 PDMs (Conall, Jack, Magdalena, Fredrick, Nicholas, Paolo, Leon) **já existem** em `auth.users`, com role `pdm` e `display_name` corretos no banco. O motivo pelo qual você só consegue assignar para si mesmo é **RLS**:
+1. **Edição em massa de PDMs com preview** — selecionar vários parceiros/leads e ver lado-a-lado quem está com quem antes de confirmar.
+2. **Atribuir parceiro a qualquer pessoa** (não só ao usuário logado), com as regras de permissão certas para liderança.
+3. **Workflow de promoção lead → parceiro** que funciona sempre, incluindo o caso atual em que o lead "ITGest" aponta para um partner deletado e o botão "Open partner" quebra.
 
-- `user_roles` SELECT: `auth.uid() = user_id OR has_role(admin)` — leadership não passa.
-- `profiles` SELECT: `auth.uid() = id` — só o próprio perfil.
+---
 
-Resultado: `usePdmRoster` no cliente só retorna o Victor. Não é dado faltando — é visibilidade.
+## O que descobri
 
-Também: a marca atual é "Conduit" em ~15 arquivos de rotas e no `__root.tsx`. Vamos trocar por "Alliara".
+- O bulk "Assign to PDM" já existe em `src/routes/partners.tsx` mas atribui direto, sem preview.
+- A liderança já consegue reassignar (RLS atualizado em migrations anteriores), mas só liderança. PDMs comuns ainda não conseguem co-trabalhar / passar parceiro adiante.
+- O erro "ver parceiro dá erro" tem causa real no banco: o lead **ITGest** tem `promoted_partner_id = 1fdfab05…` mas esse partner **não existe mais** (foi deletado). O botão "Open partner →" leva pra `/partner/<id>` e cai em "Partner not found".
+- Ao promover lead, o `promoteLead` cria o parceiro com `owner_id = userId` (quem clicou). Se a liderança promove um lead de outro PDM, o parceiro vai parar no portfólio do líder, não do PDM dono do lead. Isso explica o "não foi pro portfolio" da pessoa certa.
+
+---
 
 ## Plano
 
-### 1. Expor o roster de PDMs com segurança (sem afrouxar RLS)
+### 1. Bulk reassign com preview (parceiros e leads)
 
-Criar uma função SQL `SECURITY DEFINER` que retorna apenas `(id, display_name)` de todos os usuários com role `pdm`/`leadership`/`admin`. Restrita a quem é `pdm`, `leadership` ou `admin` (não vaza dados para qualquer usuário autenticado).
+- Criar componente compartilhado `BulkReassignDialog` (`src/components/BulkReassignDialog.tsx`):
+  - Recebe a lista de itens selecionados (id, nome, owner atual) e o roster de PDMs.
+  - Mostra uma tabela: **Item · PDM atual → Novo PDM**.
+  - Permite escolher um PDM de destino único OU usar o modo "round-robin" (distribuir igualmente entre N PDMs escolhidos).
+  - Botão "Confirm reassignment" só dispara o update depois do usuário ver o preview.
+- Em `src/routes/partners.tsx`: trocar o `Assign to PDM` direto do `BulkActionBar` por abrir esse dialog.
+- Em `src/routes/qualification.tsx`: adicionar checkboxes nos `LeadCard`s + barra de bulk equivalente (hoje não existe bulk em leads), reutilizando o `BulkReassignDialog`.
 
-```sql
-create or replace function public.list_pdm_roster()
-returns table (id uuid, display_name text)
-language sql stable security definer set search_path = public, private as $$
-  select p.id, coalesce(p.display_name, '')
-  from public.profiles p
-  where exists (
-    select 1 from public.user_roles ur
-    where ur.user_id = p.id and ur.role in ('pdm','leadership','admin')
-  )
-    and (
-      private.has_role(auth.uid(),'pdm')
-      or private.has_role(auth.uid(),'leadership')
-      or private.has_role(auth.uid(),'admin')
-    );
-$$;
-grant execute on function public.list_pdm_roster() to authenticated;
-```
+### 2. Atribuir parceiro a qualquer pessoa (não-leadership também)
 
-Também adicionar política de SELECT em `profiles` para leadership/admin verem nomes (necessário no `useOwnerScope` que faz `from('profiles').in('id', ...)` para resolver nomes nos chips/filtros):
+- Manter regra atual: liderança/admin reassigna qualquer parceiro/lead.
+- Adicionar caso novo: o **dono atual** pode "passar" seu parceiro/lead para outro PDM (handoff). Já permitido pelas RLS (owner pode update). Só precisamos expor o botão "Reassign…" no `OwnerChip` / `LeadOwnerChip` também quando `isOwner === true`, não só quando `isLeadership`.
+- Validação visual: badge "Handed off by <nome>" no histórico (campo `notes` do parceiro), pra liderança auditar.
 
-```sql
-create policy "Leadership and admin view all profiles"
-on public.profiles for select to authenticated
-using (private.has_role(auth.uid(),'leadership') or private.has_role(auth.uid(),'admin'));
-```
+### 3. Workflow de promoção lead → parceiro robusto
 
-### 2. Atualizar `src/lib/use-pdm-roster.ts`
+Três correções:
 
-Trocar a query atual por `supabase.rpc('list_pdm_roster')`. Mantém a mesma assinatura `{ pdms, loading }`, então `partners.tsx` e `qualification.tsx` continuam funcionando — passam a listar todos os 8 PDMs (Conall, Fredrick, Jack, Leon, Magdalena, Nicholas, Paolo, Victor).
+**a) Auto-cura de referências quebradas**
+- Em `useLeads.refresh`, depois de carregar leads aprovados, fazer um `select id from partners where id in (...)` com os `promoted_partner_id` não nulos. Se algum partner não existe mais, limpar o `promoted_partner_id` do lead (update) e voltar status pra `in_review`. Assim "ITGest" volta a ser promovível.
+- Alternativa server-side: migration que faz `UPDATE partner_leads SET promoted_partner_id = NULL, status = 'in_review' WHERE promoted_partner_id NOT IN (SELECT id FROM partners)` uma única vez, e adicionar uma FK `ON DELETE SET NULL` em `partner_leads.promoted_partner_id` pra evitar recidiva. Vou aplicar as duas (limpeza + FK).
 
-### 3. Rebrand para Alliara
+**b) `promoteLead` respeita o dono real do lead**
+- Mudar `promoteLead(lead)` em `src/lib/leads-store.ts` pra usar `owner_id: lead.owner_id` (não `userId`). Assim, quando liderança promove um lead da Magdalena, o parceiro nasce no portfólio dela.
+- Bloquear no client + checar via RLS: só o dono do lead OU liderança/admin pode promover. Mostrar mensagem clara se não pode.
 
-- Copiar o logo enviado para `src/assets/alliara-logo.png`.
-- Substituir todas as ocorrências de "Conduit" por "Alliara" nos 15 arquivos de rota (títulos, meta tags, navbar, headings, footer).
-- Atualizar `__root.tsx`:
-  - title/og:title/twitter:title → "Alliara — SaaS for Partners"
-  - description/og:description: trocar "Conduit" por "Alliara" (manter menção à metodologia OCTA, que é separada da marca).
-  - `og:image` apontando para o novo logo.
-- Atualizar o componente da navbar (provavelmente em `__root.tsx` ou `partners.tsx`) para renderizar o logo Alliara em vez do texto/ícone atual.
-- Atualizar `<title>` do `index.html` se houver, e o favicon (gerar a partir do logo ou apenas referenciar o PNG por enquanto).
+**c) Botão "Promote to Partner" sempre visível e claro**
+- No `LeadDetailPanel` e no `LeadCard`, mostrar o botão "Promote to Partner →" em qualquer status que não seja `rejected`, contanto que o scorecard esteja completo (today já acontece pra `approved`; estender pra `new` e `in_review`).
+- Quando `promoted_partner_id` existir mas o partner não existe mais, mostrar botão "Re-promote" em vez de "Open partner".
+- Substituir o `confirm()` nativo por um pequeno modal que pré-visualiza: nome do parceiro, dono que vai receber, tier inicial, tipo. Confirma → cria.
 
-### 4. Verificação
+### 4. Pequenos ajustes de UX
 
-Após o deploy: abrir `/partners`, abrir o popover "Assign to PDM" e confirmar que aparecem os 8 nomes. Testar reassignar um partner para Jack e voltar.
+- No `BulkActionBar` de partners, mostrar "Reassign…" (abre dialog) em vez de "Assign to PDM" (que sugeria override silencioso).
+- Toast pós-bulk: "X partners reassigned · Y stayed unchanged" baseado em `count` de fato afetado.
 
-## Arquivos afetados
+---
 
-- **Migração SQL nova**: função `list_pdm_roster` + política em `profiles`.
-- **Modificados**: `src/lib/use-pdm-roster.ts`, `src/routes/__root.tsx`, e os ~15 arquivos com a string "Conduit".
-- **Novo asset**: `src/assets/alliara-logo.png`.
+## Arquivos que vou tocar
 
-## Perguntas
+- **Criar**: `src/components/BulkReassignDialog.tsx`, `src/components/PromoteLeadDialog.tsx`, migration nova.
+- **Editar**: `src/routes/partners.tsx`, `src/routes/qualification.tsx`, `src/lib/leads-store.ts`, `src/lib/use-pdm-roster.ts` (já usado).
+- **SQL migration**:
+  - Limpar `promoted_partner_id` órfãos.
+  - Adicionar FK `partner_leads.promoted_partner_id → partners(id) ON DELETE SET NULL`.
+  - (Opcional) policy de promoção se decidirmos restringir mais no servidor.
 
-Nenhuma — sigo com o plano assim que você aprovar.
+---
+
+## Não vou mexer
+
+- Schema do scorecard, tabela `partners` core, autenticação, branding Alliara (já feito).
+- Não vou criar nova tabela "portfolio" — o portfólio **é** a tabela `partners`. A confusão era só o owner errado + partner deletado.
