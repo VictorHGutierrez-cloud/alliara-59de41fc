@@ -29,19 +29,17 @@ function Landing() {
         description={null}
         overlayOpacity={0.45}
         primaryCta={
-          <Link
-            to="/login"
-            className="group inline-flex items-center gap-2 rounded-xl bg-white text-black px-6 py-3.5 text-[15px] font-semibold transition hover:-translate-y-0.5 hover:bg-white/90"
-          >
-            Sign in
-            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link to="/login" className="btn-candy group">
+              Sign in
+              <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+            </Link>
+            <Link to="/signup" className="btn-candy-secondary">
+              Create your account
+            </Link>
+          </div>
         }
-        secondaryCta={
-          <Link to="/signup" className="text-sm text-white/70 underline-offset-4 hover:underline hover:text-white">
-            New here? <span className="text-white font-medium">Create your account</span>
-          </Link>
-        }
+        secondaryCta={null}
       />
 
       <Manifesto />
@@ -319,18 +317,11 @@ function FinalCta() {
           Join the Partner Development Managers using Alliara to turn every partnership into measurable growth.
         </p>
         <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            to="/signup"
-            className="inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3.5 text-[15px] font-semibold transition hover:-translate-y-0.5"
-            style={{ background: PINK, color: "white" }}
-          >
+          <Link to="/signup" className="btn-candy">
             Create your account
             <span aria-hidden>→</span>
           </Link>
-          <Link
-            to="/login"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white/10 px-6 py-3.5 text-[15px] font-semibold text-white hover:bg-white/15 transition"
-          >
+          <Link to="/login" className="btn-candy-secondary">
             Sign in
           </Link>
         </div>
