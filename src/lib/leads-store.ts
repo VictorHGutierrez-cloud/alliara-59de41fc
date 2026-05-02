@@ -306,15 +306,19 @@ export function useLeads(userId: string | undefined) {
       const v = getDimensionValue(lead, d.key);
       return `  • ${d.label}: ${v ?? "-"}`;
     });
+    const promotedByLine =
+      lead.owner_id !== userId ? `\n  • Promoted by leadership on behalf of lead owner` : "";
     const notesPrefix =
       `Promoted from qualification — Factorial 5-Dimension Scorecard (Total ${total ?? "-"}/15):\n` +
-      lines.join("\n");
+      lines.join("\n") + promotedByLine;
     const combinedNotes = freeText ? `${notesPrefix}\n\n${freeText}` : notesPrefix;
 
     const { data: partner, error: insErr } = await supabase
       .from("partners")
       .insert({
-        owner_id: userId,
+        // The partner lands in the lead owner's portfolio, not the promoter's.
+        // RLS allows leadership/admin to insert with another owner_id.
+        owner_id: lead.owner_id,
         name: lead.company_name,
         company: lead.company_name,
         tier: "emerging",
