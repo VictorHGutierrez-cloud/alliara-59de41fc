@@ -3,6 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { PrismaHero } from "@/components/ui/prisma-hero";
 import { AgentPlan, type AgentTask, type AgentStatus } from "@/components/ui/agent-plan";
+import { Typewriter } from "@/components/ui/typewriter";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -20,10 +21,26 @@ function Landing() {
       <PrismaHero
       videoSrc="https://hbarmsaprabwwickdudg.supabase.co/storage/v1/object/public/public-assets/prisma-hero.mp4"
       eyebrow={null}
-      headlineSegments={[
-        { text: "Orchestrate every partner", className: "text-white" },
-        { text: "like it's your only one.", className: "italic text-white/70" },
-      ]}
+      overlayOpacity={0.78}
+      headlineNode={
+        <span className="block">
+          <span className="text-white">We exist to </span>
+          <Typewriter
+            text={[
+              "partner.",
+              "co-create.",
+              "grow together.",
+              "unlock alliances.",
+              "build what's next.",
+            ]}
+            speed={70}
+            deleteSpeed={40}
+            waitTime={1800}
+            className="italic text-white"
+            cursorClassName="ml-1 text-white/70"
+          />
+        </span>
+      }
       description={null}
       primaryCta={
         <Link
