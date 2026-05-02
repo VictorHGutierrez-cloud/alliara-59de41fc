@@ -1313,7 +1313,7 @@ const BULK_TIERS: { value: "strategic" | "core" | "emerging" | "long_tail"; labe
 ];
 
 function BulkActionBar({
-  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear,
+  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear, pdms, onAssign,
 }: {
   count: number;
   busy: boolean;
@@ -1322,6 +1322,8 @@ function BulkActionBar({
   onSetType: (value: PartnerType, label: string) => void;
   onDelete: () => void;
   onClear: () => void;
+  pdms?: PdmEntry[];
+  onAssign?: (ownerId: string, name: string) => void;
 }) {
   return (
     <div className="sticky top-2 z-30 mb-4 rounded-xl border border-[color:var(--primary)]/40 bg-card/95 backdrop-blur p-3 shadow-[0_8px_24px_-8px_rgba(255,192,203,0.5)] flex flex-wrap items-center gap-2">
@@ -1329,6 +1331,20 @@ function BulkActionBar({
         <Check className="h-3.5 w-3.5" />
         {count} selected
       </span>
+
+      {pdms && pdms.length > 0 && onAssign && (
+        <BulkMenu label="Assign to PDM" disabled={busy}>
+          {pdms.map((p) => (
+            <button
+              key={p.id}
+              onClick={() => onAssign(p.id, p.name)}
+              className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded"
+            >
+              {p.name}
+            </button>
+          ))}
+        </BulkMenu>
+      )}
 
       <BulkMenu label="Set status" disabled={busy}>
         {BULK_STATUSES.map((s) => (
