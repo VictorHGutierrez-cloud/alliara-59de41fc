@@ -119,13 +119,9 @@ function QualificationPage() {
     try {
       if (next !== lead.status) await leadsStore.updateLead(lead.id, { status: next });
       if (next !== "approved" || lead.promoted_partner_id) return;
-
-      if (confirm("Create partner object? This will add this approved lead to your Portfolio as an Official Partner.")) {
-        await leadsStore.promoteLead(lead);
-        toast.success(`${lead.company_name} added to portfolio`);
-      } else {
-        toast.success(`${lead.company_name} approved in qualification`);
-      }
+      // Approved on the kanban — open the promotion dialog instead of using
+      // the native confirm so the user can review owner + partner type.
+      setPromoteLead({ ...lead, status: "approved" });
     } catch (e) {
       toast.error((e as Error).message);
     }
