@@ -27,6 +27,7 @@ function Landing() {
           <span className="block text-white">We exist</span>
           <span className="block">
             <span className="text-white">to </span>
+            <span style={{ color: "#EC1E79" }}>
             <Typewriter
               text={[
                 "partner.",
@@ -42,6 +43,7 @@ function Landing() {
               cursorClassName="ml-1"
               cursorChar="|"
             />
+            </span>
           </span>
         </span>
       }
