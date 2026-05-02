@@ -15,6 +15,7 @@ import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
+import { BulkReassignDialog, type ReassignAssignment, type ReassignItem } from "@/components/BulkReassignDialog";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Alliara" }] }),
@@ -42,6 +43,7 @@ function PartnersPage() {
   const [completing, setCompleting] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
 
   const ownerScope = useOwnerScope({
     items: portfolio.items,
@@ -63,6 +65,37 @@ function PartnersPage() {
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
+    }
+  };
+
+  const bulkReassign = async (assignments: ReassignAssignment[]) => {
+    if (assignments.length === 0) { setReassignOpen(false); return; }
+    setBulkBusy(true);
+    try {
+      // Group by target owner so we can do one update per target.
+      const byOwner = new Map<string, string[]>();
+      for (const a of assignments) {
+        const arr = byOwner.get(a.newOwnerId) ?? [];
+        arr.push(a.id);
+        byOwner.set(a.newOwnerId, arr);
+      }
+      let total = 0;
+      for (const [ownerId, ids] of byOwner) {
+        const { error, count } = await supabase
+          .from("partners")
+          .update({ owner_id: ownerId } as never, { count: "exact" })
+          .in("id", ids);
+        if (error) throw error;
+        total += count ?? ids.length;
+      }
+      toast.success(`${total} partner${total === 1 ? "" : "s"} reassigned`);
+      setReassignOpen(false);
+      clearSelection();
+      await portfolio.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBulkBusy(false);
     }
   };
 
