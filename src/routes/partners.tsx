@@ -908,12 +908,16 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect }: {
+function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLeadership, ownerName, pdms, onReassign }: {
   item: PortfolioItem;
   onDelete: () => void;
   revenue?: { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number };
   selected?: boolean;
   onToggleSelect?: () => void;
+  isLeadership?: boolean;
+  ownerName?: string | null;
+  pdms?: PdmEntry[];
+  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
 }) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
