@@ -749,6 +749,7 @@ function PartnersPage() {
                     isLeadership={portfolio.isLeadership}
                     ownerName={ownerNames.get(it.partner.owner_id) ?? null}
                     pdms={pdmRoster.pdms}
+                    canReassign={portfolio.isLeadership || it.partner.owner_id === user.id}
                     onReassign={(newOwnerId, newOwnerName) => reassignPartner(it.partner.id, newOwnerId, newOwnerName)}
                     onDelete={async () => {
                       if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
