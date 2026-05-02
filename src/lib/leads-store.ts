@@ -211,7 +211,26 @@ export function useLeads(userId: string | undefined) {
       supabase.from("partner_leads").select("*").order("created_at", { ascending: false }),
     ]);
     setIsLeadership((roles ?? []).some((r) => r.role === "leadership" || r.role === "admin"));
-    setLeads((data ?? []) as LeadRow[]);
+    let leadRows = (data ?? []) as LeadRow[];
+    // Defensive: if any approved lead points to a partner that no longer exists,
+    // the FK should NULL it out automatically — but we double-check on the
+    // client to surface "Re-promote" UI instantly without waiting for a refresh.
+    const promotedIds = leadRows
+      .map((l) => l.promoted_partner_id)
+      .filter((id): id is string => Boolean(id));
+    if (promotedIds.length > 0) {
+      const { data: existing } = await supabase
+        .from("partners")
+        .select("id")
+        .in("id", promotedIds);
+      const alive = new Set((existing ?? []).map((p) => (p as { id: string }).id));
+      leadRows = leadRows.map((l) =>
+        l.promoted_partner_id && !alive.has(l.promoted_partner_id)
+          ? { ...l, promoted_partner_id: null, status: l.status === "approved" ? "in_review" : l.status }
+          : l
+      );
+    }
+    setLeads(leadRows);
     setLoading(false);
   }, [userId]);
 
@@ -298,7 +317,10 @@ export function useLeads(userId: string | undefined) {
     await refresh();
   }, [refresh]);
 
-  const promoteLead = useCallback(async (lead: LeadRow): Promise<string> => {
+  const promoteLead = useCallback(async (
+    lead: LeadRow,
+    overrides?: { partner_type?: PartnerType }
+  ): Promise<string> => {
     if (!userId) throw new Error("Not signed in");
     const { freeText } = parseScorecard(lead.notes);
     const total = computeFactorialTotal(lead);
@@ -306,21 +328,25 @@ export function useLeads(userId: string | undefined) {
       const v = getDimensionValue(lead, d.key);
       return `  • ${d.label}: ${v ?? "-"}`;
     });
+    const promotedByLine =
+      lead.owner_id !== userId ? `\n  • Promoted by leadership on behalf of lead owner` : "";
     const notesPrefix =
       `Promoted from qualification — Factorial 5-Dimension Scorecard (Total ${total ?? "-"}/15):\n` +
-      lines.join("\n");
+      lines.join("\n") + promotedByLine;
     const combinedNotes = freeText ? `${notesPrefix}\n\n${freeText}` : notesPrefix;
 
     const { data: partner, error: insErr } = await supabase
       .from("partners")
       .insert({
-        owner_id: userId,
+        // The partner lands in the lead owner's portfolio, not the promoter's.
+        // RLS allows leadership/admin to insert with another owner_id.
+        owner_id: lead.owner_id,
         name: lead.company_name,
         company: lead.company_name,
         tier: "emerging",
         status: "active",
         notes: combinedNotes,
-        partner_type: lead.partner_type ?? "referral",
+        partner_type: overrides?.partner_type ?? lead.partner_type ?? "referral",
       })
       .select("*")
       .single();

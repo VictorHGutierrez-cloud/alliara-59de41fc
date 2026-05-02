@@ -28,6 +28,7 @@ import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown } from "lucide-react";
+import { PromoteLeadDialog } from "@/components/PromoteLeadDialog";
 
 export const Route = createFileRoute("/qualification")({
   head: () => ({ meta: [{ title: "Partner Qualification — Alliara" }] }),
@@ -40,6 +41,8 @@ function QualificationPage() {
   const leadsStore = useLeads(user?.id);
   const [showNew, setShowNew] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [promoteLead, setPromoteLead] = useState<LeadRow | null>(null);
+  const [promoteBusy, setPromoteBusy] = useState(false);
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
   const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
@@ -89,15 +92,7 @@ function QualificationPage() {
       nav({ to: "/partner/$partnerId", params: { partnerId: lead.promoted_partner_id } });
       return;
     }
-    if (!confirm(`Promote "${lead.company_name}" to your partner portfolio?`)) return;
-    try {
-      const partnerId = await leadsStore.promoteLead(lead);
-      toast.success(`${lead.company_name} added to portfolio`);
-      setActiveId(null);
-      nav({ to: "/partner/$partnerId", params: { partnerId } });
-    } catch (e) {
-      toast.error((e as Error).message);
-    }
+    setPromoteLead(lead);
   };
 
   // Filter + sort the leads used by the Kanban
@@ -124,13 +119,9 @@ function QualificationPage() {
     try {
       if (next !== lead.status) await leadsStore.updateLead(lead.id, { status: next });
       if (next !== "approved" || lead.promoted_partner_id) return;
-
-      if (confirm("Create partner object? This will add this approved lead to your Portfolio as an Official Partner.")) {
-        await leadsStore.promoteLead(lead);
-        toast.success(`${lead.company_name} added to portfolio`);
-      } else {
-        toast.success(`${lead.company_name} approved in qualification`);
-      }
+      // Approved on the kanban — open the promotion dialog instead of using
+      // the native confirm so the user can review owner + partner type.
+      setPromoteLead({ ...lead, status: "approved" });
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -275,6 +266,7 @@ function QualificationPage() {
                         isLeadership={leadsStore.isLeadership}
                         ownerName={ownerNames.get(lead.owner_id) ?? null}
                         pdms={pdmRoster.pdms}
+                        canReassign={leadsStore.isLeadership || lead.owner_id === user.id}
                         onReassign={(newOwnerId, name) => reassignLead(lead.id, newOwnerId, name)}
                         onDelete={async () => {
                           if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
@@ -326,6 +318,7 @@ function QualificationPage() {
           isLeadership={leadsStore.isLeadership}
           ownerName={ownerNames.get(active.owner_id) ?? null}
           pdms={pdmRoster.pdms}
+          canReassign={leadsStore.isLeadership || active.owner_id === user.id}
           onReassign={(newOwnerId, name) => reassignLead(active.id, newOwnerId, name)}
           onReject={async (reason) => {
             try {
@@ -339,6 +332,31 @@ function QualificationPage() {
             await leadsStore.deleteLead(active.id);
             toast.success("Lead deleted");
             setActiveId(null);
+          }}
+        />
+      )}
+
+      {promoteLead && (
+        <PromoteLeadDialog
+          open
+          companyName={promoteLead.company_name}
+          defaultType={promoteLead.partner_type}
+          ownerName={ownerNames.get(promoteLead.owner_id) ?? "current owner"}
+          busy={promoteBusy}
+          onClose={() => { if (!promoteBusy) setPromoteLead(null); }}
+          onConfirm={async ({ partner_type }) => {
+            setPromoteBusy(true);
+            try {
+              const partnerId = await leadsStore.promoteLead(promoteLead, { partner_type });
+              toast.success(`${promoteLead.company_name} added to portfolio`);
+              setPromoteLead(null);
+              setActiveId(null);
+              nav({ to: "/partner/$partnerId", params: { partnerId } });
+            } catch (e) {
+              toast.error((e as Error).message);
+            } finally {
+              setPromoteBusy(false);
+            }
           }}
         />
       )}
@@ -370,7 +388,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 }
 
 function LeadCard({
-  lead, onClick, onDelete, onPromote, isLeadership, ownerName, pdms, onReassign,
+  lead, onClick, onDelete, onPromote, isLeadership, ownerName, pdms, onReassign, canReassign,
 }: {
   lead: LeadRow;
   onClick: () => void;
@@ -380,6 +398,7 @@ function LeadCard({
   ownerName?: string | null;
   pdms?: PdmEntry[];
   onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+  canReassign?: boolean;
 }) {
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
@@ -438,7 +457,7 @@ function LeadCard({
           {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
         </div>
       )}
-      {isLeadership && (
+      {(canReassign ?? isLeadership) && (
         <div className="mt-2" onClick={(e) => e.stopPropagation()}>
           <LeadOwnerChip
             currentName={ownerName ?? "Unassigned"}
@@ -448,7 +467,7 @@ function LeadCard({
           />
         </div>
       )}
-      {lead.status === "approved" && !lead.promoted_partner_id && (
+      {!lead.promoted_partner_id && lead.status !== "rejected" && (
         <button
           onClick={(e) => { e.stopPropagation(); onPromote(); }}
           className="mt-2 w-full rounded-md bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 text-[11px] font-semibold px-2 py-1 transition"
@@ -570,7 +589,7 @@ function NewLeadDialog({
 
 function LeadDetailPanel({
   lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
-  isLeadership, ownerName, pdms, onReassign,
+  isLeadership, ownerName, pdms, onReassign, canReassign,
 }: {
   lead: LeadRow;
   onClose: () => void;
@@ -584,6 +603,7 @@ function LeadDetailPanel({
   ownerName?: string | null;
   pdms?: PdmEntry[];
   onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+  canReassign?: boolean;
 }) {
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
@@ -648,7 +668,7 @@ function LeadDetailPanel({
           {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
         </div>
 
-        {isLeadership && (
+        {(canReassign ?? isLeadership) && (
           <div className="mt-3 flex items-center gap-2 flex-wrap">
             <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">PDM</span>
             <LeadOwnerChip

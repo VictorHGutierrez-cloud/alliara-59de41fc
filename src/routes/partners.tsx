@@ -15,6 +15,7 @@ import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
+import { BulkReassignDialog, type ReassignAssignment, type ReassignItem } from "@/components/BulkReassignDialog";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Alliara" }] }),
@@ -42,6 +43,7 @@ function PartnersPage() {
   const [completing, setCompleting] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
 
   const ownerScope = useOwnerScope({
     items: portfolio.items,
@@ -63,6 +65,37 @@ function PartnersPage() {
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
+    }
+  };
+
+  const bulkReassign = async (assignments: ReassignAssignment[]) => {
+    if (assignments.length === 0) { setReassignOpen(false); return; }
+    setBulkBusy(true);
+    try {
+      // Group by target owner so we can do one update per target.
+      const byOwner = new Map<string, string[]>();
+      for (const a of assignments) {
+        const arr = byOwner.get(a.newOwnerId) ?? [];
+        arr.push(a.id);
+        byOwner.set(a.newOwnerId, arr);
+      }
+      let total = 0;
+      for (const [ownerId, ids] of byOwner) {
+        const { error, count } = await supabase
+          .from("partners")
+          .update({ owner_id: ownerId } as never, { count: "exact" })
+          .in("id", ids);
+        if (error) throw error;
+        total += count ?? ids.length;
+      }
+      toast.success(`${total} partner${total === 1 ? "" : "s"} reassigned`);
+      setReassignOpen(false);
+      clearSelection();
+      await portfolio.refresh();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBulkBusy(false);
     }
   };
 
@@ -700,8 +733,8 @@ function PartnersPage() {
                   onSetType={(t, label) => bulkUpdate({ partner_type: t }, label)}
                   onDelete={bulkDelete}
                   onClear={clearSelection}
-                  pdms={portfolio.isLeadership ? pdmRoster.pdms : []}
-                  onAssign={(ownerId, name) => bulkUpdate({ owner_id: ownerId }, name)}
+                  pdms={pdmRoster.pdms}
+                  onOpenReassign={() => setReassignOpen(true)}
                 />
               )}
 
@@ -716,6 +749,7 @@ function PartnersPage() {
                     isLeadership={portfolio.isLeadership}
                     ownerName={ownerNames.get(it.partner.owner_id) ?? null}
                     pdms={pdmRoster.pdms}
+                    canReassign={portfolio.isLeadership || it.partner.owner_id === user.id}
                     onReassign={(newOwnerId, newOwnerName) => reassignPartner(it.partner.id, newOwnerId, newOwnerName)}
                     onDelete={async () => {
                       if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
@@ -758,6 +792,24 @@ function PartnersPage() {
           completing={completing === selectedAction.id}
         />
       )}
+
+      <BulkReassignDialog
+        open={reassignOpen}
+        items={[...selectedIds]
+          .map((id) => portfolio.items.find((it) => it.partner.id === id))
+          .filter((it): it is typeof portfolio.items[number] => Boolean(it))
+          .map<ReassignItem>((it) => ({
+            id: it.partner.id,
+            name: it.partner.name,
+            currentOwnerId: it.partner.owner_id,
+            currentOwnerName: ownerNames.get(it.partner.owner_id) ?? "—",
+          }))}
+        pdms={pdmRoster.pdms}
+        entityLabel="partner"
+        busy={bulkBusy}
+        onClose={() => setReassignOpen(false)}
+        onConfirm={bulkReassign}
+      />
     </div>
   );
 }
@@ -908,7 +960,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLeadership, ownerName, pdms, onReassign }: {
+function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLeadership, ownerName, pdms, onReassign, canReassign }: {
   item: PortfolioItem;
   onDelete: () => void;
   revenue?: { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number };
@@ -918,6 +970,7 @@ function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLead
   ownerName?: string | null;
   pdms?: PdmEntry[];
   onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+  canReassign?: boolean;
 }) {
   const overall = item.latest ? Number(item.latest.overall) : 0;
   const lvl = overall ? levelFromAvg(overall) : 0;
@@ -1000,7 +1053,7 @@ function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLead
 
         <div className="mt-4 flex items-center justify-between gap-2 text-xs">
           <StatusChip status={item.partner.status} />
-          {isLeadership ? (
+          {canReassign ?? isLeadership ? (
             <OwnerChip
               currentName={ownerName ?? "Unassigned"}
               currentOwnerId={item.partner.owner_id}
@@ -1387,7 +1440,7 @@ const BULK_TIERS: { value: "strategic" | "core" | "emerging" | "long_tail"; labe
 ];
 
 function BulkActionBar({
-  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear, pdms, onAssign,
+  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear, pdms, onOpenReassign,
 }: {
   count: number;
   busy: boolean;
@@ -1397,7 +1450,7 @@ function BulkActionBar({
   onDelete: () => void;
   onClear: () => void;
   pdms?: PdmEntry[];
-  onAssign?: (ownerId: string, name: string) => void;
+  onOpenReassign?: () => void;
 }) {
   return (
     <div className="sticky top-2 z-30 mb-4 rounded-xl border border-[color:var(--primary)]/40 bg-card/95 backdrop-blur p-3 shadow-[0_8px_24px_-8px_rgba(255,192,203,0.5)] flex flex-wrap items-center gap-2">
@@ -1406,18 +1459,14 @@ function BulkActionBar({
         {count} selected
       </span>
 
-      {pdms && pdms.length > 0 && onAssign && (
-        <BulkMenu label="Assign to PDM" disabled={busy}>
-          {pdms.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => onAssign(p.id, p.name)}
-              className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded"
-            >
-              {p.name}
-            </button>
-          ))}
-        </BulkMenu>
+      {pdms && pdms.length > 0 && onOpenReassign && (
+        <button
+          onClick={onOpenReassign}
+          disabled={busy}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 text-foreground px-3 py-1.5 text-sm hover:bg-primary/20 transition disabled:opacity-50"
+        >
+          Reassign…
+        </button>
       )}
 
       <BulkMenu label="Set status" disabled={busy}>
