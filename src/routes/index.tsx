@@ -24,21 +24,27 @@ function Landing() {
       overlayOpacity={0.78}
       headlineNode={
         <span className="block">
-          <span className="text-white">We exist to </span>
-          <Typewriter
-            text={[
-              "partner.",
-              "co-create.",
-              "grow together.",
-              "unlock alliances.",
-              "build what's next.",
-            ]}
-            speed={70}
-            deleteSpeed={40}
-            waitTime={1800}
-            className="italic text-white"
-            cursorClassName="ml-1 text-white/70"
-          />
+          <span className="block text-white">We exist</span>
+          <span className="block">
+            <span className="text-white">to </span>
+            <span style={{ color: "#EC1E79" }}>
+            <Typewriter
+              text={[
+                "partner.",
+                "co-create.",
+                "grow together.",
+                "unlock alliances.",
+                "build what's next.",
+              ]}
+              speed={70}
+              deleteSpeed={40}
+              waitTime={1800}
+              className="italic"
+              cursorClassName="ml-1"
+              cursorChar="|"
+            />
+            </span>
+          </span>
         </span>
       }
       description={null}
