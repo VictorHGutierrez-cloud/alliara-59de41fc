@@ -119,7 +119,7 @@ export const PrismaHero = ({
     ];
 
   return (
-    <section className="relative w-full h-[calc(100vh-3.5rem)] -mt-14 pt-14 overflow-hidden bg-black">
+    <section className="relative w-full h-[calc(100vh-5rem)] -mt-20 pt-20 overflow-hidden bg-black">
       <style dangerouslySetInnerHTML={{ __html: PRISMA_KEYFRAMES }} />
 
       {/* Layer 1 — Background video (full-bleed) */}
