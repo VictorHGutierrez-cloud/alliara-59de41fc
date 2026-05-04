@@ -43,9 +43,9 @@ function PartnersPage() {
   const [focusMode, setFocusMode] = useState(false);
   const [selectedAction, setSelectedAction] = useState<EnrichedAction | null>(null);
   const [completing, setCompleting] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
+  const [selectedForReassign, setSelectedForReassign] = useState<string[]>([]);
 
   const ownerScope = useOwnerScope({
     items: portfolio.items,
@@ -92,7 +92,7 @@ function PartnersPage() {
       }
       toast.success(`${total} partner${total === 1 ? "" : "s"} reassigned`);
       setReassignOpen(false);
-      clearSelection();
+      setSelectedForReassign([]);
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -101,27 +101,16 @@ function PartnersPage() {
     }
   };
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-  const clearSelection = () => setSelectedIds(new Set());
-
-  const bulkUpdate = async (patch: { status?: string; tier?: string; partner_type?: string; owner_id?: string }, label: string) => {
-    if (selectedIds.size === 0) return;
+  const bulkUpdate = async (ids: string[], patch: { status?: string; tier?: string; partner_type?: string; owner_id?: string }, label: string) => {
+    if (ids.length === 0) return;
     setBulkBusy(true);
     try {
-      const ids = [...selectedIds];
       const { error, count } = await supabase
         .from("partners")
         .update(patch as never, { count: "exact" })
         .in("id", ids);
       if (error) throw error;
       toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} → ${label}`);
-      clearSelection();
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -130,9 +119,8 @@ function PartnersPage() {
     }
   };
 
-  const bulkDelete = async () => {
-    if (selectedIds.size === 0) return;
-    const ids = [...selectedIds];
+  const bulkDelete = async (ids: string[]) => {
+    if (ids.length === 0) return;
     const names = portfolio.items
       .filter((it) => ids.includes(it.partner.id))
       .map((it) => it.partner.name);
@@ -145,7 +133,6 @@ function PartnersPage() {
         .in("id", ids);
       if (error) throw error;
       toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} deleted`);
-      clearSelection();
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
