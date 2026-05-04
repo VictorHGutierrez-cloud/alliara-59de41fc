@@ -639,3 +639,55 @@ export function CandyStackedArea({
     </div>
   );
 }
+/* ───────── Candy sparkline (mini SVG) ───────── */
+
+export function CandySparkline({
+  data,
+  width = 72,
+  height = 22,
+  strokeWidth = 1.5,
+}: {
+  data: number[];
+  width?: number;
+  height?: number;
+  strokeWidth?: number;
+}) {
+  if (!data || data.length < 2) {
+    return <div style={{ width, height }} className="text-[10px] text-muted-foreground">—</div>;
+  }
+  const id = React.useId().replace(/[:]/g, "");
+  const min = Math.min(...data);
+  const max = Math.max(...data);
+  const range = max - min || 1;
+  const step = width / (data.length - 1);
+  const pts = data.map((v, i) => {
+    const x = i * step;
+    const y = height - ((v - min) / range) * (height - 4) - 2;
+    return [x, y] as const;
+  });
+  const path = pts.map((p, i) => (i === 0 ? `M ${p[0]} ${p[1]}` : `L ${p[0]} ${p[1]}`)).join(" ");
+  const area = `${path} L ${pts[pts.length - 1][0]} ${height} L ${pts[0][0]} ${height} Z`;
+  const up = data[data.length - 1] >= data[0];
+  const color = up ? "var(--success)" : "var(--destructive)";
+
+  return (
+    <svg width={width} height={height} role="img" aria-label="Trend">
+      <defs>
+        <linearGradient id={`spark-${id}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity={0.45} />
+          <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+        </linearGradient>
+      </defs>
+      <path d={area} fill={`url(#spark-${id})`} stroke="none" />
+      <path
+        d={path}
+        fill="none"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r={2} fill={color} />
+    </svg>
+  );
+}
