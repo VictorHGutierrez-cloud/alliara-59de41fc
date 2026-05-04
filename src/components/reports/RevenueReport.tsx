@@ -4,6 +4,7 @@ import type { PartnerRevenue } from "@/lib/partner-revenue";
 import { fmtMoney } from "@/lib/partner-revenue";
 import { ReportCard } from "./ReportCard";
 import { CandyBarChart } from "@/components/ui/candy-charts";
+import { CandyDataTable, CandyAvatar, StatusPill } from "@/components/ui/candy-data-table";
 import { pickRevenue, REVENUE_METRIC_LABEL, type RevenueMetric } from "@/lib/reports/aggregations";
 
 interface Props {
@@ -88,29 +89,64 @@ export function RevenueReport({ items, revenueMap, pdmName }: Props) {
       />
 
       {top.length > 0 && (
-        <div className="mt-5 overflow-x-auto rounded-xl border border-border/60">
-          <table className="w-full text-xs">
-            <thead className="bg-surface/60 text-muted-foreground">
-              <tr>
-                <th className="text-left px-3 py-2 font-mono uppercase tracking-widest text-[10px]">Partner</th>
-                <th className="text-left px-3 py-2 font-mono uppercase tracking-widest text-[10px]">PDM</th>
-                <th className="text-left px-3 py-2 font-mono uppercase tracking-widest text-[10px]">Type</th>
-                <th className="text-right px-3 py-2 font-mono uppercase tracking-widest text-[10px]">{REVENUE_METRIC_LABEL[metric]}</th>
-                <th className="text-right px-3 py-2 font-mono uppercase tracking-widest text-[10px]">Maturity</th>
-              </tr>
-            </thead>
-            <tbody>
-              {top.map((r) => (
-                <tr key={r.partner.id} className="border-t border-border/40">
-                  <td className="px-3 py-2 text-foreground font-medium">{r.partner.name}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{pdmName(r.partner.owner_id)}</td>
-                  <td className="px-3 py-2 text-muted-foreground capitalize">{r.partner.partner_type}</td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">{fmtMoney(r.value)}</td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums">{r.maturity ? r.maturity.toFixed(1) : "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="mt-5">
+          <CandyDataTable
+            rows={top}
+            rowKey={(r) => r.partner.id}
+            ariaLabel="Top partners by revenue"
+            columns={[
+              {
+                key: "partner",
+                header: "Partner",
+                width: "minmax(220px,2fr)",
+                cell: (r) => (
+                  <div className="flex items-center gap-3 min-w-0">
+                    <CandyAvatar name={r.partner.name} size={28} />
+                    <div className="min-w-0">
+                      <div className="font-medium text-foreground truncate">{r.partner.name}</div>
+                      {r.partner.company && (
+                        <div className="text-xs text-muted-foreground truncate">{r.partner.company}</div>
+                      )}
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: "pdm",
+                header: "PDM",
+                width: "minmax(120px,1fr)",
+                cell: (r) => <span className="text-xs text-muted-foreground truncate">{pdmName(r.partner.owner_id)}</span>,
+              },
+              {
+                key: "type",
+                header: "Type",
+                width: "120px",
+                cell: (r) => <StatusPill tone="info">{r.partner.partner_type}</StatusPill>,
+              },
+              {
+                key: "value",
+                header: REVENUE_METRIC_LABEL[metric],
+                width: "140px",
+                align: "right",
+                cell: (r) => (
+                  <span className="font-mono tabular-nums font-semibold text-foreground">
+                    {fmtMoney(r.value)}
+                  </span>
+                ),
+              },
+              {
+                key: "maturity",
+                header: "Maturity",
+                width: "100px",
+                align: "right",
+                cell: (r) => (
+                  <span className="font-mono tabular-nums text-muted-foreground">
+                    {r.maturity ? r.maturity.toFixed(1) : "—"}
+                  </span>
+                ),
+              },
+            ]}
+          />
         </div>
       )}
     </ReportCard>
