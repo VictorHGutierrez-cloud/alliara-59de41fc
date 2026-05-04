@@ -9,6 +9,8 @@ import {
   ResponsiveContainer,
   Cell,
   LabelList,
+  AreaChart,
+  Area,
 } from "recharts";
 
 /* ───────── shared visuals ─────────
@@ -459,6 +461,180 @@ export function CandyDonut({
             </span>
           </button>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* ───────── Candy stacked area chart ─────────
+ * Smooth gradient-filled area stack inspired by reaviz, built on recharts.
+ */
+
+export interface AreaSeries {
+  key: string;
+  label: string;
+  color: string;
+}
+
+export interface CandyStackedAreaProps {
+  data: Array<Record<string, number | string>>;
+  series: AreaSeries[];
+  height?: number;
+  valueFormatter?: (n: number) => string;
+  emptyMessage?: string;
+  /** Field name for the X axis label (defaults to "label") */
+  xKey?: string;
+}
+
+function StackedTooltip({ active, payload, label, valueFormatter, series }: any) {
+  if (!active || !payload || !payload.length) return null;
+  const total = payload.reduce(
+    (s: number, p: any) => s + (typeof p.value === "number" ? p.value : 0),
+    0,
+  );
+  return (
+    <div
+      className="rounded-xl border border-border/70 bg-white/95 backdrop-blur px-3 py-2 text-xs shadow-lg min-w-[160px]"
+      style={{ boxShadow: "0 10px 28px -10px rgba(255,192,203,0.55)" }}
+    >
+      <div className="font-semibold text-foreground mb-1.5">{label}</div>
+      <div className="space-y-1">
+        {payload
+          .slice()
+          .reverse()
+          .map((p: any, i: number) => {
+            const meta = series.find((s: AreaSeries) => s.key === p.dataKey);
+            return (
+              <div key={i} className="flex items-center justify-between gap-3">
+                <span className="inline-flex items-center gap-1.5 text-muted-foreground">
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ background: meta?.color ?? p.color }}
+                  />
+                  <span className="text-foreground">{meta?.label ?? p.dataKey}</span>
+                </span>
+                <span className="font-mono tabular-nums text-foreground">
+                  {valueFormatter ? valueFormatter(p.value) : p.value}
+                </span>
+              </div>
+            );
+          })}
+      </div>
+      <div className="mt-1.5 pt-1.5 border-t border-border/40 flex items-center justify-between text-[10px] uppercase tracking-widest font-mono text-muted-foreground">
+        <span>Total</span>
+        <span className="text-foreground">
+          {valueFormatter ? valueFormatter(total) : total}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+export function CandyStackedArea({
+  data,
+  series,
+  height = 260,
+  valueFormatter,
+  emptyMessage = "No data yet",
+  xKey = "label",
+}: CandyStackedAreaProps) {
+  const id = React.useId().replace(/[:]/g, "");
+  const hasAny = data.some((d) =>
+    series.some((s) => typeof d[s.key] === "number" && (d[s.key] as number) > 0),
+  );
+
+  if (!data.length || !hasAny) {
+    return (
+      <div
+        className="flex items-center justify-center rounded-xl border border-dashed border-border/60 bg-surface/40 text-xs text-muted-foreground"
+        style={{ height }}
+      >
+        {emptyMessage}
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+        {series.map((s) => (
+          <span key={s.key} className="inline-flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full" style={{ background: s.color }} />
+            <span className="text-foreground">{s.label}</span>
+          </span>
+        ))}
+      </div>
+      <div style={{ width: "100%", height }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 12, right: 12, left: 4, bottom: 8 }}>
+            <defs>
+              {series.map((s, i) => (
+                <linearGradient
+                  key={s.key}
+                  id={`candyArea-${id}-${i}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor={s.color} stopOpacity={0.85} />
+                  <stop offset="100%" stopColor={s.color} stopOpacity={0.15} />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid
+              stroke="color-mix(in oklab, var(--border) 70%, transparent)"
+              strokeDasharray="3 6"
+              vertical={false}
+            />
+            <XAxis
+              dataKey={xKey}
+              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+              tickLine={false}
+              axisLine={{ stroke: "var(--border)" }}
+            />
+            <YAxis
+              tick={{ fill: "var(--muted-foreground)", fontSize: 11 }}
+              tickLine={false}
+              axisLine={false}
+              width={48}
+              tickFormatter={(v: number) =>
+                valueFormatter ? valueFormatter(v) : String(v)
+              }
+            />
+            <Tooltip
+              cursor={{
+                stroke: "color-mix(in oklab, var(--primary) 40%, transparent)",
+                strokeWidth: 1,
+                strokeDasharray: "3 4",
+              }}
+              content={
+                <StackedTooltip valueFormatter={valueFormatter} series={series} />
+              }
+            />
+            {series.map((s, i) => (
+              <Area
+                key={s.key}
+                type="monotone"
+                dataKey={s.key}
+                name={s.label}
+                stackId="1"
+                stroke={s.color}
+                strokeWidth={1.5}
+                fill={`url(#candyArea-${id}-${i})`}
+                isAnimationActive
+                animationDuration={750}
+                animationEasing="ease-out"
+                activeDot={{
+                  r: 4,
+                  stroke: "#fff",
+                  strokeWidth: 2,
+                  fill: s.color,
+                }}
+              />
+            ))}
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

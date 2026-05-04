@@ -2,10 +2,12 @@ import type { PortfolioItem } from "@/lib/partners-store";
 import type { PartnerRevenue } from "@/lib/partner-revenue";
 import { fmtMoney } from "@/lib/partner-revenue";
 import { ReportCard } from "./ReportCard";
-import { CandyBarChart, CandyComposition } from "@/components/ui/candy-charts";
+import { CandyComposition, CandyStackedArea } from "@/components/ui/candy-charts";
+import { KpiTile } from "./KpiTile";
+import { DollarSign, Users, Sparkles } from "lucide-react";
 import {
   byStatus,
-  partnersByMonth,
+  statusTrendByMonth,
   STATUS_COLOR,
   STATUS_LABEL,
   totalRevenue,
@@ -25,14 +27,35 @@ export function OverviewReport({ items, revenueMap }: Props) {
     ? scored.reduce((s, i) => s + Number(i.latest!.overall), 0) / scored.length
     : 0;
 
-  const monthly = partnersByMonth(items, 6);
+  const trend = statusTrendByMonth(items, 6);
 
   return (
     <div className="space-y-4">
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Kpi label="Total Open MRR" value={mrr.total > 0 ? fmtMoney(mrr.total) : "—"} hint={`${mrr.reporting} reporting MRR`} accent="octa-4" />
-        <Kpi label="Active partners" value={String(activeTotal)} hint={`${status.paused + status.archived} paused/archived`} accent="octa-5" />
-        <Kpi label="Avg maturity" value={avgMaturity ? avgMaturity.toFixed(1) : "—"} hint={`${scored.length}/${items.length} diagnosed`} accent="octa-7" />
+        <KpiTile
+          label="Total Open MRR"
+          value={mrr.total > 0 ? fmtMoney(mrr.total) : "—"}
+          hint={`${mrr.reporting} reporting MRR`}
+          icon={DollarSign}
+          accent="var(--primary)"
+          delay={0}
+        />
+        <KpiTile
+          label="Active partners"
+          value={String(activeTotal)}
+          hint={`${status.paused + status.archived} paused/archived`}
+          icon={Users}
+          accent="var(--secondary)"
+          delay={0.05}
+        />
+        <KpiTile
+          label="Avg maturity"
+          value={avgMaturity ? avgMaturity.toFixed(1) : "—"}
+          hint={`${scored.length}/${items.length} diagnosed`}
+          icon={Sparkles}
+          accent="var(--octa-7)"
+          delay={0.1}
+        />
       </section>
 
       <ReportCard
@@ -57,32 +80,28 @@ export function OverviewReport({ items, revenueMap }: Props) {
       </ReportCard>
 
       <ReportCard
-        title="Partners added · last 6 months"
-        description="How fast the portfolio is growing month over month."
-        csvRows={() => monthly.map((m) => ({ month: m.label, partners_added: m.value }))}
+        title="Portfolio growth & health · last 6 months"
+        description="Stacked view of partners added per month, split by current status."
+        csvRows={() =>
+          trend.map((m) => ({
+            month: m.label,
+            scaling: m.active,
+            developing: m.nurturing,
+            churn_risk: m.at_risk,
+          }))
+        }
       >
-        <CandyBarChart
-          data={monthly.map((m) => ({ label: m.label, value: m.value }))}
-          height={220}
-          variant="primary"
-          showLabels
+        <CandyStackedArea
+          data={trend}
+          series={[
+            { key: "active", label: "Scaling", color: STATUS_COLOR.active },
+            { key: "nurturing", label: "Developing", color: STATUS_COLOR.nurturing },
+            { key: "at_risk", label: "Churn Risk", color: STATUS_COLOR.at_risk },
+          ]}
+          height={260}
           emptyMessage="No partners created in the last 6 months."
         />
       </ReportCard>
-    </div>
-  );
-}
-
-function Kpi({ label, value, hint, accent }: { label: string; value: string; hint: string; accent: string }) {
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-5 card-elev relative overflow-hidden">
-      <div
-        className="absolute top-0 left-0 h-1 w-full"
-        style={{ background: `linear-gradient(90deg, var(--${accent}), transparent)` }}
-      />
-      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
-      <div className="mt-2 text-3xl font-display font-bold text-foreground">{value}</div>
-      <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
     </div>
   );
 }

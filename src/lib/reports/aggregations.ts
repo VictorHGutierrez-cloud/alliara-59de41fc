@@ -157,6 +157,84 @@ export function partnersByMonth(items: PortfolioItem[], months = 6): { label: st
   return buckets.map((b) => ({ label: b.label, value: b.value }));
 }
 
+/* ─────────── status trend over time (stacked area) ─────────── */
+
+export function statusTrendByMonth(
+  items: PortfolioItem[],
+  months = 6,
+): Array<{ label: string; active: number; nurturing: number; at_risk: number }> {
+  const now = new Date();
+  const buckets: Array<{
+    key: string;
+    label: string;
+    active: number;
+    nurturing: number;
+    at_risk: number;
+  }> = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleDateString(undefined, { month: "short" });
+    buckets.push({ key, label, active: 0, nurturing: 0, at_risk: 0 });
+  }
+  const map = new Map(buckets.map((b) => [b.key, b]));
+  for (const it of items) {
+    const d = new Date(it.partner.created_at);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const b = map.get(key);
+    if (!b) continue;
+    const s = it.partner.status as StatusKey;
+    if (s === "active") b.active += 1;
+    else if (s === "nurturing") b.nurturing += 1;
+    else if (s === "at_risk") b.at_risk += 1;
+  }
+  return buckets.map((b) => ({
+    label: b.label,
+    active: b.active,
+    nurturing: b.nurturing,
+    at_risk: b.at_risk,
+  }));
+}
+
+/* ─────────── leads trend over time (stacked area) ─────────── */
+
+export function leadTrendByMonth(
+  leads: LeadRow[],
+  months = 6,
+): Array<{ label: string; new: number; in_review: number; approved: number; rejected: number }> {
+  const now = new Date();
+  const buckets: Array<{
+    key: string;
+    label: string;
+    new: number;
+    in_review: number;
+    approved: number;
+    rejected: number;
+  }> = [];
+  for (let i = months - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const label = d.toLocaleDateString(undefined, { month: "short" });
+    buckets.push({ key, label, new: 0, in_review: 0, approved: 0, rejected: 0 });
+  }
+  const map = new Map(buckets.map((b) => [b.key, b]));
+  for (const l of leads) {
+    const d = new Date(l.created_at);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const b = map.get(key);
+    if (!b) continue;
+    const s = l.status as LeadStageKey;
+    if (s in b) (b as Record<string, number | string>)[s] = (b[s] as number) + 1;
+  }
+  return buckets.map((b) => ({
+    label: b.label,
+    new: b.new,
+    in_review: b.in_review,
+    approved: b.approved,
+    rejected: b.rejected,
+  }));
+}
+
 /* ─────────── lead pipeline ─────────── */
 
 export type LeadStageKey = "new" | "in_review" | "approved" | "rejected";
