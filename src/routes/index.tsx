@@ -151,7 +151,7 @@ function Landing() {
     <>
       {/* 1. HERO — full-bleed video, only CTAs */}
       <PrismaHero
-        videoSrc="/hero-dashboard-loop.mp4"
+        videoSrc="/fios.mp4"
         eyebrow={null}
         description={null}
         overlayOpacity={0}
