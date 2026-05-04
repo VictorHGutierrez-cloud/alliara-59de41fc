@@ -1,10 +1,9 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState, useNavigate } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import alliaraLogo from "@/assets/alliara-logo.png";
 import Dock from "@/components/ui/dock";
-import { useNavigate } from "@tanstack/react-router";
 import { Users, ClipboardCheck, BarChart3, Trophy, Settings as SettingsIcon, LogOut } from "lucide-react";
 
 function NotFoundComponent() {
