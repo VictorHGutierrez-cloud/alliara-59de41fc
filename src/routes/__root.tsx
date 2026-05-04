@@ -103,7 +103,7 @@ function AppFrame() {
       >
         <div className="mx-auto max-w-7xl px-4 sm:px-6 h-24 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 font-display font-bold tracking-tight text-foreground">
-            <img src={alliaraLogo} alt="Alliara — Unlocking Partners Growth" className="h-16 sm:h-20 w-auto object-contain" />
+            <img src={alliaraLogo} alt="Alliara — Unlocking Partners Growth" className="h-12 sm:h-16 w-auto object-contain" />
             <span className="ml-3 font-normal text-muted-foreground opacity-60 whitespace-nowrap text-zinc-500 text-xs hidden sm:inline">
               Created, designed and delivered by Victor Gutierrez
             </span>
