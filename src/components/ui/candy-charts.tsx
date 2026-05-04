@@ -9,6 +9,8 @@ import {
   ResponsiveContainer,
   Cell,
   LabelList,
+  AreaChart,
+  Area,
 } from "recharts";
 
 /* ───────── shared visuals ─────────
