@@ -421,116 +421,25 @@ function PartnersPage() {
         </section>
       )}
 
-      {/* 2. Revenue & Ecosystem Impact KPIs */}
-      <section className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <KpiCard
-          label="Total Open MRR"
-          value={sourcedPipeline.total > 0 ? fmtMoney(sourcedPipeline.total) : "—"}
-          hint={
-            sourcedPipeline.withMetrics > 0
-              ? `${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting MRR`
-              : "Add MRR on a partner page to populate"
-          }
-          accent="octa-4"
-          primary
-        />
-        <KpiCard
-          label="Active partners"
-          value={String(activeTotal)}
-          hint={`${statusCounts.paused + statusCounts.archived} paused/archived`}
-          accent="octa-5"
-        />
-        <KpiCard
-          label="Avg maturity"
-          value={aggregate.avg ? aggregate.avg.toFixed(1) : "—"}
-          hint={`${aggregate.scored}/${aggregate.count} diagnosed`}
-          accent="octa-7"
-        />
-      </section>
-
-      {/* Top partners by Open MRR — visual ranking */}
-      <section className="mt-6 rounded-2xl border border-border/60 bg-card p-6 card-elev relative overflow-hidden">
-        <div
-          className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full opacity-40 blur-3xl"
-          style={{ background: "var(--primary)" }}
-        />
-        <div className="flex items-start justify-between gap-3 flex-wrap relative">
-          <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Revenue ranking</p>
-            <h2 className="mt-1 text-lg font-semibold">Top partners by Open MRR</h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              The partners currently driving the most monthly recurring revenue. Hover a bar for maturity score.
-            </p>
-          </div>
-          <span className="text-[11px] font-mono text-muted-foreground">
-            {topMrrData.length} of {scoped.length} partners reporting MRR
-          </span>
-        </div>
-        <div className="mt-4 relative">
-          <CandyBarChart
-            data={topMrrData}
-            height={280}
-            valueFormatter={(n) => fmtMoney(n)}
-            variant="palette"
-            emptyMessage="No partners reporting MRR yet — add MRR on a partner page to populate."
-          />
-        </div>
-      </section>
-
-      {/* 3 + 4. Health Snapshot + Qualification Queue */}
+      {/* Metrics moved to Reports — keep only the qualification queue here */}
       <section className="mt-6 grid lg:grid-cols-3 gap-4">
-        {/* Portfolio Health Snapshot */}
-        <div className="lg:col-span-2 rounded-2xl border border-border/60 bg-card p-6 card-elev">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">How your partners are doing</p>
-              <h2 className="mt-1 text-lg font-semibold">Right now</h2>
-            </div>
-            {statusFilter !== "all" && (
-              <button onClick={() => setStatusFilter("all")} className="text-xs text-muted-foreground hover:text-foreground underline">
-                Clear filter
-              </button>
-            )}
-          </div>
-
-          <div className="mt-5 grid grid-cols-3 gap-3">
-            <HealthBadge
-              label="Scaling"
-              count={statusCounts.active}
-              total={activeTotal || 1}
-              tone="green"
-              active={statusFilter === "active"}
-              onClick={() => setStatusFilter(statusFilter === "active" ? "all" : "active")}
-            />
-            <HealthBadge
-              label="Developing"
-              count={statusCounts.nurturing}
-              total={activeTotal || 1}
-              tone="yellow"
-              active={statusFilter === "nurturing"}
-              onClick={() => setStatusFilter(statusFilter === "nurturing" ? "all" : "nurturing")}
-            />
-            <HealthBadge
-              label="Churn Risk"
-              count={statusCounts.at_risk}
-              total={activeTotal || 1}
-              tone="red"
-              active={statusFilter === "at_risk"}
-              onClick={() => setStatusFilter(statusFilter === "at_risk" ? "all" : "at_risk")}
-            />
-          </div>
-
-          <div className="mt-5">
-            <CandyComposition
-              segments={[
-                { label: "Scaling", value: statusCounts.active, color: "var(--success)" },
-                { label: "Developing", value: statusCounts.nurturing, color: "var(--warning)" },
-                { label: "Churn Risk", value: statusCounts.at_risk, color: "var(--destructive)" },
-              ]}
-            />
-          </div>
-          <p className="mt-3 text-xs text-muted-foreground">Click a status badge to filter the roster below.</p>
-        </div>
+        <Link
+          to="/reports"
+          className="lg:col-span-2 rounded-2xl border border-border/60 bg-card p-6 card-elev relative overflow-hidden hover:border-primary/40 transition group"
+        >
+          <div
+            className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full opacity-40 blur-3xl"
+            style={{ background: "var(--primary)" }}
+          />
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Analytics moved</p>
+          <h2 className="mt-1 text-lg font-semibold">Open MRR, status mix, maturity & more → Reports</h2>
+          <p className="mt-2 text-sm text-muted-foreground max-w-xl">
+            All portfolio metrics, charts and the new mini report builder live in the Reports tab. Filter by PDM, type, tier or period — and export to CSV or PNG.
+          </p>
+          <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary group-hover:translate-x-0.5 transition">
+            Go to Reports →
+          </span>
+        </Link>
 
         {/* Qualification Queue */}
         <div className="rounded-2xl border border-border bg-card p-6 card-elev">
