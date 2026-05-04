@@ -6,9 +6,16 @@ import { PrismaHero } from "@/components/ui/prisma-hero";
 import { AgentPlan, type AgentTask, type AgentStatus } from "@/components/ui/agent-plan";
 import { Typewriter } from "@/components/ui/typewriter";
 import { AXES } from "@/content/octa";
+import { DEMO_LANDING_MIX_SLICES, DEMO_LANDING_REVENUE } from "@/content/landing-chart-demos";
 import imgProductRadar from "@/assets/landing/product-maturity-radar.png";
-import imgProductRevenue from "@/assets/landing/product-revenue.png";
-import imgProductOcta from "@/assets/landing/product-maturity-octa.png";
+import {
+  AnimatedCard,
+  CardBody,
+  CardDescription,
+  CardTitle,
+  CardVisual,
+} from "@/components/ui/animated-card";
+import { CandyBarChart, CandyDonut } from "@/components/ui/candy-charts";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -22,51 +29,30 @@ export const Route = createFileRoute("/")({
 
 const PINK = "#EC1E79";
 
-function BrowserFrame({ src, alt }: { src: string; alt: string }) {
-  return (
-    <div
-      className="rounded-2xl sm:rounded-3xl border border-neutral-200/90 bg-neutral-50 shadow-[0_24px_80px_-16px_rgba(15,23,42,0.22)] ring-1 ring-black/[0.04] overflow-hidden [transform:perspective(1200px)_rotateX(2deg)] sm:[transform:perspective(1400px)_rotateX(1.5deg)]"
-    >
-      <div className="flex items-center gap-2 px-3 py-2.5 bg-gradient-to-b from-neutral-100 to-neutral-100/90 border-b border-neutral-200/80">
-        <span className="size-2.5 shrink-0 rounded-full bg-[#FF5F57]" aria-hidden />
-        <span className="size-2.5 shrink-0 rounded-full bg-[#FEBC2E]" aria-hidden />
-        <span className="size-2.5 shrink-0 rounded-full bg-[#28C840]" aria-hidden />
-        <div className="ml-2 min-w-0 flex-1 rounded-md bg-white/90 border border-neutral-200/70 px-2.5 py-1 text-[10px] text-neutral-500 font-mono truncate">
-          app.alliara.io
-        </div>
-      </div>
-      <div className="bg-gradient-to-b from-neutral-100 to-neutral-50 p-1.5 sm:p-2.5">
-        <img
-          src={src}
-          alt={alt}
-          className="w-full h-auto rounded-lg sm:rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-white/80"
-          loading="lazy"
-          decoding="async"
-        />
-      </div>
-    </div>
-  );
+function formatDemoEuro(n: number) {
+  if (n >= 1000 && n % 1000 === 0) return `€${n / 1000}k`;
+  if (n >= 1000) return `€${(n / 1000).toFixed(1)}k`;
+  return `€${n}`;
 }
 
 function ProductShowcase() {
   const blocks = [
     {
+      kind: "image" as const,
       title: "Maturity radar & growth levers",
       body: "See OCTA scores on a live radar, surface at-risk partners, and jump to the axes that unlock the next level of revenue.",
       img: imgProductRadar,
       alt: "Alliara partner overview with maturity radar and high-impact growth levers",
     },
     {
+      kind: "bars" as const,
       title: "Revenue that tells a story",
       body: "Rank partners by Open MRR and other metrics, export when you need to brief leadership, and keep the view aligned to how you run the business.",
-      img: imgProductRevenue,
-      alt: "Alliara revenue dashboard with top partners by Open MRR",
     },
     {
-      title: "Portfolio maturity by axis",
-      body: "Spot the shortest bars across your book of business — that is where coordinated investment moves the whole ecosystem.",
-      img: imgProductOcta,
-      alt: "Alliara chart of maturity by OCTA dimension across the portfolio",
+      kind: "donut" as const,
+      title: "Mix by tier",
+      body: "See how your portfolio splits across tiers — where you over-invest and where a nudge unlocks the next stage of maturity.",
     },
   ] as const;
 
@@ -82,7 +68,7 @@ function ProductShowcase() {
             The command center, in the wild.
           </h2>
           <p className="mt-3 text-neutral-600 max-w-xl">
-            Real screens from Alliara — crisp analytics, OCTA depth, and the workflows your PDMs use every week.
+            Live chart previews plus a real product screen — crisp analytics, OCTA depth, and the workflows your PDMs use every week.
           </p>
         </div>
 
@@ -94,12 +80,58 @@ function ProductShowcase() {
                 i % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"
               }`}
             >
-              <div className="flex-1 min-w-0">
-                <BrowserFrame src={b.img} alt={b.alt} />
+              <div className="flex-1 min-w-0 flex justify-center lg:justify-start">
+                {b.kind === "image" ? (
+                  <AnimatedCard aria-label={b.title} className="max-w-xl shadow-md">
+                    <CardVisual className="rounded-t-xl bg-gradient-to-b from-neutral-100 to-neutral-50 p-2 sm:p-3">
+                      <img
+                        src={b.img}
+                        alt={b.alt}
+                        className="h-full w-full rounded-lg object-cover object-top shadow-sm sm:rounded-xl"
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    </CardVisual>
+                  </AnimatedCard>
+                ) : b.kind === "bars" ? (
+                  <AnimatedCard className="max-w-xl shadow-md">
+                    <CardVisual className="rounded-t-xl bg-white px-1 pt-2">
+                      <CandyBarChart
+                        data={DEMO_LANDING_REVENUE}
+                        height={236}
+                        variant="palette"
+                        valueFormatter={formatDemoEuro}
+                        showLabels
+                      />
+                    </CardVisual>
+                    <CardBody className="sr-only">
+                      <CardTitle>{b.title}</CardTitle>
+                      <CardDescription>{b.body}</CardDescription>
+                    </CardBody>
+                  </AnimatedCard>
+                ) : (
+                  <AnimatedCard className="max-w-xl shadow-md">
+                    <CardVisual className="rounded-t-xl bg-white px-2 pt-4">
+                      <div className="flex h-full min-h-0 items-center justify-center overflow-x-auto pb-2">
+                        <CandyDonut
+                          slices={DEMO_LANDING_MIX_SLICES}
+                          size={188}
+                          thickness={26}
+                          centerValue="73"
+                          centerLabel="PARTNERS"
+                        />
+                      </div>
+                    </CardVisual>
+                    <CardBody className="sr-only">
+                      <CardTitle>{b.title}</CardTitle>
+                      <CardDescription>{b.body}</CardDescription>
+                    </CardBody>
+                  </AnimatedCard>
+                )}
               </div>
               <div className="flex-1 min-w-0 lg:max-w-md">
                 <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-neutral-400">
-                  {String(i + 1).padStart(2, "0")} — Screen
+                  {String(i + 1).padStart(2, "0")} — {b.kind === "image" ? "Screen" : "Live preview"}
                 </p>
                 <h3 className="mt-3 font-display font-semibold text-2xl sm:text-3xl text-neutral-900 tracking-tight">
                   {b.title}
