@@ -27,7 +27,7 @@ function Landing() {
         videoSrc="https://hbarmsaprabwwickdudg.supabase.co/storage/v1/object/public/public-assets/prisma-hero.mp4"
         eyebrow={null}
         description={null}
-        overlayOpacity={0.45}
+        overlayOpacity={0}
         primaryCta={
           <div className="flex flex-wrap gap-3">
             <Link to="/login" className="btn-candy group">
