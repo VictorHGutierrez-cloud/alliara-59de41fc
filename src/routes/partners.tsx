@@ -16,6 +16,7 @@ import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { BulkReassignDialog, type ReassignAssignment, type ReassignItem } from "@/components/BulkReassignDialog";
+import { CandyBarChart, CandyComposition, type BarDatum } from "@/components/ui/candy-charts";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Alliara" }] }),
@@ -269,6 +270,30 @@ function PartnersPage() {
     return { count: filtered.length, scored: scored.length, avg };
   }, [filtered]);
 
+  // Top partners by Open MRR — drives the bar chart below the KPIs.
+  const topMrrData = useMemo<BarDatum[]>(() => {
+    const rows = scoped
+      .map((it) => {
+        const r = revenueMap.get(it.partner.id);
+        return {
+          name: it.partner.name,
+          mrr: r?.mrr ?? 0,
+          maturity: it.latest ? Number(it.latest.overall) : 0,
+        };
+      })
+      .filter((r) => r.mrr > 0)
+      .sort((a, b) => b.mrr - a.mrr)
+      .slice(0, 8);
+    return rows.map((r) => ({
+      label: r.name.length > 14 ? r.name.slice(0, 13) + "…" : r.name,
+      value: r.mrr,
+      secondary:
+        r.maturity > 0
+          ? { label: "Maturity", value: r.maturity.toFixed(1) }
+          : undefined,
+    }));
+  }, [scoped, revenueMap]);
+
   // Pending leads = leads not yet approved/rejected
   const pendingLeads = leads.leads.filter((l) => l.status === "new" || l.status === "in_review");
   const overdueActions = openActions.filter((a) => isOverdue(a.due_date));
@@ -423,6 +448,35 @@ function PartnersPage() {
         />
       </section>
 
+      {/* Top partners by Open MRR — visual ranking */}
+      <section className="mt-6 rounded-2xl border border-border/60 bg-card p-6 card-elev relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full opacity-40 blur-3xl"
+          style={{ background: "var(--primary)" }}
+        />
+        <div className="flex items-start justify-between gap-3 flex-wrap relative">
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Revenue ranking</p>
+            <h2 className="mt-1 text-lg font-semibold">Top partners by Open MRR</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              The partners currently driving the most monthly recurring revenue. Hover a bar for maturity score.
+            </p>
+          </div>
+          <span className="text-[11px] font-mono text-muted-foreground">
+            {topMrrData.length} of {scoped.length} partners reporting MRR
+          </span>
+        </div>
+        <div className="mt-4 relative">
+          <CandyBarChart
+            data={topMrrData}
+            height={280}
+            valueFormatter={(n) => fmtMoney(n)}
+            variant="palette"
+            emptyMessage="No partners reporting MRR yet — add MRR on a partner page to populate."
+          />
+        </div>
+      </section>
+
       {/* 3 + 4. Health Snapshot + Qualification Queue */}
       <section className="mt-6 grid lg:grid-cols-3 gap-4">
         {/* Portfolio Health Snapshot */}
@@ -466,16 +520,16 @@ function PartnersPage() {
             />
           </div>
 
-          <div className="mt-5 h-2 rounded-full bg-surface-2 overflow-hidden flex">
-            {activeTotal > 0 ? (
-              <>
-                <div className="h-full bg-emerald-500/70" style={{ width: `${(statusCounts.active / activeTotal) * 100}%` }} />
-                <div className="h-full bg-yellow-500/70" style={{ width: `${(statusCounts.nurturing / activeTotal) * 100}%` }} />
-                <div className="h-full bg-red-500/70" style={{ width: `${(statusCounts.at_risk / activeTotal) * 100}%` }} />
-              </>
-            ) : <div className="h-full w-full bg-surface-2" />}
+          <div className="mt-5">
+            <CandyComposition
+              segments={[
+                { label: "Scaling", value: statusCounts.active, color: "var(--success)" },
+                { label: "Developing", value: statusCounts.nurturing, color: "var(--warning)" },
+                { label: "Churn Risk", value: statusCounts.at_risk, color: "var(--destructive)" },
+              ]}
+            />
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">Click a status badge to filter the roster below.</p>
+          <p className="mt-3 text-xs text-muted-foreground">Click a status badge to filter the roster below.</p>
         </div>
 
         {/* Qualification Queue */}

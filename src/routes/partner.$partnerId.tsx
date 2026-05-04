@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { usePartner, levelFromAvg, statusLabel, tierColor, type PartnerRow } from "../lib/partners-store";
 import { AXES } from "../content/octa";
-import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer } from "recharts";
+import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, ResponsiveContainer, Tooltip } from "recharts";
 import { toast } from "sonner";
 import { PARTNER_TYPES, type PartnerType } from "@/lib/partner-types";
 import { PartnerTypeChip } from "@/components/PartnerFilterBar";
@@ -264,13 +264,64 @@ function Overview({
         <div className="h-[340px]">
           <ResponsiveContainer width="100%" height="100%">
             <RadarChart data={radarData} outerRadius="75%">
-              <PolarGrid stroke="oklch(0.4 0.02 265 / 0.4)" />
-              <PolarAngleAxis dataKey="axis" tick={{ fill: "oklch(0.85 0.01 250)", fontSize: 12, fontFamily: "Space Grotesk" }} />
-              <PolarRadiusAxis angle={90} domain={[0, 5]} tick={{ fill: "oklch(0.6 0.02 260)", fontSize: 10 }} />
+              <defs>
+                <radialGradient id="radarFill" cx="50%" cy="50%" r="65%">
+                  <stop offset="0%" stopColor="var(--primary)" stopOpacity={0.55} />
+                  <stop offset="100%" stopColor="var(--secondary)" stopOpacity={0.18} />
+                </radialGradient>
+                <filter id="radarGlow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="2.4" result="b" />
+                  <feMerge>
+                    <feMergeNode in="b" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+              <PolarGrid stroke="color-mix(in oklab, var(--primary) 22%, transparent)" />
+              <PolarAngleAxis
+                dataKey="axis"
+                tick={{ fill: "var(--foreground)", fontSize: 12, fontWeight: 600 }}
+              />
+              <PolarRadiusAxis
+                angle={90}
+                domain={[0, 5]}
+                tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
+                stroke="transparent"
+              />
               {compare && (
-                <Radar name={`Previous · ${fmtDate(compare.created_at)}`} dataKey="compare" stroke="var(--muted-foreground)" fill="var(--muted-foreground)" fillOpacity={0.15} />
+                <Radar
+                  name={`Previous · ${fmtDate(compare.created_at)}`}
+                  dataKey="compare"
+                  stroke="var(--muted-foreground)"
+                  strokeDasharray="4 4"
+                  fill="var(--muted-foreground)"
+                  fillOpacity={0.1}
+                  isAnimationActive
+                  animationDuration={650}
+                />
               )}
-              <Radar name={selected ? fmtDate(selected.created_at) : data.partner!.name} dataKey="score" stroke="var(--primary)" fill="var(--primary)" fillOpacity={0.35} />
+              <Radar
+                name={selected ? fmtDate(selected.created_at) : data.partner!.name}
+                dataKey="score"
+                stroke="var(--primary)"
+                strokeWidth={2}
+                fill="url(#radarFill)"
+                fillOpacity={0.9}
+                filter="url(#radarGlow)"
+                isAnimationActive
+                animationDuration={750}
+              />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 12,
+                  border: "1px solid var(--border)",
+                  background: "rgba(255,255,255,0.96)",
+                  backdropFilter: "blur(8px)",
+                  boxShadow: "0 10px 28px -10px rgba(255,192,203,0.55)",
+                  fontSize: 12,
+                }}
+                labelStyle={{ color: "var(--foreground)", fontWeight: 600 }}
+              />
             </RadarChart>
           </ResponsiveContainer>
         </div>
