@@ -1,8 +1,10 @@
-import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState } from "@tanstack/react-router";
+import { Outlet, Link, createRootRoute, HeadContent, Scripts, useRouterState, useNavigate } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import alliaraLogo from "@/assets/alliara-logo.png";
+import Dock from "@/components/ui/dock";
+import { Users, ClipboardCheck, BarChart3, Trophy, Settings as SettingsIcon, LogOut } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -71,12 +73,23 @@ function RootComponent() {
 function AppFrame() {
   const { user, loading, signOut } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const isApp = path.startsWith("/dashboard") || path.startsWith("/diagnostic") || path.startsWith("/axis") || path.startsWith("/profile");
   const isLanding = path === "/";
+  const navigate = useNavigate();
 
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
   }
+
+  const dockItems = user
+    ? [
+        { icon: Users, label: "Portfolio", active: path.startsWith("/partners") || path.startsWith("/partner"), onClick: () => navigate({ to: "/partners" }) },
+        { icon: ClipboardCheck, label: "Qualification", active: path.startsWith("/qualification"), onClick: () => navigate({ to: "/qualification" }) },
+        { icon: BarChart3, label: "Reports", active: path.startsWith("/reports"), onClick: () => navigate({ to: "/reports" }) },
+        { icon: Trophy, label: "My Performance", active: path.startsWith("/dashboard") || path.startsWith("/axis") || path.startsWith("/diagnostic"), onClick: () => navigate({ to: "/dashboard" }) },
+        { icon: SettingsIcon, label: "Settings", active: path.startsWith("/settings"), onClick: () => navigate({ to: "/settings" }) },
+        { icon: LogOut, label: "Sign out", onClick: () => signOut() },
+      ]
+    : [];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -103,13 +116,7 @@ function AppFrame() {
                 </>
               ) : null
             ) : user ? (
-              <>
-                <Link to="/partners" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>Portfolio</Link>
-                <Link to="/qualification" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>Qualification</Link>
-                <Link to="/reports" className="px-3 py-1.5 rounded-md hover:bg-surface-2" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>Reports</Link>
-                <Link to="/dashboard" className="px-3 py-1.5 rounded-md hover:bg-surface-2 text-muted-foreground" activeProps={{ className: "px-3 py-1.5 rounded-md bg-surface-2 text-foreground" }}>My Performance</Link>
-                <button onClick={() => signOut()} className="ml-2 text-muted-foreground hover:text-foreground">Sign out</button>
-              </>
+              <span className="text-xs text-muted-foreground hidden sm:inline">Signed in</span>
             ) : (
               <>
                 <Link to="/login" className="px-3 py-1.5 rounded-md hover:bg-surface-2">Sign in</Link>
@@ -120,9 +127,11 @@ function AppFrame() {
         </div>
       </header>
 
-      <main className={isApp ? "flex-1" : "flex-1"}>
+      <main className="flex-1">
         <Outlet />
       </main>
+
+      {user && !isLanding && <Dock items={dockItems} />}
 
       {!isLanding && (
         <footer className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
