@@ -47,6 +47,7 @@ function QualificationPage() {
   const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
   const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
   const leadTasks = useAllLeadTasks(user?.id, leadsStore.leads);
+  const [view, setView] = useState<"kanban" | "list">("kanban");
 
   const ownerScope = useOwnerScope({
     items: leadsStore.leads,
@@ -235,6 +236,72 @@ function QualificationPage() {
         ) : leadsStore.leads.length === 0 ? (
           <EmptyState onAdd={() => setShowNew(true)} />
         ) : (
+          <>
+          <div className="mb-3 flex items-center justify-between">
+            <div className="seg-candy">
+              <button onClick={() => setView("kanban")} className="seg-candy-item" data-active={view === "kanban"}>Kanban</button>
+              <button onClick={() => setView("list")} className="seg-candy-item" data-active={view === "list"}>List</button>
+            </div>
+            <span className="text-xs text-muted-foreground">{visibleLeads.length} lead{visibleLeads.length === 1 ? "" : "s"}</span>
+          </div>
+          {view === "list" ? (
+            <div className="overflow-x-auto rounded-2xl border border-border/60 bg-card">
+              <table className="w-full text-sm">
+                <thead className="bg-surface/60 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                  <tr>
+                    <th className="text-left px-3 py-2">Company</th>
+                    <th className="text-left px-3 py-2">Type</th>
+                    <th className="text-left px-3 py-2">Score</th>
+                    <th className="text-left px-3 py-2">Status</th>
+                    <th className="text-left px-3 py-2">Next step</th>
+                    {leadsStore.isLeadership && <th className="text-left px-3 py-2">PDM</th>}
+                    <th className="text-right px-3 py-2">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {visibleLeads.map((lead) => {
+                    const total = computeFactorialTotal(lead);
+                    const verdict = factorialVerdict(total);
+                    const stLabel = LEAD_STATUSES.find((s) => s.key === lead.status)?.label ?? lead.status;
+                    return (
+                      <tr key={lead.id} className="border-t border-border/60 hover:bg-surface/40 cursor-pointer" onClick={() => setActiveId(lead.id)}>
+                        <td className="px-3 py-2">
+                          <div className="font-medium">{lead.company_name}</div>
+                          <div className="text-xs text-muted-foreground">{lead.contact_person ?? "—"}</div>
+                        </td>
+                        <td className="px-3 py-2">{lead.partner_type ? <PartnerTypeChip type={lead.partner_type} /> : <span className="text-xs text-muted-foreground">—</span>}</td>
+                        <td className="px-3 py-2">
+                          {verdict && total !== null ? (
+                            <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md ${toneClass(verdict.tone)}`}>
+                              {total}/15 · {verdict.label}
+                            </span>
+                          ) : <span className="text-xs text-muted-foreground">Not scored</span>}
+                        </td>
+                        <td className="px-3 py-2 text-xs">{stLabel}</td>
+                        <td className="px-3 py-2 text-xs text-muted-foreground">{lead.next_step_at ?? "—"}</td>
+                        {leadsStore.isLeadership && <td className="px-3 py-2 text-xs">{ownerNames.get(lead.owner_id) ?? "—"}</td>}
+                        <td className="px-3 py-2 text-right" onClick={(e) => e.stopPropagation()}>
+                          {!lead.promoted_partner_id && lead.status !== "rejected" ? (
+                            <button
+                              onClick={() => promoteLeadToPartner(lead)}
+                              className="rounded-md bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 text-[11px] font-semibold px-2 py-1 transition"
+                            >
+                              Promote →
+                            </button>
+                          ) : lead.promoted_partner_id ? (
+                            <Link to="/partner/$partnerId" params={{ partnerId: lead.promoted_partner_id }} className="text-xs underline text-muted-foreground hover:text-foreground">Open</Link>
+                          ) : <span className="text-xs text-muted-foreground">—</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+              {visibleLeads.length === 0 && (
+                <div className="text-sm text-muted-foreground py-8 text-center">No leads match the filters.</div>
+              )}
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {LEAD_STATUSES.map((col) => {
               const items = visibleLeads.filter((l) => l.status === col.key);
@@ -288,6 +355,8 @@ function QualificationPage() {
               );
             })}
           </div>
+          )}
+          </>
         )}
       </div>
 
