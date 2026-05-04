@@ -116,7 +116,7 @@ export const PrismaHero = ({
   const segments: Segment[] = headlineSegments ?? [];
 
   return (
-    <section className="relative w-full h-[calc(100vh-5rem)] -mt-20 pt-20 overflow-hidden bg-black">
+    <section className="relative w-full h-[calc((100vh-5rem)/2)] min-h-[420px] -mt-20 pt-20 overflow-hidden bg-black">
       <style dangerouslySetInnerHTML={{ __html: PRISMA_KEYFRAMES }} />
 
       {/* Layer 1 — Background video (full-bleed) */}
@@ -172,7 +172,7 @@ export const PrismaHero = ({
       />
 
       {/* Hero content */}
-      <div className="relative z-10 h-full flex items-end px-6 sm:px-10 pb-16 sm:pb-24">
+      <div className="relative z-10 h-full flex items-end px-6 sm:px-10 pb-8 sm:pb-12">
         <div className="mx-auto max-w-6xl w-full animate-fade-in">
           <div className="max-w-2xl text-white">
             {eyebrow && (
