@@ -270,6 +270,30 @@ function PartnersPage() {
     return { count: filtered.length, scored: scored.length, avg };
   }, [filtered]);
 
+  // Top partners by Open MRR — drives the bar chart below the KPIs.
+  const topMrrData = useMemo<BarDatum[]>(() => {
+    const rows = scoped
+      .map((it) => {
+        const r = revenueMap.get(it.partner.id);
+        return {
+          name: it.partner.name,
+          mrr: r?.mrr ?? 0,
+          maturity: it.latest ? Number(it.latest.overall) : 0,
+        };
+      })
+      .filter((r) => r.mrr > 0)
+      .sort((a, b) => b.mrr - a.mrr)
+      .slice(0, 8);
+    return rows.map((r) => ({
+      label: r.name.length > 14 ? r.name.slice(0, 13) + "…" : r.name,
+      value: r.mrr,
+      secondary:
+        r.maturity > 0
+          ? { label: "Maturity", value: r.maturity.toFixed(1) }
+          : undefined,
+    }));
+  }, [scoped, revenueMap]);
+
   // Pending leads = leads not yet approved/rejected
   const pendingLeads = leads.leads.filter((l) => l.status === "new" || l.status === "in_review");
   const overdueActions = openActions.filter((a) => isOverdue(a.due_date));
