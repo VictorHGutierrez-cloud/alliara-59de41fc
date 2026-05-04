@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as QualificationRouteImport } from './routes/qualification'
 import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as DashboardRouteImport } from './routes/dashboard'
@@ -51,6 +52,11 @@ const QualificationRoute = QualificationRouteImport.update({
 const PartnersRoute = PartnersRouteImport.update({
   id: '/partners',
   path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MethodologyRoute = MethodologyRouteImport.update({
+  id: '/methodology',
+  path: '/methodology',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -126,6 +132,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
+  '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
+  '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
@@ -167,6 +175,7 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
+  '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diagnostic'
     | '/login'
+    | '/methodology'
     | '/partners'
     | '/qualification'
     | '/reports'
@@ -209,6 +219,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diagnostic'
     | '/login'
+    | '/methodology'
     | '/partners'
     | '/qualification'
     | '/reports'
@@ -229,6 +240,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/diagnostic'
     | '/login'
+    | '/methodology'
     | '/partners'
     | '/qualification'
     | '/reports'
@@ -250,6 +262,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   DiagnosticRoute: typeof DiagnosticRoute
   LoginRoute: typeof LoginRoute
+  MethodologyRoute: typeof MethodologyRoute
   PartnersRoute: typeof PartnersRoute
   QualificationRoute: typeof QualificationRoute
   ReportsRoute: typeof ReportsRoute
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       path: '/partners'
       fullPath: '/partners'
       preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/methodology': {
+      id: '/methodology'
+      path: '/methodology'
+      fullPath: '/methodology'
+      preLoaderRoute: typeof MethodologyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -418,6 +438,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   DiagnosticRoute: DiagnosticRoute,
   LoginRoute: LoginRoute,
+  MethodologyRoute: MethodologyRoute,
   PartnersRoute: PartnersRoute,
   QualificationRoute: QualificationRoute,
   ReportsRoute: ReportsRoute,
