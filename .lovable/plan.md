@@ -1,69 +1,78 @@
-## Goal
+## Objetivo
 
-Pegar os elementos mais bonitos do componente de referência (área empilhada com gradientes, gridlines suaves, lista de métricas com ícones + setinhas de tendência) e trazê-los para os Reports — mantendo o visual "candy" atual e **sem instalar `reaviz`** (é pesado, traz d3 inteiro e quebra em SSR). Vamos reproduzir tudo com `recharts` + SVG, que já usamos.
+A seção **Your partners** em `/partners` hoje usa um grid de cards (`sm:grid-cols-2 lg:grid-cols-3`) que fica visualmente pesado quando há muitos parceiros: muita repetição, scroll longo e difícil escanear. Vou trocar pela mesma `CandyDataTable` que já usamos em Qualification e no Top Partners do Revenue Report — densa, animada, com avatares, status pills, ação no hover e bulk action bar flutuante.
 
-## O que vamos adicionar
+O resto da página (header, briefing, KPIs, Growth Initiatives) **fica igual**. A mudança é cirúrgica: só o roster.
 
-### 1. Novo gráfico: `CandyStackedArea` em `src/components/ui/candy-charts.tsx`
-Área empilhada estilo o componente de referência, com:
-- gradientes verticais por série (rosa pastel → magenta → vinho, mas usando tokens `var(--primary)`, `var(--secondary)`, `var(--octa-4)` etc.)
-- linhas de topo finas, gridlines tracejadas suaves (igual ao `CandyBarChart`)
-- tooltip glassy candy (reaproveitando o estilo já existente)
-- legenda compacta com bolinhas coloridas
-- animação de entrada (`isAnimationActive`)
-- empty-state coerente com os outros charts
+## Como vai ficar
 
-API:
-```ts
-CandyStackedArea({
-  data: { label: string; [seriesKey: string]: number | string }[],
-  series: { key: string; label: string; color: string }[],
-  height?: number,
-  valueFormatter?: (n: number) => string,
-})
+```text
+Roster                                                    [+ Add partner]
+[search]  [type ▼]  [sort ▼]
+┌────────────────────────────────────────────────────────────────────┐
+│ ☐ │ PARTNER          │ STATUS    │ TYPE       │ OWNER  │ MRR │ MAT│
+├────────────────────────────────────────────────────────────────────┤
+│ ☐ │ (A) Acme Corp    │ Scaling   │ Reseller   │ Victor │ $4k │ 3.8│
+│ ☐ │ (B) Bright Co    │ Developing│ Referral   │ Maria  │ $1k │ 2.4│   ← hover: [Open →]
+│ ☑ │ (C) Cobalt Ltd   │ Churn Risk│ Strategic  │ Victor │  —  │ 4.1│
+└────────────────────────────────────────────────────────────────────┘
+                  [ 2 selected · Status ▾ · Tier ▾ · Reassign · Delete · ✕ ]
+                  (barra flutuante já existente, acima do Dock)
 ```
 
-### 2. Nova seção "Trend" no `OverviewReport`
-Hoje o Overview tem KPIs + composição + barras "partners added". Vamos:
-- **manter** os 3 KPIs e a composição
-- **substituir** o bar chart "Partners added · last 6 months" por uma **área empilhada de 6 meses** mostrando: `Scaling`, `Developing`, `Churn Risk` (snapshot do status dos partners criados em cada mês).
-- Nova função em `aggregations.ts`: `statusTrendByMonth(items, months)` que retorna `[{ label, active, nurturing, at_risk }]`.
+## Mudanças
 
-Isso mostra crescimento **e** saúde ao longo do tempo — muito mais útil que só contagem.
+### 1. `src/routes/partners.tsx` — substituir o grid de cards
 
-### 3. KPI tiles no estilo "métricas detalhadas" do componente de referência
-Criar um novo componente `KpiTile` (em `src/components/reports/KpiTile.tsx`) que substitui o `Kpi` inline atual:
-- ícone colorido à esquerda (`lucide-react`: `TrendingUp`, `Users`, `Sparkles`, `DollarSign`)
-- label + valor grande
-- badge de tendência (▲ verde / ▼ vermelho) com delta vs período anterior
-- hover sutil (scale + sombra rosada)
-- animação de entrada com `framer-motion` (já está no projeto)
+Trocar o bloco `<div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">…PartnerCard…</div>` (linhas ~721-745) por uma `CandyDataTable` com estas colunas:
 
-Aplicar nos Overview KPIs e reaproveitar onde fizer sentido (ex.: Pipeline e Revenue podem ganhar uma linha de KPIs no topo também).
+| Coluna | Conteúdo | Width |
+|---|---|---|
+| Partner | `CandyAvatar` + nome (link para `/partner/$partnerId`) + company em segunda linha | `minmax(220px,2fr)` |
+| Status | `StatusPill` com tone derivado (active=success, nurturing=info, at_risk=danger, paused=muted, archived=muted) | `140px` |
+| Type | Chip pequeno reusando `PartnerTypeChip` | `130px` |
+| Tier | label minúsculo colorido com `var(--{tierColor})` | `110px` |
+| Owner | nome do PDM (só aparece em leadership view ou quando `ownerNames` disponível) | `140px` |
+| MRR | `fmtMoney(revenueMap.get(id)?.mrr)` align right, mono | `100px` |
+| Maturity | nível 1-5 + mini barra colorida (ou "—") align right | `100px` |
+| Actions | hover-only: botão **Open →** que navega para o partner | `90px` |
 
-### 4. Aplicar o novo chart em outro lugar útil
-- **PipelineReport**: adicionar uma área empilhada "Leads por mês × status" acima do funil atual (usando `leadTrendByMonth` — nova função agregadora).
+Configuração:
+- `selectable` ativo — substitui o checkbox "Select all visible" atual e a `BulkActionBar` inline.
+- `bulkActions`: **Mark Active**, **Mark At Risk**, **Reassign…**, **Delete** (vermelho) — chamando os handlers `bulkUpdate` / `setReassignOpen(true)` / `bulkDelete` que já existem.
+- `onRowClick`: navega para `/partner/$partnerId`.
+- `empty`: mantém o `<EmptyState onAdd={…} />` atual quando `sorted` vier vazio.
 
-## Arquivos a editar/criar
+### 2. Remover código que vira redundante
 
-**Editar:**
-- `src/components/ui/candy-charts.tsx` — adicionar `CandyStackedArea`
-- `src/lib/reports/aggregations.ts` — adicionar `statusTrendByMonth` e `leadTrendByMonth`
-- `src/components/reports/OverviewReport.tsx` — usar `KpiTile` + trocar bar chart por área empilhada
-- `src/components/reports/PipelineReport.tsx` — adicionar bloco de tendência
+- O `<label>` "Select all visible" + `clearSelection` button (linhas 677-705) — a tabela já gerencia seleção.
+- O `<BulkActionBar count=… />` inline (linhas 707-719) — substituído pela `bulkActions` flutuante da `CandyDataTable`. **Mantemos** a função `BulkActionBar` no arquivo caso outra view use, mas paramos de renderizar aqui (ou removemos se ninguém mais importa).
+- O componente `PartnerCard` continua no arquivo mas deixa de ser referenciado. Vou removê-lo para enxugar.
 
-**Criar:**
-- `src/components/reports/KpiTile.tsx` — tile reutilizável com ícone + delta + animação
+### 3. Pequenos ajustes de UX
 
-## Decisões técnicas
+- Manter os filtros (`PartnerFilterBar`: search/type/sort) **acima** da tabela, idênticos.
+- Manter o header da seção (`Your partners` + botão `+ Add partner`).
+- Linha com `at_risk` recebe um leve tint vermelho via `className` extra na cell (passando uma `className` calculada por linha através de `cell` wrappers — não precisa estender a API da tabela).
+- A bulk action bar da `CandyDataTable` já se posiciona acima do Dock (`bottom: calc(... + 116px)`), então não conflita.
 
-- **Sem `reaviz`**: usamos `recharts` (`AreaChart`, `Area`, `defs`/`linearGradient`) que já está em uso. Mesma feel visual, zero peso extra.
-- **`framer-motion`** já está instalado (foi adicionado no Dock). Sem novas deps.
-- Cores continuam vindo dos tokens CSS (`var(--primary)`, `var(--success)`, `var(--warning)`, `var(--destructive)`) para manter consistência com o resto do app e respeitar a paleta candy.
-- Tudo continua exportável via os botões CSV/PNG do `ReportCard` existente — sem mudar o framework de export.
+## Detalhes técnicos
 
-## Fora de escopo (proposta para depois, se gostar)
-- Trocar o donut por um "ring chart" com microanimações de pulse
-- Adicionar sparklines mini dentro de cada `KpiTile`
+- `StatusPill` tone mapping:
+  ```ts
+  const STATUS_TONE = {
+    active: "success", nurturing: "info",
+    at_risk: "danger", paused: "muted", archived: "muted",
+  } as const;
+  ```
+- A coluna **Maturity** mostra `it.latest ? Number(it.latest.overall).toFixed(1) : "—"` + uma barrinha de 32px com `width: (avg/5)*100%` colorida via `var(--primary)`.
+- A coluna **Owner** só é incluída no array `columns` se `portfolio.isLeadership` (mesma regra que o card já usa).
+- `rowKey: (it) => it.partner.id` — alinha com o estado de `selectedIds` que já temos (mas migra para o estado interno da tabela; os handlers passam a receber `selectedIds: string[]` da `bulkAction.onClick`).
 
-Quer que eu execute esse plano?
+## Fora de escopo
+
+- Não mexo em Growth Initiatives, KPIs, header, dialogs (`NewPartnerDialog`, `ActionDetailSheet`, `BulkReassignDialog`).
+- Não mudo a página `/qualification` nem `RevenueReport`.
+- Sem migrações de banco.
+
+Confirma que posso aplicar?
