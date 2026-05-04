@@ -261,3 +261,205 @@ export function CandyComposition({
     </div>
   );
 }
+
+/* ───────── Horizontal stacked rows (e.g. status mix per PDM) ───────── */
+
+export interface StackedRow {
+  label: string;
+  segments: CompositionSegment[];
+  total: number;
+}
+
+export function CandyHorizontalStacked({
+  rows,
+  legend,
+  rowHeight = 18,
+  labelWidth = 140,
+}: {
+  rows: StackedRow[];
+  legend: { label: string; color: string }[];
+  rowHeight?: number;
+  labelWidth?: number;
+}) {
+  if (rows.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border/60 bg-surface/40 p-6 text-center text-xs text-muted-foreground">
+        No data for the current filters.
+      </div>
+    );
+  }
+  const maxTotal = Math.max(1, ...rows.map((r) => r.total));
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+        {legend.map((l, i) => (
+          <span key={i} className="inline-flex items-center gap-1.5">
+            <span className="h-2 w-2 rounded-full" style={{ background: l.color }} />
+            <span className="text-foreground">{l.label}</span>
+          </span>
+        ))}
+      </div>
+      <div className="space-y-2">
+        {rows.map((r) => {
+          const widthPct = (r.total / maxTotal) * 100;
+          return (
+            <div key={r.label} className="flex items-center gap-3">
+              <div
+                className="text-xs text-foreground font-medium truncate"
+                style={{ width: labelWidth, minWidth: labelWidth }}
+                title={r.label}
+              >
+                {r.label}
+              </div>
+              <div className="flex-1 flex items-center gap-2 min-w-0">
+                <div
+                  className="flex overflow-hidden rounded-full border border-border/60 bg-surface-2"
+                  style={{ height: rowHeight, width: `${widthPct}%`, minWidth: 6 }}
+                >
+                  {r.segments.map((s, i) => {
+                    const pct = r.total > 0 ? (s.value / r.total) * 100 : 0;
+                    if (pct <= 0) return null;
+                    return (
+                      <div
+                        key={i}
+                        title={`${s.label}: ${s.value} (${pct.toFixed(0)}%)`}
+                        style={{
+                          width: `${pct}%`,
+                          background: `linear-gradient(180deg, ${s.color}, color-mix(in oklab, ${s.color} 70%, white))`,
+                          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.45)",
+                          transition: "width 600ms ease",
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+                <span className="text-[11px] font-mono tabular-nums text-muted-foreground">{r.total}</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ───────── Donut (categorical breakdown) ───────── */
+
+export interface DonutSlice {
+  label: string;
+  value: number;
+  color: string;
+  onClick?: () => void;
+}
+
+export function CandyDonut({
+  slices,
+  size = 200,
+  thickness = 28,
+  centerLabel,
+  centerValue,
+}: {
+  slices: DonutSlice[];
+  size?: number;
+  thickness?: number;
+  centerLabel?: string;
+  centerValue?: string;
+}) {
+  const total = slices.reduce((s, x) => s + x.value, 0);
+  const radius = (size - thickness) / 2;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  if (total === 0) {
+    return (
+      <div
+        className="flex items-center justify-center rounded-xl border border-dashed border-border/60 bg-surface/40 text-xs text-muted-foreground"
+        style={{ width: size, height: size }}
+      >
+        No data
+      </div>
+    );
+  }
+
+  let start = -Math.PI / 2;
+  const arcs = slices.map((s) => {
+    const angle = (s.value / total) * Math.PI * 2;
+    const end = start + angle;
+    const x1 = cx + radius * Math.cos(start);
+    const y1 = cy + radius * Math.sin(start);
+    const x2 = cx + radius * Math.cos(end);
+    const y2 = cy + radius * Math.sin(end);
+    const largeArc = angle > Math.PI ? 1 : 0;
+    const path = `M ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2}`;
+    const out = { ...s, path, pct: (s.value / total) * 100 };
+    start = end;
+    return out;
+  });
+
+  return (
+    <div className="flex items-center gap-5 flex-wrap">
+      <svg width={size} height={size} role="img" aria-label="Donut chart">
+        <defs>
+          <filter id="donutShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="3" stdDeviation="3" floodColor="rgba(255,192,203,0.5)" />
+          </filter>
+        </defs>
+        {arcs.map((a, i) => (
+          <path
+            key={i}
+            d={a.path}
+            fill="none"
+            stroke={a.color}
+            strokeWidth={thickness}
+            strokeLinecap="butt"
+            filter="url(#donutShadow)"
+            onClick={a.onClick}
+            style={{ cursor: a.onClick ? "pointer" : "default", transition: "opacity 160ms ease" }}
+          >
+            <title>{`${a.label}: ${a.value} (${a.pct.toFixed(0)}%)`}</title>
+          </path>
+        ))}
+        {(centerLabel || centerValue) && (
+          <g>
+            {centerValue && (
+              <text
+                x={cx}
+                y={cy - 2}
+                textAnchor="middle"
+                style={{ fontSize: 22, fontWeight: 700, fill: "var(--foreground)", fontFamily: "var(--font-display)" }}
+              >
+                {centerValue}
+              </text>
+            )}
+            {centerLabel && (
+              <text
+                x={cx}
+                y={cy + 16}
+                textAnchor="middle"
+                style={{ fontSize: 10, fill: "var(--muted-foreground)", letterSpacing: 1, textTransform: "uppercase" }}
+              >
+                {centerLabel}
+              </text>
+            )}
+          </g>
+        )}
+      </svg>
+      <div className="space-y-1.5 text-xs">
+        {arcs.map((a, i) => (
+          <button
+            key={i}
+            onClick={a.onClick}
+            disabled={!a.onClick}
+            className={`flex items-center gap-2 ${a.onClick ? "hover:text-foreground" : ""} text-muted-foreground`}
+          >
+            <span className="h-2.5 w-2.5 rounded-full" style={{ background: a.color }} />
+            <span className="text-foreground font-medium">{a.label}</span>
+            <span className="font-mono tabular-nums">
+              {a.value} · {a.pct.toFixed(0)}%
+            </span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
