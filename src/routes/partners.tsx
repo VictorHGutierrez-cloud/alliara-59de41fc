@@ -3,13 +3,13 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
-  usePortfolio, levelFromAvg, statusLabel, tierColor,
+  usePortfolio, statusLabel, tierColor,
   type PortfolioItem, type ActionRow,
 } from "../lib/partners-store";
 import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
-import { Check, Focus, X as XIcon, Target, Trash2, ChevronDown } from "lucide-react";
+import { Check, Focus, X as XIcon, Target } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
@@ -17,6 +17,7 @@ import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { BulkReassignDialog, type ReassignAssignment, type ReassignItem } from "@/components/BulkReassignDialog";
 import { CandyBarChart, CandyComposition, type BarDatum } from "@/components/ui/candy-charts";
+import { CandyDataTable, CandyAvatar, StatusPill, type StatusTone, type CandyColumn } from "@/components/ui/candy-data-table";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Alliara" }] }),
@@ -42,9 +43,9 @@ function PartnersPage() {
   const [focusMode, setFocusMode] = useState(false);
   const [selectedAction, setSelectedAction] = useState<EnrichedAction | null>(null);
   const [completing, setCompleting] = useState<string | null>(null);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
+  const [selectedForReassign, setSelectedForReassign] = useState<string[]>([]);
 
   const ownerScope = useOwnerScope({
     items: portfolio.items,
@@ -91,7 +92,7 @@ function PartnersPage() {
       }
       toast.success(`${total} partner${total === 1 ? "" : "s"} reassigned`);
       setReassignOpen(false);
-      clearSelection();
+      setSelectedForReassign([]);
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -100,27 +101,16 @@ function PartnersPage() {
     }
   };
 
-  const toggleSelect = (id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  };
-  const clearSelection = () => setSelectedIds(new Set());
-
-  const bulkUpdate = async (patch: { status?: string; tier?: string; partner_type?: string; owner_id?: string }, label: string) => {
-    if (selectedIds.size === 0) return;
+  const bulkUpdate = async (ids: string[], patch: { status?: string; tier?: string; partner_type?: string; owner_id?: string }, label: string) => {
+    if (ids.length === 0) return;
     setBulkBusy(true);
     try {
-      const ids = [...selectedIds];
       const { error, count } = await supabase
         .from("partners")
         .update(patch as never, { count: "exact" })
         .in("id", ids);
       if (error) throw error;
       toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} → ${label}`);
-      clearSelection();
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -129,9 +119,8 @@ function PartnersPage() {
     }
   };
 
-  const bulkDelete = async () => {
-    if (selectedIds.size === 0) return;
-    const ids = [...selectedIds];
+  const bulkDelete = async (ids: string[]) => {
+    if (ids.length === 0) return;
     const names = portfolio.items
       .filter((it) => ids.includes(it.partner.id))
       .map((it) => it.partner.name);
@@ -144,7 +133,6 @@ function PartnersPage() {
         .in("id", ids);
       if (error) throw error;
       toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} deleted`);
-      clearSelection();
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -672,78 +660,21 @@ function PartnersPage() {
           ) : sorted.length === 0 ? (
             <EmptyState onAdd={() => setShowNew(true)} />
           ) : (
-            <>
-              {/* Select-all toolbar */}
-              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
-                <label className="inline-flex items-center gap-2 cursor-pointer hover:text-foreground transition">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-border accent-[color:var(--primary)]"
-                    checked={sorted.length > 0 && sorted.every((it) => selectedIds.has(it.partner.id))}
-                    ref={(el) => {
-                      if (el) {
-                        const some = sorted.some((it) => selectedIds.has(it.partner.id));
-                        const all = sorted.every((it) => selectedIds.has(it.partner.id));
-                        el.indeterminate = some && !all;
-                      }
-                    }}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedIds(new Set(sorted.map((it) => it.partner.id)));
-                      } else {
-                        clearSelection();
-                      }
-                    }}
-                  />
-                  Select all visible ({sorted.length})
-                </label>
-                {selectedIds.size > 0 && (
-                  <button onClick={clearSelection} className="underline hover:text-foreground">
-                    Clear ({selectedIds.size})
-                  </button>
-                )}
-              </div>
-
-              {selectedIds.size > 0 && (
-                <BulkActionBar
-                  count={selectedIds.size}
-                  busy={bulkBusy}
-                  onSetStatus={(s, label) => bulkUpdate({ status: s }, label)}
-                  onSetTier={(t, label) => bulkUpdate({ tier: t }, label)}
-                  onSetType={(t, label) => bulkUpdate({ partner_type: t }, label)}
-                  onDelete={bulkDelete}
-                  onClear={clearSelection}
-                  pdms={pdmRoster.pdms}
-                  onOpenReassign={() => setReassignOpen(true)}
-                />
-              )}
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sorted.map((it) => (
-                  <PartnerCard
-                    key={it.partner.id}
-                    item={it}
-                    revenue={revenueMap.get(it.partner.id)}
-                    selected={selectedIds.has(it.partner.id)}
-                    onToggleSelect={() => toggleSelect(it.partner.id)}
-                    isLeadership={portfolio.isLeadership}
-                    ownerName={ownerNames.get(it.partner.owner_id) ?? null}
-                    pdms={pdmRoster.pdms}
-                    canReassign={portfolio.isLeadership || it.partner.owner_id === user.id}
-                    onReassign={(newOwnerId, newOwnerName) => reassignPartner(it.partner.id, newOwnerId, newOwnerName)}
-                    onDelete={async () => {
-                      if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
-                      try {
-                        await portfolio.deletePartner(it.partner.id);
-                        toast.success(`${it.partner.name} deleted`);
-                      } catch (e) {
-                        toast.error((e as Error).message);
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            </>
+            <PartnerRosterTable
+              rows={sorted}
+              revenueMap={revenueMap}
+              isLeadership={portfolio.isLeadership}
+              ownerNames={ownerNames}
+              onRowClick={(it) => nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })}
+              bulkActions={[
+                { label: "Mark Active",  onClick: (ids) => void bulkUpdate(ids, { status: "active" }, "Scaling"),  variant: "default" },
+                { label: "Mark At Risk", onClick: (ids) => void bulkUpdate(ids, { status: "at_risk" }, "Churn Risk"), variant: "default" },
+                ...(pdmRoster.pdms.length > 0
+                  ? [{ label: "Reassign…", onClick: (ids: string[]) => { setSelectedForReassign(ids); setReassignOpen(true); }, variant: "primary" as const }]
+                  : []),
+                { label: "Delete", onClick: (ids) => void bulkDelete(ids), variant: "danger" },
+              ]}
+            />
           )}
         </div>
       </section>
@@ -775,7 +706,7 @@ function PartnersPage() {
 
       <BulkReassignDialog
         open={reassignOpen}
-        items={[...selectedIds]
+        items={selectedForReassign
           .map((id) => portfolio.items.find((it) => it.partner.id === id))
           .filter((it): it is typeof portfolio.items[number] => Boolean(it))
           .map<ReassignItem>((it) => ({
@@ -787,7 +718,7 @@ function PartnersPage() {
         pdms={pdmRoster.pdms}
         entityLabel="partner"
         busy={bulkBusy}
-        onClose={() => setReassignOpen(false)}
+        onClose={() => { setReassignOpen(false); setSelectedForReassign([]); }}
         onConfirm={bulkReassign}
       />
     </div>
@@ -940,193 +871,155 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
   );
 }
 
-function PartnerCard({ item, onDelete, revenue, selected, onToggleSelect, isLeadership, ownerName, pdms, onReassign, canReassign }: {
-  item: PortfolioItem;
-  onDelete: () => void;
-  revenue?: { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number };
-  selected?: boolean;
-  onToggleSelect?: () => void;
-  isLeadership?: boolean;
-  ownerName?: string | null;
-  pdms?: PdmEntry[];
-  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
-  canReassign?: boolean;
-}) {
-  const overall = item.latest ? Number(item.latest.overall) : 0;
-  const lvl = overall ? levelFromAvg(overall) : 0;
-  const tColor = tierColor(item.partner.tier);
-  const scores = (item.latest?.scores ?? {}) as Record<string, number>;
-  const totalRev = (revenue?.revenue ?? 0) + (revenue?.dealsWonValue ?? 0);
+/* ─────────────────── Roster table ─────────────────── */
 
-  return (
-    <div className={`relative rounded-2xl transition ${selected ? "ring-2 ring-[color:var(--primary)] ring-offset-2 ring-offset-background" : ""}`}>
-      {onToggleSelect && (
-        <label
-          className="absolute top-2 left-2 z-10 inline-flex items-center justify-center h-6 w-6 rounded-md bg-card/90 backdrop-blur border border-border/60 cursor-pointer hover:border-[color:var(--primary)] transition"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded accent-[color:var(--primary)] cursor-pointer"
-            checked={!!selected}
-            onChange={onToggleSelect}
-            aria-label="Select partner"
-          />
-        </label>
-      )}
-      <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
-        title="Delete partner"
-        aria-label="Delete partner"
-        className="absolute top-2 right-2 z-10 rounded-md px-2 py-1 text-xs text-muted-foreground hover:text-red-400 hover:bg-surface-2 transition"
-      >
-        ✕
-      </button>
-      <Link
-        to="/partner/$partnerId"
-        params={{ partnerId: item.partner.id }}
-        className="block rounded-2xl bg-card border border-border/60 p-5 card-elev hover:-translate-y-0.5 transition"
-      >
-        <div className="flex items-start justify-between">
-          <div className={`min-w-0 ${onToggleSelect ? "pl-8" : ""}`}>
-            <div className="font-semibold truncate">{item.partner.name}</div>
-            <div className="text-xs text-muted-foreground truncate">
-              {item.partner.company ?? "—"}{item.partner.segment ? ` · ${item.partner.segment}` : ""}
-            </div>
-            <div className="mt-1.5">
-              <PartnerTypeChip type={item.partner.partner_type} />
-            </div>
-          </div>
-          <span
-            className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md mr-7"
-            style={{ background: `color-mix(in oklab, var(--${tColor}) 22%, transparent)`, color: `var(--${tColor})` }}
-          >
-            {item.partner.tier.replace("_", " ")}
-          </span>
-        </div>
-
-        <div className="mt-4 flex items-baseline gap-2">
-          <span className="text-3xl font-display font-bold text-gradient">{overall ? overall.toFixed(1) : "—"}</span>
-          <span className="text-xs text-muted-foreground">/ 5.0 · {lvl ? `Level ${lvl}` : "Not diagnosed"}</span>
-          {totalRev > 0 && (
-            <span className="ml-auto text-xs font-mono text-muted-foreground" title="Latest revenue + won deals">
-              {fmtMoney(totalRev)}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-3 flex gap-1 h-8">
-          {AXES.map((a) => {
-            const s = scores[a.key] ?? 0;
-            const h = s ? Math.max(8, (s / 5) * 100) : 4;
-            return (
-              <div key={a.key} className="flex-1 flex items-end" title={`${a.name}: ${s ? s.toFixed(1) : "—"}`}>
-                <div
-                  className="w-full rounded-sm"
-                  style={{ height: `${h}%`, background: s ? `var(--${a.color})` : "var(--surface-2)" }}
-                />
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-4 flex items-center justify-between gap-2 text-xs">
-          <StatusChip status={item.partner.status} />
-          {canReassign ?? isLeadership ? (
-            <OwnerChip
-              currentName={ownerName ?? "Unassigned"}
-              currentOwnerId={item.partner.owner_id}
-              pdms={pdms ?? []}
-              onReassign={onReassign}
-            />
-          ) : (
-            ownerName && (
-              <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground truncate max-w-[10rem]">
-                {ownerName}
-              </span>
-            )
-          )}
-        </div>
-      </Link>
-    </div>
-  );
-}
-
-function OwnerChip({
-  currentName, currentOwnerId, pdms, onReassign,
+function PartnerRosterTable({
+  rows, revenueMap, isLeadership, ownerNames, onRowClick, bulkActions,
 }: {
-  currentName: string;
-  currentOwnerId: string;
-  pdms: PdmEntry[];
-  onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
+  rows: PortfolioItem[];
+  revenueMap: Map<string, { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number }>;
+  isLeadership: boolean;
+  ownerNames: Map<string, string>;
+  onRowClick: (it: PortfolioItem) => void;
+  bulkActions: { label: string; onClick: (ids: string[]) => void; variant?: "default" | "primary" | "danger" }[];
 }) {
-  const [open, setOpen] = useState(false);
-  if (!onReassign || pdms.length === 0) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground truncate max-w-[10rem]">
-        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]/70" />
-        {currentName}
-      </span>
-    );
-  }
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
-        title="Reassign to another PDM"
-        className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-[color:var(--primary)]/60 transition truncate max-w-[10rem]"
-      >
-        <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--primary)]/70" />
-        {currentName}
-        <ChevronDown className="h-3 w-3 opacity-60" />
-      </button>
-      {open && (
-        <>
-          <div
-            className="fixed inset-0 z-30"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); }}
-          />
-          <div
-            className="absolute right-0 bottom-full mb-1 z-40 min-w-[12rem] rounded-lg border border-border bg-card p-1 shadow-lg"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
-          >
-            <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              Reassign to…
+  const STATUS_TONE: Record<PortfolioItem["partner"]["status"], StatusTone> = {
+    active: "success",
+    nurturing: "info",
+    at_risk: "danger",
+    paused: "muted",
+    archived: "muted",
+  };
+
+  const columns: CandyColumn<PortfolioItem>[] = [
+    {
+      key: "partner",
+      header: "Partner",
+      width: "minmax(220px,2fr)",
+      cell: (it) => (
+        <div className="flex items-center gap-3 min-w-0">
+          <CandyAvatar name={it.partner.name} size={32} />
+          <div className="min-w-0">
+            <div className="font-medium text-foreground truncate">{it.partner.name}</div>
+            <div className="text-xs text-muted-foreground truncate">
+              {it.partner.company ?? "—"}
+              {it.partner.segment ? ` · ${it.partner.segment}` : ""}
             </div>
-            {pdms.map((p) => (
-              <button
-                key={p.id}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setOpen(false);
-                  if (p.id !== currentOwnerId) void onReassign(p.id, p.name);
-                }}
-                className={`block w-full text-left px-3 py-1.5 text-sm rounded ${p.id === currentOwnerId ? "bg-surface-2 text-foreground" : "hover:bg-surface-2 text-muted-foreground hover:text-foreground"}`}
-              >
-                {p.name}{p.id === currentOwnerId ? " · current" : ""}
-              </button>
-            ))}
           </div>
-        </>
-      )}
-    </div>
+        </div>
+      ),
+    },
+    {
+      key: "status",
+      header: "Status",
+      width: "140px",
+      cell: (it) => (
+        <StatusPill tone={STATUS_TONE[it.partner.status]}>
+          {statusLabel(it.partner.status)}
+        </StatusPill>
+      ),
+    },
+    {
+      key: "type",
+      header: "Type",
+      width: "130px",
+      cell: (it) => <PartnerTypeChip type={it.partner.partner_type} />,
+    },
+    {
+      key: "tier",
+      header: "Tier",
+      width: "110px",
+      cell: (it) => {
+        const c = tierColor(it.partner.tier);
+        return (
+          <span
+            className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md"
+            style={{
+              background: `color-mix(in oklab, var(--${c}) 18%, transparent)`,
+              color: `var(--${c})`,
+            }}
+          >
+            {it.partner.tier.replace("_", " ")}
+          </span>
+        );
+      },
+    },
+    ...(isLeadership
+      ? [{
+          key: "owner",
+          header: "Owner",
+          width: "140px",
+          cell: (it: PortfolioItem) => (
+            <span className="text-xs font-mono text-muted-foreground truncate">
+              {ownerNames.get(it.partner.owner_id) ?? "—"}
+            </span>
+          ),
+        } satisfies CandyColumn<PortfolioItem>]
+      : []),
+    {
+      key: "mrr",
+      header: "MRR",
+      width: "100px",
+      align: "right",
+      cell: (it) => {
+        const mrr = revenueMap.get(it.partner.id)?.mrr ?? 0;
+        return (
+          <span className={`font-mono text-sm tabular-nums ${mrr > 0 ? "text-foreground" : "text-muted-foreground/50"}`}>
+            {mrr > 0 ? fmtMoney(mrr) : "—"}
+          </span>
+        );
+      },
+    },
+    {
+      key: "maturity",
+      header: "Maturity",
+      width: "110px",
+      align: "right",
+      cell: (it) => {
+        const overall = it.latest ? Number(it.latest.overall) : 0;
+        return (
+          <div className="flex items-center justify-end gap-2 w-full">
+            <div className="h-1 w-8 rounded-full bg-surface-2 overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: `${(overall / 5) * 100}%`,
+                  background: overall ? "var(--primary)" : "transparent",
+                }}
+              />
+            </div>
+            <span className={`font-mono text-sm tabular-nums ${overall ? "text-foreground" : "text-muted-foreground/50"}`}>
+              {overall ? overall.toFixed(1) : "—"}
+            </span>
+          </div>
+        );
+      },
+    },
+    {
+      key: "actions",
+      header: "",
+      width: "90px",
+      align: "right",
+      cell: () => null,
+      hoverCell: () => (
+        <span className="text-xs font-medium text-primary">Open →</span>
+      ),
+    },
+  ];
+
+  return (
+    <CandyDataTable
+      rows={rows}
+      rowKey={(it) => it.partner.id}
+      columns={columns}
+      selectable
+      onRowClick={onRowClick}
+      bulkActions={bulkActions}
+      ariaLabel="Partner roster"
+    />
   );
 }
 
-function StatusChip({ status }: { status: PortfolioItem["partner"]["status"] }) {
-  const tone = status === "at_risk" ? "text-red-300 bg-red-500/10 border-red-500/30"
-    : status === "nurturing" ? "text-yellow-200 bg-yellow-500/10 border-yellow-500/30"
-    : status === "active" ? "text-emerald-300 bg-emerald-500/10 border-emerald-500/30"
-    : "text-muted-foreground bg-surface-2 border-border/60";
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-[10px] font-mono uppercase tracking-widest ${tone}`}>
-      {statusLabel(status)}
-    </span>
-  );
-}
 
 function NewPartnerDialog({
   onClose, onCreate,
@@ -1399,116 +1292,6 @@ function Section({ title, subtitle, children }: { title: string; subtitle?: stri
       <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{title}</p>
       {subtitle && <p className="mt-0.5 text-xs text-muted-foreground/70">{subtitle}</p>}
       <div className="mt-2.5">{children}</div>
-    </div>
-  );
-}
-
-/* ─────────────────── Bulk action bar ─────────────────── */
-
-const BULK_STATUSES: { value: "active" | "nurturing" | "at_risk" | "paused" | "archived"; label: string }[] = [
-  { value: "active", label: "Scaling" },
-  { value: "nurturing", label: "Developing" },
-  { value: "at_risk", label: "Churn Risk" },
-  { value: "paused", label: "Paused" },
-  { value: "archived", label: "Archived" },
-];
-const BULK_TIERS: { value: "strategic" | "core" | "emerging" | "long_tail"; label: string }[] = [
-  { value: "strategic", label: "Strategic" },
-  { value: "core", label: "Core" },
-  { value: "emerging", label: "Emerging" },
-  { value: "long_tail", label: "Long tail" },
-];
-
-function BulkActionBar({
-  count, busy, onSetStatus, onSetTier, onSetType, onDelete, onClear, pdms, onOpenReassign,
-}: {
-  count: number;
-  busy: boolean;
-  onSetStatus: (value: "active" | "nurturing" | "at_risk" | "paused" | "archived", label: string) => void;
-  onSetTier: (value: "strategic" | "core" | "emerging" | "long_tail", label: string) => void;
-  onSetType: (value: PartnerType, label: string) => void;
-  onDelete: () => void;
-  onClear: () => void;
-  pdms?: PdmEntry[];
-  onOpenReassign?: () => void;
-}) {
-  return (
-    <div className="sticky top-2 z-30 mb-4 rounded-xl border border-[color:var(--primary)]/40 bg-card/95 backdrop-blur p-3 shadow-[0_8px_24px_-8px_rgba(255,192,203,0.5)] flex flex-wrap items-center gap-2">
-      <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[color:var(--primary)]/15 text-foreground text-sm font-medium">
-        <Check className="h-3.5 w-3.5" />
-        {count} selected
-      </span>
-
-      {pdms && pdms.length > 0 && onOpenReassign && (
-        <button
-          onClick={onOpenReassign}
-          disabled={busy}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-primary/40 bg-primary/10 text-foreground px-3 py-1.5 text-sm hover:bg-primary/20 transition disabled:opacity-50"
-        >
-          Reassign…
-        </button>
-      )}
-
-      <BulkMenu label="Set status" disabled={busy}>
-        {BULK_STATUSES.map((s) => (
-          <button key={s.value} onClick={() => onSetStatus(s.value, s.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
-            {s.label}
-          </button>
-        ))}
-      </BulkMenu>
-
-      <BulkMenu label="Set tier" disabled={busy}>
-        {BULK_TIERS.map((t) => (
-          <button key={t.value} onClick={() => onSetTier(t.value, t.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
-            {t.label}
-          </button>
-        ))}
-      </BulkMenu>
-
-      <BulkMenu label="Set type" disabled={busy}>
-        {PARTNER_TYPES.map((t) => (
-          <button key={t.key} onClick={() => onSetType(t.key, t.label)} className="block w-full text-left px-3 py-1.5 text-sm hover:bg-surface-2 rounded">
-            {t.label}
-          </button>
-        ))}
-      </BulkMenu>
-
-      <button
-        onClick={onDelete}
-        disabled={busy}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/40 bg-destructive/10 text-destructive px-3 py-1.5 text-sm font-medium hover:bg-destructive/20 transition disabled:opacity-50"
-      >
-        <Trash2 className="h-3.5 w-3.5" />
-        Delete
-      </button>
-
-      <button onClick={onClear} disabled={busy} className="ml-auto text-xs text-muted-foreground hover:text-foreground underline disabled:opacity-50">
-        Clear selection
-      </button>
-    </div>
-  );
-}
-
-function BulkMenu({ label, disabled, children }: { label: string; disabled?: boolean; children: React.ReactNode }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div className="relative">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        disabled={disabled}
-        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm hover:bg-surface-2 transition disabled:opacity-50"
-      >
-        {label}
-        <ChevronDown className="h-3.5 w-3.5" />
-      </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 mt-1 z-20 min-w-[10rem] rounded-lg border border-border bg-card p-1 shadow-lg">
-            <div onClick={() => setOpen(false)}>{children}</div>
-          </div>
-        </>
-      )}
     </div>
   );
 }
