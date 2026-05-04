@@ -1,150 +1,69 @@
-# Aba Reports — relatórios prontos com filtros e export
+## Goal
 
-Cria `/reports` (link no header, ao lado de Portfolio / Qualification / My Performance), move toda a camada de visualização da home dos parceiros pra lá, e entrega 6 relatórios fiéis aos dados que já temos hoje. Tudo com filtros editáveis e export CSV + PNG. A arquitetura já fica pronta pra plugar o "builder configurável" no próximo prompt.
+Pegar os elementos mais bonitos do componente de referência (área empilhada com gradientes, gridlines suaves, lista de métricas com ícones + setinhas de tendência) e trazê-los para os Reports — mantendo o visual "candy" atual e **sem instalar `reaviz`** (é pesado, traz d3 inteiro e quebra em SSR). Vamos reproduzir tudo com `recharts` + SVG, que já usamos.
 
----
+## O que vamos adicionar
 
-## 1. O que sai de `/partners`
+### 1. Novo gráfico: `CandyStackedArea` em `src/components/ui/candy-charts.tsx`
+Área empilhada estilo o componente de referência, com:
+- gradientes verticais por série (rosa pastel → magenta → vinho, mas usando tokens `var(--primary)`, `var(--secondary)`, `var(--octa-4)` etc.)
+- linhas de topo finas, gridlines tracejadas suaves (igual ao `CandyBarChart`)
+- tooltip glassy candy (reaproveitando o estilo já existente)
+- legenda compacta com bolinhas coloridas
+- animação de entrada (`isAnimationActive`)
+- empty-state coerente com os outros charts
 
-Removo da página de parceiros:
-
-- KPIs **Total Open MRR**, **Active partners**, **Avg maturity**
-- Card **Top partners by Open MRR** (gráfico de barras)
-- Card **Right now / Health Snapshot** (composição Scaling/Developing/Churn Risk)
-
-`/partners` fica focado em **operação** (header, briefing, qualification queue, growth initiatives, roster + bulk actions). Os atalhos de filtro do briefing (`Review N Churn Risk`, `Qualify N leads`, `N overdue`) ficam lá — são ações, não análise.
-
-Adiciono no header: aviso curto **"Métricas e relatórios mudaram para a aba Reports →"** que some depois do primeiro clique (localStorage).
-
----
-
-## 2. Nova rota `/reports`
-
-Arquivo: `src/routes/reports.tsx`. Layout:
-
-```text
-┌────────────────────────────────────────────────────────────┐
-│ Reports                            [+ Custom report (soon)] │
-│ Análise do seu portfólio. Filtre, edite, exporte.          │
-├────────────────────────────────────────────────────────────┤
-│ ▣ Filtros globais (aplicam a todos os relatórios)          │
-│   View: My / All   PDM: ▾   Tipo: ▾   Status: ▾            │
-│   Tier: ▾   Período (criação): ▾   [Reset]                 │
-├────────────────────────────────────────────────────────────┤
-│ Tabs:  Overview  ·  Revenue  ·  Health  ·  Maturity  ·     │
-│        Pipeline  ·  Mix                                     │
-└────────────────────────────────────────────────────────────┘
+API:
+```ts
+CandyStackedArea({
+  data: { label: string; [seriesKey: string]: number | string }[],
+  series: { key: string; label: string; color: string }[],
+  height?: number,
+  valueFormatter?: (n: number) => string,
+})
 ```
 
-Filtros globais ficam num `useReducer` central (`useReportFilters`) e podem ser sobrescritos por relatório individual (cada card tem um botão "Customizar este" que abre um popover de filtros locais).
+### 2. Nova seção "Trend" no `OverviewReport`
+Hoje o Overview tem KPIs + composição + barras "partners added". Vamos:
+- **manter** os 3 KPIs e a composição
+- **substituir** o bar chart "Partners added · last 6 months" por uma **área empilhada de 6 meses** mostrando: `Scaling`, `Developing`, `Churn Risk` (snapshot do status dos partners criados em cada mês).
+- Nova função em `aggregations.ts`: `statusTrendByMonth(items, months)` que retorna `[{ label, active, nurturing, at_risk }]`.
 
----
+Isso mostra crescimento **e** saúde ao longo do tempo — muito mais útil que só contagem.
 
-## 3. Os 6 relatórios prontos
+### 3. KPI tiles no estilo "métricas detalhadas" do componente de referência
+Criar um novo componente `KpiTile` (em `src/components/reports/KpiTile.tsx`) que substitui o `Kpi` inline atual:
+- ícone colorido à esquerda (`lucide-react`: `TrendingUp`, `Users`, `Sparkles`, `DollarSign`)
+- label + valor grande
+- badge de tendência (▲ verde / ▼ vermelho) com delta vs período anterior
+- hover sutil (scale + sombra rosada)
+- animação de entrada com `framer-motion` (já está no projeto)
 
-Todos derivados de `partners` + `partner_metrics` + `assessments` + `partner_leads` (dados reais que já temos). Cada um em seu próprio componente em `src/components/reports/`.
+Aplicar nos Overview KPIs e reaproveitar onde fizer sentido (ex.: Pipeline e Revenue podem ganhar uma linha de KPIs no topo também).
 
-### a. **Overview** (tab default)
-Os 3 KPIs (Total Open MRR, Active partners, Avg maturity) + composição de status (a barra Candy) + sparkline "Partners criados nos últimos 6 meses" (count por mês de `partners.created_at`).
+### 4. Aplicar o novo chart em outro lugar útil
+- **PipelineReport**: adicionar uma área empilhada "Leads por mês × status" acima do funil atual (usando `leadTrendByMonth` — nova função agregadora).
 
-### b. **Revenue — Top partners by Open MRR**
-O gráfico de barras Candy que já temos, agora com:
-- Slider "Top N" (5 / 10 / 20 / Todos)
-- Toggle de métrica: **MRR · Revenue total · Won deals value · Open deals value**
-- Tabela embaixo com os mesmos dados (Partner · PDM · Tipo · MRR · Revenue · Maturity)
+## Arquivos a editar/criar
 
-### c. **Health — Distribuição de status por PDM**
-Barras horizontais empilhadas, **uma linha por PDM**, segmentos = Scaling / Developing / Churn Risk / Paused / Archived. Permite ver de relance "quem tem mais churn risk concentrado".
+**Editar:**
+- `src/components/ui/candy-charts.tsx` — adicionar `CandyStackedArea`
+- `src/lib/reports/aggregations.ts` — adicionar `statusTrendByMonth` e `leadTrendByMonth`
+- `src/components/reports/OverviewReport.tsx` — usar `KpiTile` + trocar bar chart por área empilhada
+- `src/components/reports/PipelineReport.tsx` — adicionar bloco de tendência
 
-### d. **Maturity — Médias por dimensão**
-Barras verticais com a média de cada eixo OCTA (8 barras) cruzando todos os parceiros filtrados. Toggle "Comparar com": nenhum / outro PDM / outro tier / período anterior. Mostra quais dimensões o portfólio inteiro está fraco — input pro Copilot.
+**Criar:**
+- `src/components/reports/KpiTile.tsx` — tile reutilizável com ícone + delta + animação
 
-### e. **Pipeline — Funil de qualificação de leads**
-Funil horizontal com os stages: **New → In Review → Approved → Rejected**. Conta leads de `partner_leads` por status. Mostra também **conversion rate** (Approved / total) e **tempo médio em cada stage** (delta entre `created_at` e `updated_at` agrupado por status atual).
+## Decisões técnicas
 
-### f. **Mix — Composição do portfólio**
-Dois gráficos lado a lado:
-- **Por tipo** (Referral / Reseller / Expert) — donut Candy com %
-- **Por tier** (Strategic / Core / Emerging / Long tail) — donut Candy com %
+- **Sem `reaviz`**: usamos `recharts` (`AreaChart`, `Area`, `defs`/`linearGradient`) que já está em uso. Mesma feel visual, zero peso extra.
+- **`framer-motion`** já está instalado (foi adicionado no Dock). Sem novas deps.
+- Cores continuam vindo dos tokens CSS (`var(--primary)`, `var(--success)`, `var(--warning)`, `var(--destructive)`) para manter consistência com o resto do app e respeitar a paleta candy.
+- Tudo continua exportável via os botões CSV/PNG do `ReportCard` existente — sem mudar o framework de export.
 
-Cada slice clicável vira filtro global ("Mostre só Resellers Strategic").
+## Fora de escopo (proposta para depois, se gostar)
+- Trocar o donut por um "ring chart" com microanimações de pulse
+- Adicionar sparklines mini dentro de cada `KpiTile`
 
----
-
-## 4. Filtros editáveis (escopo desta entrega)
-
-Globais, no topo de `/reports`:
-
-| Filtro | Opções |
-|---|---|
-| View | My partners / All partners (só se leadership) |
-| PDM | All / cada PDM do roster |
-| Tipo | All / Referral / Reseller / Expert |
-| Status | All / Scaling / Developing / Churn Risk / Paused / Archived |
-| Tier | All / Strategic / Core / Emerging / Long tail |
-| Período (created_at) | Last 30d / 90d / 6m / 12m / All time / Custom (date picker) |
-
-Cada relatório individual ganha um ícone "⚙ Customize" que abre um popover com filtros específicos do relatório (ex: o Revenue ganha o seletor de métrica + Top N; o Maturity ganha o "comparar com").
-
----
-
-## 5. Export CSV + PNG
-
-Cada card de relatório tem botões `Export CSV` e `Export PNG` no canto superior direito.
-
-- **CSV**: monto a partir do dataset filtrado em memória (não chamo SSR). Helper `downloadCsv(filename, rows)` em `src/lib/report-export.ts` — sem dependência nova.
-- **PNG**: uso `html-to-image` (lib pequena, ~10kb gzip, sem dependências nativas, funciona em Worker SSR porque só roda no client). `downloadPng(nodeRef, filename)`.
-
-Bun add: `html-to-image`.
-
----
-
-## 6. Componentes reutilizáveis criados (preparam o builder)
-
-Já estruturo de um jeito que o "builder configurável" do próximo prompt seja só plugar uma config:
-
-- `src/lib/reports/use-report-filters.ts` — reducer + hook dos filtros globais.
-- `src/lib/reports/aggregations.ts` — funções puras: `groupBy`, `sumBy`, `avgBy`, `byStatus`, `byPdm`, `byType`, `byTier`, `byMonth`, `axisAverages`. Cada uma recebe `scoped` + `revenueMap` e devolve dados prontos pra chart.
-- `src/components/reports/ReportCard.tsx` — wrapper com título, descrição, botão Customize, Export CSV, Export PNG, e `forwardRef` pro export.
-- `src/components/reports/ReportFiltersBar.tsx` — barra de filtros globais.
-- `src/components/ui/candy-charts.tsx` (já existe) — adiciono `CandyDonut` e `CandyHorizontalBars` (mesma linguagem visual da `CandyBarChart`).
-
-No próximo prompt, o builder vira um `<ReportCard>` que recebe `{ metric, dimension, chartType, filters }` e usa `aggregations.ts` pra montar tudo.
-
----
-
-## 7. Header: link da nova aba
-
-Em `src/routes/__root.tsx`, adiciono entre Qualification e My Performance:
-
-```tsx
-<Link to="/reports" className="..." activeProps={{ ... }}>Reports</Link>
-```
-
----
-
-## Arquivos tocados / criados
-
-**Criados**
-- `src/routes/reports.tsx`
-- `src/components/reports/ReportCard.tsx`
-- `src/components/reports/ReportFiltersBar.tsx`
-- `src/components/reports/OverviewReport.tsx`
-- `src/components/reports/RevenueReport.tsx`
-- `src/components/reports/HealthByPdmReport.tsx`
-- `src/components/reports/MaturityReport.tsx`
-- `src/components/reports/PipelineReport.tsx`
-- `src/components/reports/MixReport.tsx`
-- `src/lib/reports/use-report-filters.ts`
-- `src/lib/reports/aggregations.ts`
-- `src/lib/report-export.ts`
-
-**Editados**
-- `src/routes/__root.tsx` — link "Reports" no header
-- `src/routes/partners.tsx` — remove KPIs, Top MRR e Health Snapshot; adiciona aviso "Métricas mudaram para Reports"
-- `src/components/ui/candy-charts.tsx` — adiciona `CandyDonut` e `CandyHorizontalBars`
-
-**Dependência nova**
-- `html-to-image` (export PNG)
-
-Sem mudanças de DB. Quando você subir as planilhas no próximo passo, a gente apenas cria um `partners-import` server function que faz upsert em `partners` + `partner_metrics` — os relatórios pegam automaticamente porque já leem dessas tabelas.
+Quer que eu execute esse plano?
