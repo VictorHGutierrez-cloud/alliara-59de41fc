@@ -117,7 +117,16 @@ function AppFrame() {
                 </>
               ) : null
             ) : user ? (
-              <span className="text-xs text-muted-foreground hidden sm:inline">Signed in</span>
+              <>
+                <Link
+                  to="/methodology"
+                  className="px-3 py-1.5 rounded-md text-sm font-medium hover:bg-surface-2 text-foreground"
+                  activeProps={{ className: "px-3 py-1.5 rounded-md text-sm font-medium bg-primary/10 text-primary" }}
+                >
+                  Methodology
+                </Link>
+                <span className="text-xs text-muted-foreground hidden sm:inline ml-2">Signed in</span>
+              </>
             ) : (
               <>
                 <Link to="/login" className="px-3 py-1.5 rounded-md hover:bg-surface-2">Sign in</Link>
