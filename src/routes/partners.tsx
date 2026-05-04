@@ -660,78 +660,21 @@ function PartnersPage() {
           ) : sorted.length === 0 ? (
             <EmptyState onAdd={() => setShowNew(true)} />
           ) : (
-            <>
-              {/* Select-all toolbar */}
-              <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
-                <label className="inline-flex items-center gap-2 cursor-pointer hover:text-foreground transition">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 rounded border-border accent-[color:var(--primary)]"
-                    checked={sorted.length > 0 && sorted.every((it) => selectedIds.has(it.partner.id))}
-                    ref={(el) => {
-                      if (el) {
-                        const some = sorted.some((it) => selectedIds.has(it.partner.id));
-                        const all = sorted.every((it) => selectedIds.has(it.partner.id));
-                        el.indeterminate = some && !all;
-                      }
-                    }}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedIds(new Set(sorted.map((it) => it.partner.id)));
-                      } else {
-                        clearSelection();
-                      }
-                    }}
-                  />
-                  Select all visible ({sorted.length})
-                </label>
-                {selectedIds.size > 0 && (
-                  <button onClick={clearSelection} className="underline hover:text-foreground">
-                    Clear ({selectedIds.size})
-                  </button>
-                )}
-              </div>
-
-              {selectedIds.size > 0 && (
-                <BulkActionBar
-                  count={selectedIds.size}
-                  busy={bulkBusy}
-                  onSetStatus={(s, label) => bulkUpdate({ status: s }, label)}
-                  onSetTier={(t, label) => bulkUpdate({ tier: t }, label)}
-                  onSetType={(t, label) => bulkUpdate({ partner_type: t }, label)}
-                  onDelete={bulkDelete}
-                  onClear={clearSelection}
-                  pdms={pdmRoster.pdms}
-                  onOpenReassign={() => setReassignOpen(true)}
-                />
-              )}
-
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sorted.map((it) => (
-                  <PartnerCard
-                    key={it.partner.id}
-                    item={it}
-                    revenue={revenueMap.get(it.partner.id)}
-                    selected={selectedIds.has(it.partner.id)}
-                    onToggleSelect={() => toggleSelect(it.partner.id)}
-                    isLeadership={portfolio.isLeadership}
-                    ownerName={ownerNames.get(it.partner.owner_id) ?? null}
-                    pdms={pdmRoster.pdms}
-                    canReassign={portfolio.isLeadership || it.partner.owner_id === user.id}
-                    onReassign={(newOwnerId, newOwnerName) => reassignPartner(it.partner.id, newOwnerId, newOwnerName)}
-                    onDelete={async () => {
-                      if (!confirm(`Delete ${it.partner.name}? This permanently removes the partner and all related diagnostics, plans, intel runs and documents.`)) return;
-                      try {
-                        await portfolio.deletePartner(it.partner.id);
-                        toast.success(`${it.partner.name} deleted`);
-                      } catch (e) {
-                        toast.error((e as Error).message);
-                      }
-                    }}
-                  />
-                ))}
-              </div>
-            </>
+            <PartnerRosterTable
+              rows={sorted}
+              revenueMap={revenueMap}
+              isLeadership={portfolio.isLeadership}
+              ownerNames={ownerNames}
+              onRowClick={(it) => nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })}
+              bulkActions={[
+                { label: "Mark Active",  onClick: (ids) => void bulkUpdate(ids, { status: "active" }, "Scaling"),  variant: "default" },
+                { label: "Mark At Risk", onClick: (ids) => void bulkUpdate(ids, { status: "at_risk" }, "Churn Risk"), variant: "default" },
+                ...(pdmRoster.pdms.length > 0
+                  ? [{ label: "Reassign…", onClick: (ids: string[]) => { setSelectedForReassign(ids); setReassignOpen(true); }, variant: "primary" as const }]
+                  : []),
+                { label: "Delete", onClick: (ids) => void bulkDelete(ids), variant: "danger" },
+              ]}
+            />
           )}
         </div>
       </section>
@@ -763,7 +706,7 @@ function PartnersPage() {
 
       <BulkReassignDialog
         open={reassignOpen}
-        items={[...selectedIds]
+        items={selectedForReassign
           .map((id) => portfolio.items.find((it) => it.partner.id === id))
           .filter((it): it is typeof portfolio.items[number] => Boolean(it))
           .map<ReassignItem>((it) => ({
@@ -775,7 +718,7 @@ function PartnersPage() {
         pdms={pdmRoster.pdms}
         entityLabel="partner"
         busy={bulkBusy}
-        onClose={() => setReassignOpen(false)}
+        onClose={() => { setReassignOpen(false); setSelectedForReassign([]); }}
         onConfirm={bulkReassign}
       />
     </div>
