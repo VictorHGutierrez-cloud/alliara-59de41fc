@@ -29,6 +29,8 @@ import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown } from "lucide-react";
 import { PromoteLeadDialog } from "@/components/PromoteLeadDialog";
+import { CandyDataTable, StatusPill, CandyAvatar, type CandyColumn } from "@/components/ui/candy-data-table";
+import { downloadCsv, slugifyForFile } from "@/lib/report-export";
 
 export const Route = createFileRoute("/qualification")({
   head: () => ({ meta: [{ title: "Partner Qualification — Alliara" }] }),
