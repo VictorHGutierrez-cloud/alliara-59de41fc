@@ -119,7 +119,7 @@ function Landing() {
     <>
       {/* 1. HERO — full-bleed video, only CTAs */}
       <PrismaHero
-        videoSrc="https://hbarmsaprabwwickdudg.supabase.co/storage/v1/object/public/public-assets/prisma-hero.mp4"
+        videoSrc="/hero-dashboard-loop.mp4"
         eyebrow={null}
         description={null}
         overlayOpacity={0}
