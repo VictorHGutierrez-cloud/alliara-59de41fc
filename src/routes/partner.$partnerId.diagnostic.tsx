@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { usePartner } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/partner/$partnerId/diagnostic")({
   head: () => ({ meta: [{ title: "Readiness Assessment — Alliara" }] }),
@@ -20,6 +21,21 @@ function PartnerDiagnostic() {
   const [idx, setIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [canRunForOthers, setCanRunForOthers] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    void (async () => {
+      const { data: roles } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id);
+      if (cancelled) return;
+      setCanRunForOthers((roles ?? []).some((r) => r.role === "leadership" || r.role === "admin"));
+    })();
+    return () => { cancelled = true; };
+  }, [user]);
 
   const steps: Step[] = useMemo(() =>
     AXES.flatMap((a) => a.diagnostic.map((q) => ({
@@ -29,7 +45,7 @@ function PartnerDiagnostic() {
   if (!user) return null;
   if (data.loading || !data.partner) return <div className="text-muted-foreground">Loading…</div>;
 
-  if (data.partner.owner_id !== user.id) {
+  if (data.partner.owner_id !== user.id && !canRunForOthers) {
     return <div className="rounded-2xl border border-border/60 bg-surface/40 p-8 text-center text-muted-foreground">You're viewing this partner read-only. Only the owning PDM can run a Readiness Assessment.</div>;
   }
 
