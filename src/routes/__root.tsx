@@ -112,8 +112,19 @@ function AppFrame() {
             {isLanding ? (
               user ? (
                 <>
-                  <Link to="/partners" className="px-3 py-1.5 rounded-md text-white/90 hover:text-white hover:bg-white/10">Access</Link>
-                  <button onClick={() => signOut()} className="ml-2 text-white/70 hover:text-white">Sign out</button>
+                  <Link
+                    to="/partners"
+                    className="px-3 py-1.5 rounded-md text-sm font-semibold text-foreground hover:bg-neutral-100"
+                  >
+                    Access
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => signOut()}
+                    className="ml-2 px-3 py-1.5 rounded-md text-sm font-semibold text-foreground hover:bg-neutral-100"
+                  >
+                    Sign out
+                  </button>
                 </>
               ) : null
             ) : user ? (
