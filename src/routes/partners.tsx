@@ -16,6 +16,7 @@ import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { BulkReassignDialog, type ReassignAssignment, type ReassignItem } from "@/components/BulkReassignDialog";
+import { CandyBarChart, CandyComposition, type BarDatum } from "@/components/ui/candy-charts";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "PDM Command Center — Alliara" }] }),
