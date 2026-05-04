@@ -6,6 +6,9 @@ import { PrismaHero } from "@/components/ui/prisma-hero";
 import { AgentPlan, type AgentTask, type AgentStatus } from "@/components/ui/agent-plan";
 import { Typewriter } from "@/components/ui/typewriter";
 import { AXES } from "@/content/octa";
+import imgProductRadar from "@/assets/landing/product-maturity-radar.png";
+import imgProductRevenue from "@/assets/landing/product-revenue.png";
+import imgProductOcta from "@/assets/landing/product-maturity-octa.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -18,6 +21,98 @@ export const Route = createFileRoute("/")({
 });
 
 const PINK = "#EC1E79";
+
+function BrowserFrame({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div
+      className="rounded-2xl sm:rounded-3xl border border-neutral-200/90 bg-neutral-50 shadow-[0_24px_80px_-16px_rgba(15,23,42,0.22)] ring-1 ring-black/[0.04] overflow-hidden [transform:perspective(1200px)_rotateX(2deg)] sm:[transform:perspective(1400px)_rotateX(1.5deg)]"
+    >
+      <div className="flex items-center gap-2 px-3 py-2.5 bg-gradient-to-b from-neutral-100 to-neutral-100/90 border-b border-neutral-200/80">
+        <span className="size-2.5 shrink-0 rounded-full bg-[#FF5F57]" aria-hidden />
+        <span className="size-2.5 shrink-0 rounded-full bg-[#FEBC2E]" aria-hidden />
+        <span className="size-2.5 shrink-0 rounded-full bg-[#28C840]" aria-hidden />
+        <div className="ml-2 min-w-0 flex-1 rounded-md bg-white/90 border border-neutral-200/70 px-2.5 py-1 text-[10px] text-neutral-500 font-mono truncate">
+          app.alliara.io
+        </div>
+      </div>
+      <div className="bg-gradient-to-b from-neutral-100 to-neutral-50 p-1.5 sm:p-2.5">
+        <img
+          src={src}
+          alt={alt}
+          className="w-full h-auto rounded-lg sm:rounded-2xl shadow-[0_2px_12px_rgba(0,0,0,0.06)] border border-white/80"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+    </div>
+  );
+}
+
+function ProductShowcase() {
+  const blocks = [
+    {
+      title: "Maturity radar & growth levers",
+      body: "See OCTA scores on a live radar, surface at-risk partners, and jump to the axes that unlock the next level of revenue.",
+      img: imgProductRadar,
+      alt: "Alliara partner overview with maturity radar and high-impact growth levers",
+    },
+    {
+      title: "Revenue that tells a story",
+      body: "Rank partners by Open MRR and other metrics, export when you need to brief leadership, and keep the view aligned to how you run the business.",
+      img: imgProductRevenue,
+      alt: "Alliara revenue dashboard with top partners by Open MRR",
+    },
+    {
+      title: "Portfolio maturity by axis",
+      body: "Spot the shortest bars across your book of business — that is where coordinated investment moves the whole ecosystem.",
+      img: imgProductOcta,
+      alt: "Alliara chart of maturity by OCTA dimension across the portfolio",
+    },
+  ] as const;
+
+  return (
+    <section className="relative py-24 sm:py-32 px-6 overflow-hidden bg-gradient-to-b from-[#F7F7F8] via-white to-[#F7F7F8]">
+      <div className="pointer-events-none absolute -top-20 right-[-10%] h-[28rem] w-[28rem] rounded-full bg-[#EC1E79]/[0.07] blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute bottom-20 left-[-15%] h-[22rem] w-[22rem] rounded-full bg-violet-500/[0.08] blur-3xl" aria-hidden />
+
+      <div className="relative mx-auto max-w-6xl">
+        <div className="max-w-2xl">
+          <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-neutral-500">Product</p>
+          <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
+            The command center, in the wild.
+          </h2>
+          <p className="mt-3 text-neutral-600 max-w-xl">
+            Real screens from Alliara — crisp analytics, OCTA depth, and the workflows your PDMs use every week.
+          </p>
+        </div>
+
+        <div className="mt-16 sm:mt-20 flex flex-col gap-20 sm:gap-24">
+          {blocks.map((b, i) => (
+            <div
+              key={b.title}
+              className={`flex flex-col gap-10 lg:gap-14 lg:items-center ${
+                i % 2 === 1 ? "lg:flex-row-reverse" : "lg:flex-row"
+              }`}
+            >
+              <div className="flex-1 min-w-0">
+                <BrowserFrame src={b.img} alt={b.alt} />
+              </div>
+              <div className="flex-1 min-w-0 lg:max-w-md">
+                <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-neutral-400">
+                  {String(i + 1).padStart(2, "0")} — Screen
+                </p>
+                <h3 className="mt-3 font-display font-semibold text-2xl sm:text-3xl text-neutral-900 tracking-tight">
+                  {b.title}
+                </h3>
+                <p className="mt-3 text-neutral-600 leading-relaxed">{b.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function Landing() {
   return (
@@ -43,6 +138,7 @@ function Landing() {
       />
 
       <Manifesto />
+      <ProductShowcase />
       <PortfolioPreview />
       <AxesPreview />
       <PlanPreview />
