@@ -41,7 +41,7 @@ function AxisPage() {
   return (
     <div className="mx-auto max-w-6xl px-6 py-8">
       {/* Header */}
-      <Link to="/dashboard" className="text-xs font-mono text-muted-foreground hover:text-foreground">← Dashboard</Link>
+      <Link to="/methodology" className="text-xs font-mono text-muted-foreground hover:text-foreground">← Methodology</Link>
       <div className="mt-3 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div className="flex items-center gap-4">
           <div className="h-14 w-14 rounded-xl flex items-center justify-center font-display text-2xl font-bold" style={{ background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`, color: `var(--${axis.color})` }}>

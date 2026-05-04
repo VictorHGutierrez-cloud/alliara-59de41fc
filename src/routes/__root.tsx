@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import alliaraLogo from "@/assets/alliara-logo.png";
 import Dock from "@/components/ui/dock";
-import { Users, ClipboardCheck, BarChart3, Trophy, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { Users, ClipboardCheck, BarChart3, Trophy, Compass, Settings as SettingsIcon, LogOut } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -85,7 +85,8 @@ function AppFrame() {
         { icon: Users, label: "Portfolio", active: path.startsWith("/partners") || path.startsWith("/partner"), onClick: () => navigate({ to: "/partners" }) },
         { icon: ClipboardCheck, label: "Qualification", active: path.startsWith("/qualification"), onClick: () => navigate({ to: "/qualification" }) },
         { icon: BarChart3, label: "Reports", active: path.startsWith("/reports"), onClick: () => navigate({ to: "/reports" }) },
-        { icon: Trophy, label: "My Performance", active: path.startsWith("/dashboard") || path.startsWith("/axis") || path.startsWith("/diagnostic"), onClick: () => navigate({ to: "/dashboard" }) },
+        { icon: Compass, label: "Methodology", active: path.startsWith("/methodology") || path.startsWith("/axis"), onClick: () => navigate({ to: "/methodology" }) },
+        { icon: Trophy, label: "My Performance", active: path.startsWith("/dashboard") || path.startsWith("/diagnostic"), onClick: () => navigate({ to: "/dashboard" }) },
         { icon: SettingsIcon, label: "Settings", active: path.startsWith("/settings"), onClick: () => navigate({ to: "/settings" }) },
         { icon: LogOut, label: "Sign out", onClick: () => signOut() },
       ]
