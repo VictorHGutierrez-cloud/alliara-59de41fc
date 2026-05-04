@@ -693,44 +693,6 @@ function PartnersPage() {
 
         {/* Filters */}
         <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          {portfolio.isLeadership && (
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="seg-candy">
-                {(["mine", "all"] as const).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setScopeFilter(f)}
-                    className="seg-candy-item"
-                    data-active={scopeFilter === f}
-                  >
-                    {f === "mine" ? "My partners" : "All partners"}
-                  </button>
-                ))}
-              </div>
-              {scopeFilter === "all" && (pdmRoster.pdms.length > 0 || ownersInScope.length > 1) && (
-                <select
-                  value={ownerFilter}
-                  onChange={(e) => setOwnerFilter(e.target.value)}
-                  className="select-candy"
-                  title="Filter by PDM"
-                >
-                  {(() => {
-                    const roster: PdmEntry[] = pdmRoster.pdms.length > 0
-                      ? pdmRoster.pdms
-                      : ownersInScope;
-                    return (
-                      <>
-                        <option value="all">PDM: All ({roster.length})</option>
-                        {roster.map((o) => (
-                          <option key={o.id} value={o.id}>PDM: {o.name}</option>
-                        ))}
-                      </>
-                    );
-                  })()}
-                </select>
-              )}
-            </div>
-          )}
           <PartnerFilterBar
             query={query}
             onQuery={setQuery}
