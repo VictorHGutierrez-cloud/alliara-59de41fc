@@ -418,6 +418,7 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 
 function DiagnosticHistory({ data }: { data: ReturnType<typeof usePartner> }) {
+  const confirmDialog = useConfirmDialog();
   if (data.history.length === 0) return null;
   return (
     <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
