@@ -47,7 +47,7 @@ function RevealSection({ children, delay = 0 }: { children: React.ReactNode; del
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay, ease: [0.2, 0.85, 0.3, 1] }}
     >
       {children}
     </motion.div>
@@ -76,7 +76,7 @@ function ProductShowcase() {
   ] as const;
 
   return (
-    <section className="relative py-24 sm:py-32 px-6 overflow-hidden bg-gradient-to-b from-[#F7F7F8] via-white to-[#F7F7F8]">
+    <section className="relative py-24 sm:py-28 px-6 overflow-hidden bg-gradient-to-b from-[#F7F7F8] via-white to-[#F7F7F8]">
       <div className="pointer-events-none absolute -top-20 right-[-10%] h-[28rem] w-[28rem] rounded-full bg-[#EC1E79]/[0.07] blur-3xl" aria-hidden />
       <div className="pointer-events-none absolute bottom-20 left-[-15%] h-[22rem] w-[22rem] rounded-full bg-violet-500/[0.08] blur-3xl" aria-hidden />
 
@@ -91,7 +91,7 @@ function ProductShowcase() {
           </p>
         </div>
 
-        <div className="mt-16 sm:mt-20 flex flex-col gap-20 sm:gap-24">
+        <div className="mt-14 sm:mt-16 flex flex-col gap-16 sm:gap-20">
           {blocks.map((b, i) => (
             <div
               key={b.title}
@@ -101,8 +101,8 @@ function ProductShowcase() {
             >
               <div className="flex-1 min-w-0 flex justify-center lg:justify-start">
                 {b.kind === "image" ? (
-                  <AnimatedCard aria-label={b.title} className="max-w-xl shadow-md">
-                    <CardVisual className="rounded-t-xl bg-gradient-to-b from-neutral-100 to-neutral-50 p-2 sm:p-3">
+                  <AnimatedCard aria-label={b.title} className="max-w-xl">
+                    <CardVisual className="rounded-t-2xl bg-gradient-to-b from-neutral-100 via-neutral-50 to-white p-2 sm:p-3">
                       <img
                         src={b.img}
                         alt={b.alt}
@@ -113,8 +113,8 @@ function ProductShowcase() {
                     </CardVisual>
                   </AnimatedCard>
                 ) : b.kind === "bars" ? (
-                  <AnimatedCard className="max-w-xl shadow-md">
-                    <CardVisual className="rounded-t-xl bg-white px-1 pt-2">
+                  <AnimatedCard className="max-w-xl">
+                    <CardVisual className="rounded-t-2xl bg-white px-1.5 pt-3">
                       <CandyBarChart
                         data={DEMO_LANDING_REVENUE}
                         height={236}
@@ -129,8 +129,8 @@ function ProductShowcase() {
                     </CardBody>
                   </AnimatedCard>
                 ) : (
-                  <AnimatedCard className="max-w-xl shadow-md">
-                    <CardVisual className="rounded-t-xl bg-white px-2 pt-4">
+                  <AnimatedCard className="max-w-xl">
+                    <CardVisual className="rounded-t-2xl bg-white px-2 pt-4">
                       <div className="flex h-full min-h-0 items-center justify-center overflow-x-auto pb-2">
                         <CandyDonut
                           slices={DEMO_LANDING_MIX_SLICES}
@@ -167,11 +167,11 @@ function ProductShowcase() {
 
 function TrustStrip() {
   return (
-    <section className="bg-white border-y border-neutral-200/70 py-6 px-6">
-      <div className="mx-auto max-w-6xl flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section className="bg-white px-6 py-8">
+      <div className="mx-auto max-w-6xl rounded-2xl border border-neutral-200/80 bg-gradient-to-r from-white to-neutral-50 px-5 py-5 sm:px-6 sm:py-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-neutral-500">Trusted workflow</p>
-          <p className="mt-1 text-sm text-neutral-700">
+          <p className="mt-1 text-sm text-neutral-700 leading-relaxed">
             Built for Partner Development teams running diagnostics, plans, and revenue reviews each week.
           </p>
         </div>
@@ -237,12 +237,12 @@ function Landing() {
 /* ---------------- 2. Manifesto ---------------- */
 function Manifesto() {
   return (
-    <section className="bg-[#F7F7F8] py-32 px-6">
+    <section className="bg-[#F7F7F8] py-24 sm:py-28 px-6">
       <div className="mx-auto max-w-5xl text-center">
         <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
           Our manifesto
         </p>
-        <h2 className="mt-6 font-display font-semibold tracking-[-0.03em] text-neutral-900 text-5xl sm:text-7xl leading-[1.05]">
+        <h2 className="mt-5 font-display font-semibold tracking-[-0.03em] text-neutral-900 text-4xl sm:text-6xl leading-[1.07]">
           <span className="block">We exist</span>
           <span className="block">
             <span>to </span>
@@ -300,7 +300,7 @@ const STATUS_STYLE: Record<MockPartner["status"], string> = {
 
 function PortfolioPreview() {
   return (
-    <section className="bg-white py-24 px-6">
+    <section className="bg-white py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
@@ -357,7 +357,7 @@ function PortfolioPreview() {
 /* ---------------- 4. 8 OCTA Axes preview ---------------- */
 function AxesPreview() {
   return (
-    <section className="bg-[#F7F7F8] py-24 px-6">
+    <section className="bg-[#F7F7F8] py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
@@ -379,7 +379,7 @@ function AxesPreview() {
             return (
               <div
                 key={axis.key}
-                className="group relative rounded-2xl border border-neutral-200 bg-white p-6 hover:shadow-lg transition overflow-hidden"
+                className="group relative rounded-2xl border border-neutral-200 bg-white p-6 transition overflow-hidden shadow-[0_14px_40px_-30px_rgba(15,23,42,0.45)] hover:shadow-[0_20px_44px_-28px_rgba(15,23,42,0.5)]"
               >
                 <div
                   aria-hidden
@@ -469,7 +469,7 @@ function PlanPreview() {
     );
 
   return (
-    <section className="bg-white py-24 px-6">
+    <section className="bg-white py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-3xl">
         <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
           Joint Business Plan
@@ -491,12 +491,12 @@ function PlanPreview() {
 /* ---------------- 6. Final CTA ---------------- */
 function FinalCta() {
   return (
-    <section className="bg-neutral-950 text-white py-24 px-6">
+    <section className="bg-neutral-950 text-white py-24 sm:py-28 px-6">
       <div className="mx-auto max-w-4xl text-center">
         <h2 className="font-display font-semibold tracking-tight text-3xl sm:text-5xl">
           Ready to orchestrate your ecosystem?
         </h2>
-        <p className="mt-4 text-white/70 max-w-xl mx-auto">
+        <p className="mt-4 text-white/70 max-w-xl mx-auto leading-relaxed">
           Join the Partner Development Managers using Alliara to turn every partnership into measurable growth.
         </p>
         <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">

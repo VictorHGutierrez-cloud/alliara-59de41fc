@@ -233,6 +233,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    min-height: 44px;
     border-radius: 0.85rem;
     padding: 0.7rem 1.15rem;
     font-size: 0.875rem;
@@ -265,6 +266,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    min-height: 44px;
     border-radius: 0.85rem;
     padding: 0.7rem 1.15rem;
     font-size: 0.875rem;
@@ -291,6 +293,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+    min-height: 44px;
     border-radius: 0.85rem;
     padding: 0.45rem 0.85rem;
     font-size: 0.8rem;
@@ -315,6 +318,7 @@
     gap: 2px;
   }
   .seg-candy-item {
+    min-height: 40px;
     appearance: none;
     background: transparent;
     border: 0;
@@ -338,6 +342,7 @@
   }
 
   .select-candy {
+    min-height: 40px;
     appearance: none;
     -webkit-appearance: none;
     background: var(--surface);
@@ -361,5 +366,15 @@
     outline: none;
     border-color: color-mix(in oklab, var(--primary) 60%, var(--border));
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-candy,
+  .btn-candy-secondary,
+  .btn-candy-ghost,
+  .card-elev {
+    transition: none;
+    transform: none;
   }
 }

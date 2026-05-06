@@ -14,7 +14,7 @@ function useAnimatedCardIds() {
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 const cardShellClass =
-  "group/animated-card relative w-full max-w-lg overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-900 dark:bg-black";
+  "group/animated-card relative w-full max-w-lg overflow-hidden rounded-2xl border border-zinc-200/90 bg-white shadow-[0_20px_55px_-34px_rgba(15,23,42,0.45)] dark:border-zinc-900 dark:bg-black";
 
 export function AnimatedCard({
   className,
@@ -49,7 +49,7 @@ export function CardBody({ className, ...props }: CardProps) {
     <div
       role="group"
       className={cn(
-        "flex flex-col space-y-1.5 border-t border-zinc-200 p-4 dark:border-zinc-900",
+        "flex flex-col space-y-1.5 border-t border-zinc-200/80 bg-gradient-to-b from-white to-zinc-50/70 p-4 dark:border-zinc-900",
         className,
       )}
       {...props}
@@ -65,7 +65,7 @@ export function CardTitle({ className, ...props }: CardTitleProps) {
     <h3
       id={titleId}
       className={cn(
-        "text-lg font-semibold leading-none tracking-tight text-black dark:text-white",
+        "text-lg font-semibold leading-tight tracking-tight text-black dark:text-white",
         className,
       )}
       {...props}
@@ -90,7 +90,7 @@ export function CardVisual({ className, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "relative h-[min(240px,42vw)] min-h-[200px] w-full overflow-hidden sm:h-[260px] sm:min-h-[220px]",
+        "relative h-[min(250px,44vw)] min-h-[210px] w-full overflow-hidden sm:h-[280px] sm:min-h-[240px]",
         className,
       )}
       {...props}

@@ -128,7 +128,7 @@ export const PrismaHero = ({
   return (
     <section
       ref={sectionRef}
-      className="relative w-full h-[calc((100vh-5rem)/2)] min-h-[420px] -mt-20 pt-20 overflow-hidden bg-black"
+      className="relative w-full h-[calc(72vh-5rem)] min-h-[520px] -mt-20 pt-20 overflow-hidden bg-black"
     >
       <style dangerouslySetInnerHTML={{ __html: PRISMA_KEYFRAMES }} />
 
@@ -181,13 +181,22 @@ export const PrismaHero = ({
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            `linear-gradient(180deg, rgba(0,0,0,${overlayOpacity}) 0%, rgba(0,0,0,${overlayOpacity * 0.75}) 40%, rgba(0,0,0,${overlayOpacity * 0.7}) 65%, rgba(0,0,0,${overlayOpacity}) 100%)`,
+            `linear-gradient(180deg, rgba(0,0,0,${overlayOpacity * 0.6}) 0%, rgba(0,0,0,${overlayOpacity * 0.48}) 38%, rgba(0,0,0,${overlayOpacity * 0.62}) 68%, rgba(0,0,0,${overlayOpacity * 0.95}) 100%)`,
+        }}
+      />
+
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle at 18% 22%, rgba(255,255,255,0.18), transparent 32%), radial-gradient(circle at 82% 80%, rgba(255,255,255,0.12), transparent 28%)",
         }}
       />
 
       {/* Hero content */}
       <motion.div
-        className="relative z-10 h-full flex items-end px-6 sm:px-10 pb-8 sm:pb-12"
+        className="relative z-10 h-full flex items-end px-6 sm:px-10 pb-12 sm:pb-16"
         style={reduceMotion ? undefined : { y: contentY }}
       >
         <div className="mx-auto max-w-6xl w-full animate-fade-in">
