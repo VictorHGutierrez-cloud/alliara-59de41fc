@@ -5,9 +5,10 @@ import { usePartner } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/partner/$partnerId/diagnostic")({
-  head: () => ({ meta: [{ title: "Readiness Assessment — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Diagnostic — Alliara" }] }),
   component: PartnerDiagnostic,
 });
 
@@ -43,10 +44,17 @@ function PartnerDiagnostic() {
     }))), []);
 
   if (!user) return null;
-  if (data.loading || !data.partner) return <div className="text-muted-foreground">Loading…</div>;
+  if (data.loading || !data.partner) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-4 w-40" />
+        <Skeleton className="h-52 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   if (data.partner.owner_id !== user.id && !canRunForOthers) {
-    return <div className="rounded-2xl border border-border/60 bg-surface/40 p-8 text-center text-muted-foreground">You're viewing this partner read-only. Only the owning PDM can run a Readiness Assessment.</div>;
+    return <div className="rounded-2xl border border-border/60 bg-surface/40 p-8 text-center text-muted-foreground">You're viewing this partner read-only. Only the owning PDM can run a Diagnostic.</div>;
   }
 
   const total = steps.length;
@@ -68,8 +76,8 @@ function PartnerDiagnostic() {
         scores[a.key] = Number((vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(2));
       }
       await data.saveAssessment(scores, user.id);
-      toast.success("Readiness Assessment saved · partner maturity updated");
-      nav({ to: "/partner/$partnerId", params: { partnerId } });
+      toast.success("Diagnostic saved · partner maturity updated");
+      nav({ to: "/partner/$partnerId/coach", params: { partnerId }, search: { autorun: "1" } });
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -141,7 +149,7 @@ function PartnerDiagnostic() {
             disabled={!allAnswered || submitting}
             className="rounded-lg bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
           >
-            {submitting ? "Saving…" : "Save Readiness Assessment"}
+            {submitting ? "Saving…" : "Save Diagnostic"}
           </button>
         )}
       </div>

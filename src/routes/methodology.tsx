@@ -2,8 +2,10 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useOctaData, levelFromAvg } from "@/lib/octa-store";
+import { usePortfolio } from "@/lib/partners-store";
 import { AXES, CENTRAL_MENTAL_MODEL, OCTA_FULL_NAME } from "@/content/octa";
 import { ArrowRight, Sparkles } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/methodology")({
   head: () => ({
@@ -21,9 +23,18 @@ function MethodologyPage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const data = useOctaData(user?.id);
+  const portfolio = usePortfolio(user?.id);
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
-  if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
+  if (loading || !user || portfolio.loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8 space-y-4">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   const scores = data.latest?.scores ?? {};
   const diagnosed = AXES.filter((a) => (scores[a.key] ?? 0) > 0).length;
@@ -92,10 +103,10 @@ function MethodologyPage() {
         </p>
         {!data.latest && (
           <Link
-            to="/diagnostic"
+            to={portfolio.items.length === 0 ? "/partners" : "/diagnostic"}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)]"
           >
-            Run your first diagnostic
+            {portfolio.items.length === 0 ? "Add your first partner" : "Run your first diagnostic"}
             <ArrowRight className="h-4 w-4" />
           </Link>
         )}

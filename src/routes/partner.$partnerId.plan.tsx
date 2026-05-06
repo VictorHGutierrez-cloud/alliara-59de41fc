@@ -5,6 +5,8 @@ import { usePartner, type ActionRow } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
 import { AgentPlan, type AgentTask } from "@/components/ui/agent-plan";
+import { Skeleton } from "@/components/ui/skeleton";
+import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/partner/$partnerId/plan")({
   head: () => ({ meta: [{ title: "Joint Business Plan — Alliara" }] }),
@@ -34,7 +36,14 @@ function PartnerPlan() {
       }));
   }, [data.actions, filterAxis]);
 
-  if (data.loading || !user) return <div className="text-muted-foreground">Loading…</div>;
+  if (data.loading || !user) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-56 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   const isOwner = data.partner?.owner_id === user.id;
 
@@ -54,16 +63,16 @@ function PartnerPlan() {
         </div>
         {isOwner && (
           <button onClick={() => setShowNew(true)} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
-            + Add Growth Initiative
+            + Add Move
           </button>
         )}
       </div>
 
       {data.actions.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-          <h2 className="text-lg font-semibold">No growth initiatives yet</h2>
+          <h2 className="text-lg font-semibold">No moves yet</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            Build the Joint Business Plan by growth axis. Or jump to the Ecosystem Copilot to generate prescriptive initiatives you can add in one click.
+            Build the {COPY.jbp.full} by axis. Or jump to {COPY.copilot.label} to generate prescriptive moves you can add in one click.
           </p>
         </div>
       ) : (
@@ -94,7 +103,7 @@ function PartnerPlan() {
           onCreate={async (input) => {
             try {
               await data.addAction({ ...input, userId: user.id });
-              toast.success("Growth Initiative added");
+              toast.success("Move added");
               setShowNew(false);
             } catch (e) { toast.error((e as Error).message); }
           }}
@@ -124,7 +133,7 @@ function NewActionDialog({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-xl font-semibold">New Growth Initiative</h2>
+        <h2 className="text-xl font-semibold">New Move</h2>
         <div className="mt-5 space-y-3">
           <Field label="Axis">
             <select value={axisKey} onChange={(e) => setAxisKey(e.target.value)} className="input">

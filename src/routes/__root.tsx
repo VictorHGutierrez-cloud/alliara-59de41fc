@@ -6,6 +6,7 @@ import alliaraLogo from "@/assets/alliara-logo.png";
 import Dock from "@/components/ui/dock";
 import { Users, ClipboardCheck, BarChart3, Trophy, Compass, Settings as SettingsIcon, LogOut } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConfirmProvider } from "@/components/ui/confirm-provider";
 
 function NotFoundComponent() {
   return (
@@ -65,8 +66,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <AuthProvider>
-      <AppFrame />
-      <Toaster richColors position="top-right" />
+      <ConfirmProvider>
+        <AppFrame />
+        <Toaster richColors position="top-right" />
+      </ConfirmProvider>
     </AuthProvider>
   );
 }

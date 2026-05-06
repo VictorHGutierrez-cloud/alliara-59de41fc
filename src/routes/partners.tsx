@@ -19,6 +19,10 @@ import { BulkReassignDialog, type ReassignAssignment, type ReassignItem } from "
 import { CandyBarChart, CandyComposition, type BarDatum } from "@/components/ui/candy-charts";
 import { CandyDataTable, CandyAvatar, StatusPill, type StatusTone, type CandyColumn } from "@/components/ui/candy-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { COPY } from "@/lib/copy";
+import { EmptyPortfolioOnboarding } from "@/components/onboarding/EmptyPortfolioOnboarding";
+import { TeamPulse } from "@/components/leadership/TeamPulse";
+import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: "Portfolio — Alliara" }] }),
@@ -47,6 +51,7 @@ function PartnersPage() {
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [selectedForReassign, setSelectedForReassign] = useState<string[]>([]);
+  const confirmDialog = useConfirmDialog();
 
   const ownerScope = useOwnerScope({
     items: portfolio.items,
@@ -125,7 +130,12 @@ function PartnersPage() {
     const names = portfolio.items
       .filter((it) => ids.includes(it.partner.id))
       .map((it) => it.partner.name);
-    if (!confirm(`Delete ${ids.length} partner${ids.length === 1 ? "" : "s"}?\n\n${names.join(", ")}\n\nThis permanently removes diagnostics, plans, intel runs and documents.`)) return;
+    const ok = await confirmDialog({
+      title: `Delete ${ids.length} partner${ids.length === 1 ? "" : "s"}?`,
+      description: `${names.join(", ")}\n\nThis permanently removes diagnostics, plans, intel runs and documents.`,
+      actionLabel: "Delete",
+    });
+    if (!ok) return;
     setBulkBusy(true);
     try {
       const { error, count } = await supabase
@@ -333,6 +343,8 @@ function PartnersPage() {
     overdue: overdueActions.length,
     leads: pendingLeads.length,
     highPriority: highPriorityOpen.length,
+    scope: scopeFilter,
+    ownerName: ownerFilter === "all" ? "all PDMs" : (ownerNames.get(ownerFilter) ?? "selected PDM"),
   });
 
   const displayName =
@@ -349,7 +361,7 @@ function PartnersPage() {
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            Portfolio · {greeting()}
+            {scopeFilter === "all" ? "All partners" : "Portfolio"} · {greeting()}
           </span>
         </div>
         <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
@@ -433,6 +445,28 @@ function PartnersPage() {
         </section>
       )}
 
+      <section className="mt-5 grid sm:grid-cols-3 gap-3">
+        <KpiCard
+          label="Open MRR"
+          value={fmtMoney(sourcedPipeline.total)}
+          hint={`${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting`}
+          accent="octa-1"
+          primary
+        />
+        <KpiCard
+          label={COPY.status.at_risk}
+          value={String(statusCounts.at_risk)}
+          hint={`${activeTotal} active partners in scope`}
+          accent="octa-5"
+        />
+        <KpiCard
+          label="Avg maturity"
+          value={aggregate.scored > 0 ? aggregate.avg.toFixed(1) : "—"}
+          hint={aggregate.scored > 0 ? `${aggregate.scored} diagnosed` : `Run ${COPY.diagnostic.noun.toLowerCase()}s to unlock`}
+          accent="octa-4"
+        />
+      </section>
+
       {/* Metrics moved to Reports — keep only the qualification queue here */}
       <section className="mt-6 grid lg:grid-cols-3 gap-4">
         <Link
@@ -460,7 +494,7 @@ function PartnersPage() {
             <span className={`text-5xl font-display font-bold ${pendingLeads.length > 0 ? "text-foreground" : "text-muted-foreground/60"}`}>
               {pendingLeads.length}
             </span>
-            <span className="text-sm text-muted-foreground">pending IPP scoring</span>
+            <span className="text-sm text-muted-foreground">pending {COPY.ipp.short}</span>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {pendingLeads.length === 0
@@ -645,6 +679,38 @@ function PartnersPage() {
         </div>
       </section>
 
+      <section className="mt-6 rounded-2xl border border-border/60 bg-card p-6 card-elev">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Weekly Review Mode</p>
+            <h2 className="mt-1 text-lg font-semibold">Monday ritual in 5 minutes</h2>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Review at-risk partners, close the top 3 {COPY.jbp.itemPlural.toLowerCase()}, and send one digest to leadership.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => copyWeeklyDigest("slack", { atRisk: statusCounts.at_risk, overdue: overdueActions.length, top: focusActions })}
+              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-2"
+            >
+              Export Slack
+            </button>
+            <button
+              onClick={() => copyWeeklyDigest("email", { atRisk: statusCounts.at_risk, overdue: overdueActions.length, top: focusActions })}
+              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-2"
+            >
+              Export email
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {portfolio.isLeadership && scopeFilter === "all" && (
+        <section className="mt-6">
+          <TeamPulse items={scoped} ownerNames={ownerNames} />
+        </section>
+      )}
+
       {/* 6. Partner Roster */}
       <section className="mt-8">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
@@ -686,7 +752,7 @@ function PartnersPage() {
               <Skeleton className="h-14 w-full rounded-xl" />
             </div>
           ) : sorted.length === 0 ? (
-            <EmptyState onAdd={() => setShowNew(true)} />
+            <EmptyPortfolioOnboarding onAdd={() => setShowNew(true)} />
           ) : (
             <PartnerRosterTable
               rows={sorted}
@@ -795,16 +861,29 @@ function sortActions<T extends { priority: ActionRow["priority"]; due_date: stri
 
 function buildBriefing({
   atRisk, overdue, leads, highPriority,
-}: { atRisk: number; overdue: number; leads: number; highPriority: number }) {
+  scope,
+  ownerName,
+}: {
+  atRisk: number;
+  overdue: number;
+  leads: number;
+  highPriority: number;
+  scope: "mine" | "all";
+  ownerName: string;
+}) {
   const parts: string[] = [];
   if (atRisk > 0) parts.push(`${atRisk} partner${atRisk === 1 ? "" : "s"} at risk of churn`);
   if (overdue > 0) parts.push(`${overdue} growth initiative${overdue === 1 ? "" : "s"} overdue`);
   if (highPriority > 0 && overdue === 0) parts.push(`${highPriority} high-priority initiative${highPriority === 1 ? "" : "s"} in motion`);
   if (leads > 0) parts.push(`${leads} new partner lead${leads === 1 ? "" : "s"} waiting for IPP qualification`);
-  if (parts.length === 0) return "Quiet morning. No urgent risks, no overdue initiatives, and your qualification queue is empty. Good window to run a diagnostic on your top tier or refresh a Joint Business Plan.";
+  if (parts.length === 0) {
+    const subject = scope === "all" ? `Across ${ownerName}` : "In your portfolio";
+    return `${subject}, there are no urgent risks, no overdue initiatives, and no pending lead reviews. Good window to run a diagnostic and refresh one Joint Business Plan.`;
+  }
   const last = parts.pop()!;
   const joined = parts.length ? parts.join(", ") + ", and " + last : last;
-  return `You have ${joined}. Tackle the red items first to compound the week.`;
+  const prefix = scope === "all" ? `Across ${ownerName},` : "You have";
+  return `${prefix} ${joined}. Tackle the red items first to compound the week.`;
 }
 
 function prettyStatus(s: StatusFilter): string {
@@ -812,6 +891,31 @@ function prettyStatus(s: StatusFilter): string {
   if (s === "nurturing") return "Developing";
   if (s === "at_risk") return "Churn Risk";
   return "All";
+}
+
+function daysAgo(iso: string) {
+  const then = new Date(iso);
+  const now = new Date();
+  then.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((now.getTime() - then.getTime()) / 86400_000));
+}
+
+function copyWeeklyDigest(
+  mode: "slack" | "email",
+  input: { atRisk: number; overdue: number; top: EnrichedAction[] },
+) {
+  const topLines = input.top.slice(0, 3).map((a, i) => `${i + 1}. ${a.title} (${a.partner_name})`);
+  const body = [
+    `Weekly Review · ${new Date().toLocaleDateString()}`,
+    `${COPY.status.at_risk}: ${input.atRisk}`,
+    `Overdue ${COPY.jbp.itemPlural}: ${input.overdue}`,
+    "",
+    "Top next moves:",
+    ...(topLines.length ? topLines : ["No open moves"]),
+  ].join("\n");
+  void navigator.clipboard.writeText(body);
+  toast.success(`${mode === "slack" ? "Slack" : "Email"} digest copied`);
 }
 
 /* ─────────────────── presentational ─────────────────── */
@@ -1020,6 +1124,21 @@ function PartnerRosterTable({
               {overall ? overall.toFixed(1) : "—"}
             </span>
           </div>
+        );
+      },
+    },
+    {
+      key: "freshness",
+      header: "Freshness",
+      width: "110px",
+      align: "right",
+      cell: (it) => {
+        const lastTouched = it.latest?.created_at ?? it.partner.created_at;
+        const days = daysAgo(lastTouched);
+        return (
+          <span className={`text-xs font-mono ${days > 14 ? "text-warning" : "text-muted-foreground"}`}>
+            {days === 0 ? "today" : `${days}d ago`}
+          </span>
         );
       },
     },

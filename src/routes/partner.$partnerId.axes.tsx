@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { usePartner, levelFromAvg } from "../lib/partners-store";
 import { AXES, type Axis } from "../content/octa";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/partner/$partnerId/axes")({
   head: () => ({ meta: [{ title: "Axes — Alliara" }] }),
@@ -13,7 +14,14 @@ function PartnerAxes() {
   const data = usePartner(partnerId);
   const [openKey, setOpenKey] = useState<string | null>(null);
 
-  if (data.loading) return <div className="text-muted-foreground">Loading…</div>;
+  if (data.loading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-20 w-full rounded-2xl" />
+        <Skeleton className="h-20 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
@@ -129,6 +137,15 @@ function AxisDetail({ axis, myLevel, actions, partnerId }: { axis: Axis; myLevel
           <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Joint Business Plan</div>
           <div className="mt-1 text-sm font-medium">{actions} item{actions !== 1 ? "s" : ""} on this axis</div>
           <div className="mt-1 text-xs text-muted-foreground">Open the JBP to add or update growth initiatives →</div>
+        </Link>
+        <Link
+          to="/axis/$axisKey"
+          params={{ axisKey: axis.key }}
+          className="block rounded-xl border border-border/60 bg-surface/60 p-4 hover:bg-surface-2 transition"
+        >
+          <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Methodology lessons</div>
+          <div className="mt-1 text-sm font-medium">Open axis {axis.letter} in Methodology</div>
+          <div className="mt-1 text-xs text-muted-foreground">Cross-link this partner axis with OCTO lessons →</div>
         </Link>
       </div>
     </div>

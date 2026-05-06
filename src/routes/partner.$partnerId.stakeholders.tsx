@@ -4,6 +4,8 @@ import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId/stakeholders")({
   head: () => ({ meta: [{ title: "Stakeholders — Alliara" }] }),
@@ -34,6 +36,7 @@ function StakeholdersPage() {
   const [showNew, setShowNew] = useState(false);
   const [editing, setEditing] = useState<Stakeholder | null>(null);
   const [isOwner, setIsOwner] = useState(false);
+  const confirmDialog = useConfirmDialog();
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -49,12 +52,20 @@ function StakeholdersPage() {
   useEffect(() => { void refresh(); }, [refresh]);
 
   const remove = async (id: string) => {
-    if (!confirm("Remove this stakeholder?")) return;
+    const ok = await confirmDialog({ title: "Remove this stakeholder?", actionLabel: "Remove" });
+    if (!ok) return;
     const { error } = await supabase.from("partner_stakeholders").delete().eq("id", id);
     if (error) toast.error(error.message); else { toast.success("Stakeholder removed"); refresh(); }
   };
 
-  if (loading) return <div className="text-muted-foreground">Loading…</div>;
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-20 w-full rounded-2xl" />
+        <Skeleton className="h-40 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div>

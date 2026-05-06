@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { PARTNER_TYPES, type PartnerType } from "@/lib/partner-types";
 import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { Skeleton } from "@/components/ui/skeleton";
+import { COPY } from "@/lib/copy";
+import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId")({
   head: () => ({ meta: [{ title: "Partner — Alliara" }] }),
@@ -21,6 +23,7 @@ function PartnerLayout() {
   const data = usePartner(partnerId);
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [editOpen, setEditOpen] = useState(false);
+  const confirmDialog = useConfirmDialog();
 
   useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
 
@@ -61,13 +64,13 @@ function PartnerLayout() {
 
   const tabs: { key: string; label: string; to: string }[] = [
     { key: "overview", label: "Overview", to: `/partner/${partnerId}` },
-    { key: "diagnostic", label: data.latest ? "Re-run Assessment" : "Readiness Assessment", to: `/partner/${partnerId}/diagnostic` },
+    { key: "coach", label: COPY.copilot.label, to: `/partner/${partnerId}/coach` },
+    { key: "plan", label: `${COPY.jbp.short}${data.openActions.length ? ` (${data.openActions.length})` : ""}`, to: `/partner/${partnerId}/plan` },
+    { key: "diagnostic", label: data.latest ? COPY.diagnostic.rerun : COPY.diagnostic.noun, to: `/partner/${partnerId}/diagnostic` },
     { key: "axes", label: "Axes", to: `/partner/${partnerId}/axes` },
-    { key: "plan", label: `Tasks${data.openActions.length ? ` (${data.openActions.length})` : ""}`, to: `/partner/${partnerId}/plan` },
     { key: "stakeholders", label: "Stakeholders", to: `/partner/${partnerId}/stakeholders` },
     { key: "metrics", label: "Metrics", to: `/partner/${partnerId}/metrics` },
     { key: "intel", label: "Intel", to: `/partner/${partnerId}/intel` },
-    { key: "coach", label: "Ecosystem Copilot", to: `/partner/${partnerId}/coach` },
   ];
 
   const isOverview = path === `/partner/${partnerId}` || path === `/partner/${partnerId}/`;
@@ -162,7 +165,12 @@ function PartnerLayout() {
             catch (e) { toast.error((e as Error).message); }
           }}
           onDelete={async () => {
-            if (!confirm(`Delete ${data.partner!.name}? This removes all assessments, the Joint Business Plan, and copilot guidance for this partner.`)) return;
+            const ok = await confirmDialog({
+              title: `Delete ${data.partner!.name}?`,
+              description: "This removes all diagnostics, the Joint Business Plan, and Copilot guidance for this partner.",
+              actionLabel: "Delete",
+            });
+            if (!ok) return;
             try {
               await data.deletePartner();
               toast.success("Partner deleted");
@@ -182,6 +190,7 @@ function Overview({
   partnerId: string;
   data: ReturnType<typeof usePartner>;
 }) {
+  const confirmDialog = useConfirmDialog();
   const hasDiagnostic = !!data.latest;
   const history = data.history;
   const [selectedId, setSelectedId] = useState<string | null>(history[0]?.id ?? null);
@@ -218,12 +227,12 @@ function Overview({
   if (!hasDiagnostic) {
     return (
       <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-        <h2 className="text-lg font-semibold">Run the Partner Readiness Assessment</h2>
+        <h2 className="text-lg font-semibold">Run the Partner Diagnostic</h2>
         <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-          Score this partner across the 8 OCTA axes to unlock the maturity radar, Ecosystem Copilot guidance, and a tailored Joint Business Plan.
+          Score this partner across the 8 OCTA axes to unlock the maturity radar, Copilot guidance, and a tailored Joint Business Plan.
         </p>
         <Link to="/partner/$partnerId/diagnostic" params={{ partnerId }} className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
-          Run Readiness Assessment →
+          Run Diagnostic →
         </Link>
       </div>
     );
@@ -353,7 +362,7 @@ function Overview({
         <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
           <div className="flex items-center justify-between">
             <h2 className="font-semibold">High-Impact Growth Levers</h2>
-            <Link to="/partner/$partnerId/coach" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Ecosystem Copilot →</Link>
+            <Link to="/partner/$partnerId/coach" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Copilot →</Link>
           </div>
           <p className="text-sm text-muted-foreground mt-1">Lowest-scoring axes are the biggest unlock for this partner.</p>
           <div className="mt-4 space-y-3">
@@ -383,8 +392,8 @@ function Overview({
 
         <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Tasks</h2>
-            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open Tasks →</Link>
+            <h2 className="font-semibold">{COPY.jbp.itemPlural}</h2>
+            <Link to="/partner/$partnerId/plan" params={{ partnerId }} className="text-xs font-mono text-muted-foreground hover:text-foreground">Open JBP →</Link>
           </div>
           <div className="mt-3 grid grid-cols-3 gap-3 text-center">
             <Stat label="Open" value={String(data.openActions.length)} />
@@ -413,8 +422,8 @@ function DiagnosticHistory({ data }: { data: ReturnType<typeof usePartner> }) {
   return (
     <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
       <div className="flex items-center justify-between">
-        <h2 className="font-semibold">Assessment History</h2>
-        <span className="text-xs font-mono text-muted-foreground">{data.history.length} assessment{data.history.length !== 1 ? "s" : ""}</span>
+        <h2 className="font-semibold">Diagnostic History</h2>
+        <span className="text-xs font-mono text-muted-foreground">{data.history.length} run{data.history.length !== 1 ? "s" : ""}</span>
       </div>
       <div className="mt-3 divide-y divide-border/60">
         {data.history.map((h, i) => {
@@ -443,7 +452,12 @@ function DiagnosticHistory({ data }: { data: ReturnType<typeof usePartner> }) {
                 <span className="text-xl font-display font-semibold text-gradient">{score.toFixed(1)}</span>
                 <button
                   onClick={async () => {
-                    if (!confirm("Delete this assessment? This can't be undone.")) return;
+                    const ok = await confirmDialog({
+                      title: "Delete this diagnostic?",
+                      description: "This action cannot be undone.",
+                      actionLabel: "Delete",
+                    });
+                    if (!ok) return;
                     try { await data.deleteAssessment(h.id); toast.success("Assessment deleted"); }
                     catch (e) { toast.error((e as Error).message); }
                   }}

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { AXES, type Level } from "../content/octa";
+import { COPY } from "@/lib/copy";
 
 export type PartnerRow = Database["public"]["Tables"]["partners"]["Row"];
 export type ActionRow = Database["public"]["Tables"]["action_plans"]["Row"];
@@ -23,13 +24,7 @@ export function tierColor(tier: PartnerRow["tier"]): string {
 }
 
 export function statusLabel(s: PartnerRow["status"]): string {
-  return ({
-    active: "Scaling",
-    nurturing: "Developing",
-    at_risk: "Churn Risk",
-    paused: "Paused",
-    archived: "Archived",
-  } as const)[s];
+  return COPY.status[s];
 }
 
 /* ─────────────────────── Portfolio (list of partners) ─────────────────────── */

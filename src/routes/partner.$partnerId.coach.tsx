@@ -1,12 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import { usePartner, levelFromAvg, type AiRecRow } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/partner/$partnerId/coach")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    autorun: search.autorun === "1" ? "1" : undefined,
+  }),
   head: () => ({ meta: [{ title: "Ecosystem Copilot — Alliara" }] }),
   component: PartnerCoach,
 });
@@ -25,12 +30,20 @@ interface CoachContent {
 
 function PartnerCoach() {
   const { partnerId } = Route.useParams();
+  const search = Route.useSearch();
   const { user } = useAuth();
   const data = usePartner(partnerId);
   const [focus, setFocus] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
-  if (data.loading || !user) return <div className="text-muted-foreground">Loading…</div>;
+  if (data.loading || !user) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-40 w-full rounded-2xl" />
+      </div>
+    );
+  }
   if (!data.partner) return null;
 
   const isOwner = data.partner.owner_id === user.id;
@@ -73,7 +86,7 @@ function PartnerCoach() {
       if (!resp?.ok) throw new Error(resp?.error ?? "Coach failed");
 
       await data.saveRecommendation(focus || null, resp.content, resp.model ?? "");
-      toast.success("Ecosystem Copilot delivered new guidance");
+      toast.success("Copilot delivered new guidance");
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -81,12 +94,19 @@ function PartnerCoach() {
     }
   };
 
+  useEffect(() => {
+    if (search.autorun !== "1") return;
+    if (!isOwner || !hasDiagnostic || busy || data.recs.length > 0) return;
+    void generate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search.autorun, isOwner, hasDiagnostic, busy, data.recs.length]);
+
   return (
     <div>
       <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h2 className="font-semibold">Ecosystem Copilot</h2>
+            <h2 className="font-semibold">{COPY.copilot.label}</h2>
             <p className="text-sm text-muted-foreground mt-1">Personalized guidance for {data.partner.name}, grounded in their OCTA scores and your PDM notes.</p>
           </div>
           {isOwner && (
@@ -107,7 +127,7 @@ function PartnerCoach() {
         </div>
         {!hasDiagnostic && (
           <div className="mt-4 text-sm text-muted-foreground">
-            Run the Readiness Assessment first → <Link to="/partner/$partnerId/diagnostic" params={{ partnerId }} className="text-primary underline">go to assessment</Link>
+            Run the Diagnostic first → <Link to="/partner/$partnerId/diagnostic" params={{ partnerId }} className="text-primary underline">go to diagnostic</Link>
           </div>
         )}
       </div>

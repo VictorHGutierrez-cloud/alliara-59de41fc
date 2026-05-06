@@ -4,9 +4,10 @@ import { useAuth } from "@/lib/auth";
 import { useOctaData } from "../lib/octa-store";
 import { usePdmStats, fmtMoney } from "../lib/pdm-stats";
 import { useEffect } from "react";
+import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({ meta: [{ title: "My Performance — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — Alliara" }] }),
   component: Dashboard,
 });
 
@@ -29,7 +30,7 @@ function Dashboard() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">My Performance</p>
-          <h1 className="text-3xl font-semibold mt-1">{data.profile?.display_name ?? "Operator"}</h1>
+          <h1 className="text-3xl font-semibold mt-1">{data.profile?.display_name ?? COPY.role.short}</h1>
           <p className="text-sm text-muted-foreground mt-1">Live KPIs across your portfolio.</p>
         </div>
         <Link to="/partners" className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
@@ -97,6 +98,15 @@ function Dashboard() {
           <MiniStat label="Avg partner maturity" value={stats.assessments.avgOverall ? stats.assessments.avgOverall.toFixed(1) : "—"} hint="/ 5.0" />
           <MiniStat label="Trained people" value={stats.trainedPeople} />
           <MiniStat label="Partners w/ docs" value={stats.documents.partnersWithDocs} hint={`of ${stats.partners.total}`} />
+        </div>
+        <div className="mt-4 rounded-xl border border-border/60 bg-surface/40 p-3">
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Weekly habit</p>
+          <p className="mt-1 text-sm text-foreground">
+            Move streak: <span className="font-semibold">{Math.max(1, Math.round(stats.tasks.completedLast30 / 7))} week(s)</span>
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Keep shipping {COPY.jbp.itemPlural.toLowerCase()} every week to protect pipeline freshness.
+          </p>
         </div>
       </div>
 

@@ -5,6 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { usePartner } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { COPY } from "@/lib/copy";
+import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId/intel")({
   head: () => ({ meta: [{ title: "Intel — Alliara" }] }),
@@ -76,6 +79,7 @@ function PartnerIntel() {
   const [generating, setGenerating] = useState(false);
   const [freeText, setFreeText] = useState("");
   const [deletingRunId, setDeletingRunId] = useState<string | null>(null);
+  const confirmDialog = useConfirmDialog();
 
   const isOwner = !!data.partner && !!user && data.partner.owner_id === user.id;
 
@@ -94,10 +98,22 @@ function PartnerIntel() {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  if (data.loading || !data.partner) return <div className="text-muted-foreground">Loading…</div>;
+  if (data.loading || !data.partner) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-56 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   const deleteRun = async (id: string) => {
-    if (!confirm("Delete this decoded signal run? This cannot be undone.")) return;
+    const ok = await confirmDialog({
+      title: "Delete this decoded signal run?",
+      description: "This action cannot be undone.",
+      actionLabel: "Delete",
+    });
+    if (!ok) return;
     setDeletingRunId(id);
     try {
       const { error } = await supabase.from("partner_intel_runs").delete().eq("id", id);
@@ -113,7 +129,12 @@ function PartnerIntel() {
 
   const clearAllRuns = async () => {
     if (runs.length === 0) return;
-    if (!confirm(`Delete all ${runs.length} decoded signal run${runs.length === 1 ? "" : "s"} for this partner? This cannot be undone.`)) return;
+    const ok = await confirmDialog({
+      title: `Delete all ${runs.length} decoded signal run${runs.length === 1 ? "" : "s"}?`,
+      description: "This action cannot be undone.",
+      actionLabel: "Delete all",
+    });
+    if (!ok) return;
     try {
       const { error } = await supabase.from("partner_intel_runs").delete().eq("partner_id", partnerId);
       if (error) throw error;
@@ -193,6 +214,7 @@ function PartnerIntel() {
           docs={docs}
           onChange={refresh}
           userId={user?.id}
+          confirmDialog={confirmDialog}
         />
         <MetricsCard
           partnerId={partnerId}
@@ -200,6 +222,7 @@ function PartnerIntel() {
           metrics={metrics}
           onChange={refresh}
           userId={user?.id}
+          confirmDialog={confirmDialog}
         />
 
         <div className="rounded-2xl bg-card border border-border/60 p-5 card-elev">
@@ -287,9 +310,10 @@ function PartnerIntel() {
 /* ─────────────────────── Documents ─────────────────────── */
 
 function DocumentsCard({
-  partnerId, isOwner, docs, onChange, userId,
+  partnerId, isOwner, docs, onChange, userId, confirmDialog,
 }: {
   partnerId: string; isOwner: boolean; docs: DocRow[]; onChange: () => Promise<void>; userId: string | undefined;
+  confirmDialog: ReturnType<typeof useConfirmDialog>;
 }) {
   const [uploading, setUploading] = useState(false);
   const [kind, setKind] = useState<string>("business_plan");
@@ -341,7 +365,8 @@ function DocumentsCard({
   };
 
   const onDelete = async (d: DocRow) => {
-    if (!confirm(`Delete ${d.filename}?`)) return;
+    const ok = await confirmDialog({ title: `Delete ${d.filename}?`, actionLabel: "Delete" });
+    if (!ok) return;
     try {
       await supabase.storage.from("partner-docs").remove([d.storage_path]);
       const { error } = await supabase.from("partner_documents").delete().eq("id", d.id);
@@ -418,9 +443,10 @@ function DocumentsCard({
 /* ─────────────────────── Metrics ─────────────────────── */
 
 function MetricsCard({
-  partnerId, isOwner, metrics, onChange, userId,
+  partnerId, isOwner, metrics, onChange, userId, confirmDialog,
 }: {
   partnerId: string; isOwner: boolean; metrics: MetricRow[]; onChange: () => Promise<void>; userId: string | undefined;
+  confirmDialog: ReturnType<typeof useConfirmDialog>;
 }) {
   const [open, setOpen] = useState(false);
   const [period, setPeriod] = useState("");
@@ -460,7 +486,8 @@ function MetricsCard({
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm("Delete this metric entry?")) return;
+    const ok = await confirmDialog({ title: "Delete this metric entry?", actionLabel: "Delete" });
+    if (!ok) return;
     const { error } = await supabase.from("partner_metrics").delete().eq("id", id);
     if (error) toast.error(error.message); else await onChange();
   };
@@ -544,7 +571,7 @@ function RunCard({
           <div className="flex items-center justify-between">
             <div className="min-w-0 pr-16">
               <div className="text-xs font-mono text-muted-foreground">{new Date(run.created_at).toLocaleString()}</div>
-              <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Ecosystem Executive Vision</div>
+              <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{COPY.copilot.label} executive read</div>
               <div className="mt-1 text-sm font-medium line-clamp-2">{out.executive_summary}</div>
             </div>
             <span className="text-muted-foreground ml-2">{open ? "−" : "+"}</span>

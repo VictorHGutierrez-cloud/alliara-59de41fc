@@ -30,7 +30,13 @@ export const Route = createFileRoute("/reports")({
   validateSearch: (search: Record<string, unknown>) => {
     const raw = typeof search.tab === "string" ? search.tab : undefined;
     const valid = raw && TABS.some((t) => t.key === raw) ? (raw as TabKey) : undefined;
-    return { tab: valid };
+    const scope = search.scope === "all" ? "all" : search.scope === "mine" ? "mine" : undefined;
+    const pdm = typeof search.pdm === "string" ? search.pdm : undefined;
+    const status = typeof search.status === "string" ? search.status : undefined;
+    const tier = typeof search.tier === "string" ? search.tier : undefined;
+    const period = typeof search.period === "string" ? search.period : undefined;
+    const type = typeof search.type === "string" ? search.type : undefined;
+    return { tab: valid, scope, pdm, status, tier, period, type };
   },
   head: () => ({ meta: [{ title: "Reports — Alliara" }] }),
   component: ReportsPage,
@@ -44,7 +50,12 @@ function ReportsPage() {
   const leads = useLeads(user?.id);
   const pdmRoster = usePdmRoster();
   const { filters, set, reset } = useReportFilters({
-    scope: portfolio.isLeadership ? "all" : "mine",
+    scope: search.scope === "all" || search.scope === "mine" ? search.scope : (portfolio.isLeadership ? "all" : "mine"),
+    pdmId: search.pdm ?? "all",
+    status: (search.status as "all" | "active" | "nurturing" | "at_risk" | "paused" | "archived") ?? "all",
+    tier: (search.tier as "all" | "strategic" | "core" | "emerging" | "long_tail") ?? "all",
+    period: (search.period as "30d" | "90d" | "6m" | "12m" | "all") ?? "all",
+    type: (search.type as "all" | "referral" | "reseller" | "expert") ?? "all",
   });
   const [tabFallback, setTabFallback] = useState<TabKey>("overview");
   const tab = search.tab ?? tabFallback;
@@ -103,8 +114,29 @@ function ReportsPage() {
 
       <ReportFiltersBar
         filters={filters}
-        set={set}
-        reset={reset}
+        set={(k, v) => {
+          set(k, v);
+          void navigate({
+            search: (prev) => ({
+              ...prev,
+              [k === "pdmId" ? "pdm" : k]: v,
+            }),
+          });
+        }}
+        reset={() => {
+          reset();
+          void navigate({
+            search: (prev) => ({
+              ...prev,
+              scope: portfolio.isLeadership ? "all" : "mine",
+              pdm: "all",
+              type: "all",
+              status: "all",
+              tier: "all",
+              period: "all",
+            }),
+          });
+        }}
         pdms={pdmRoster.pdms}
         isLeadership={portfolio.isLeadership}
         count={scoped.length}

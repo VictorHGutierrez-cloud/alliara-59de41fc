@@ -31,9 +31,11 @@ import { ChevronDown } from "lucide-react";
 import { PromoteLeadDialog } from "@/components/PromoteLeadDialog";
 import { CandyDataTable, StatusPill, CandyAvatar, type CandyColumn } from "@/components/ui/candy-data-table";
 import { downloadCsv, slugifyForFile } from "@/lib/report-export";
+import { COPY } from "@/lib/copy";
+import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/qualification")({
-  head: () => ({ meta: [{ title: "Partner Qualification — Alliara" }] }),
+  head: () => ({ meta: [{ title: "IPP Qualification — Alliara" }] }),
   component: QualificationPage,
 });
 
@@ -50,6 +52,7 @@ function QualificationPage() {
   const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
   const leadTasks = useAllLeadTasks(user?.id, leadsStore.leads);
   const [view, setView] = useState<"kanban" | "list">("kanban");
+  const confirmDialog = useConfirmDialog();
 
   const ownerScope = useOwnerScope({
     items: leadsStore.leads,
@@ -139,7 +142,7 @@ function QualificationPage() {
           <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Qualification</p>
           <h1 className="text-3xl font-semibold mt-1">Partner Lead Pipeline</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Score every lead on the Factorial 5-Dimension Scorecard before promoting them.
+            Score every lead with the {COPY.ipp.full} before promoting them.
           </p>
         </div>
         <button
@@ -302,7 +305,7 @@ function QualificationPage() {
                 },
                 {
                   key: "score",
-                  header: "Score",
+                  header: COPY.ipp.short,
                   width: "150px",
                   cell: (l) => {
                     const total = computeFactorialTotal(l);
@@ -409,7 +412,12 @@ function QualificationPage() {
                         canReassign={leadsStore.isLeadership || lead.owner_id === user.id}
                         onReassign={(newOwnerId, name) => reassignLead(lead.id, newOwnerId, name)}
                         onDelete={async () => {
-                          if (!confirm(`Delete lead "${lead.company_name}"? This cannot be undone.`)) return;
+                          const ok = await confirmDialog({
+                            title: `Delete lead "${lead.company_name}"?`,
+                            description: "This action cannot be undone.",
+                            actionLabel: "Delete",
+                          });
+                          if (!ok) return;
                           try {
                             await leadsStore.deleteLead(lead.id);
                             toast.success("Lead deleted");
@@ -520,7 +528,7 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
     <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
       <h2 className="text-lg font-semibold">No leads yet</h2>
       <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-        Add your first partner lead to start scoring against the Factorial 5-Dimension Scorecard.
+        Add your first partner lead to start scoring against the {COPY.ipp.full}.
       </p>
       <button onClick={onAdd} className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
         + Add your first lead
@@ -747,6 +755,7 @@ function LeadDetailPanel({
   onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
   canReassign?: boolean;
 }) {
+  const confirmDialog = useConfirmDialog();
   const { meta, freeText } = parseScorecard(lead.notes);
   const [notes, setNotes] = useState(freeText);
   const [showReject, setShowReject] = useState(false);
@@ -938,7 +947,14 @@ function LeadDetailPanel({
 
         <div className="mt-6 flex items-center justify-between gap-3">
           <button
-            onClick={() => { if (confirm("Delete this lead?")) void onDelete(); }}
+            onClick={async () => {
+              const ok = await confirmDialog({
+                title: "Delete this lead?",
+                description: "This action cannot be undone.",
+                actionLabel: "Delete",
+              });
+              if (ok) void onDelete();
+            }}
             className="text-xs text-red-400 hover:text-red-300"
           >
             Delete lead
@@ -1063,6 +1079,7 @@ function CrmTab({
   lead: LeadRow;
   onUpdate: (patch: Partial<LeadRow>) => Promise<void>;
 }) {
+  const confirmDialog = useConfirmDialog();
   const acts = useLeadActivities(lead.id, lead.owner_id);
   const summary = activitySummary(acts.activities);
   const lastActivity = acts.activities[0]?.created_at ?? null;
@@ -1132,8 +1149,11 @@ function CrmTab({
                 activity={a}
                 onToggle={() => acts.toggleDone(a).catch((e) => toast.error((e as Error).message))}
                 onDelete={() => {
-                  if (!confirm("Delete this activity?")) return;
-                  acts.remove(a.id).catch((e) => toast.error((e as Error).message));
+                  void (async () => {
+                    const ok = await confirmDialog({ title: "Delete this activity?", actionLabel: "Delete" });
+                    if (!ok) return;
+                    acts.remove(a.id).catch((e) => toast.error((e as Error).message));
+                  })();
                 }}
               />
             ))

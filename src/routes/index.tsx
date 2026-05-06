@@ -17,6 +17,7 @@ import {
   CardVisual,
 } from "@/components/ui/animated-card";
 import { CandyBarChart, CandyDonut } from "@/components/ui/candy-charts";
+import { HeroMessage } from "@/components/landing/HeroMessage";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -196,7 +197,7 @@ function TrustStrip() {
 function Landing() {
   return (
     <>
-      {/* 1. HERO — full-bleed video, only CTAs */}
+      {/* 1. HERO */}
       <PrismaHero
         videoSrc="/fios.mp4"
         eyebrow={null}
@@ -206,17 +207,7 @@ function Landing() {
         primaryCta={null}
         secondaryCta={null}
       />
-      <section className="bg-white py-8 px-6 border-b border-neutral-200/70">
-        <div className="mx-auto max-w-6xl flex flex-wrap justify-center gap-3">
-          <Link to="/signup" className="btn-candy group">
-            Create your account
-            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-          </Link>
-          <Link to="/login" className="btn-candy-secondary">
-            Sign in
-          </Link>
-        </div>
-      </section>
+      <HeroMessage />
 
       <RevealSection>
         <TrustStrip />

@@ -1,6 +1,47 @@
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useAuth } from "@/lib/auth";
+import { usePortfolio } from "@/lib/partners-store";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/diagnostic")({
   head: () => ({ meta: [{ title: "Diagnostic — Alliara" }] }),
-  component: () => <Navigate to="/partners" replace />,
+  component: DiagnosticLanding,
 });
+
+function DiagnosticLanding() {
+  const { user, loading } = useAuth();
+  const portfolio = usePortfolio(user?.id);
+
+  if (loading || portfolio.loading) {
+    return (
+      <div className="mx-auto max-w-4xl px-6 py-10 space-y-3">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  const firstPartner = portfolio.items[0]?.partner.id;
+
+  return (
+    <div className="mx-auto max-w-4xl px-6 py-10">
+      <div className="rounded-2xl border border-border/60 bg-card p-6 card-elev">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Diagnostic</p>
+        <h1 className="mt-1 text-2xl font-semibold">Run a partner diagnostic</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Diagnostics run inside a specific partner workspace so results connect directly to Moves and Copilot guidance.
+        </p>
+        <div className="mt-5 flex flex-wrap gap-3">
+          {firstPartner ? (
+            <Link to="/partner/$partnerId/diagnostic" params={{ partnerId: firstPartner }} className="btn-candy">
+              Run diagnostic on first partner
+            </Link>
+          ) : (
+            <Link to="/partners" className="btn-candy">Add your first partner</Link>
+          )}
+          <Link to="/partners" className="btn-candy-secondary">Open portfolio</Link>
+        </div>
+      </div>
+    </div>
+  );
+}

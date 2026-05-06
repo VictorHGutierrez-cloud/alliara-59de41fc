@@ -5,6 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId/metrics")({
   head: () => ({ meta: [{ title: "Metrics — Alliara" }] }),
@@ -38,6 +40,7 @@ function MetricsPage() {
   const [showNew, setShowNew] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const confirmDialog = useConfirmDialog();
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -66,12 +69,20 @@ function MetricsPage() {
   }, [items]);
 
   const remove = async (id: string) => {
-    if (!confirm("Delete this snapshot?")) return;
+    const ok = await confirmDialog({ title: "Delete this snapshot?", actionLabel: "Delete" });
+    if (!ok) return;
     const { error } = await supabase.from("partner_metrics").delete().eq("id", id);
     if (error) toast.error(error.message); else { toast.success("Deleted"); refresh(); }
   };
 
-  if (loading) return <div className="text-muted-foreground">Loading…</div>;
+  if (loading) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-72 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div>
