@@ -117,7 +117,7 @@ function ReportsPage() {
         set={(k, v) => {
           set(k, v);
           void navigate({
-            search: (prev) => ({
+            search: (prev: Record<string, unknown>) => ({
               ...prev,
               [k === "pdmId" ? "pdm" : k]: v,
             }),
@@ -126,7 +126,7 @@ function ReportsPage() {
         reset={() => {
           reset();
           void navigate({
-            search: (prev) => ({
+            search: (prev: Record<string, unknown>) => ({
               ...prev,
               scope: portfolio.isLeadership ? "all" : "mine",
               pdm: "all",
@@ -151,7 +151,7 @@ function ReportsPage() {
             data-active={tab === t.key}
             onClick={() => {
               setTabFallback(t.key);
-              void navigate({ search: (prev) => ({ ...prev, tab: t.key }) });
+              void navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, tab: t.key }) });
             }}
           >
             {t.label}
