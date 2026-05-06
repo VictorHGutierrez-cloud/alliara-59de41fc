@@ -171,7 +171,7 @@ function AppFrame() {
 
   if (loading) {
     return (
-      <div className="grid min-h-screen lg:grid-cols-[17rem_1fr]">
+      <div className="grid min-h-screen w-full overflow-x-clip lg:grid-cols-[17rem_1fr]">
         <aside className="hidden border-r border-border/70 bg-sidebar/90 px-4 py-5 lg:block">
           <div className="space-y-3">
             <Skeleton className="h-10 w-40 rounded-xl" />
@@ -181,7 +181,7 @@ function AppFrame() {
             <Skeleton className="h-11 w-full rounded-xl" />
           </div>
         </aside>
-        <div className="mx-auto w-full max-w-7xl px-6 py-8">
+        <div className="mx-auto min-w-0 w-full max-w-7xl px-6 py-8">
           <Skeleton className="h-8 w-52" />
           <Skeleton className="mt-5 h-24 w-full rounded-2xl" />
           <Skeleton className="mt-4 h-24 w-full rounded-2xl" />
@@ -193,7 +193,13 @@ function AppFrame() {
   const inAppWorkspace = Boolean(user && !isLanding);
 
   return (
-    <div className={inAppWorkspace ? "min-h-screen lg:grid lg:grid-cols-[17rem_1fr]" : "min-h-screen"}>
+    <div
+      className={
+        inAppWorkspace
+          ? "min-h-screen w-full overflow-x-clip lg:grid lg:grid-cols-[17rem_1fr]"
+          : "min-h-screen w-full overflow-x-clip"
+      }
+    >
       {inAppWorkspace && (
         <aside className="hidden border-r border-sidebar-border/80 bg-sidebar/95 px-4 py-5 lg:flex lg:flex-col">
           <Link to="/" className="flex items-center gap-2">
@@ -231,7 +237,7 @@ function AppFrame() {
         </aside>
       )}
 
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen min-w-0 flex flex-col">
         <header
           className={isLanding && !user ? "sticky top-0 z-40 bg-white" : "sticky top-0 z-40 glass"}
         >
@@ -319,7 +325,7 @@ function AppFrame() {
           </div>
         </header>
 
-        <main className="flex-1">
+        <main className="min-w-0 flex-1">
           <Outlet />
         </main>
 

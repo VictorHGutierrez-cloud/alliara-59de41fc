@@ -149,6 +149,7 @@
     background-color: var(--color-background);
     background-image: var(--gradient-hero);
     background-attachment: fixed;
+    overflow-x: clip;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-size: 0.96rem;

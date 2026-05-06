@@ -1,6 +1,6 @@
 import { motion, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { useRef, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 
 /* ---------------- WordsPullUp ---------------- */
 interface WordsPullUpProps {
@@ -113,14 +113,22 @@ export const PrismaHero = ({
   overlayOpacity = 0.55,
 }: PrismaHeroProps) => {
   const sectionRef = useRef<HTMLElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const reduceMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end start"],
   });
-  const videoY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
-  const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
   const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-8%"]);
+
+  useEffect(() => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    video.defaultMuted = true;
+    void video.play().catch(() => {
+      // Autoplay can be blocked on some mobile conditions; controls stay hidden by design.
+    });
+  }, [videoSrc]);
 
   const hasHeadline = headlineNode != null || headlineSegments != null;
   const segments: Segment[] = headlineSegments ?? [];
@@ -134,14 +142,16 @@ export const PrismaHero = ({
 
       {/* Layer 1 — Background video (full-bleed) */}
       {videoSrc ? (
-        <motion.video
+        <video
+          ref={videoRef}
           className="absolute inset-0 w-full h-full object-cover"
           src={videoSrc}
           autoPlay
           muted
           loop
           playsInline
-          style={reduceMotion ? undefined : { y: videoY, scale: videoScale }}
+          preload="auto"
+          disablePictureInPicture
         />
       ) : (
         <>
