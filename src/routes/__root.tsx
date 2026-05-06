@@ -118,27 +118,6 @@ function AppFrame() {
   const navigate = useNavigate();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="grid min-h-screen lg:grid-cols-[17rem_1fr]">
-        <aside className="hidden border-r border-border/70 bg-sidebar/90 px-4 py-5 lg:block">
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-40 rounded-xl" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-          </div>
-        </aside>
-        <div className="mx-auto w-full max-w-7xl px-6 py-8">
-          <Skeleton className="h-8 w-52" />
-          <Skeleton className="mt-5 h-24 w-full rounded-2xl" />
-          <Skeleton className="mt-4 h-24 w-full rounded-2xl" />
-        </div>
-      </div>
-    );
-  }
-
   const workspaceItems = useMemo(
     () =>
       user
@@ -189,6 +168,27 @@ function AppFrame() {
         : [],
     [navigate, path, user],
   );
+
+  if (loading) {
+    return (
+      <div className="grid min-h-screen lg:grid-cols-[17rem_1fr]">
+        <aside className="hidden border-r border-border/70 bg-sidebar/90 px-4 py-5 lg:block">
+          <div className="space-y-3">
+            <Skeleton className="h-10 w-40 rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+            <Skeleton className="h-11 w-full rounded-xl" />
+          </div>
+        </aside>
+        <div className="mx-auto w-full max-w-7xl px-6 py-8">
+          <Skeleton className="h-8 w-52" />
+          <Skeleton className="mt-5 h-24 w-full rounded-2xl" />
+          <Skeleton className="mt-4 h-24 w-full rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
 
   const inAppWorkspace = Boolean(user && !isLanding);
 
