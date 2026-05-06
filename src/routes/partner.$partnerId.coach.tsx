@@ -28,6 +28,50 @@ interface CoachContent {
   }[];
 }
 
+function normalizeCoachContent(raw: unknown): CoachContent {
+  const obj = (raw && typeof raw === "object") ? (raw as Record<string, unknown>) : {};
+
+  const rawRecs = Array.isArray(obj.recommendations)
+    ? obj.recommendations
+    : Array.isArray(obj.recommendation_items)
+      ? obj.recommendation_items
+      : [];
+
+  const rawActions = Array.isArray(obj.action_items)
+    ? obj.action_items
+    : Array.isArray(obj.actions)
+      ? obj.actions
+      : [];
+
+  const recommendations: CoachContent["recommendations"] = rawRecs
+    .filter((r): r is Record<string, unknown> => !!r && typeof r === "object")
+    .map((r) => ({
+      axis_key: String(r.axis_key ?? ""),
+      title: String(r.title ?? "Untitled recommendation"),
+      why: String(r.why ?? ""),
+      how: String(r.how ?? ""),
+      expected_outcome: String(r.expected_outcome ?? r.outcome ?? ""),
+      priority: (r.priority === "high" || r.priority === "low") ? r.priority : "medium",
+      target_level: Number(r.target_level ?? 0) || 0,
+    }));
+
+  const action_items: CoachContent["action_items"] = rawActions
+    .filter((a): a is Record<string, unknown> => !!a && typeof a === "object")
+    .map((a) => ({
+      axis_key: String(a.axis_key ?? ""),
+      title: String(a.title ?? "Untitled move"),
+      description: a.description ? String(a.description) : undefined,
+      priority: (a.priority === "high" || a.priority === "low") ? a.priority : "medium",
+      target_level: Number(a.target_level ?? 0) || 0,
+    }));
+
+  return {
+    summary: String(obj.summary ?? "No summary available for this run."),
+    recommendations,
+    action_items,
+  };
+}
+
 function PartnerCoach() {
   const { partnerId } = Route.useParams();
   const search = Route.useSearch();
@@ -177,7 +221,7 @@ function RecommendationCard({
   isOwner: boolean;
   onAddAction: (item: CoachContent["action_items"][number]) => void;
 }) {
-  const c = rec.content as unknown as CoachContent;
+  const c = normalizeCoachContent(rec.content);
   const focusAxis = rec.axis_key ? AXES.find((a) => a.key === rec.axis_key) : null;
 
   return (
