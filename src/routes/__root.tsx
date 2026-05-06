@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import alliaraLogo from "@/assets/alliara-logo.png";
 import Dock from "@/components/ui/dock";
 import { Users, ClipboardCheck, BarChart3, Trophy, Compass, Settings as SettingsIcon, LogOut } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 function NotFoundComponent() {
   return (
@@ -77,7 +78,13 @@ function AppFrame() {
   const navigate = useNavigate();
 
   if (loading) {
-    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-12 space-y-4">
+        <Skeleton className="h-8 w-52" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+      </div>
+    );
   }
 
   const dockItems = user
@@ -86,7 +93,7 @@ function AppFrame() {
         { icon: ClipboardCheck, label: "Qualification", active: path.startsWith("/qualification"), onClick: () => navigate({ to: "/qualification" }) },
         { icon: BarChart3, label: "Reports", active: path.startsWith("/reports"), onClick: () => navigate({ to: "/reports" }) },
         { icon: Compass, label: "Methodology", active: path.startsWith("/methodology") || path.startsWith("/axis"), onClick: () => navigate({ to: "/methodology" }) },
-        { icon: Trophy, label: "My Performance", active: path.startsWith("/dashboard") || path.startsWith("/diagnostic"), onClick: () => navigate({ to: "/dashboard" }) },
+        { icon: Trophy, label: "Dashboard", active: path.startsWith("/dashboard") || path.startsWith("/diagnostic"), onClick: () => navigate({ to: "/dashboard" }) },
         { icon: SettingsIcon, label: "Settings", active: path.startsWith("/settings"), onClick: () => navigate({ to: "/settings" }) },
         { icon: LogOut, label: "Sign out", onClick: () => signOut() },
       ]
@@ -126,7 +133,12 @@ function AppFrame() {
                     Sign out
                   </button>
                 </>
-              ) : null
+              ) : (
+                <>
+                  <Link to="/login" className="px-3 py-1.5 rounded-md hover:bg-surface-2 text-foreground">Sign in</Link>
+                  <Link to="/signup" className="ml-1 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-medium hover:opacity-90">Get started</Link>
+                </>
+              )
             ) : user ? (
               <>
                 <Link

@@ -7,6 +7,7 @@ import { Radar, RadarChart, PolarAngleAxis, PolarGrid, PolarRadiusAxis, Responsi
 import { toast } from "sonner";
 import { PARTNER_TYPES, type PartnerType } from "@/lib/partner-types";
 import { PartnerTypeChip } from "@/components/PartnerFilterBar";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/partner/$partnerId")({
   head: () => ({ meta: [{ title: "Partner — Alliara" }] }),
@@ -33,7 +34,16 @@ function PartnerLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOnDiagnostic, partnerId]);
 
-  if (loading || !user || data.loading) return <div className="p-10 text-muted-foreground">Loading…</div>;
+  if (loading || !user || data.loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8 space-y-4">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-2xl" />
+      </div>
+    );
+  }
   if (!data.partner) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-16 text-center">

@@ -277,9 +277,18 @@ export function CandyDataTable<T>({
                   onMouseEnter={() => setHoveredId(id)}
                   onMouseLeave={() => setHoveredId((h) => (h === id ? null : h))}
                   onClick={() => onRowClick?.(row)}
+                  onKeyDown={(e) => {
+                    if (!onRowClick) return;
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      onRowClick(row);
+                    }
+                  }}
+                  tabIndex={onRowClick ? 0 : -1}
+                  aria-label={onRowClick ? `Open row ${id}` : undefined}
                   className={cn(
                     "grid items-center gap-3 border-b border-border/40 px-3 py-3 text-sm transition-colors",
-                    onRowClick && "cursor-pointer",
+                    onRowClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                     isSel
                       ? "bg-primary/[0.06]"
                       : "hover:bg-primary/[0.04]",

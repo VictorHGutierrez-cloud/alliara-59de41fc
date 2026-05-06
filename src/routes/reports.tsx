@@ -14,11 +14,7 @@ import { HealthByPdmReport } from "@/components/reports/HealthByPdmReport";
 import { MaturityReport } from "@/components/reports/MaturityReport";
 import { PipelineReport } from "@/components/reports/PipelineReport";
 import { MixReport } from "@/components/reports/MixReport";
-
-export const Route = createFileRoute("/reports")({
-  head: () => ({ meta: [{ title: "Reports — Alliara" }] }),
-  component: ReportsPage,
-});
+import { Skeleton } from "@/components/ui/skeleton";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -30,15 +26,28 @@ const TABS = [
 ] as const;
 type TabKey = typeof TABS[number]["key"];
 
+export const Route = createFileRoute("/reports")({
+  validateSearch: (search: Record<string, unknown>) => {
+    const raw = typeof search.tab === "string" ? search.tab : undefined;
+    const valid = raw && TABS.some((t) => t.key === raw) ? (raw as TabKey) : undefined;
+    return { tab: valid };
+  },
+  head: () => ({ meta: [{ title: "Reports — Alliara" }] }),
+  component: ReportsPage,
+});
+
 function ReportsPage() {
   const { user, loading } = useAuth();
+  const navigate = Route.useNavigate();
+  const search = Route.useSearch();
   const portfolio = usePortfolio(user?.id);
   const leads = useLeads(user?.id);
   const pdmRoster = usePdmRoster();
   const { filters, set, reset } = useReportFilters({
     scope: portfolio.isLeadership ? "all" : "mine",
   });
-  const [tab, setTab] = useState<TabKey>("overview");
+  const [tabFallback, setTabFallback] = useState<TabKey>("overview");
+  const tab = search.tab ?? tabFallback;
 
   const scoped = useMemo(
     () => applyReportFilters(portfolio.items, filters, user?.id),
@@ -52,7 +61,30 @@ function ReportsPage() {
     return (id: string) => m.get(id) ?? (id ? id.slice(0, 8) : "Unassigned");
   }, [pdmRoster.pdms]);
 
-  if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
+  if (loading || !user || portfolio.loading) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-14 w-full rounded-xl" />
+        <Skeleton className="h-10 w-96 rounded-xl" />
+        <Skeleton className="h-72 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (portfolio.error) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6">
+          <h1 className="text-xl font-semibold text-foreground">Could not load reports data</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{portfolio.error}</p>
+          <button onClick={() => void portfolio.retry()} className="mt-4 btn-candy">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
@@ -85,7 +117,10 @@ function ReportsPage() {
             key={t.key}
             className="seg-candy-item"
             data-active={tab === t.key}
-            onClick={() => setTab(t.key)}
+            onClick={() => {
+              setTabFallback(t.key);
+              void navigate({ search: (prev) => ({ ...prev, tab: t.key }) });
+            }}
           >
             {t.label}
           </button>

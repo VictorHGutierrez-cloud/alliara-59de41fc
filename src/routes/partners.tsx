@@ -18,9 +18,10 @@ import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { BulkReassignDialog, type ReassignAssignment, type ReassignItem } from "@/components/BulkReassignDialog";
 import { CandyBarChart, CandyComposition, type BarDatum } from "@/components/ui/candy-charts";
 import { CandyDataTable, CandyAvatar, StatusPill, type StatusTone, type CandyColumn } from "@/components/ui/candy-data-table";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/partners")({
-  head: () => ({ meta: [{ title: "PDM Command Center — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Portfolio — Alliara" }] }),
   component: PartnersPage,
 });
 
@@ -191,7 +192,30 @@ function PartnersPage() {
     return () => { cancelled = true; };
   }, [user, portfolio.items, portfolio.loading]);
 
-  if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
+  if (loading || !user) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
+        <Skeleton className="h-7 w-72" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (portfolio.error) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6">
+          <h1 className="text-xl font-semibold text-foreground">Could not load your portfolio</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{portfolio.error}</p>
+          <button onClick={() => void portfolio.retry()} className="mt-4 btn-candy">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Scoped portfolio (mine vs all for leadership, plus optional PDM filter)
   const scoped = portfolio.items.filter(ownerScope.applyFilter);
@@ -325,7 +349,7 @@ function PartnersPage() {
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            Command Center · {greeting()}
+            Portfolio · {greeting()}
           </span>
         </div>
         <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
@@ -656,7 +680,11 @@ function PartnersPage() {
 
         <div className="mt-5">
           {portfolio.loading ? (
-            <div className="text-sm text-muted-foreground py-10 text-center">Loading partners…</div>
+            <div className="space-y-3">
+              <Skeleton className="h-14 w-full rounded-xl" />
+              <Skeleton className="h-14 w-full rounded-xl" />
+              <Skeleton className="h-14 w-full rounded-xl" />
+            </div>
           ) : sorted.length === 0 ? (
             <EmptyState onAdd={() => setShowNew(true)} />
           ) : (

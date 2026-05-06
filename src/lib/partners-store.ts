@@ -44,37 +44,57 @@ export function usePortfolio(userId: string | undefined) {
   const [items, setItems] = useState<PortfolioItem[]>([]);
   const [isLeadership, setIsLeadership] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
-    if (!userId) return;
-    setLoading(true);
-    const [{ data: roles }, { data: partners }] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", userId),
-      supabase.from("partners").select("*").order("created_at", { ascending: false }),
-    ]);
-    const lead = (roles ?? []).some((r) => r.role === "leadership" || r.role === "admin");
-    setIsLeadership(lead);
-
-    const partnerRows = (partners ?? []) as PartnerRow[];
-    const ids = partnerRows.map((p) => p.id);
-    let latestByPartner = new Map<string, AssessmentRow>();
-    if (ids.length) {
-      const { data: ass } = await supabase
-        .from("assessments")
-        .select("*")
-        .in("partner_id", ids)
-        .order("created_at", { ascending: false });
-      for (const a of (ass ?? []) as AssessmentRow[]) {
-        if (a.partner_id && !latestByPartner.has(a.partner_id)) latestByPartner.set(a.partner_id, a);
-      }
+    if (!userId) {
+      setItems([]);
+      setIsLeadership(false);
+      setError(null);
+      setLoading(false);
+      return;
     }
+    setLoading(true);
+    setError(null);
+    try {
+      const [{ data: roles, error: rolesError }, { data: partners, error: partnersError }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+        supabase.from("partners").select("*").order("created_at", { ascending: false }),
+      ]);
+      if (rolesError) throw rolesError;
+      if (partnersError) throw partnersError;
 
-    setItems(partnerRows.map((p) => ({
-      partner: p,
-      latest: latestByPartner.get(p.id) ?? null,
-      isLeadershipView: lead && p.owner_id !== userId,
-    })));
-    setLoading(false);
+      const lead = (roles ?? []).some((r) => r.role === "leadership" || r.role === "admin");
+      setIsLeadership(lead);
+
+      const partnerRows = (partners ?? []) as PartnerRow[];
+      const ids = partnerRows.map((p) => p.id);
+      const latestByPartner = new Map<string, AssessmentRow>();
+      if (ids.length) {
+        const { data: ass, error: assError } = await supabase
+          .from("assessments")
+          .select("*")
+          .in("partner_id", ids)
+          .order("created_at", { ascending: false });
+        if (assError) throw assError;
+        for (const a of (ass ?? []) as AssessmentRow[]) {
+          if (a.partner_id && !latestByPartner.has(a.partner_id)) latestByPartner.set(a.partner_id, a);
+        }
+      }
+
+      setItems(partnerRows.map((p) => ({
+        partner: p,
+        latest: latestByPartner.get(p.id) ?? null,
+        isLeadershipView: lead && p.owner_id !== userId,
+      })));
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to load portfolio";
+      setError(message);
+      setItems([]);
+      setIsLeadership(false);
+    } finally {
+      setLoading(false);
+    }
   }, [userId]);
 
   useEffect(() => { void refresh(); }, [refresh]);
@@ -106,7 +126,7 @@ export function usePortfolio(userId: string | undefined) {
     await refresh();
   }, [refresh]);
 
-  return { items, isLeadership, loading, refresh, createPartner, deletePartner };
+  return { items, isLeadership, loading, error, refresh, retry: refresh, createPartner, deletePartner };
 }
 
 /* ─────────────────────── Single Partner workspace ─────────────────────── */

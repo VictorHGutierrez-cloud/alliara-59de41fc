@@ -27,7 +27,7 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-const PINK = "#EC1E79";
+const BRAND_ACCENT = "var(--primary)";
 
 function formatDemoEuro(n: number) {
   if (n >= 1000 && n % 1000 === 0) return `€${n / 1000}k`;
@@ -63,7 +63,7 @@ function ProductShowcase() {
 
       <div className="relative mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-neutral-500">Product</p>
+          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">Product</p>
           <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
             The command center, in the wild.
           </h2>
@@ -130,7 +130,7 @@ function ProductShowcase() {
                 )}
               </div>
               <div className="flex-1 min-w-0 lg:max-w-md">
-                <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-neutral-400">
+                <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-neutral-400">
                   {String(i + 1).padStart(2, "0")} — {b.kind === "image" ? "Screen" : "Live preview"}
                 </p>
                 <h3 className="mt-3 font-display font-semibold text-2xl sm:text-3xl text-neutral-900 tracking-tight">
@@ -146,29 +146,66 @@ function ProductShowcase() {
   );
 }
 
+function TrustStrip() {
+  return (
+    <section className="bg-white border-y border-neutral-200/70 py-6 px-6">
+      <div className="mx-auto max-w-6xl flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-neutral-500">Trusted workflow</p>
+          <p className="mt-1 text-sm text-neutral-700">
+            Built for Partner Development teams running diagnostics, plans, and revenue reviews each week.
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-3 sm:gap-4">
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
+            <p className="text-lg font-display font-semibold text-neutral-900">8</p>
+            <p className="text-[11px] text-neutral-500">OCTA axes</p>
+          </div>
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
+            <p className="text-lg font-display font-semibold text-neutral-900">1</p>
+            <p className="text-[11px] text-neutral-500">command center</p>
+          </div>
+          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
+            <p className="text-lg font-display font-semibold text-neutral-900">100%</p>
+            <p className="text-[11px] text-neutral-500">partner focus</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function Landing() {
   return (
     <>
       {/* 1. HERO — full-bleed video, only CTAs */}
       <PrismaHero
         videoSrc="/fios.mp4"
-        eyebrow={null}
-        description={null}
+        eyebrow="Partner development operating system"
+        headlineNode={
+          <>
+            Orchestrate every partner
+            <br />
+            like it is your only one.
+          </>
+        }
+        description="Diagnose maturity, align your joint plan, and scale revenue across the full ecosystem."
         overlayOpacity={0}
         primaryCta={
           <div className="flex flex-wrap gap-3">
-            <Link to="/login" className="btn-candy group">
-              Sign in
+            <Link to="/signup" className="btn-candy group">
+              Create your account
               <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
-            <Link to="/signup" className="btn-candy-secondary">
-              Create your account
+            <Link to="/login" className="btn-candy-secondary">
+              Sign in
             </Link>
           </div>
         }
         secondaryCta={null}
       />
 
+      <TrustStrip />
       <Manifesto />
       <ProductShowcase />
       <PortfolioPreview />
@@ -184,14 +221,14 @@ function Manifesto() {
   return (
     <section className="bg-[#F7F7F8] py-32 px-6">
       <div className="mx-auto max-w-5xl text-center">
-        <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-neutral-500">
+        <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
           Our manifesto
         </p>
         <h2 className="mt-6 font-display font-semibold tracking-[-0.03em] text-neutral-900 text-5xl sm:text-7xl leading-[1.05]">
           <span className="block">We exist</span>
           <span className="block">
             <span>to </span>
-            <span style={{ color: PINK }} className="italic">
+            <span style={{ color: BRAND_ACCENT }} className="italic">
               <Typewriter
                 text={[
                   "partner.",
@@ -248,7 +285,7 @@ function PortfolioPreview() {
     <section className="bg-white py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-neutral-500">
+          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
             Portfolio
           </p>
           <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
@@ -271,7 +308,7 @@ function PortfolioPreview() {
                   <span className={`h-2 w-2 rounded-full ${TIER_DOT[p.tier]}`} />
                   {p.tier}
                 </span>
-                <span className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}>
+                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}>
                   {p.status}
                 </span>
               </div>
@@ -279,7 +316,7 @@ function PortfolioPreview() {
               <p className="text-xs text-neutral-500 mt-0.5">{p.type} · {p.region}</p>
               <div className="mt-5 flex items-end justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-neutral-400">OCTA score</p>
+                  <p className="text-[11px] uppercase tracking-wide text-neutral-400">OCTA score</p>
                   <p className="text-2xl font-semibold text-neutral-900">{p.score.toFixed(1)}</p>
                 </div>
                 <div className="flex gap-0.5">
@@ -305,7 +342,7 @@ function AxesPreview() {
     <section className="bg-[#F7F7F8] py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-neutral-500">
+          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
             The OCTA framework
           </p>
           <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
@@ -416,7 +453,7 @@ function PlanPreview() {
   return (
     <section className="bg-white py-24 px-6">
       <div className="mx-auto max-w-3xl">
-        <p className="text-[10px] font-mono uppercase tracking-[0.25em] text-neutral-500">
+        <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
           Joint Business Plan
         </p>
         <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
