@@ -1,4 +1,4 @@
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useRef, type CSSProperties, type ReactNode } from "react";
 
@@ -112,22 +112,36 @@ export const PrismaHero = ({
   secondaryCta,
   overlayOpacity = 0.55,
 }: PrismaHeroProps) => {
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const reduceMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end start"],
+  });
+  const videoY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
+  const videoScale = useTransform(scrollYProgress, [0, 1], [1, 1.06]);
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-8%"]);
+
   const hasHeadline = headlineNode != null || headlineSegments != null;
   const segments: Segment[] = headlineSegments ?? [];
 
   return (
-    <section className="relative w-full h-[calc((100vh-5rem)/2)] min-h-[420px] -mt-20 pt-20 overflow-hidden bg-black">
+    <section
+      ref={sectionRef}
+      className="relative w-full h-[calc((100vh-5rem)/2)] min-h-[420px] -mt-20 pt-20 overflow-hidden bg-black"
+    >
       <style dangerouslySetInnerHTML={{ __html: PRISMA_KEYFRAMES }} />
 
       {/* Layer 1 — Background video (full-bleed) */}
       {videoSrc ? (
-        <video
+        <motion.video
           className="absolute inset-0 w-full h-full object-cover"
           src={videoSrc}
           autoPlay
           muted
           loop
           playsInline
+          style={reduceMotion ? undefined : { y: videoY, scale: videoScale }}
         />
       ) : (
         <>
@@ -172,7 +186,10 @@ export const PrismaHero = ({
       />
 
       {/* Hero content */}
-      <div className="relative z-10 h-full flex items-end px-6 sm:px-10 pb-8 sm:pb-12">
+      <motion.div
+        className="relative z-10 h-full flex items-end px-6 sm:px-10 pb-8 sm:pb-12"
+        style={reduceMotion ? undefined : { y: contentY }}
+      >
         <div className="mx-auto max-w-6xl w-full animate-fade-in">
           <div className="max-w-2xl text-white">
             {eyebrow && (
@@ -200,7 +217,7 @@ export const PrismaHero = ({
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   );
 };

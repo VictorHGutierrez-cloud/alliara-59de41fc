@@ -2,6 +2,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import * as Icons from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { PrismaHero } from "@/components/ui/prisma-hero";
 import { AgentPlan, type AgentTask, type AgentStatus } from "@/components/ui/agent-plan";
 import { Typewriter } from "@/components/ui/typewriter";
@@ -33,6 +34,23 @@ function formatDemoEuro(n: number) {
   if (n >= 1000 && n % 1000 === 0) return `€${n / 1000}k`;
   if (n >= 1000) return `€${(n / 1000).toFixed(1)}k`;
   return `€${n}`;
+}
+
+function RevealSection({ children, delay = 0 }: { children: React.ReactNode; delay?: number }) {
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) return <>{children}</>;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.18 }}
+      transition={{ duration: 0.65, delay, ease: [0.22, 1, 0.36, 1] }}
+    >
+      {children}
+    </motion.div>
+  );
 }
 
 function ProductShowcase() {
@@ -200,13 +218,27 @@ function Landing() {
         </div>
       </section>
 
-      <TrustStrip />
-      <Manifesto />
-      <ProductShowcase />
-      <PortfolioPreview />
-      <AxesPreview />
-      <PlanPreview />
-      <FinalCta />
+      <RevealSection>
+        <TrustStrip />
+      </RevealSection>
+      <RevealSection delay={0.03}>
+        <Manifesto />
+      </RevealSection>
+      <RevealSection delay={0.04}>
+        <ProductShowcase />
+      </RevealSection>
+      <RevealSection delay={0.05}>
+        <PortfolioPreview />
+      </RevealSection>
+      <RevealSection delay={0.06}>
+        <AxesPreview />
+      </RevealSection>
+      <RevealSection delay={0.07}>
+        <PlanPreview />
+      </RevealSection>
+      <RevealSection delay={0.08}>
+        <FinalCta />
+      </RevealSection>
     </>
   );
 }
