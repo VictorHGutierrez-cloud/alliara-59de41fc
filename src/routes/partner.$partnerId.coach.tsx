@@ -80,21 +80,11 @@ function PartnerCoach() {
   const [focus, setFocus] = useState<string>("");
   const [busy, setBusy] = useState(false);
 
-  if (data.loading || !user) {
-    return (
-      <div className="space-y-3">
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <Skeleton className="h-40 w-full rounded-2xl" />
-      </div>
-    );
-  }
-  if (!data.partner) return null;
-
-  const isOwner = data.partner.owner_id === user.id;
+  const isOwner = !!user && data.partner?.owner_id === user.id;
   const hasDiagnostic = !!data.latest;
 
   const generate = async () => {
-    if (!hasDiagnostic) { toast.error("Run the diagnostic first"); return; }
+    if (!user || !data.partner || !data.latest) { toast.error("Run the diagnostic first"); return; }
     setBusy(true);
     try {
       const scores = data.latest!.scores as Record<string, number>;
@@ -144,6 +134,16 @@ function PartnerCoach() {
     void generate();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search.autorun, isOwner, hasDiagnostic, busy, data.recs.length]);
+
+  if (data.loading || !user) {
+    return (
+      <div className="space-y-3">
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-40 w-full rounded-2xl" />
+      </div>
+    );
+  }
+  if (!data.partner) return null;
 
   return (
     <div>
