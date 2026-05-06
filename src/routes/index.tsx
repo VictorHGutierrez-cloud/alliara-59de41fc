@@ -181,29 +181,24 @@ function Landing() {
       {/* 1. HERO — full-bleed video, only CTAs */}
       <PrismaHero
         videoSrc="/fios.mp4"
-        eyebrow="Partner development operating system"
-        headlineNode={
-          <>
-            Orchestrate every partner
-            <br />
-            like it is your only one.
-          </>
-        }
-        description="Diagnose maturity, align your joint plan, and scale revenue across the full ecosystem."
+        eyebrow={null}
+        headlineNode={null}
+        description={null}
         overlayOpacity={0}
-        primaryCta={
-          <div className="flex flex-wrap gap-3">
-            <Link to="/signup" className="btn-candy group">
-              Create your account
-              <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
-            </Link>
-            <Link to="/login" className="btn-candy-secondary">
-              Sign in
-            </Link>
-          </div>
-        }
+        primaryCta={null}
         secondaryCta={null}
       />
+      <section className="bg-white py-8 px-6 border-b border-neutral-200/70">
+        <div className="mx-auto max-w-6xl flex flex-wrap justify-center gap-3">
+          <Link to="/signup" className="btn-candy group">
+            Create your account
+            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">→</span>
+          </Link>
+          <Link to="/login" className="btn-candy-secondary">
+            Sign in
+          </Link>
+        </div>
+      </section>
 
       <TrustStrip />
       <Manifesto />
