@@ -82,7 +82,7 @@ function ReportsPage() {
 
   if (loading || !user || portfolio.loading) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
+      <div className="page-shell space-y-5">
         <Skeleton className="h-8 w-56" />
         <Skeleton className="h-14 w-full rounded-xl" />
         <Skeleton className="h-10 w-96 rounded-xl" />
@@ -93,7 +93,7 @@ function ReportsPage() {
 
   if (portfolio.error) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="page-shell">
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6">
           <h1 className="text-xl font-semibold text-foreground">{COPY.reports.loadErrorTitle}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{portfolio.error}</p>
@@ -110,14 +110,12 @@ function ReportsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
+    <div className="page-shell space-y-6">
       <header className="flex items-end justify-between flex-wrap gap-3">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            {COPY.reports.eyebrow}
-          </p>
-          <h1 className="text-2xl font-semibold tracking-tight">{COPY.reports.pageTitle}</h1>
-          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{COPY.reports.intro}</p>
+          <p className="page-eyebrow">{COPY.reports.eyebrow}</p>
+          <h1 className="page-title">{COPY.reports.pageTitle}</h1>
+          <p className="page-subtitle max-w-2xl">{COPY.reports.intro}</p>
         </div>
         <span className="btn-candy-ghost cursor-not-allowed opacity-70" title="Coming soon">
           {COPY.reports.customSoonBadge}

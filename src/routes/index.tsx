@@ -91,13 +91,11 @@ function ProductShowcase() {
 
       <div className="relative mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
-            {intro.productEyebrow}
-          </p>
-          <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
+          <p className="page-eyebrow">{intro.productEyebrow}</p>
+          <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
             {intro.productTitle}
           </h2>
-          <p className="mt-3 text-neutral-600 max-w-xl">{intro.productIntro}</p>
+          <p className="section-subtitle mt-3 max-w-xl text-neutral-600">{intro.productIntro}</p>
         </div>
 
         <div className="mt-14 sm:mt-16 flex flex-col gap-16 sm:gap-20">
@@ -181,7 +179,7 @@ function TrustStrip() {
     <section className="bg-white px-6 py-8">
       <div className="mx-auto max-w-6xl rounded-2xl border border-neutral-200/80 bg-gradient-to-r from-white to-neutral-50 px-5 py-5 sm:px-6 sm:py-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-neutral-500">
+          <p className="page-eyebrow text-neutral-500">
             {L.trustEyebrow}
           </p>
           <p className="mt-1 text-sm text-neutral-700 leading-relaxed">{L.trustBlurb}</p>
@@ -251,7 +249,7 @@ function Manifesto() {
   return (
     <section className="bg-[#F7F7F8] py-24 sm:py-28 px-6">
       <div className="mx-auto max-w-5xl text-center">
-        <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
+        <p className="page-eyebrow text-neutral-500">
           {L.manifestoEyebrow}
         </p>
         <h2 className="mt-5 font-display font-semibold tracking-[-0.03em] text-neutral-900 text-4xl sm:text-6xl leading-[1.07]">
@@ -337,13 +335,13 @@ function PortfolioPreview() {
     <section className="bg-white py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
+          <p className="page-eyebrow text-neutral-500">
             {L.portfolioEyebrow}
           </p>
-          <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
+          <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
             {L.portfolioTitle}
           </h2>
-          <p className="mt-3 text-neutral-600 max-w-xl">{L.portfolioIntro}</p>
+          <p className="section-subtitle mt-3 max-w-xl text-neutral-600">{L.portfolioIntro}</p>
         </div>
 
         <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -396,13 +394,13 @@ function AxesPreview() {
     <section className="bg-[#F7F7F8] py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
+          <p className="page-eyebrow text-neutral-500">
             {L.axesEyebrow}
           </p>
-          <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
+          <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
             {L.axesTitle}
           </h2>
-          <p className="mt-3 text-neutral-600 max-w-xl">{L.axesIntro}</p>
+          <p className="section-subtitle mt-3 max-w-xl text-neutral-600">{L.axesIntro}</p>
         </div>
 
         <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -511,13 +509,13 @@ function PlanPreview() {
   return (
     <section className="bg-white py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-3xl">
-        <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
+        <p className="page-eyebrow text-neutral-500">
           {L.jbpEyebrow}
         </p>
-        <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
+        <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
           {L.jbpDemoTitle}
         </h2>
-        <p className="mt-3 text-neutral-600 max-w-xl">{L.jbpDemoIntro}</p>
+        <p className="section-subtitle mt-3 max-w-xl text-neutral-600">{L.jbpDemoIntro}</p>
         <div className="mt-8">
           <AgentPlan tasks={tasks} isOwner onCycleStatus={cycle} />
         </div>

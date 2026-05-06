@@ -379,7 +379,7 @@ function PartnersPage() {
 
   if (loading || !user) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
+      <div className="page-shell space-y-5">
         <Skeleton className="h-7 w-72" />
         <Skeleton className="h-24 w-full rounded-2xl" />
         <Skeleton className="h-24 w-full rounded-2xl" />
@@ -390,7 +390,7 @@ function PartnersPage() {
 
   if (portfolio.error) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-8">
+      <div className="page-shell">
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6">
           <h1 className="text-xl font-semibold text-foreground">{COPY.portfolio.loadErrorTitle}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{portfolio.error}</p>
@@ -403,7 +403,7 @@ function PartnersPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
+    <div className="page-shell">
       {/* 1. Compact header */}
       <section className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
@@ -418,10 +418,10 @@ function PartnersPage() {
             · {greeting()}
           </span>
         </div>
-        <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
+        <h1 className="page-title">
           {greeting()}, {displayName}
         </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">{briefing}</p>
+        <p className="page-subtitle max-w-3xl">{briefing}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {statusCounts.at_risk > 0 && (
             <button
@@ -541,7 +541,7 @@ function PartnersPage() {
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
             {COPY.portfolio.reportsCardEyebrow}
           </p>
-          <h2 className="mt-1 text-lg font-semibold">{COPY.portfolio.reportsCardTitle}</h2>
+            <h2 className="mt-1 section-title">{COPY.portfolio.reportsCardTitle}</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-xl">
             {COPY.portfolio.reportsCardBody}
           </p>
@@ -595,7 +595,7 @@ function PartnersPage() {
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               {COPY.portfolio.initiativesEyebrow}
             </p>
-            <h2 className="mt-1 text-lg font-semibold flex items-center gap-2">
+            <h2 className="mt-1 section-title flex items-center gap-2">
               {focusMode && <Target className="h-4 w-4 text-destructive" />}
               {focusMode
                 ? COPY.portfolio.initiativesTitleFocus
@@ -776,7 +776,7 @@ function PartnersPage() {
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               {COPY.portfolio.weeklyReviewEyebrow}
             </p>
-            <h2 className="mt-1 text-lg font-semibold">{COPY.portfolio.weeklyReviewTitle}</h2>
+            <h2 className="mt-1 section-title">{COPY.portfolio.weeklyReviewTitle}</h2>
             <p className="mt-1 text-xs text-muted-foreground">{COPY.portfolio.weeklyReviewBody}</p>
           </div>
           <div className="flex gap-2">
@@ -821,7 +821,7 @@ function PartnersPage() {
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               {COPY.portfolio.rosterEyebrow}
             </p>
-            <h2 className="mt-1 text-2xl font-semibold">{COPY.portfolio.rosterTitle}</h2>
+            <h2 className="mt-1 section-title">{COPY.portfolio.rosterTitle}</h2>
             {statusFilter !== "all" && (
               <p className="text-xs text-muted-foreground mt-1">
                 Filtered by{" "}

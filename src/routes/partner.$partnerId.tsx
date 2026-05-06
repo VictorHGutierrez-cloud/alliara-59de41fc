@@ -55,7 +55,7 @@ function PartnerLayout() {
 
   if (loading || !user || data.loading) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-4">
+      <div className="page-shell space-y-4">
         <Skeleton className="h-4 w-28" />
         <Skeleton className="h-28 w-full rounded-2xl" />
         <Skeleton className="h-12 w-full rounded-xl" />
@@ -65,7 +65,7 @@ function PartnerLayout() {
   }
   if (!data.partner) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+      <div className="page-shell max-w-3xl py-16 text-center">
         <h1 className="text-2xl font-semibold">{COPY.partnerWorkspace.notFoundTitle}</h1>
         <p className="text-sm text-muted-foreground mt-2">{COPY.partnerWorkspace.notFoundBody}</p>
         <Link
@@ -106,7 +106,7 @@ function PartnerLayout() {
   const isOverview = path === `/partner/${partnerId}` || path === `/partner/${partnerId}/`;
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
+    <div className="page-shell">
       <Link
         to="/partners"
         className="text-xs font-mono text-muted-foreground hover:text-foreground min-h-11 inline-flex items-center"
@@ -129,7 +129,7 @@ function PartnerLayout() {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-2xl font-semibold">{data.partner.name}</h1>
+                <h1 className="section-title text-2xl">{data.partner.name}</h1>
                 <span
                   className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md"
                   style={{

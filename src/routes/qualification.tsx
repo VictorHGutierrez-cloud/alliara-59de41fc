@@ -148,7 +148,7 @@ function QualificationPage() {
 
   if (loading || !user) {
     return (
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-4">
+      <div className="page-shell space-y-4">
         <Skeleton className="h-8 w-72" />
         <Skeleton className="h-12 w-full max-w-xl rounded-xl" />
         <Skeleton className="h-64 w-full rounded-2xl" />
@@ -157,14 +157,12 @@ function QualificationPage() {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
+    <div className="page-shell">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-            {COPY.qualification.eyebrow}
-          </p>
-          <h1 className="text-3xl font-semibold mt-1">{COPY.qualification.title}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{COPY.qualification.intro}</p>
+          <p className="page-eyebrow">{COPY.qualification.eyebrow}</p>
+          <h1 className="page-title">{COPY.qualification.title}</h1>
+          <p className="page-subtitle">{COPY.qualification.intro}</p>
         </div>
         <button
           type="button"
@@ -267,7 +265,12 @@ function QualificationPage() {
 
       <div className="mt-6">
         {leadsStore.loading ? (
-          <div className="text-sm text-muted-foreground py-10 text-center">Loading leads…</div>
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-2xl" />
+          </div>
         ) : leadsStore.leads.length === 0 ? (
           <EmptyState onAdd={() => setShowNew(true)} />
         ) : (
