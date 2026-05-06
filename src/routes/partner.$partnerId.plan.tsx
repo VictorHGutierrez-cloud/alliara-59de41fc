@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/partner/$partnerId/plan")({
-  head: () => ({ meta: [{ title: "Joint Business Plan — Alliara" }] }),
+  head: () => ({ meta: [{ title: COPY.jbp.planPageMetaTitle }] }),
   component: PartnerPlan,
 });
 
@@ -51,28 +51,38 @@ function PartnerPlan() {
     <div>
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 flex-wrap">
-          <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Filter</label>
+          <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+            Filter
+          </label>
           <select
             value={filterAxis}
             onChange={(e) => setFilterAxis(e.target.value)}
             className="input w-auto"
           >
             <option value="all">All axes</option>
-            {AXES.map((a) => <option key={a.key} value={a.key}>{a.letter} · {a.name}</option>)}
+            {AXES.map((a) => (
+              <option key={a.key} value={a.key}>
+                {a.letter} · {a.name}
+              </option>
+            ))}
           </select>
         </div>
         {isOwner && (
-          <button onClick={() => setShowNew(true)} className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
-            + Add Move
+          <button
+            type="button"
+            onClick={() => setShowNew(true)}
+            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground glow-ring min-h-11"
+          >
+            {COPY.jbp.addMoveCta}
           </button>
         )}
       </div>
 
       {data.actions.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-          <h2 className="text-lg font-semibold">No moves yet</h2>
+          <h2 className="text-lg font-semibold">{COPY.jbp.emptyPlanTitle}</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            Build the {COPY.jbp.full} by axis. Or jump to {COPY.copilot.label} to generate prescriptive moves you can add in one click.
+            {COPY.jbp.emptyPlanBody}
           </p>
         </div>
       ) : (
@@ -103,9 +113,11 @@ function PartnerPlan() {
           onCreate={async (input) => {
             try {
               await data.addAction({ ...input, userId: user.id });
-              toast.success("Move added");
+              toast.success(COPY.toast.moveAdded);
               setShowNew(false);
-            } catch (e) { toast.error((e as Error).message); }
+            } catch (e) {
+              toast.error((e as Error).message);
+            }
           }}
         />
       )}
@@ -114,12 +126,17 @@ function PartnerPlan() {
 }
 
 function NewActionDialog({
-  onClose, onCreate,
+  onClose,
+  onCreate,
 }: {
   onClose: () => void;
   onCreate: (input: {
-    axisKey: string; title: string; description?: string;
-    priority?: ActionRow["priority"]; targetLevel?: number; dueDate?: string;
+    axisKey: string;
+    title: string;
+    description?: string;
+    priority?: ActionRow["priority"];
+    targetLevel?: number;
+    dueDate?: string;
   }) => Promise<void>;
 }) {
   const [axisKey, setAxisKey] = useState(AXES[0].key);
@@ -131,51 +148,100 @@ function NewActionDialog({
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-xl font-semibold">New Move</h2>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-xl font-semibold">{COPY.jbp.newMoveTitle}</h2>
         <div className="mt-5 space-y-3">
           <Field label="Axis">
             <select value={axisKey} onChange={(e) => setAxisKey(e.target.value)} className="input">
-              {AXES.map((a) => <option key={a.key} value={a.key}>{a.letter} · {a.name}</option>)}
+              {AXES.map((a) => (
+                <option key={a.key} value={a.key}>
+                  {a.letter} · {a.name}
+                </option>
+              ))}
             </select>
           </Field>
-          <Field label="Title *"><input value={title} onChange={(e) => setTitle(e.target.value)} className="input" autoFocus placeholder="What needs to happen?" /></Field>
-          <Field label="Description"><textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[80px]" /></Field>
+          <Field label="Title *">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input"
+              autoFocus
+              placeholder="What needs to happen?"
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="input min-h-[80px]"
+            />
+          </Field>
           <div className="grid grid-cols-3 gap-3">
             <Field label="Priority">
-              <select value={priority} onChange={(e) => setPriority(e.target.value as ActionRow["priority"])} className="input">
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as ActionRow["priority"])}
+                className="input"
+              >
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
               </select>
             </Field>
             <Field label="Target level">
-              <select value={targetLevel} onChange={(e) => setTargetLevel(e.target.value ? Number(e.target.value) : "")} className="input">
+              <select
+                value={targetLevel}
+                onChange={(e) => setTargetLevel(e.target.value ? Number(e.target.value) : "")}
+                className="input"
+              >
                 <option value="">—</option>
-                {[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>L{n}</option>)}
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <option key={n} value={n}>
+                    L{n}
+                  </option>
+                ))}
               </select>
             </Field>
             <Field label="Due date">
-              <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="input" />
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="input"
+              />
             </Field>
           </div>
         </div>
         <div className="mt-6 flex justify-end gap-3">
-          <button onClick={onClose} className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2">Cancel</button>
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2"
+          >
+            Cancel
+          </button>
           <button
             disabled={!title.trim() || busy}
             onClick={async () => {
               setBusy(true);
               try {
                 await onCreate({
-                  axisKey, title: title.trim(),
+                  axisKey,
+                  title: title.trim(),
                   description: description.trim() || undefined,
                   priority,
                   targetLevel: targetLevel || undefined,
                   dueDate: dueDate || undefined,
                 });
-              } finally { setBusy(false); }
+              } finally {
+                setBusy(false);
+              }
             }}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
           >
@@ -190,7 +256,9 @@ function NewActionDialog({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+        {label}
+      </span>
       <div className="mt-1">{children}</div>
     </label>
   );

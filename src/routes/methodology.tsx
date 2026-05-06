@@ -6,14 +6,15 @@ import { usePortfolio } from "@/lib/partners-store";
 import { AXES, CENTRAL_MENTAL_MODEL, OCTA_FULL_NAME } from "@/content/octa";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { COPY, methodologyLessonsBadge } from "@/lib/copy";
 
 export const Route = createFileRoute("/methodology")({
   head: () => ({
     meta: [
-      { title: "OCTA Methodology — Alliara" },
-      { name: "description", content: "The 8 axes of OCTA — operating model for Channel and Tech Orchestration. Browse objectives, levers, metrics, common mistakes and real-world examples." },
-      { property: "og:title", content: "OCTA Methodology — 8 axes for partner orchestration" },
-      { property: "og:description", content: "Diagnose and operate any B2B partnership across 8 maturity axes — strategy, trust, enablement, marketing and beyond." },
+      { title: COPY.methodology.pageMetaTitle },
+      { name: "description", content: COPY.methodology.pageMetaDescription },
+      { property: "og:title", content: COPY.methodology.ogTitle },
+      { property: "og:description", content: COPY.methodology.ogDescription },
     ],
   }),
   component: MethodologyPage,
@@ -25,7 +26,9 @@ function MethodologyPage() {
   const data = useOctaData(user?.id);
   const portfolio = usePortfolio(user?.id);
 
-  useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
+  useEffect(() => {
+    if (!loading && !user) nav({ to: "/login" });
+  }, [loading, user, nav]);
   if (loading || !user || portfolio.loading) {
     return (
       <div className="mx-auto max-w-7xl px-6 py-8 space-y-4">
@@ -49,43 +52,47 @@ function MethodologyPage() {
         <div className="flex items-center gap-2">
           <Sparkles className="h-3.5 w-3.5 text-primary" />
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            Methodology · {OCTA_FULL_NAME}
+            {COPY.methodology.eyebrowSuffix} · {OCTA_FULL_NAME}
           </span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
-          The 8 axes of OCTA
+          {COPY.methodology.pageTitle}
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-          Every partner is a unique growth engine. Each axis below evaluates one
-          dimension of partner maturity — open the axis to see objectives, levers,
-          metrics, common mistakes, real examples and the 5 maturity levels.
+          {COPY.methodology.intro}
         </p>
       </section>
 
       {/* Stats */}
       <section className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3">
         <StatCard
-          label="Overall maturity"
+          label={COPY.methodology.statOverallLabel}
           value={overall ? overall.toFixed(1) : "—"}
-          hint={overall ? `Level ${levelFromAvg(overall)} / 5` : "Run a diagnostic"}
+          hint={
+            overall ? `Level ${levelFromAvg(overall)} / 5` : COPY.methodology.statsRunDiagnosticHint
+          }
           accent="primary"
         />
         <StatCard
-          label="Axes diagnosed"
+          label={COPY.methodology.statAxesLabel}
           value={`${diagnosed}/${AXES.length}`}
-          hint={diagnosed === AXES.length ? "Full coverage" : `${AXES.length - diagnosed} pending`}
+          hint={
+            diagnosed === AXES.length
+              ? COPY.methodology.statsFullCoverageHint
+              : COPY.methodology.statsPendingAxes.replace("{n}", String(AXES.length - diagnosed))
+          }
           accent="octa-3"
         />
         <StatCard
-          label="Lessons completed"
+          label={COPY.methodology.statLessonsLabel}
           value={`${lessonsDone}`}
           hint={`${lessonsTotal} available`}
           accent="octa-5"
         />
         <StatCard
-          label="XP earned"
+          label={COPY.methodology.statXpLabel}
           value={`${data.totalXp}`}
-          hint="Lifetime"
+          hint={COPY.methodology.statXpHint}
           accent="octa-7"
         />
       </section>
@@ -96,8 +103,10 @@ function MethodologyPage() {
           className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full opacity-30 blur-3xl"
           style={{ background: "var(--primary)" }}
         />
-        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Central mental model</p>
-        <h2 className="mt-1 text-lg font-semibold">An operating system for partner orchestration</h2>
+        <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          {COPY.methodology.centralModelEyebrow}
+        </p>
+        <h2 className="mt-1 text-lg font-semibold">{COPY.methodology.centralModelTitle}</h2>
         <p className="mt-3 text-sm text-foreground/85 leading-relaxed max-w-4xl whitespace-pre-line">
           {CENTRAL_MENTAL_MODEL}
         </p>
@@ -106,7 +115,9 @@ function MethodologyPage() {
             to={portfolio.items.length === 0 ? "/partners" : "/diagnostic"}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)]"
           >
-            {portfolio.items.length === 0 ? "Add your first partner" : "Run your first diagnostic"}
+            {portfolio.items.length === 0
+              ? COPY.methodology.ctaFirstPartner
+              : COPY.methodology.ctaFirstDiag}
             <ArrowRight className="h-4 w-4" />
           </Link>
         )}
@@ -116,10 +127,12 @@ function MethodologyPage() {
       <section className="mt-8">
         <div className="flex items-end justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Axes</p>
-            <h2 className="mt-1 text-2xl font-semibold">Browse the 8 axes</h2>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              {COPY.methodology.axesSectionEyebrow}
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold">{COPY.methodology.axesSectionTitle}</h2>
           </div>
-          <p className="text-xs text-muted-foreground">Click any card to drill into objectives, levels and lessons</p>
+          <p className="text-xs text-muted-foreground">{COPY.methodology.axesSectionHint}</p>
         </div>
 
         <div className="mt-5 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -136,7 +149,9 @@ function MethodologyPage() {
               >
                 <div
                   className="pointer-events-none absolute top-0 left-0 h-1 w-full opacity-80"
-                  style={{ background: `linear-gradient(90deg, var(--${axis.color}), transparent)` }}
+                  style={{
+                    background: `linear-gradient(90deg, var(--${axis.color}), transparent)`,
+                  }}
                 />
                 <div className="flex items-start gap-3">
                   <div
@@ -167,7 +182,9 @@ function MethodologyPage() {
                 <ul className="mt-3 space-y-1.5">
                   {axis.objectives.slice(0, 3).map((o) => (
                     <li key={o} className="text-xs text-foreground/80 flex gap-2">
-                      <span style={{ color: `var(--${axis.color})` }} className="mt-0.5">▸</span>
+                      <span style={{ color: `var(--${axis.color})` }} className="mt-0.5">
+                        ▸
+                      </span>
                       <span className="line-clamp-1">{o}</span>
                     </li>
                   ))}
@@ -176,8 +193,8 @@ function MethodologyPage() {
                 {/* Score bar */}
                 <div className="mt-4 pt-3 border-t border-border/40">
                   <div className="flex items-center justify-between text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                    <span>Your level</span>
-                    <span>{lessons > 0 ? `${lessons}/${axis.lessons.length} lessons` : `${axis.lessons.length} lessons`}</span>
+                    <span>{COPY.methodology.yourLevel}</span>
+                    <span>{methodologyLessonsBadge(lessons, axis.lessons.length)}</span>
                   </div>
                   <div className="mt-2 flex items-center gap-3">
                     <div className="flex-1 h-1.5 rounded-full bg-surface-2 overflow-hidden">
@@ -198,7 +215,7 @@ function MethodologyPage() {
                 </div>
 
                 <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition">
-                  Open axis
+                  {COPY.methodology.openAxisCta}
                   <ArrowRight className="h-3 w-3" />
                 </div>
               </Link>
@@ -211,9 +228,15 @@ function MethodologyPage() {
 }
 
 function StatCard({
-  label, value, hint, accent,
+  label,
+  value,
+  hint,
+  accent,
 }: {
-  label: string; value: string; hint: string; accent: string;
+  label: string;
+  value: string;
+  hint: string;
+  accent: string;
 }) {
   return (
     <div className="rounded-xl border border-border/60 bg-card p-4 card-elev relative overflow-hidden">
@@ -221,7 +244,9 @@ function StatCard({
         className="absolute top-0 left-0 h-0.5 w-full"
         style={{ background: `linear-gradient(90deg, var(--${accent}), transparent)` }}
       />
-      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-1.5 text-2xl font-display font-bold text-foreground">{value}</div>
       <div className="mt-0.5 text-[11px] text-muted-foreground">{hint}</div>
     </div>

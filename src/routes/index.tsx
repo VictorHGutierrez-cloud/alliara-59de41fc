@@ -18,12 +18,13 @@ import {
 } from "@/components/ui/animated-card";
 import { CandyBarChart, CandyDonut } from "@/components/ui/candy-charts";
 import { HeroMessage } from "@/components/landing/HeroMessage";
+import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Alliara — Orchestrate every partner like it's your only one" },
-      { name: "description", content: "An operating system for Partner Development Managers. Diagnose, plan, and grow each partnership across 8 axes." },
+      { title: COPY.landing.metaTitle },
+      { name: "description", content: COPY.landing.metaDescription },
     ],
   }),
   component: Landing,
@@ -55,40 +56,48 @@ function RevealSection({ children, delay = 0 }: { children: React.ReactNode; del
 }
 
 function ProductShowcase() {
+  const S = COPY.landing.showcase;
+  const intro = COPY.landing;
   const blocks = [
     {
       kind: "image" as const,
-      title: "Maturity radar & growth levers",
-      body: "See OCTA scores on a live radar, surface at-risk partners, and jump to the axes that unlock the next level of revenue.",
+      title: S.radarTitle,
+      body: S.radarBody,
       img: imgProductRadar,
-      alt: "Alliara partner overview with maturity radar and high-impact growth levers",
+      alt: "Alliara partner overview with OCTA maturity radar and coaching-ready growth levers",
     },
     {
       kind: "bars" as const,
-      title: "Revenue that tells a story",
-      body: "Rank partners by Open MRR and other metrics, export when you need to brief leadership, and keep the view aligned to how you run the business.",
+      title: S.revenueTitle,
+      body: S.revenueBody,
     },
     {
       kind: "donut" as const,
-      title: "Mix by tier",
-      body: "See how your portfolio splits across tiers — where you over-invest and where a nudge unlocks the next stage of maturity.",
+      title: S.mixTitle,
+      body: S.mixBody,
     },
   ] as const;
 
   return (
     <section className="relative py-24 sm:py-28 px-6 overflow-hidden bg-gradient-to-b from-[#F7F7F8] via-white to-[#F7F7F8]">
-      <div className="pointer-events-none absolute -top-20 right-[-10%] h-[28rem] w-[28rem] rounded-full bg-[#EC1E79]/[0.07] blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute bottom-20 left-[-15%] h-[22rem] w-[22rem] rounded-full bg-violet-500/[0.08] blur-3xl" aria-hidden />
+      <div
+        className="pointer-events-none absolute -top-20 right-[-10%] h-[28rem] w-[28rem] rounded-full bg-[#EC1E79]/[0.07] blur-3xl"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute bottom-20 left-[-15%] h-[22rem] w-[22rem] rounded-full bg-violet-500/[0.08] blur-3xl"
+        aria-hidden
+      />
 
       <div className="relative mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">Product</p>
-          <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
-            The command center, in the wild.
-          </h2>
-          <p className="mt-3 text-neutral-600 max-w-xl">
-            Live chart previews plus a real product screen — crisp analytics, OCTA depth, and the workflows your PDMs use every week.
+          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
+            {intro.productEyebrow}
           </p>
+          <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
+            {intro.productTitle}
+          </h2>
+          <p className="mt-3 text-neutral-600 max-w-xl">{intro.productIntro}</p>
         </div>
 
         <div className="mt-14 sm:mt-16 flex flex-col gap-16 sm:gap-20">
@@ -137,7 +146,7 @@ function ProductShowcase() {
                           size={188}
                           thickness={26}
                           centerValue="73"
-                          centerLabel="PARTNERS"
+                          centerLabel={COPY.landing.donutCenterPartners}
                         />
                       </div>
                     </CardVisual>
@@ -150,7 +159,8 @@ function ProductShowcase() {
               </div>
               <div className="flex-1 min-w-0 lg:max-w-md">
                 <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-neutral-400">
-                  {String(i + 1).padStart(2, "0")} — {b.kind === "image" ? "Screen" : "Live preview"}
+                  {String(i + 1).padStart(2, "0")} —{" "}
+                  {b.kind === "image" ? "Screen" : "Live preview"}
                 </p>
                 <h3 className="mt-3 font-display font-semibold text-2xl sm:text-3xl text-neutral-900 tracking-tight">
                   {b.title}
@@ -166,27 +176,28 @@ function ProductShowcase() {
 }
 
 function TrustStrip() {
+  const L = COPY.landing;
   return (
     <section className="bg-white px-6 py-8">
       <div className="mx-auto max-w-6xl rounded-2xl border border-neutral-200/80 bg-gradient-to-r from-white to-neutral-50 px-5 py-5 sm:px-6 sm:py-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-neutral-500">Trusted workflow</p>
-          <p className="mt-1 text-sm text-neutral-700 leading-relaxed">
-            Built for Partner Development teams running diagnostics, plans, and revenue reviews each week.
+          <p className="text-[11px] font-mono uppercase tracking-[0.18em] text-neutral-500">
+            {L.trustEyebrow}
           </p>
+          <p className="mt-1 text-sm text-neutral-700 leading-relaxed">{L.trustBlurb}</p>
         </div>
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
           <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
             <p className="text-lg font-display font-semibold text-neutral-900">8</p>
-            <p className="text-[11px] text-neutral-500">OCTA axes</p>
+            <p className="text-[11px] text-neutral-500">{L.trustStatAxes}</p>
           </div>
           <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
             <p className="text-lg font-display font-semibold text-neutral-900">1</p>
-            <p className="text-[11px] text-neutral-500">command center</p>
+            <p className="text-[11px] text-neutral-500">{L.trustStatCenter}</p>
           </div>
           <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
             <p className="text-lg font-display font-semibold text-neutral-900">100%</p>
-            <p className="text-[11px] text-neutral-500">partner focus</p>
+            <p className="text-[11px] text-neutral-500">{L.trustStatFocus}</p>
           </div>
         </div>
       </div>
@@ -236,25 +247,19 @@ function Landing() {
 
 /* ---------------- 2. Manifesto ---------------- */
 function Manifesto() {
+  const L = COPY.landing;
   return (
     <section className="bg-[#F7F7F8] py-24 sm:py-28 px-6">
       <div className="mx-auto max-w-5xl text-center">
         <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
-          Our manifesto
+          {L.manifestoEyebrow}
         </p>
         <h2 className="mt-5 font-display font-semibold tracking-[-0.03em] text-neutral-900 text-4xl sm:text-6xl leading-[1.07]">
-          <span className="block">We exist</span>
+          <span className="block">{L.manifestoLeading}</span>
           <span className="block">
-            <span>to </span>
             <span style={{ color: BRAND_ACCENT }} className="italic">
               <Typewriter
-                text={[
-                  "partner.",
-                  "co-create.",
-                  "grow together.",
-                  "unlock alliances.",
-                  "build what's next.",
-                ]}
+                text={[...L.manifestoTyping]}
                 speed={70}
                 deleteSpeed={40}
                 waitTime={1800}
@@ -280,10 +285,38 @@ type MockPartner = {
 };
 
 const MOCK_PARTNERS: MockPartner[] = [
-  { name: "Northwind Solutions", type: "Reseller", status: "Active", tier: "Strategic", score: 4.6, region: "DACH" },
-  { name: "Helix Integrations", type: "ISV", status: "Nurturing", tier: "Growth", score: 3.4, region: "UK & I" },
-  { name: "Bluepeak Consulting", type: "SI", status: "Active", tier: "Growth", score: 3.9, region: "Iberia" },
-  { name: "Orbit Tech Group", type: "Reseller", status: "At risk", tier: "Emerging", score: 2.3, region: "Nordics" },
+  {
+    name: "Northwind Solutions",
+    type: "Reseller",
+    status: "Active",
+    tier: "Strategic",
+    score: 4.6,
+    region: "DACH",
+  },
+  {
+    name: "Helix Integrations",
+    type: "ISV",
+    status: "Nurturing",
+    tier: "Growth",
+    score: 3.4,
+    region: "UK & I",
+  },
+  {
+    name: "Bluepeak Consulting",
+    type: "SI",
+    status: "Active",
+    tier: "Growth",
+    score: 3.9,
+    region: "Iberia",
+  },
+  {
+    name: "Orbit Tech Group",
+    type: "Reseller",
+    status: "At risk",
+    tier: "Emerging",
+    score: 2.3,
+    region: "Nordics",
+  },
 ];
 
 const TIER_DOT: Record<MockPartner["tier"], string> = {
@@ -299,20 +332,18 @@ const STATUS_STYLE: Record<MockPartner["status"], string> = {
 };
 
 function PortfolioPreview() {
+  const L = COPY.landing;
   return (
     <section className="bg-white py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
-            Portfolio
+            {L.portfolioEyebrow}
           </p>
           <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
-            Every partner, in one command center.
+            {L.portfolioTitle}
           </h2>
-          <p className="mt-3 text-neutral-600 max-w-xl">
-            One screen to see who's strategic, who's drifting, and who needs your time this week.
-            Tier, status, and OCTA maturity score — at a glance.
-          </p>
+          <p className="mt-3 text-neutral-600 max-w-xl">{L.portfolioIntro}</p>
         </div>
 
         <div className="mt-10 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -326,12 +357,16 @@ function PortfolioPreview() {
                   <span className={`h-2 w-2 rounded-full ${TIER_DOT[p.tier]}`} />
                   {p.tier}
                 </span>
-                <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}>
+                <span
+                  className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${STATUS_STYLE[p.status]}`}
+                >
                   {p.status}
                 </span>
               </div>
               <h3 className="mt-4 font-semibold text-neutral-900">{p.name}</h3>
-              <p className="text-xs text-neutral-500 mt-0.5">{p.type} · {p.region}</p>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                {p.type} · {p.region}
+              </p>
               <div className="mt-5 flex items-end justify-between">
                 <div>
                   <p className="text-[11px] uppercase tracking-wide text-neutral-400">OCTA score</p>
@@ -356,25 +391,26 @@ function PortfolioPreview() {
 
 /* ---------------- 4. 8 OCTA Axes preview ---------------- */
 function AxesPreview() {
+  const L = COPY.landing;
   return (
     <section className="bg-[#F7F7F8] py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
-            The OCTA framework
+            {L.axesEyebrow}
           </p>
           <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
-            Eight axes. One operating system.
+            {L.axesTitle}
           </h2>
-          <p className="mt-3 text-neutral-600 max-w-xl">
-            Every partner is evaluated across eight dimensions of revenue maturity —
-            from strategic fit to customer success — so you always know where to invest next.
-          </p>
+          <p className="mt-3 text-neutral-600 max-w-xl">{L.axesIntro}</p>
         </div>
 
         <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4">
           {AXES.map((axis, idx) => {
-            const Icon = (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[axis.icon] ?? Icons.Circle;
+            const Icon =
+              (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[
+                axis.icon
+              ] ?? Icons.Circle;
             const colorVar = `var(--octa-${idx + 1})`;
             return (
               <div
@@ -417,7 +453,8 @@ const SAMPLE_TASKS: AgentTask[] = [
   {
     id: "demo-1",
     title: "Recruit 2 new ISVs in DACH",
-    description: "Source, qualify and sign two integration partners covering the DACH mid-market by end of quarter.",
+    description:
+      "Source, qualify and sign two integration partners covering the DACH mid-market by end of quarter.",
     status: "doing",
     priority: "high",
     axisKey: "recruit",
@@ -431,7 +468,8 @@ const SAMPLE_TASKS: AgentTask[] = [
   {
     id: "demo-2",
     title: "Launch co-marketing webinar with Acme",
-    description: "Joint webinar to convert Acme's mid-market pipeline into co-sourced opportunities.",
+    description:
+      "Joint webinar to convert Acme's mid-market pipeline into co-sourced opportunities.",
     status: "todo",
     priority: "medium",
     axisKey: "cosell",
@@ -444,7 +482,8 @@ const SAMPLE_TASKS: AgentTask[] = [
   {
     id: "demo-3",
     title: "Close enablement gap on integration certification",
-    description: "Certify the partner's CSM team so they can lead implementations without our involvement.",
+    description:
+      "Certify the partner's CSM team so they can lead implementations without our involvement.",
     status: "done",
     priority: "high",
     axisKey: "enable",
@@ -468,18 +507,17 @@ function PlanPreview() {
       }),
     );
 
+  const L = COPY.landing;
   return (
     <section className="bg-white py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-3xl">
         <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
-          Joint Business Plan
+          {L.jbpEyebrow}
         </p>
         <h2 className="mt-3 font-display font-semibold tracking-tight text-3xl sm:text-4xl text-neutral-900">
-          Every partner gets their own plan.
+          {L.jbpDemoTitle}
         </h2>
-        <p className="mt-3 text-neutral-600 max-w-xl">
-          Click a status icon to cycle through Planned → In Motion → Delivered. Click a task to expand its subtasks.
-        </p>
+        <p className="mt-3 text-neutral-600 max-w-xl">{L.jbpDemoIntro}</p>
         <div className="mt-8">
           <AgentPlan tasks={tasks} isOwner onCycleStatus={cycle} />
         </div>
@@ -490,22 +528,29 @@ function PlanPreview() {
 
 /* ---------------- 6. Final CTA ---------------- */
 function FinalCta() {
+  const L = COPY.landing;
   return (
     <section className="bg-neutral-950 text-white py-24 sm:py-28 px-6">
       <div className="mx-auto max-w-4xl text-center">
         <h2 className="font-display font-semibold tracking-tight text-3xl sm:text-5xl">
-          Ready to orchestrate your ecosystem?
+          {L.finalCtaTitle}
         </h2>
-        <p className="mt-4 text-white/70 max-w-xl mx-auto leading-relaxed">
-          Join the Partner Development Managers using Alliara to turn every partnership into measurable growth.
-        </p>
+        <p className="mt-4 text-white/70 max-w-xl mx-auto leading-relaxed">{L.finalCtaBody}</p>
         <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to="/signup" className="btn-candy">
-            Create your account
+          <Link
+            to="/signup"
+            className="btn-candy min-h-11 px-8 inline-flex items-center justify-center"
+            aria-label={L.finalCtaPrimary}
+          >
+            {L.finalCtaPrimary}
             <span aria-hidden>→</span>
           </Link>
-          <Link to="/login" className="btn-candy-secondary">
-            Sign in
+          <Link
+            to="/login"
+            className="btn-candy-secondary min-h-11 px-8 inline-flex items-center justify-center"
+            aria-label={L.finalCtaSecondary}
+          >
+            {L.finalCtaSecondary}
           </Link>
         </div>
       </div>

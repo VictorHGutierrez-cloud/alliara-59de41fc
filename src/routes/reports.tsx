@@ -15,6 +15,7 @@ import { MaturityReport } from "@/components/reports/MaturityReport";
 import { PipelineReport } from "@/components/reports/PipelineReport";
 import { MixReport } from "@/components/reports/MixReport";
 import { Skeleton } from "@/components/ui/skeleton";
+import { COPY } from "@/lib/copy";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -24,7 +25,7 @@ const TABS = [
   { key: "pipeline", label: "Pipeline" },
   { key: "mix", label: "Mix" },
 ] as const;
-type TabKey = typeof TABS[number]["key"];
+type TabKey = (typeof TABS)[number]["key"];
 
 export const Route = createFileRoute("/reports")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/reports")({
     const type = typeof search.type === "string" ? search.type : undefined;
     return { tab: valid, scope, pdm, status, tier, period, type };
   },
-  head: () => ({ meta: [{ title: "Reports — Alliara" }] }),
+  head: () => ({ meta: [{ title: COPY.reports.pageMetaTitle }] }),
   component: ReportsPage,
 });
 
@@ -50,9 +51,16 @@ function ReportsPage() {
   const leads = useLeads(user?.id);
   const pdmRoster = usePdmRoster();
   const { filters, set, reset } = useReportFilters({
-    scope: search.scope === "all" || search.scope === "mine" ? search.scope : (portfolio.isLeadership ? "all" : "mine"),
+    scope:
+      search.scope === "all" || search.scope === "mine"
+        ? search.scope
+        : portfolio.isLeadership
+          ? "all"
+          : "mine",
     pdmId: search.pdm ?? "all",
-    status: (search.status as "all" | "active" | "nurturing" | "at_risk" | "paused" | "archived") ?? "all",
+    status:
+      (search.status as "all" | "active" | "nurturing" | "at_risk" | "paused" | "archived") ??
+      "all",
     tier: (search.tier as "all" | "strategic" | "core" | "emerging" | "long_tail") ?? "all",
     period: (search.period as "30d" | "90d" | "6m" | "12m" | "all") ?? "all",
     type: (search.type as "all" | "referral" | "reseller" | "expert") ?? "all",
@@ -87,10 +95,14 @@ function ReportsPage() {
     return (
       <div className="mx-auto max-w-7xl px-6 py-8">
         <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6">
-          <h1 className="text-xl font-semibold text-foreground">Could not load reports data</h1>
+          <h1 className="text-xl font-semibold text-foreground">{COPY.reports.loadErrorTitle}</h1>
           <p className="mt-2 text-sm text-muted-foreground">{portfolio.error}</p>
-          <button onClick={() => void portfolio.retry()} className="mt-4 btn-candy">
-            Retry
+          <button
+            type="button"
+            onClick={() => void portfolio.retry()}
+            className="mt-4 btn-candy min-h-11 px-6"
+          >
+            {COPY.reports.retry}
           </button>
         </div>
       </div>
@@ -101,14 +113,14 @@ function ReportsPage() {
     <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
       <header className="flex items-end justify-between flex-wrap gap-3">
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Analytics</p>
-          <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
-          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-            Filter your portfolio, switch between report types, and export anything to CSV or PNG.
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            {COPY.reports.eyebrow}
           </p>
+          <h1 className="text-2xl font-semibold tracking-tight">{COPY.reports.pageTitle}</h1>
+          <p className="text-sm text-muted-foreground mt-1 max-w-2xl">{COPY.reports.intro}</p>
         </div>
         <span className="btn-candy-ghost cursor-not-allowed opacity-70" title="Coming soon">
-          + Custom report (soon)
+          {COPY.reports.customSoonBadge}
         </span>
       </header>
 
@@ -151,7 +163,9 @@ function ReportsPage() {
             data-active={tab === t.key}
             onClick={() => {
               setTabFallback(t.key);
-              void navigate({ search: (prev: Record<string, unknown>) => ({ ...prev, tab: t.key }) });
+              void navigate({
+                search: (prev: Record<string, unknown>) => ({ ...prev, tab: t.key }),
+              });
             }}
           >
             {t.label}
@@ -161,7 +175,9 @@ function ReportsPage() {
 
       <div className="space-y-4">
         {tab === "overview" && <OverviewReport items={scoped} revenueMap={revenueMap} />}
-        {tab === "revenue" && <RevenueReport items={scoped} revenueMap={revenueMap} pdmName={pdmName} />}
+        {tab === "revenue" && (
+          <RevenueReport items={scoped} revenueMap={revenueMap} pdmName={pdmName} />
+        )}
         {tab === "health" && <HealthByPdmReport items={scoped} pdmName={pdmName} />}
         {tab === "maturity" && <MaturityReport items={scoped} />}
         {tab === "pipeline" && <PipelineReport leads={leads.leads} />}

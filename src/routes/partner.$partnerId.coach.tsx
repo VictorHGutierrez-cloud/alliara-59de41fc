@@ -12,24 +12,32 @@ export const Route = createFileRoute("/partner/$partnerId/coach")({
   validateSearch: (search: Record<string, unknown>) => ({
     autorun: search.autorun === "1" ? "1" : undefined,
   }),
-  head: () => ({ meta: [{ title: "Ecosystem Copilot — Alliara" }] }),
+  head: () => ({ meta: [{ title: COPY.copilot.coachPageMetaTitle }] }),
   component: PartnerCoach,
 });
 
 interface CoachContent {
   summary: string;
   recommendations: {
-    axis_key: string; title: string; why: string; how: string;
-    expected_outcome: string; priority: "low" | "medium" | "high"; target_level: number;
+    axis_key: string;
+    title: string;
+    why: string;
+    how: string;
+    expected_outcome: string;
+    priority: "low" | "medium" | "high";
+    target_level: number;
   }[];
   action_items: {
-    axis_key: string; title: string; description?: string;
-    priority: "low" | "medium" | "high"; target_level: number;
+    axis_key: string;
+    title: string;
+    description?: string;
+    priority: "low" | "medium" | "high";
+    target_level: number;
   }[];
 }
 
 function normalizeCoachContent(raw: unknown): CoachContent {
-  const obj = (raw && typeof raw === "object") ? (raw as Record<string, unknown>) : {};
+  const obj = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
 
   const rawRecs = Array.isArray(obj.recommendations)
     ? obj.recommendations
@@ -51,7 +59,7 @@ function normalizeCoachContent(raw: unknown): CoachContent {
       why: String(r.why ?? ""),
       how: String(r.how ?? ""),
       expected_outcome: String(r.expected_outcome ?? r.outcome ?? ""),
-      priority: (r.priority === "high" || r.priority === "low") ? r.priority : "medium",
+      priority: r.priority === "high" || r.priority === "low" ? r.priority : "medium",
       target_level: Number(r.target_level ?? 0) || 0,
     }));
 
@@ -61,7 +69,7 @@ function normalizeCoachContent(raw: unknown): CoachContent {
       axis_key: String(a.axis_key ?? ""),
       title: String(a.title ?? "Untitled move"),
       description: a.description ? String(a.description) : undefined,
-      priority: (a.priority === "high" || a.priority === "low") ? a.priority : "medium",
+      priority: a.priority === "high" || a.priority === "low" ? a.priority : "medium",
       target_level: Number(a.target_level ?? 0) || 0,
     }));
 
@@ -84,7 +92,10 @@ function PartnerCoach() {
   const hasDiagnostic = !!data.latest;
 
   const generate = async () => {
-    if (!user || !data.partner || !data.latest) { toast.error("Run the diagnostic first"); return; }
+    if (!user || !data.partner || !data.latest) {
+      toast.error(COPY.copilot.needDiagnosticFirst);
+      return;
+    }
     setBusy(true);
     try {
       const scores = data.latest!.scores as Record<string, number>;
@@ -93,7 +104,10 @@ function PartnerCoach() {
         const lvl = score ? levelFromAvg(score) : 0;
         const nextLevel = a.levels.find((l) => l.level === lvl);
         return {
-          key: a.key, name: a.name, score, level: lvl,
+          key: a.key,
+          name: a.name,
+          score,
+          level: lvl,
           mentalModel: a.mentalModel,
           commonMistakes: a.commonMistakes,
           levers: a.levers,
@@ -120,7 +134,7 @@ function PartnerCoach() {
       if (!resp?.ok) throw new Error(resp?.error ?? "Coach failed");
 
       await data.saveRecommendation(focus || null, resp.content, resp.model ?? "");
-      toast.success("Copilot delivered new guidance");
+      toast.success(COPY.copilot.deliveredToast);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -151,27 +165,46 @@ function PartnerCoach() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h2 className="font-semibold">{COPY.copilot.label}</h2>
-            <p className="text-sm text-muted-foreground mt-1">Personalized guidance for {data.partner.name}, grounded in their OCTA scores and your PDM notes.</p>
+            <p className="text-sm text-muted-foreground mt-1">{COPY.copilot.subtitleForPartner}</p>
           </div>
           {isOwner && (
             <div className="flex flex-wrap items-center gap-2">
-              <select value={focus} onChange={(e) => setFocus(e.target.value)} className="input w-auto">
+              <select
+                value={focus}
+                onChange={(e) => setFocus(e.target.value)}
+                className="input w-auto"
+              >
                 <option value="">Overall plan</option>
-                {AXES.map((a) => <option key={a.key} value={a.key}>Focus: {a.name}</option>)}
+                {AXES.map((a) => (
+                  <option key={a.key} value={a.key}>
+                    Focus: {a.name}
+                  </option>
+                ))}
               </select>
               <button
                 onClick={generate}
                 disabled={busy || !hasDiagnostic}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
               >
-                {busy ? "Coaching…" : data.recs.length ? "Regenerate" : "Generate"}
+                {busy
+                  ? COPY.copilot.busyLabel
+                  : data.recs.length
+                    ? COPY.copilot.regenerateLabel
+                    : COPY.copilot.generateLabel}
               </button>
             </div>
           )}
         </div>
         {!hasDiagnostic && (
           <div className="mt-4 text-sm text-muted-foreground">
-            Run the Diagnostic first → <Link to="/partner/$partnerId/diagnostic" params={{ partnerId }} className="text-primary underline">go to diagnostic</Link>
+            {COPY.copilot.needDiagnosticFirst}{" "}
+            <Link
+              to="/partner/$partnerId/diagnostic"
+              params={{ partnerId }}
+              className="text-primary underline"
+            >
+              {COPY.copilot.goToDiagnosticLink}
+            </Link>
           </div>
         )}
       </div>
@@ -179,9 +212,9 @@ function PartnerCoach() {
       {data.recs.length === 0 ? (
         hasDiagnostic && (
           <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-            <h3 className="text-lg font-semibold">No copilot guidance yet</h3>
+            <h3 className="text-lg font-semibold">{COPY.copilot.emptyTitleOwner}</h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-              {isOwner ? "Generate the first set of guidance for this partner." : "The owning PDM hasn't generated copilot guidance yet."}
+              {isOwner ? COPY.copilot.emptyBodyOwner : COPY.copilot.emptyBodyViewer}
             </p>
           </div>
         )
@@ -203,8 +236,10 @@ function PartnerCoach() {
                     targetLevel: item.target_level,
                     source: "ai",
                   });
-                  toast.success("Added to action plan");
-                } catch (e) { toast.error((e as Error).message); }
+                  toast.success(COPY.toast.addedToJbp);
+                } catch (e) {
+                  toast.error((e as Error).message);
+                }
               }}
             />
           ))}
@@ -215,7 +250,9 @@ function PartnerCoach() {
 }
 
 function RecommendationCard({
-  rec, isOwner, onAddAction,
+  rec,
+  isOwner,
+  onAddAction,
 }: {
   rec: AiRecRow;
   isOwner: boolean;
@@ -228,7 +265,8 @@ function RecommendationCard({
     <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <div className="font-mono uppercase tracking-widest">
-          {focusAxis ? `Focus: ${focusAxis.name}` : "Overall plan"} · {new Date(rec.created_at).toLocaleString()}
+          {focusAxis ? `Focus: ${focusAxis.name}` : "Overall plan"} ·{" "}
+          {new Date(rec.created_at).toLocaleString()}
         </div>
         {rec.model && <div className="font-mono">{rec.model}</div>}
       </div>
@@ -236,7 +274,9 @@ function RecommendationCard({
       <p className="mt-3 text-base font-medium">{c.summary}</p>
 
       <div className="mt-5">
-        <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Recommendations</h4>
+        <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+          {COPY.copilot.sectionRecommendationsEyebrow}
+        </h4>
         <div className="mt-2 space-y-3">
           {c.recommendations.map((r, i) => {
             const ax = AXES.find((a) => a.key === r.axis_key);
@@ -245,18 +285,37 @@ function RecommendationCard({
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <div className="flex items-center gap-2">
                     {ax && (
-                      <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ background: `color-mix(in oklab, var(--${ax.color}) 22%, transparent)`, color: `var(--${ax.color})` }}>
+                      <span
+                        className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
+                        style={{
+                          background: `color-mix(in oklab, var(--${ax.color}) 22%, transparent)`,
+                          color: `var(--${ax.color})`,
+                        }}
+                      >
                         {ax.letter} · {ax.name}
                       </span>
                     )}
-                    <span className={`text-[10px] font-mono uppercase tracking-widest ${r.priority === "high" ? "text-warning" : r.priority === "medium" ? "" : "text-muted-foreground"}`}>{r.priority}</span>
-                    <span className="text-[10px] font-mono text-muted-foreground">→ L{r.target_level}</span>
+                    <span
+                      className={`text-[10px] font-mono uppercase tracking-widest ${r.priority === "high" ? "text-warning" : r.priority === "medium" ? "" : "text-muted-foreground"}`}
+                    >
+                      {r.priority}
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      → L{r.target_level}
+                    </span>
                   </div>
                 </div>
                 <div className="mt-2 font-semibold text-sm">{r.title}</div>
-                <p className="mt-1 text-sm text-muted-foreground"><span className="text-foreground/70 font-medium">Why:</span> {r.why}</p>
-                <p className="mt-1 text-sm text-muted-foreground"><span className="text-foreground/70 font-medium">How:</span> {r.how}</p>
-                <p className="mt-1 text-sm text-muted-foreground"><span className="text-foreground/70 font-medium">Outcome:</span> {r.expected_outcome}</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  <span className="text-foreground/70 font-medium">Why:</span> {r.why}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  <span className="text-foreground/70 font-medium">How:</span> {r.how}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  <span className="text-foreground/70 font-medium">Outcome:</span>{" "}
+                  {r.expected_outcome}
+                </p>
               </div>
             );
           })}
@@ -264,23 +323,40 @@ function RecommendationCard({
       </div>
 
       <div className="mt-5">
-        <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Ready-to-add action items</h4>
+        <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+          {COPY.copilot.sectionMovesEyebrow}
+        </h4>
         <div className="mt-2 grid sm:grid-cols-2 gap-2">
           {c.action_items.map((it, i) => {
             const ax = AXES.find((a) => a.key === it.axis_key);
             return (
-              <div key={i} className="rounded-xl border border-border/60 bg-surface/40 p-3 flex items-start justify-between gap-2">
+              <div
+                key={i}
+                className="rounded-xl border border-border/60 bg-surface/40 p-3 flex items-start justify-between gap-2"
+              >
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {ax && (
-                      <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded" style={{ background: `color-mix(in oklab, var(--${ax.color}) 22%, transparent)`, color: `var(--${ax.color})` }}>
+                      <span
+                        className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
+                        style={{
+                          background: `color-mix(in oklab, var(--${ax.color}) 22%, transparent)`,
+                          color: `var(--${ax.color})`,
+                        }}
+                      >
                         {ax.letter}
                       </span>
                     )}
-                    <span className="text-[10px] font-mono text-muted-foreground">{it.priority} · L{it.target_level}</span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      {it.priority} · L{it.target_level}
+                    </span>
                   </div>
                   <div className="mt-1 text-sm font-medium">{it.title}</div>
-                  {it.description && <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{it.description}</div>}
+                  {it.description && (
+                    <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {it.description}
+                    </div>
+                  )}
                 </div>
                 {isOwner && (
                   <button

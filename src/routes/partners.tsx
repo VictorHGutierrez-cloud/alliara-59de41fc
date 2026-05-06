@@ -3,8 +3,11 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
-  usePortfolio, statusLabel, tierColor,
-  type PortfolioItem, type ActionRow,
+  usePortfolio,
+  statusLabel,
+  tierColor,
+  type PortfolioItem,
+  type ActionRow,
 } from "../lib/partners-store";
 import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
@@ -15,17 +18,27 @@ import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar
 import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
 import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
-import { BulkReassignDialog, type ReassignAssignment, type ReassignItem } from "@/components/BulkReassignDialog";
+import {
+  BulkReassignDialog,
+  type ReassignAssignment,
+  type ReassignItem,
+} from "@/components/BulkReassignDialog";
 import { CandyBarChart, CandyComposition, type BarDatum } from "@/components/ui/candy-charts";
-import { CandyDataTable, CandyAvatar, StatusPill, type StatusTone, type CandyColumn } from "@/components/ui/candy-data-table";
+import {
+  CandyDataTable,
+  CandyAvatar,
+  StatusPill,
+  type StatusTone,
+  type CandyColumn,
+} from "@/components/ui/candy-data-table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { COPY } from "@/lib/copy";
+import { COPY, buildPortfolioBriefingText } from "@/lib/copy";
 import { EmptyPortfolioOnboarding } from "@/components/onboarding/EmptyPortfolioOnboarding";
 import { TeamPulse } from "@/components/leadership/TeamPulse";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partners")({
-  head: () => ({ meta: [{ title: "Portfolio — Alliara" }] }),
+  head: () => ({ meta: [{ title: COPY.portfolio.pageMetaTitle }] }),
   component: PartnersPage,
 });
 
@@ -59,7 +72,14 @@ function PartnersPage() {
     isLeadership: portfolio.isLeadership,
     currentUserId: user?.id,
   });
-  const { scope: scopeFilter, setScope: setScopeFilter, ownerFilter, setOwnerFilter, ownersInScope, ownerNames } = ownerScope;
+  const {
+    scope: scopeFilter,
+    setScope: setScopeFilter,
+    ownerFilter,
+    setOwnerFilter,
+    ownersInScope,
+    ownerNames,
+  } = ownerScope;
   const pdmRoster = usePdmRoster();
 
   const reassignPartner = async (partnerId: string, newOwnerId: string, newOwnerName: string) => {
@@ -69,7 +89,7 @@ function PartnersPage() {
         .update({ owner_id: newOwnerId })
         .eq("id", partnerId);
       if (error) throw error;
-      toast.success(`Reassigned to ${newOwnerName}`);
+      toast.success(COPY.toast.reassignedPartner({ name: newOwnerName }));
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -77,7 +97,10 @@ function PartnersPage() {
   };
 
   const bulkReassign = async (assignments: ReassignAssignment[]) => {
-    if (assignments.length === 0) { setReassignOpen(false); return; }
+    if (assignments.length === 0) {
+      setReassignOpen(false);
+      return;
+    }
     setBulkBusy(true);
     try {
       // Group by target owner so we can do one update per target.
@@ -96,7 +119,7 @@ function PartnersPage() {
         if (error) throw error;
         total += count ?? ids.length;
       }
-      toast.success(`${total} partner${total === 1 ? "" : "s"} reassigned`);
+      toast.success(COPY.toast.bulkReassignedPartners({ n: total }));
       setReassignOpen(false);
       setSelectedForReassign([]);
       await portfolio.refresh();
@@ -107,7 +130,11 @@ function PartnersPage() {
     }
   };
 
-  const bulkUpdate = async (ids: string[], patch: { status?: string; tier?: string; partner_type?: string; owner_id?: string }, label: string) => {
+  const bulkUpdate = async (
+    ids: string[],
+    patch: { status?: string; tier?: string; partner_type?: string; owner_id?: string },
+    label: string,
+  ) => {
     if (ids.length === 0) return;
     setBulkBusy(true);
     try {
@@ -116,7 +143,7 @@ function PartnersPage() {
         .update(patch as never, { count: "exact" })
         .in("id", ids);
       if (error) throw error;
-      toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} → ${label}`);
+      toast.success(COPY.toast.partnersUpdated({ count: count ?? ids.length, label }));
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -143,7 +170,7 @@ function PartnersPage() {
         .delete({ count: "exact" })
         .in("id", ids);
       if (error) throw error;
-      toast.success(`${count ?? ids.length} partner${(count ?? ids.length) === 1 ? "" : "s"} deleted`);
+      toast.success(COPY.toast.partnersDeleted({ count: count ?? ids.length }));
       await portfolio.refresh();
     } catch (e) {
       toast.error((e as Error).message);
@@ -162,7 +189,7 @@ function PartnersPage() {
       if (error) throw error;
       setOpenActions((prev) => prev.filter((x) => x.id !== a.id));
       if (selectedAction?.id === a.id) setSelectedAction(null);
-      toast.success(`"${a.title}" marked complete`);
+      toast.success(COPY.toast.moveMarkedDone({ title: a.title }));
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -170,7 +197,9 @@ function PartnersPage() {
     }
   };
 
-  useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
+  useEffect(() => {
+    if (!loading && !user) nav({ to: "/login" });
+  }, [loading, user, nav]);
 
   // Aggregate open growth initiatives across all visible partners
   useEffect(() => {
@@ -181,7 +210,10 @@ function PartnersPage() {
       const ownPartners = portfolio.items.filter((it) => it.partner.owner_id === user.id);
       const ids = ownPartners.map((p) => p.partner.id);
       if (ids.length === 0) {
-        if (!cancelled) { setOpenActions([]); setActionsLoading(false); }
+        if (!cancelled) {
+          setOpenActions([]);
+          setActionsLoading(false);
+        }
         return;
       }
       const { data } = await supabase
@@ -199,50 +231,33 @@ function PartnersPage() {
       setOpenActions(enriched);
       setActionsLoading(false);
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [user, portfolio.items, portfolio.loading]);
 
-  if (loading || !user) {
-    return (
-      <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
-        <Skeleton className="h-7 w-72" />
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <Skeleton className="h-64 w-full rounded-2xl" />
-      </div>
-    );
-  }
+  const scoped = useMemo(() => {
+    if (!user || portfolio.loading || portfolio.error) return [] as PortfolioItem[];
+    return portfolio.items.filter(ownerScope.applyFilter);
+  }, [user, portfolio.items, portfolio.loading, portfolio.error, ownerScope]);
 
-  if (portfolio.error) {
-    return (
-      <div className="mx-auto max-w-7xl px-6 py-8">
-        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6">
-          <h1 className="text-xl font-semibold text-foreground">Could not load your portfolio</h1>
-          <p className="mt-2 text-sm text-muted-foreground">{portfolio.error}</p>
-          <button onClick={() => void portfolio.retry()} className="mt-4 btn-candy">
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const partnerIds = useMemo(() => scoped.map((it) => it.partner.id), [scoped]);
 
-  // Scoped portfolio (mine vs all for leadership, plus optional PDM filter)
-  const scoped = portfolio.items.filter(ownerScope.applyFilter);
-
-  const statusCounts = {
-    active: scoped.filter((i) => i.partner.status === "active").length,
-    nurturing: scoped.filter((i) => i.partner.status === "nurturing").length,
-    at_risk: scoped.filter((i) => i.partner.status === "at_risk").length,
-    paused: scoped.filter((i) => i.partner.status === "paused").length,
-    archived: scoped.filter((i) => i.partner.status === "archived").length,
-  };
-  const activeTotal = statusCounts.active + statusCounts.nurturing + statusCounts.at_risk;
-
-  const partnerIds = scoped.map((it) => it.partner.id);
   const { map: revenueMap } = useLatestPartnerRevenue(partnerIds);
 
-  // Real partner-sourced pipeline: open + won deals across all visible partners
+  const statusCounts = useMemo(
+    () => ({
+      active: scoped.filter((i) => i.partner.status === "active").length,
+      nurturing: scoped.filter((i) => i.partner.status === "nurturing").length,
+      at_risk: scoped.filter((i) => i.partner.status === "at_risk").length,
+      paused: scoped.filter((i) => i.partner.status === "paused").length,
+      archived: scoped.filter((i) => i.partner.status === "archived").length,
+    }),
+    [scoped],
+  );
+
+  const activeTotal = statusCounts.active + statusCounts.nurturing + statusCounts.at_risk;
+
   const sourcedPipeline = useMemo(() => {
     let total = 0;
     let withMetrics = 0;
@@ -256,12 +271,21 @@ function PartnersPage() {
     return { total, withMetrics };
   }, [partnerIds, revenueMap]);
 
-  const filtered = scoped.filter((it) => {
-    if (statusFilter !== "all" && it.partner.status !== statusFilter) return false;
-    if (typeFilter !== "all" && it.partner.partner_type !== typeFilter) return false;
-    if (query && !`${it.partner.name} ${it.partner.company ?? ""}`.toLowerCase().includes(query.toLowerCase())) return false;
-    return true;
-  });
+  const filtered = useMemo(() => {
+    return scoped.filter((it) => {
+      if (statusFilter !== "all" && it.partner.status !== statusFilter) return false;
+      if (typeFilter !== "all" && it.partner.partner_type !== typeFilter) return false;
+      if (
+        query &&
+        !`${it.partner.name} ${it.partner.company ?? ""}`
+          .toLowerCase()
+          .includes(query.toLowerCase())
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [scoped, statusFilter, typeFilter, query]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -269,16 +293,23 @@ function PartnersPage() {
       const ra = revenueMap.get(a.partner.id);
       const rb = revenueMap.get(b.partner.id);
       switch (sortKey) {
-        case "name_asc": return a.partner.name.localeCompare(b.partner.name);
-        case "name_desc": return b.partner.name.localeCompare(a.partner.name);
+        case "name_asc":
+          return a.partner.name.localeCompare(b.partner.name);
+        case "name_desc":
+          return b.partner.name.localeCompare(a.partner.name);
         case "revenue_desc": {
           const va = (ra?.revenue ?? 0) + (ra?.dealsWonValue ?? 0);
           const vb = (rb?.revenue ?? 0) + (rb?.dealsWonValue ?? 0);
           return vb - va;
         }
-        case "mrr_desc": return (rb?.mrr ?? 0) - (ra?.mrr ?? 0);
-        case "created_desc": return new Date(b.partner.created_at).getTime() - new Date(a.partner.created_at).getTime();
-        case "maturity_desc": return Number(b.latest?.overall ?? 0) - Number(a.latest?.overall ?? 0);
+        case "mrr_desc":
+          return (rb?.mrr ?? 0) - (ra?.mrr ?? 0);
+        case "created_desc":
+          return (
+            new Date(b.partner.created_at).getTime() - new Date(a.partner.created_at).getTime()
+          );
+        case "maturity_desc":
+          return Number(b.latest?.overall ?? 0) - Number(a.latest?.overall ?? 0);
       }
     });
     return arr;
@@ -292,7 +323,6 @@ function PartnersPage() {
     return { count: filtered.length, scored: scored.length, avg };
   }, [filtered]);
 
-  // Top partners by Open MRR — drives the bar chart below the KPIs.
   const topMrrData = useMemo<BarDatum[]>(() => {
     const rows = scoped
       .map((it) => {
@@ -309,47 +339,68 @@ function PartnersPage() {
     return rows.map((r) => ({
       label: r.name.length > 14 ? r.name.slice(0, 13) + "…" : r.name,
       value: r.mrr,
-      secondary:
-        r.maturity > 0
-          ? { label: "Maturity", value: r.maturity.toFixed(1) }
-          : undefined,
+      secondary: r.maturity > 0 ? { label: "Maturity", value: r.maturity.toFixed(1) } : undefined,
     }));
   }, [scoped, revenueMap]);
 
-  // Pending leads = leads not yet approved/rejected
   const pendingLeads = leads.leads.filter((l) => l.status === "new" || l.status === "in_review");
   const overdueActions = openActions.filter((a) => isOverdue(a.due_date));
   const highPriorityOpen = openActions.filter((a) => a.priority === "high");
 
-  // Axis-filtered + sorted view used by both normal and focus modes
   const visibleActions = useMemo(() => {
-    const base = axisFilter === "all"
-      ? openActions
-      : openActions.filter((a) => a.axis_key === axisFilter);
+    const base =
+      axisFilter === "all" ? openActions : openActions.filter((a) => a.axis_key === axisFilter);
     return sortActions(base);
   }, [openActions, axisFilter]);
   const focusActions = visibleActions.slice(0, 3);
 
-  // Counts per axis (across all open actions, not the filtered view)
   const axisCounts = useMemo(() => {
     const m = new Map<string, number>();
     for (const a of openActions) m.set(a.axis_key, (m.get(a.axis_key) ?? 0) + 1);
     return m;
   }, [openActions]);
 
-  // Briefing copy
-  const briefing = buildBriefing({
+  const briefing = buildPortfolioBriefingText({
     atRisk: statusCounts.at_risk,
     overdue: overdueActions.length,
     leads: pendingLeads.length,
     highPriority: highPriorityOpen.length,
-    scope: scopeFilter,
-    ownerName: ownerFilter === "all" ? "all PDMs" : (ownerNames.get(ownerFilter) ?? "selected PDM"),
+    scope: scopeFilter === "all" ? "all" : "mine",
+    ownerLabel:
+      ownerFilter === "all"
+        ? "your Partner Development team"
+        : (ownerNames.get(ownerFilter) ?? "the selected teammate"),
   });
 
   const displayName =
-    (user.user_metadata as { display_name?: string } | null)?.display_name
-    ?? user.email?.split("@")[0] ?? "operator";
+    (user?.user_metadata as { display_name?: string } | null)?.display_name ??
+    user?.email?.split("@")[0] ??
+    "operator";
+
+  if (loading || !user) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8 space-y-5">
+        <Skeleton className="h-7 w-72" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
+
+  if (portfolio.error) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8">
+        <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-6">
+          <h1 className="text-xl font-semibold text-foreground">{COPY.portfolio.loadErrorTitle}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{portfolio.error}</p>
+          <button onClick={() => void portfolio.retry()} className="mt-4 btn-candy min-h-11 px-6">
+            {COPY.portfolio.retry}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
@@ -361,15 +412,16 @@ function PartnersPage() {
             <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
           </span>
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            {scopeFilter === "all" ? "All partners" : "Portfolio"} · {greeting()}
+            {scopeFilter === "all"
+              ? COPY.portfolio.kickerAllPartners
+              : COPY.portfolio.kickerPortfolioMine}{" "}
+            · {greeting()}
           </span>
         </div>
         <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-foreground">
           {greeting()}, {displayName}
         </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-          {briefing}
-        </p>
+        <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">{briefing}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {statusCounts.at_risk > 0 && (
             <button
@@ -377,7 +429,7 @@ function PartnersPage() {
               className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/20 transition"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
-              Review {statusCounts.at_risk} Churn Risk
+              {COPY.portfolio.churnAlert({ n: statusCounts.at_risk })}
             </button>
           )}
           {pendingLeads.length > 0 && (
@@ -385,7 +437,7 @@ function PartnersPage() {
               to="/qualification"
               className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium hover:bg-surface-2 transition"
             >
-              Qualify {pendingLeads.length} lead{pendingLeads.length === 1 ? "" : "s"} →
+              {COPY.portfolio.qualifyLeadsChip({ n: pendingLeads.length })}
             </Link>
           )}
           {overdueActions.length > 0 && (
@@ -393,7 +445,7 @@ function PartnersPage() {
               href="#growth-initiatives"
               className="inline-flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-medium text-warning hover:bg-warning/15 transition"
             >
-              {overdueActions.length} overdue initiative{overdueActions.length === 1 ? "" : "s"}
+              {COPY.portfolio.overdueNudge({ n: overdueActions.length })}
             </a>
           )}
         </div>
@@ -402,7 +454,9 @@ function PartnersPage() {
       {/* Global scope + PDM filter — drives KPIs and roster */}
       {portfolio.isLeadership && (
         <section className="mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-surface/40 p-2">
-          <span className="px-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">View</span>
+          <span className="px-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            View
+          </span>
           <div className="seg-candy">
             {(["mine", "all"] as const).map((f) => (
               <button
@@ -423,12 +477,15 @@ function PartnersPage() {
               title="Filter by PDM"
             >
               {(() => {
-                const roster: PdmEntry[] = pdmRoster.pdms.length > 0 ? pdmRoster.pdms : ownersInScope;
+                const roster: PdmEntry[] =
+                  pdmRoster.pdms.length > 0 ? pdmRoster.pdms : ownersInScope;
                 return (
                   <>
                     <option value="all">PDM: All ({roster.length})</option>
                     {roster.map((o) => (
-                      <option key={o.id} value={o.id}>PDM: {o.name}</option>
+                      <option key={o.id} value={o.id}>
+                        PDM: {o.name}
+                      </option>
                     ))}
                   </>
                 );
@@ -462,7 +519,11 @@ function PartnersPage() {
         <KpiCard
           label="Avg maturity"
           value={aggregate.scored > 0 ? aggregate.avg.toFixed(1) : "—"}
-          hint={aggregate.scored > 0 ? `${aggregate.scored} diagnosed` : `Run ${COPY.diagnostic.noun.toLowerCase()}s to unlock`}
+          hint={
+            aggregate.scored > 0
+              ? `${aggregate.scored} diagnosed`
+              : `Run ${COPY.diagnostic.noun.toLowerCase()}s to unlock`
+          }
           accent="octa-4"
         />
       </section>
@@ -477,28 +538,36 @@ function PartnersPage() {
             className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full opacity-40 blur-3xl"
             style={{ background: "var(--primary)" }}
           />
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Analytics moved</p>
-          <h2 className="mt-1 text-lg font-semibold">Open MRR, status mix, maturity & more → Reports</h2>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            {COPY.portfolio.reportsCardEyebrow}
+          </p>
+          <h2 className="mt-1 text-lg font-semibold">{COPY.portfolio.reportsCardTitle}</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-xl">
-            All portfolio metrics, charts and the new mini report builder live in the Reports tab. Filter by PDM, type, tier or period — and export to CSV or PNG.
+            {COPY.portfolio.reportsCardBody}
           </p>
           <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary group-hover:translate-x-0.5 transition">
-            Go to Reports →
+            {COPY.portfolio.reportsCardCta}
           </span>
         </Link>
 
         {/* Qualification Queue */}
         <div className="rounded-2xl border border-border bg-card p-6 card-elev">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Qualification Queue</p>
+          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            {COPY.portfolio.qualQueueEyebrow}
+          </p>
           <div className="mt-3 flex items-baseline gap-2">
-            <span className={`text-5xl font-display font-bold ${pendingLeads.length > 0 ? "text-foreground" : "text-muted-foreground/60"}`}>
+            <span
+              className={`text-5xl font-display font-bold ${pendingLeads.length > 0 ? "text-foreground" : "text-muted-foreground/60"}`}
+            >
               {pendingLeads.length}
             </span>
-            <span className="text-sm text-muted-foreground">pending {COPY.ipp.short}</span>
+            <span className="text-sm text-muted-foreground">
+              {COPY.portfolio.qualPendingIppSuffix}
+            </span>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
             {pendingLeads.length === 0
-              ? "All caught up. Inbox is clean."
+              ? COPY.portfolio.qualQueueEmptyCopy
               : `${leads.leads.filter((l) => l.status === "new").length} new · ${leads.leads.filter((l) => l.status === "in_review").length} in review`}
           </p>
           <div className="mt-4 h-1 rounded-full bg-surface-2 overflow-hidden">
@@ -509,26 +578,31 @@ function PartnersPage() {
           </div>
           <Link
             to="/qualification"
-            className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-primary hover:bg-primary/90 px-4 py-2.5 text-sm font-semibold text-primary-foreground transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)]"
+            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary hover:bg-primary/90 px-4 text-sm font-semibold text-primary-foreground transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)]"
           >
-            Review Leads →
+            {COPY.portfolio.qualReviewCta}
           </Link>
         </div>
       </section>
 
       {/* 5. Growth Initiatives Due */}
-      <section id="growth-initiatives" className="mt-6 rounded-2xl border border-border/60 bg-card p-6 card-elev">
+      <section
+        id="growth-initiatives"
+        className="mt-6 rounded-2xl border border-border/60 bg-card p-6 card-elev"
+      >
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Next Best Actions</p>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              {COPY.portfolio.initiativesEyebrow}
+            </p>
             <h2 className="mt-1 text-lg font-semibold flex items-center gap-2">
               {focusMode && <Target className="h-4 w-4 text-destructive" />}
-              {focusMode ? "Focus Mode · Top 3" : "Growth Initiatives Due"}
+              {focusMode
+                ? COPY.portfolio.initiativesTitleFocus
+                : COPY.portfolio.initiativesTitleIdle}
             </h2>
             <p className="text-xs text-muted-foreground mt-1">
-              {focusMode
-                ? "Tunnel vision. Just the next 3 most urgent moves — close them before opening anything else."
-                : "Aggregated from every Joint Business Plan in your portfolio. High-priority and overdue first."}
+              {focusMode ? COPY.portfolio.initiativesBodyFocus : COPY.portfolio.initiativesBodyIdle}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -544,7 +618,7 @@ function PartnersPage() {
               }`}
             >
               <Focus className="h-3.5 w-3.5" />
-              {focusMode ? "Exit focus" : "Focus mode"}
+              {focusMode ? COPY.portfolio.focusModeExit : COPY.portfolio.focusModeEnter}
             </button>
           </div>
         </div>
@@ -599,12 +673,14 @@ function PartnersPage() {
 
         <div className="mt-5">
           {actionsLoading ? (
-            <div className="text-sm text-muted-foreground py-6 text-center">Loading initiatives…</div>
+            <div className="text-sm text-muted-foreground py-6 text-center">
+              {COPY.portfolio.loadingInitiatives}
+            </div>
           ) : visibleActions.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border/60 bg-surface/40 p-8 text-center text-sm text-muted-foreground">
               {openActions.length === 0
-                ? "No open initiatives. Open a partner's Joint Business Plan to draft the next move."
-                : `No open initiatives on this axis. Try a different axis.`}
+                ? COPY.portfolio.initiativesEmptyWide
+                : COPY.portfolio.initiativesEmptyAxis}
             </div>
           ) : (
             <ul className="space-y-2 -mx-2">
@@ -619,7 +695,12 @@ function PartnersPage() {
                       role="button"
                       tabIndex={0}
                       onClick={() => setSelectedAction(a)}
-                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedAction(a); } }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setSelectedAction(a);
+                        }
+                      }}
                       className={`group flex items-center gap-3 px-3 py-3 rounded-lg transition border cursor-pointer ${
                         isHigh
                           ? "border-l-4 border-l-destructive border-y border-r border-y-destructive/20 border-r-destructive/20 bg-destructive/5 shadow-[0_8px_24px_-8px_oklch(0.58_0.2_27_/_0.35)] hover:bg-destructive/10"
@@ -628,7 +709,10 @@ function PartnersPage() {
                     >
                       <button
                         type="button"
-                        onClick={(e) => { e.stopPropagation(); void completeAction(a); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void completeAction(a);
+                        }}
                         disabled={completing === a.id}
                         title="Mark complete"
                         className={`shrink-0 h-6 w-6 rounded-md border flex items-center justify-center transition ${
@@ -644,12 +728,19 @@ function PartnersPage() {
                           {axis && (
                             <span
                               className="text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
-                              style={{ background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`, color: `var(--${axis.color})` }}
+                              style={{
+                                background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`,
+                                color: `var(--${axis.color})`,
+                              }}
                             >
                               {axis.letter}
                             </span>
                           )}
-                          <span className={`text-sm truncate ${isHigh ? "font-bold text-foreground" : "font-medium"}`}>{a.title}</span>
+                          <span
+                            className={`text-sm truncate ${isHigh ? "font-bold text-foreground" : "font-medium"}`}
+                          >
+                            {a.title}
+                          </span>
                         </div>
                         <div className="mt-1 text-xs text-muted-foreground truncate">
                           {a.partner_name}
@@ -672,8 +763,8 @@ function PartnersPage() {
           {focusMode && focusActions.length > 0 && (
             <p className="mt-4 text-center text-[11px] font-mono text-muted-foreground">
               {visibleActions.length - focusActions.length > 0
-                ? `${visibleActions.length - focusActions.length} more hidden · close these first`
-                : "These are your only open initiatives. Ship them."}
+                ? COPY.focusCopy.hiddenMoreMoves({ n: visibleActions.length - focusActions.length })
+                : COPY.focusCopy.onlyTheseMoves}
             </p>
           )}
         </div>
@@ -682,24 +773,36 @@ function PartnersPage() {
       <section className="mt-6 rounded-2xl border border-border/60 bg-card p-6 card-elev">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Weekly Review Mode</p>
-            <h2 className="mt-1 text-lg font-semibold">Monday ritual in 5 minutes</h2>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Review at-risk partners, close the top 3 {COPY.jbp.itemPlural.toLowerCase()}, and send one digest to leadership.
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              {COPY.portfolio.weeklyReviewEyebrow}
             </p>
+            <h2 className="mt-1 text-lg font-semibold">{COPY.portfolio.weeklyReviewTitle}</h2>
+            <p className="mt-1 text-xs text-muted-foreground">{COPY.portfolio.weeklyReviewBody}</p>
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => copyWeeklyDigest("slack", { atRisk: statusCounts.at_risk, overdue: overdueActions.length, top: focusActions })}
+              onClick={() =>
+                copyWeeklyDigest("slack", {
+                  atRisk: statusCounts.at_risk,
+                  overdue: overdueActions.length,
+                  top: focusActions,
+                })
+              }
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-2"
             >
-              Export Slack
+              {COPY.portfolio.exportSlack}
             </button>
             <button
-              onClick={() => copyWeeklyDigest("email", { atRisk: statusCounts.at_risk, overdue: overdueActions.length, top: focusActions })}
+              onClick={() =>
+                copyWeeklyDigest("email", {
+                  atRisk: statusCounts.at_risk,
+                  overdue: overdueActions.length,
+                  top: focusActions,
+                })
+              }
               className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-2"
             >
-              Export email
+              {COPY.portfolio.exportEmail}
             </button>
           </div>
         </div>
@@ -715,20 +818,25 @@ function PartnersPage() {
       <section className="mt-8">
         <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Roster</p>
-            <h2 className="mt-1 text-2xl font-semibold">Your partners</h2>
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              {COPY.portfolio.rosterEyebrow}
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold">{COPY.portfolio.rosterTitle}</h2>
             {statusFilter !== "all" && (
               <p className="text-xs text-muted-foreground mt-1">
-                Filtered by <span className="text-foreground font-medium">{prettyStatus(statusFilter)}</span> ·
-                <button onClick={() => setStatusFilter("all")} className="ml-1 underline hover:text-foreground">show all</button>
+                Filtered by{" "}
+                <span className="text-foreground font-medium">{prettyStatus(statusFilter)}</span> ·
+                <button
+                  onClick={() => setStatusFilter("all")}
+                  className="ml-1 underline hover:text-foreground"
+                >
+                  show all
+                </button>
               </p>
             )}
           </div>
-          <button
-            onClick={() => setShowNew(true)}
-            className="btn-candy"
-          >
-            + Add partner
+          <button onClick={() => setShowNew(true)} className="btn-candy min-h-11 px-5">
+            {COPY.portfolio.addPartnerCta}
           </button>
         </div>
 
@@ -759,12 +867,31 @@ function PartnersPage() {
               revenueMap={revenueMap}
               isLeadership={portfolio.isLeadership}
               ownerNames={ownerNames}
-              onRowClick={(it) => nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })}
+              onRowClick={(it) =>
+                nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })
+              }
               bulkActions={[
-                { label: "Mark Active",  onClick: (ids) => void bulkUpdate(ids, { status: "active" }, "Scaling"),  variant: "default" },
-                { label: "Mark At Risk", onClick: (ids) => void bulkUpdate(ids, { status: "at_risk" }, "Churn Risk"), variant: "default" },
+                {
+                  label: "Mark Active",
+                  onClick: (ids) => void bulkUpdate(ids, { status: "active" }, "Scaling"),
+                  variant: "default",
+                },
+                {
+                  label: "Mark At Risk",
+                  onClick: (ids) => void bulkUpdate(ids, { status: "at_risk" }, "Churn Risk"),
+                  variant: "default",
+                },
                 ...(pdmRoster.pdms.length > 0
-                  ? [{ label: "Reassign…", onClick: (ids: string[]) => { setSelectedForReassign(ids); setReassignOpen(true); }, variant: "primary" as const }]
+                  ? [
+                      {
+                        label: "Reassign…",
+                        onClick: (ids: string[]) => {
+                          setSelectedForReassign(ids);
+                          setReassignOpen(true);
+                        },
+                        variant: "primary" as const,
+                      },
+                    ]
                   : []),
                 { label: "Delete", onClick: (ids) => void bulkDelete(ids), variant: "danger" },
               ]}
@@ -779,7 +906,7 @@ function PartnersPage() {
           onCreate={async (input) => {
             try {
               const p = await portfolio.createPartner(input);
-              toast.success(`${p.name} added`);
+              toast.success(COPY.toast.partnerCreated({ name: p.name }));
               setShowNew(false);
               nav({ to: "/partner/$partnerId", params: { partnerId: p.id } });
             } catch (e) {
@@ -802,7 +929,7 @@ function PartnersPage() {
         open={reassignOpen}
         items={selectedForReassign
           .map((id) => portfolio.items.find((it) => it.partner.id === id))
-          .filter((it): it is typeof portfolio.items[number] => Boolean(it))
+          .filter((it): it is (typeof portfolio.items)[number] => Boolean(it))
           .map<ReassignItem>((it) => ({
             id: it.partner.id,
             name: it.partner.name,
@@ -812,7 +939,10 @@ function PartnersPage() {
         pdms={pdmRoster.pdms}
         entityLabel="partner"
         busy={bulkBusy}
-        onClose={() => { setReassignOpen(false); setSelectedForReassign([]); }}
+        onClose={() => {
+          setReassignOpen(false);
+          setSelectedForReassign([]);
+        }}
         onConfirm={bulkReassign}
       />
     </div>
@@ -831,12 +961,14 @@ function greeting() {
 function isOverdue(d: string | null): boolean {
   if (!d) return false;
   const due = new Date(d);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   return due < today;
 }
 
 function formatDue(d: Date, overdue: boolean): string {
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const diff = Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   if (overdue) return `${Math.abs(diff)}d late`;
   if (diff === 0) return "today";
@@ -845,7 +977,9 @@ function formatDue(d: Date, overdue: boolean): string {
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-function sortActions<T extends { priority: ActionRow["priority"]; due_date: string | null }>(arr: T[]): T[] {
+function sortActions<T extends { priority: ActionRow["priority"]; due_date: string | null }>(
+  arr: T[],
+): T[] {
   const prio = { high: 0, medium: 1, low: 2 } as const;
   return [...arr].sort((a, b) => {
     const ao = isOverdue(a.due_date) ? 0 : 1;
@@ -857,33 +991,6 @@ function sortActions<T extends { priority: ActionRow["priority"]; due_date: stri
     if (b.due_date) return 1;
     return 0;
   });
-}
-
-function buildBriefing({
-  atRisk, overdue, leads, highPriority,
-  scope,
-  ownerName,
-}: {
-  atRisk: number;
-  overdue: number;
-  leads: number;
-  highPriority: number;
-  scope: "mine" | "all";
-  ownerName: string;
-}) {
-  const parts: string[] = [];
-  if (atRisk > 0) parts.push(`${atRisk} partner${atRisk === 1 ? "" : "s"} at risk of churn`);
-  if (overdue > 0) parts.push(`${overdue} growth initiative${overdue === 1 ? "" : "s"} overdue`);
-  if (highPriority > 0 && overdue === 0) parts.push(`${highPriority} high-priority initiative${highPriority === 1 ? "" : "s"} in motion`);
-  if (leads > 0) parts.push(`${leads} new partner lead${leads === 1 ? "" : "s"} waiting for IPP qualification`);
-  if (parts.length === 0) {
-    const subject = scope === "all" ? `Across ${ownerName}` : "In your portfolio";
-    return `${subject}, there are no urgent risks, no overdue initiatives, and no pending lead reviews. Good window to run a diagnostic and refresh one Joint Business Plan.`;
-  }
-  const last = parts.pop()!;
-  const joined = parts.length ? parts.join(", ") + ", and " + last : last;
-  const prefix = scope === "all" ? `Across ${ownerName},` : "You have";
-  return `${prefix} ${joined}. Tackle the red items first to compound the week.`;
 }
 
 function prettyStatus(s: StatusFilter): string {
@@ -907,27 +1014,41 @@ function copyWeeklyDigest(
 ) {
   const topLines = input.top.slice(0, 3).map((a, i) => `${i + 1}. ${a.title} (${a.partner_name})`);
   const body = [
-    `Weekly Review · ${new Date().toLocaleDateString()}`,
+    COPY.portfolio.weeklyDigestHeading({ date: new Date().toLocaleDateString() }),
     `${COPY.status.at_risk}: ${input.atRisk}`,
-    `Overdue ${COPY.jbp.itemPlural}: ${input.overdue}`,
+    `Behind schedule ${COPY.jbp.itemPlural.toLowerCase()}: ${input.overdue}`,
     "",
-    "Top next moves:",
-    ...(topLines.length ? topLines : ["No open moves"]),
+    "Committed next moves:",
+    ...(topLines.length ? topLines : ["No Moves scheduled yet"]),
   ].join("\n");
   void navigator.clipboard.writeText(body);
-  toast.success(`${mode === "slack" ? "Slack" : "Email"} digest copied`);
+  toast.success(mode === "slack" ? COPY.toast.digestSlack : COPY.toast.digestEmail);
 }
 
 /* ─────────────────── presentational ─────────────────── */
 
-function KpiCard({ label, value, hint, accent, primary }: { label: string; value: string; hint: string; accent: string; primary?: boolean }) {
+function KpiCard({
+  label,
+  value,
+  hint,
+  accent,
+  primary,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  accent: string;
+  primary?: boolean;
+}) {
   return (
     <div className="rounded-xl border border-border bg-card p-5 card-elev relative overflow-hidden hover:border-border transition">
       <div
         className="absolute top-0 left-0 h-1 w-full"
         style={{ background: `linear-gradient(90deg, var(--${accent}), transparent)` }}
       />
-      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
       <div
         className={`mt-2 text-3xl font-display font-bold ${primary ? "text-gradient" : "text-foreground"}`}
       >
@@ -939,24 +1060,42 @@ function KpiCard({ label, value, hint, accent, primary }: { label: string; value
 }
 
 function HealthBadge({
-  label, count, total, tone, active, onClick,
+  label,
+  count,
+  total,
+  tone,
+  active,
+  onClick,
 }: {
-  label: string; count: number; total: number;
+  label: string;
+  count: number;
+  total: number;
   tone: "green" | "yellow" | "red";
-  active: boolean; onClick: () => void;
+  active: boolean;
+  onClick: () => void;
 }) {
   const isZero = count === 0;
   const ring = isZero
     ? "border-border bg-surface"
-    : tone === "green" ? "border-primary/30 bg-primary/5"
-    : tone === "yellow" ? "border-warning/30 bg-warning/5"
-    : "border-destructive/40 bg-destructive/5";
+    : tone === "green"
+      ? "border-primary/30 bg-primary/5"
+      : tone === "yellow"
+        ? "border-warning/30 bg-warning/5"
+        : "border-destructive/40 bg-destructive/5";
   const dot = isZero
     ? "bg-muted-foreground/40"
-    : tone === "green" ? "bg-primary" : tone === "yellow" ? "bg-warning" : "bg-destructive";
+    : tone === "green"
+      ? "bg-primary"
+      : tone === "yellow"
+        ? "bg-warning"
+        : "bg-destructive";
   const text = isZero
     ? "text-muted-foreground"
-    : tone === "green" ? "text-primary" : tone === "yellow" ? "text-warning" : "text-destructive";
+    : tone === "green"
+      ? "text-primary"
+      : tone === "yellow"
+        ? "text-warning"
+        : "text-destructive";
   const pct = total > 0 ? Math.round((count / total) * 100) : 0;
 
   return (
@@ -969,7 +1108,11 @@ function HealthBadge({
         <span className={`text-xs font-medium ${text}`}>{label}</span>
       </div>
       <div className="mt-2 flex items-baseline gap-2">
-        <span className={`text-3xl font-display font-bold ${isZero ? "text-muted-foreground" : "text-foreground"}`}>{count}</span>
+        <span
+          className={`text-3xl font-display font-bold ${isZero ? "text-muted-foreground" : "text-foreground"}`}
+        >
+          {count}
+        </span>
         <span className="text-xs text-muted-foreground">{pct}%</span>
       </div>
     </button>
@@ -983,7 +1126,9 @@ function PriorityPill({ p }: { p: ActionRow["priority"] }) {
     low: "bg-surface text-muted-foreground border-border",
   } as const;
   return (
-    <span className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border ${map[p]}`}>
+    <span
+      className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border ${map[p]}`}
+    >
       {p}
     </span>
   );
@@ -992,12 +1137,15 @@ function PriorityPill({ p }: { p: ActionRow["priority"] }) {
 function EmptyState({ onAdd }: { onAdd: () => void }) {
   return (
     <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-      <h2 className="text-lg font-semibold">No partners match your filters</h2>
+      <h2 className="text-lg font-semibold">{COPY.portfolio.filterEmptyTitle}</h2>
       <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-        Clear the filter or add a new partner to start running the OCTA diagnostic and building a Joint Business Plan.
+        {COPY.portfolio.filterEmptyBody}
       </p>
-      <button onClick={onAdd} className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
-        + Add partner
+      <button
+        onClick={onAdd}
+        className="mt-5 min-h-11 inline-flex items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground glow-ring"
+      >
+        {COPY.portfolio.addPartnerCta}
       </button>
     </div>
   );
@@ -1006,14 +1154,26 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 /* ─────────────────── Roster table ─────────────────── */
 
 function PartnerRosterTable({
-  rows, revenueMap, isLeadership, ownerNames, onRowClick, bulkActions,
+  rows,
+  revenueMap,
+  isLeadership,
+  ownerNames,
+  onRowClick,
+  bulkActions,
 }: {
   rows: PortfolioItem[];
-  revenueMap: Map<string, { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number }>;
+  revenueMap: Map<
+    string,
+    { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number }
+  >;
   isLeadership: boolean;
   ownerNames: Map<string, string>;
   onRowClick: (it: PortfolioItem) => void;
-  bulkActions: { label: string; onClick: (ids: string[]) => void; variant?: "default" | "primary" | "danger" }[];
+  bulkActions: {
+    label: string;
+    onClick: (ids: string[]) => void;
+    variant?: "default" | "primary" | "danger";
+  }[];
 }) {
   const STATUS_TONE: Record<PortfolioItem["partner"]["status"], StatusTone> = {
     active: "success",
@@ -1077,16 +1237,18 @@ function PartnerRosterTable({
       },
     },
     ...(isLeadership
-      ? [{
-          key: "owner",
-          header: "Owner",
-          width: "140px",
-          cell: (it: PortfolioItem) => (
-            <span className="text-xs font-mono text-muted-foreground truncate">
-              {ownerNames.get(it.partner.owner_id) ?? "—"}
-            </span>
-          ),
-        } satisfies CandyColumn<PortfolioItem>]
+      ? [
+          {
+            key: "owner",
+            header: "Owner",
+            width: "140px",
+            cell: (it: PortfolioItem) => (
+              <span className="text-xs font-mono text-muted-foreground truncate">
+                {ownerNames.get(it.partner.owner_id) ?? "—"}
+              </span>
+            ),
+          } satisfies CandyColumn<PortfolioItem>,
+        ]
       : []),
     {
       key: "mrr",
@@ -1096,7 +1258,9 @@ function PartnerRosterTable({
       cell: (it) => {
         const mrr = revenueMap.get(it.partner.id)?.mrr ?? 0;
         return (
-          <span className={`font-mono text-sm tabular-nums ${mrr > 0 ? "text-foreground" : "text-muted-foreground/50"}`}>
+          <span
+            className={`font-mono text-sm tabular-nums ${mrr > 0 ? "text-foreground" : "text-muted-foreground/50"}`}
+          >
             {mrr > 0 ? fmtMoney(mrr) : "—"}
           </span>
         );
@@ -1120,7 +1284,9 @@ function PartnerRosterTable({
                 }}
               />
             </div>
-            <span className={`font-mono text-sm tabular-nums ${overall ? "text-foreground" : "text-muted-foreground/50"}`}>
+            <span
+              className={`font-mono text-sm tabular-nums ${overall ? "text-foreground" : "text-muted-foreground/50"}`}
+            >
               {overall ? overall.toFixed(1) : "—"}
             </span>
           </div>
@@ -1136,7 +1302,9 @@ function PartnerRosterTable({
         const lastTouched = it.latest?.created_at ?? it.partner.created_at;
         const days = daysAgo(lastTouched);
         return (
-          <span className={`text-xs font-mono ${days > 14 ? "text-warning" : "text-muted-foreground"}`}>
+          <span
+            className={`text-xs font-mono ${days > 14 ? "text-warning" : "text-muted-foreground"}`}
+          >
             {days === 0 ? "today" : `${days}d ago`}
           </span>
         );
@@ -1148,9 +1316,7 @@ function PartnerRosterTable({
       width: "90px",
       align: "right",
       cell: () => null,
-      hoverCell: () => (
-        <span className="text-xs font-medium text-primary">Open →</span>
-      ),
+      hoverCell: () => <span className="text-xs font-medium text-primary">Open →</span>,
     },
   ];
 
@@ -1167,13 +1333,15 @@ function PartnerRosterTable({
   );
 }
 
-
 function NewPartnerDialog({
-  onClose, onCreate,
+  onClose,
+  onCreate,
 }: {
   onClose: () => void;
   onCreate: (input: {
-    name: string; company?: string; segment?: string;
+    name: string;
+    company?: string;
+    segment?: string;
     tier?: "strategic" | "core" | "emerging" | "long_tail";
     status?: "active" | "nurturing" | "at_risk" | "paused" | "archived";
     notes?: string;
@@ -1184,35 +1352,74 @@ function NewPartnerDialog({
   const [company, setCompany] = useState("");
   const [segment, setSegment] = useState("");
   const [tier, setTier] = useState<"strategic" | "core" | "emerging" | "long_tail">("emerging");
-  const [status, setStatus] = useState<"active" | "nurturing" | "at_risk" | "paused" | "archived">("active");
+  const [status, setStatus] = useState<"active" | "nurturing" | "at_risk" | "paused" | "archived">(
+    "active",
+  );
   const [partnerType, setPartnerType] = useState<PartnerType>("referral");
   const [notes, setNotes] = useState("");
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-xl font-semibold">Add a partner</h2>
-        <p className="text-sm text-muted-foreground mt-1">Set up the partner so you can diagnose, plan, and coach.</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Set up the partner so you can diagnose, plan, and coach.
+        </p>
 
         <div className="mt-5 space-y-3">
           <Field label="Partner name *">
-            <input value={name} onChange={(e) => setName(e.target.value)} className="input" placeholder="e.g. Acme Cloud" autoFocus />
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="input"
+              placeholder="e.g. Acme Cloud"
+              autoFocus
+            />
           </Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Company"><input value={company} onChange={(e) => setCompany(e.target.value)} className="input" /></Field>
-            <Field label="Segment"><input value={segment} onChange={(e) => setSegment(e.target.value)} className="input" placeholder="SI · ISV · MSP …" /></Field>
+            <Field label="Company">
+              <input
+                value={company}
+                onChange={(e) => setCompany(e.target.value)}
+                className="input"
+              />
+            </Field>
+            <Field label="Segment">
+              <input
+                value={segment}
+                onChange={(e) => setSegment(e.target.value)}
+                className="input"
+                placeholder="SI · ISV · MSP …"
+              />
+            </Field>
           </div>
           <Field label="Partnership type">
-            <select value={partnerType} onChange={(e) => setPartnerType(e.target.value as PartnerType)} className="input">
+            <select
+              value={partnerType}
+              onChange={(e) => setPartnerType(e.target.value as PartnerType)}
+              className="input"
+            >
               {PARTNER_TYPES.map((t) => (
-                <option key={t.key} value={t.key}>{t.label} — {t.description}</option>
+                <option key={t.key} value={t.key}>
+                  {t.label} — {t.description}
+                </option>
               ))}
             </select>
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Tier">
-              <select value={tier} onChange={(e) => setTier(e.target.value as typeof tier)} className="input">
+              <select
+                value={tier}
+                onChange={(e) => setTier(e.target.value as typeof tier)}
+                className="input"
+              >
                 <option value="strategic">Strategic</option>
                 <option value="core">Core</option>
                 <option value="emerging">Emerging</option>
@@ -1220,7 +1427,11 @@ function NewPartnerDialog({
               </select>
             </Field>
             <Field label="Status">
-              <select value={status} onChange={(e) => setStatus(e.target.value as typeof status)} className="input">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as typeof status)}
+                className="input"
+              >
                 <option value="active">Scaling</option>
                 <option value="nurturing">Developing</option>
                 <option value="at_risk">Churn Risk</option>
@@ -1230,18 +1441,39 @@ function NewPartnerDialog({
             </Field>
           </div>
           <Field label="PDM notes (optional)">
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} className="input min-h-[80px]" placeholder="Context the AI coach should know — relationship history, key contacts, current friction…" />
+            <textarea
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="input min-h-[80px]"
+              placeholder="Context the AI coach should know — relationship history, key contacts, current friction…"
+            />
           </Field>
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
-          <button onClick={onClose} className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2">Cancel</button>
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2"
+          >
+            Cancel
+          </button>
           <button
             disabled={!name.trim() || busy}
             onClick={async () => {
               setBusy(true);
-              try { await onCreate({ name: name.trim(), company: company.trim() || undefined, segment: segment.trim() || undefined, tier, status, notes: notes.trim() || undefined, partner_type: partnerType }); }
-              finally { setBusy(false); }
+              try {
+                await onCreate({
+                  name: name.trim(),
+                  company: company.trim() || undefined,
+                  segment: segment.trim() || undefined,
+                  tier,
+                  status,
+                  notes: notes.trim() || undefined,
+                  partner_type: partnerType,
+                });
+              } finally {
+                setBusy(false);
+              }
             }}
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
           >
@@ -1256,7 +1488,9 @@ function NewPartnerDialog({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+        {label}
+      </span>
       <div className="mt-1">{children}</div>
     </label>
   );
@@ -1265,7 +1499,10 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 /* ─────────────────── Action Detail Sheet ─────────────────── */
 
 function ActionDetailSheet({
-  action, onClose, onComplete, completing,
+  action,
+  onClose,
+  onComplete,
+  completing,
 }: {
   action: EnrichedAction;
   onClose: () => void;
@@ -1298,7 +1535,9 @@ function ActionDetailSheet({
         className="h-full w-full max-w-xl overflow-y-auto bg-card border-l border-border shadow-2xl"
       >
         {/* Header */}
-        <div className={`relative px-6 pt-6 pb-5 border-b border-border ${isHigh ? "bg-gradient-to-b from-destructive/10 to-transparent" : ""}`}>
+        <div
+          className={`relative px-6 pt-6 pb-5 border-b border-border ${isHigh ? "bg-gradient-to-b from-destructive/10 to-transparent" : ""}`}
+        >
           <button
             onClick={onClose}
             className="absolute top-4 right-4 h-8 w-8 rounded-md border border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-surface-2 flex items-center justify-center transition"
@@ -1310,7 +1549,10 @@ function ActionDetailSheet({
             {axis && (
               <span
                 className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded"
-                style={{ background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`, color: `var(--${axis.color})` }}
+                style={{
+                  background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`,
+                  color: `var(--${axis.color})`,
+                }}
               >
                 {axis.letter} · {axis.name}
               </span>
@@ -1322,7 +1564,9 @@ function ActionDetailSheet({
               </span>
             )}
           </div>
-          <h2 className={`mt-3 text-xl font-semibold ${isHigh ? "text-foreground" : ""}`}>{action.title}</h2>
+          <h2 className={`mt-3 text-xl font-semibold ${isHigh ? "text-foreground" : ""}`}>
+            {action.title}
+          </h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {action.partner_name}
             {due && <> · due {formatDue(due, overdue)}</>}
@@ -1347,11 +1591,17 @@ function ActionDetailSheet({
                     background: `color-mix(in oklab, var(--${axis.color}) 8%, transparent)`,
                   }}
                 >
-                  <p className="text-[10px] font-mono uppercase tracking-widest" style={{ color: `var(--${axis.color})` }}>
+                  <p
+                    className="text-[10px] font-mono uppercase tracking-widest"
+                    style={{ color: `var(--${axis.color})` }}
+                  >
                     Target · Level {targetLevel.level} — {targetLevel.name}
                   </p>
                   <p className="mt-1 text-sm text-foreground/90">{targetLevel.summary}</p>
-                  <p className="mt-2 text-xs text-muted-foreground"><strong className="text-foreground/80">Next step:</strong> {targetLevel.nextStep}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    <strong className="text-foreground/80">Next step:</strong>{" "}
+                    {targetLevel.nextStep}
+                  </p>
                 </div>
               )}
             </Section>
@@ -1387,7 +1637,10 @@ function ActionDetailSheet({
 
           {/* Practical checklist */}
           {checklist.length > 0 && (
-            <Section title="Practical checklist" subtitle="Concrete moves to execute this initiative">
+            <Section
+              title="Practical checklist"
+              subtitle="Concrete moves to execute this initiative"
+            >
               <ul className="space-y-2">
                 {checklist.map((c, i) => (
                   <li
@@ -1433,10 +1686,20 @@ function ActionDetailSheet({
   );
 }
 
-function Section({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
+function Section({
+  title,
+  subtitle,
+  children,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div>
-      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{title}</p>
+      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+        {title}
+      </p>
       {subtitle && <p className="mt-0.5 text-xs text-muted-foreground/70">{subtitle}</p>}
       <div className="mt-2.5">{children}</div>
     </div>

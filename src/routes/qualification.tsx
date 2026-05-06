@@ -29,13 +29,19 @@ import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown } from "lucide-react";
 import { PromoteLeadDialog } from "@/components/PromoteLeadDialog";
-import { CandyDataTable, StatusPill, CandyAvatar, type CandyColumn } from "@/components/ui/candy-data-table";
+import {
+  CandyDataTable,
+  StatusPill,
+  CandyAvatar,
+  type CandyColumn,
+} from "@/components/ui/candy-data-table";
 import { downloadCsv, slugifyForFile } from "@/lib/report-export";
 import { COPY } from "@/lib/copy";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/qualification")({
-  head: () => ({ meta: [{ title: "IPP Qualification — Alliara" }] }),
+  head: () => ({ meta: [{ title: COPY.qualification.pageMetaTitle }] }),
   component: QualificationPage,
 });
 
@@ -77,12 +83,14 @@ function QualificationPage() {
     }
   };
 
-  useEffect(() => { if (!loading && !user) nav({ to: "/login" }); }, [loading, user, nav]);
+  useEffect(() => {
+    if (!loading && !user) nav({ to: "/login" });
+  }, [loading, user, nav]);
 
   // Apply scope (mine/all + per-PDM) before counting and filtering.
   const scopedLeads = useMemo(
     () => leadsStore.leads.filter(ownerScope.applyFilter),
-    [leadsStore.leads, ownerScope]
+    [leadsStore.leads, ownerScope],
   );
 
   const counts = useMemo(() => {
@@ -106,16 +114,21 @@ function QualificationPage() {
     const q = query.trim().toLowerCase();
     const filtered = scopedLeads.filter((l) => {
       if (typeFilter !== "all" && l.partner_type !== typeFilter) return false;
-      if (q && !`${l.company_name} ${l.contact_person ?? ""}`.toLowerCase().includes(q)) return false;
+      if (q && !`${l.company_name} ${l.contact_person ?? ""}`.toLowerCase().includes(q))
+        return false;
       return true;
     });
     return [...filtered].sort((a, b) => {
       switch (sortKey) {
-        case "name_asc": return a.company_name.localeCompare(b.company_name);
-        case "name_desc": return b.company_name.localeCompare(a.company_name);
-        case "score_desc": return (computeFactorialTotal(b) ?? -1) - (computeFactorialTotal(a) ?? -1);
+        case "name_asc":
+          return a.company_name.localeCompare(b.company_name);
+        case "name_desc":
+          return b.company_name.localeCompare(a.company_name);
+        case "score_desc":
+          return (computeFactorialTotal(b) ?? -1) - (computeFactorialTotal(a) ?? -1);
         case "created_desc":
-        default: return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       }
     });
   }, [scopedLeads, query, typeFilter, sortKey]);
@@ -133,23 +146,32 @@ function QualificationPage() {
     }
   };
 
-  if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
+  if (loading || !user) {
+    return (
+      <div className="mx-auto max-w-7xl px-6 py-8 space-y-4">
+        <Skeleton className="h-8 w-72" />
+        <Skeleton className="h-12 w-full max-w-xl rounded-xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8">
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Qualification</p>
-          <h1 className="text-3xl font-semibold mt-1">Partner Lead Pipeline</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Score every lead with the {COPY.ipp.full} before promoting them.
+          <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+            {COPY.qualification.eyebrow}
           </p>
+          <h1 className="text-3xl font-semibold mt-1">{COPY.qualification.title}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{COPY.qualification.intro}</p>
         </div>
         <button
+          type="button"
           onClick={() => setShowNew(true)}
-          className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring"
+          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground glow-ring"
         >
-          + New Partner Lead
+          {COPY.qualification.addLeadCta}
         </button>
       </div>
 
@@ -164,8 +186,12 @@ function QualificationPage() {
         tasks={leadTasks.tasks}
         loading={leadTasks.loading}
         onComplete={async (id) => {
-          try { await leadTasks.completeTask(id); toast.success("Task done"); }
-          catch (e) { toast.error((e as Error).message); }
+          try {
+            await leadTasks.completeTask(id);
+            toast.success("Task done");
+          } catch (e) {
+            toast.error((e as Error).message);
+          }
         }}
         onOpenLead={(leadId) => setActiveId(leadId)}
       />
@@ -194,7 +220,9 @@ function QualificationPage() {
               >
                 <option value="all">PDM: All ({ownersInScope.length})</option>
                 {ownersInScope.map((o) => (
-                  <option key={o.id} value={o.id}>PDM: {o.name}</option>
+                  <option key={o.id} value={o.id}>
+                    PDM: {o.name}
+                  </option>
                 ))}
               </select>
             )}
@@ -230,7 +258,9 @@ function QualificationPage() {
           className="rounded-lg border border-border/60 bg-surface/60 px-3 py-2 text-xs"
         >
           {LEAD_SORTS.map((s) => (
-            <option key={s.key} value={s.key}>Sort: {s.label}</option>
+            <option key={s.key} value={s.key}>
+              Sort: {s.label}
+            </option>
           ))}
         </select>
       </div>
@@ -242,201 +272,259 @@ function QualificationPage() {
           <EmptyState onAdd={() => setShowNew(true)} />
         ) : (
           <>
-          <div className="mb-3 flex items-center justify-between">
-            <div className="seg-candy">
-              <button onClick={() => setView("kanban")} className="seg-candy-item" data-active={view === "kanban"}>Kanban</button>
-              <button onClick={() => setView("list")} className="seg-candy-item" data-active={view === "list"}>List</button>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="seg-candy">
+                <button
+                  onClick={() => setView("kanban")}
+                  className="seg-candy-item"
+                  data-active={view === "kanban"}
+                >
+                  Kanban
+                </button>
+                <button
+                  onClick={() => setView("list")}
+                  className="seg-candy-item"
+                  data-active={view === "list"}
+                >
+                  List
+                </button>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {visibleLeads.length} lead{visibleLeads.length === 1 ? "" : "s"}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground">{visibleLeads.length} lead{visibleLeads.length === 1 ? "" : "s"}</span>
-          </div>
-          {view === "list" ? (
-            <CandyDataTable
-              rows={visibleLeads}
-              rowKey={(l) => l.id}
-              ariaLabel="Leads"
-              onRowClick={(l) => setActiveId(l.id)}
-              selectable
-              empty={<>No leads match the filters.</>}
-              bulkActions={[
-                {
-                  label: "Export CSV",
-                  variant: "primary",
-                  onClick: (ids) => {
-                    const rows = visibleLeads
-                      .filter((l) => ids.includes(l.id))
-                      .map((l) => {
-                        const total = computeFactorialTotal(l);
-                        const verdict = factorialVerdict(total);
-                        return {
-                          company: l.company_name,
-                          contact: l.contact_person ?? "",
-                          type: l.partner_type ?? "",
-                          score: total !== null ? `${total}/15` : "",
-                          verdict: verdict?.label ?? "",
-                          status: LEAD_STATUSES.find((s) => s.key === l.status)?.label ?? l.status,
-                          next_step: l.next_step_at ?? "",
-                          pdm: ownerNames.get(l.owner_id) ?? "",
-                        };
-                      });
-                    downloadCsv(`${slugifyForFile("leads-selection")}.csv`, rows);
+            {view === "list" ? (
+              <CandyDataTable
+                rows={visibleLeads}
+                rowKey={(l) => l.id}
+                ariaLabel="Leads"
+                onRowClick={(l) => setActiveId(l.id)}
+                selectable
+                empty={<>No leads match the filters.</>}
+                bulkActions={[
+                  {
+                    label: "Export CSV",
+                    variant: "primary",
+                    onClick: (ids) => {
+                      const rows = visibleLeads
+                        .filter((l) => ids.includes(l.id))
+                        .map((l) => {
+                          const total = computeFactorialTotal(l);
+                          const verdict = factorialVerdict(total);
+                          return {
+                            company: l.company_name,
+                            contact: l.contact_person ?? "",
+                            type: l.partner_type ?? "",
+                            score: total !== null ? `${total}/15` : "",
+                            verdict: verdict?.label ?? "",
+                            status:
+                              LEAD_STATUSES.find((s) => s.key === l.status)?.label ?? l.status,
+                            next_step: l.next_step_at ?? "",
+                            pdm: ownerNames.get(l.owner_id) ?? "",
+                          };
+                        });
+                      downloadCsv(`${slugifyForFile("leads-selection")}.csv`, rows);
+                    },
                   },
-                },
-              ]}
-              columns={[
-                {
-                  key: "company",
-                  header: "Lead",
-                  width: "minmax(220px,2fr)",
-                  cell: (l) => (
-                    <div className="flex items-center gap-3 min-w-0">
-                      <CandyAvatar name={l.company_name} size={32} />
-                      <div className="min-w-0">
-                        <div className="font-medium text-foreground truncate">{l.company_name}</div>
-                        <div className="text-xs text-muted-foreground truncate">{l.contact_person ?? "—"}</div>
+                ]}
+                columns={[
+                  {
+                    key: "company",
+                    header: "Lead",
+                    width: "minmax(220px,2fr)",
+                    cell: (l) => (
+                      <div className="flex items-center gap-3 min-w-0">
+                        <CandyAvatar name={l.company_name} size={32} />
+                        <div className="min-w-0">
+                          <div className="font-medium text-foreground truncate">
+                            {l.company_name}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {l.contact_person ?? "—"}
+                          </div>
+                        </div>
+                      </div>
+                    ),
+                  },
+                  {
+                    key: "type",
+                    header: "Type",
+                    width: "120px",
+                    cell: (l) =>
+                      l.partner_type ? (
+                        <PartnerTypeChip type={l.partner_type} />
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ),
+                  },
+                  {
+                    key: "score",
+                    header: COPY.ipp.short,
+                    width: "150px",
+                    cell: (l) => {
+                      const total = computeFactorialTotal(l);
+                      const verdict = factorialVerdict(total);
+                      if (!verdict || total === null)
+                        return <span className="text-xs text-muted-foreground">Not scored</span>;
+                      const tone =
+                        verdict.tone === "green"
+                          ? "success"
+                          : verdict.tone === "yellow"
+                            ? "warning"
+                            : "danger";
+                      return (
+                        <StatusPill tone={tone}>
+                          {total}/15 · {verdict.label}
+                        </StatusPill>
+                      );
+                    },
+                  },
+                  {
+                    key: "status",
+                    header: "Status",
+                    width: "120px",
+                    cell: (l) => {
+                      const stLabel =
+                        LEAD_STATUSES.find((s) => s.key === l.status)?.label ?? l.status;
+                      const tone =
+                        l.status === "approved"
+                          ? "success"
+                          : l.status === "rejected"
+                            ? "danger"
+                            : l.status === "in_review"
+                              ? "warning"
+                              : "info";
+                      return <StatusPill tone={tone}>{stLabel}</StatusPill>;
+                    },
+                  },
+                  {
+                    key: "next",
+                    header: "Next step",
+                    width: "120px",
+                    cell: (l) => (
+                      <span className="text-xs text-muted-foreground">{l.next_step_at ?? "—"}</span>
+                    ),
+                  },
+                  ...(leadsStore.isLeadership
+                    ? [
+                        {
+                          key: "pdm",
+                          header: "PDM",
+                          width: "140px",
+                          cell: (l: LeadRow) => (
+                            <span className="text-xs">{ownerNames.get(l.owner_id) ?? "—"}</span>
+                          ),
+                        } as CandyColumn<LeadRow>,
+                      ]
+                    : []),
+                  {
+                    key: "actions",
+                    header: "Action",
+                    width: "140px",
+                    align: "right",
+                    cell: (l) =>
+                      l.promoted_partner_id ? (
+                        <Link
+                          to="/partner/$partnerId"
+                          params={{ partnerId: l.promoted_partner_id }}
+                          className="text-xs underline text-muted-foreground hover:text-foreground"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Open
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ),
+                    hoverCell: (l) =>
+                      !l.promoted_partner_id && l.status !== "rejected" ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            promoteLeadToPartner(l);
+                          }}
+                          className="rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-3 py-1 text-[11px] font-semibold transition"
+                        >
+                          Promote →
+                        </button>
+                      ) : l.promoted_partner_id ? (
+                        <Link
+                          to="/partner/$partnerId"
+                          params={{ partnerId: l.promoted_partner_id }}
+                          className="rounded-full bg-muted hover:bg-muted/70 px-3 py-1 text-[11px] font-medium transition"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Open
+                        </Link>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      ),
+                  },
+                ]}
+              />
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                {LEAD_STATUSES.map((col) => {
+                  const items = visibleLeads.filter((l) => l.status === col.key);
+                  return (
+                    <div
+                      key={col.key}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const leadId = e.dataTransfer.getData("text/plain");
+                        const lead = leadsStore.leads.find((l) => l.id === leadId);
+                        if (lead) void moveLeadInQualificationKanban(lead, col.key);
+                      }}
+                      className="rounded-2xl bg-surface/40 border border-border/60 p-3 min-h-[200px]"
+                    >
+                      <div className="flex items-center justify-between px-1 pb-2">
+                        <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                          {col.label}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{items.length}</span>
+                      </div>
+                      <div className="space-y-2">
+                        {items.map((lead) => (
+                          <LeadCard
+                            key={lead.id}
+                            lead={lead}
+                            onClick={() => setActiveId(lead.id)}
+                            onPromote={() => promoteLeadToPartner(lead)}
+                            isLeadership={leadsStore.isLeadership}
+                            ownerName={ownerNames.get(lead.owner_id) ?? null}
+                            pdms={pdmRoster.pdms}
+                            canReassign={leadsStore.isLeadership || lead.owner_id === user.id}
+                            onReassign={(newOwnerId, name) =>
+                              reassignLead(lead.id, newOwnerId, name)
+                            }
+                            onDelete={async () => {
+                              const ok = await confirmDialog({
+                                title: `Delete lead "${lead.company_name}"?`,
+                                description: "This action cannot be undone.",
+                                actionLabel: "Delete",
+                              });
+                              if (!ok) return;
+                              try {
+                                await leadsStore.deleteLead(lead.id);
+                                toast.success("Lead deleted");
+                                if (activeId === lead.id) setActiveId(null);
+                              } catch (e) {
+                                toast.error((e as Error).message);
+                              }
+                            }}
+                          />
+                        ))}
+                        {items.length === 0 && (
+                          <div className="text-xs text-muted-foreground text-center py-4">
+                            No leads
+                          </div>
+                        )}
                       </div>
                     </div>
-                  ),
-                },
-                {
-                  key: "type",
-                  header: "Type",
-                  width: "120px",
-                  cell: (l) => (l.partner_type ? <PartnerTypeChip type={l.partner_type} /> : <span className="text-xs text-muted-foreground">—</span>),
-                },
-                {
-                  key: "score",
-                  header: COPY.ipp.short,
-                  width: "150px",
-                  cell: (l) => {
-                    const total = computeFactorialTotal(l);
-                    const verdict = factorialVerdict(total);
-                    if (!verdict || total === null) return <span className="text-xs text-muted-foreground">Not scored</span>;
-                    const tone = verdict.tone === "green" ? "success" : verdict.tone === "yellow" ? "warning" : "danger";
-                    return <StatusPill tone={tone}>{total}/15 · {verdict.label}</StatusPill>;
-                  },
-                },
-                {
-                  key: "status",
-                  header: "Status",
-                  width: "120px",
-                  cell: (l) => {
-                    const stLabel = LEAD_STATUSES.find((s) => s.key === l.status)?.label ?? l.status;
-                    const tone =
-                      l.status === "approved" ? "success" :
-                      l.status === "rejected" ? "danger" :
-                      l.status === "in_review" ? "warning" : "info";
-                    return <StatusPill tone={tone}>{stLabel}</StatusPill>;
-                  },
-                },
-                {
-                  key: "next",
-                  header: "Next step",
-                  width: "120px",
-                  cell: (l) => <span className="text-xs text-muted-foreground">{l.next_step_at ?? "—"}</span>,
-                },
-                ...(leadsStore.isLeadership
-                  ? [{
-                      key: "pdm",
-                      header: "PDM",
-                      width: "140px",
-                      cell: (l: LeadRow) => <span className="text-xs">{ownerNames.get(l.owner_id) ?? "—"}</span>,
-                    } as CandyColumn<LeadRow>]
-                  : []),
-                {
-                  key: "actions",
-                  header: "Action",
-                  width: "140px",
-                  align: "right",
-                  cell: (l) => l.promoted_partner_id ? (
-                    <Link
-                      to="/partner/$partnerId"
-                      params={{ partnerId: l.promoted_partner_id }}
-                      className="text-xs underline text-muted-foreground hover:text-foreground"
-                      onClick={(e) => e.stopPropagation()}
-                    >Open</Link>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  ),
-                  hoverCell: (l) => !l.promoted_partner_id && l.status !== "rejected" ? (
-                    <button
-                      onClick={(e) => { e.stopPropagation(); promoteLeadToPartner(l); }}
-                      className="rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30 px-3 py-1 text-[11px] font-semibold transition"
-                    >
-                      Promote →
-                    </button>
-                  ) : l.promoted_partner_id ? (
-                    <Link
-                      to="/partner/$partnerId"
-                      params={{ partnerId: l.promoted_partner_id }}
-                      className="rounded-full bg-muted hover:bg-muted/70 px-3 py-1 text-[11px] font-medium transition"
-                      onClick={(e) => e.stopPropagation()}
-                    >Open</Link>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  ),
-                },
-              ]}
-            />
-          ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            {LEAD_STATUSES.map((col) => {
-              const items = visibleLeads.filter((l) => l.status === col.key);
-              return (
-                <div
-                  key={col.key}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const leadId = e.dataTransfer.getData("text/plain");
-                    const lead = leadsStore.leads.find((l) => l.id === leadId);
-                    if (lead) void moveLeadInQualificationKanban(lead, col.key);
-                  }}
-                  className="rounded-2xl bg-surface/40 border border-border/60 p-3 min-h-[200px]"
-                >
-                  <div className="flex items-center justify-between px-1 pb-2">
-                    <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-                      {col.label}
-                    </span>
-                    <span className="text-xs text-muted-foreground">{items.length}</span>
-                  </div>
-                  <div className="space-y-2">
-                    {items.map((lead) => (
-                      <LeadCard
-                        key={lead.id}
-                        lead={lead}
-                        onClick={() => setActiveId(lead.id)}
-                        onPromote={() => promoteLeadToPartner(lead)}
-                        isLeadership={leadsStore.isLeadership}
-                        ownerName={ownerNames.get(lead.owner_id) ?? null}
-                        pdms={pdmRoster.pdms}
-                        canReassign={leadsStore.isLeadership || lead.owner_id === user.id}
-                        onReassign={(newOwnerId, name) => reassignLead(lead.id, newOwnerId, name)}
-                        onDelete={async () => {
-                          const ok = await confirmDialog({
-                            title: `Delete lead "${lead.company_name}"?`,
-                            description: "This action cannot be undone.",
-                            actionLabel: "Delete",
-                          });
-                          if (!ok) return;
-                          try {
-                            await leadsStore.deleteLead(lead.id);
-                            toast.success("Lead deleted");
-                            if (activeId === lead.id) setActiveId(null);
-                          } catch (e) {
-                            toast.error((e as Error).message);
-                          }
-                        }}
-                      />
-                    ))}
-                    {items.length === 0 && (
-                      <div className="text-xs text-muted-foreground text-center py-4">No leads</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
           </>
         )}
       </div>
@@ -493,7 +581,9 @@ function QualificationPage() {
           defaultType={promoteLead.partner_type}
           ownerName={ownerNames.get(promoteLead.owner_id) ?? "current owner"}
           busy={promoteBusy}
-          onClose={() => { if (!promoteBusy) setPromoteLead(null); }}
+          onClose={() => {
+            if (!promoteBusy) setPromoteLead(null);
+          }}
           onConfirm={async ({ partner_type }) => {
             setPromoteBusy(true);
             try {
@@ -517,7 +607,9 @@ function QualificationPage() {
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl bg-card border border-border/60 p-4 card-elev">
-      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</div>
+      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+        {label}
+      </div>
       <div className="mt-1 text-2xl font-display font-semibold">{value}</div>
     </div>
   );
@@ -530,7 +622,10 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
       <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
         Add your first partner lead to start scoring against the {COPY.ipp.full}.
       </p>
-      <button onClick={onAdd} className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
+      <button
+        onClick={onAdd}
+        className="mt-5 inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring"
+      >
         + Add your first lead
       </button>
     </div>
@@ -538,7 +633,15 @@ function EmptyState({ onAdd }: { onAdd: () => void }) {
 }
 
 function LeadCard({
-  lead, onClick, onDelete, onPromote, isLeadership, ownerName, pdms, onReassign, canReassign,
+  lead,
+  onClick,
+  onDelete,
+  onPromote,
+  isLeadership,
+  ownerName,
+  pdms,
+  onReassign,
+  canReassign,
 }: {
   lead: LeadRow;
   onClick: () => void;
@@ -552,7 +655,13 @@ function LeadCard({
 }) {
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
-  const host = (() => { try { return lead.website ? new URL(lead.website).host : null; } catch { return lead.website; } })();
+  const host = (() => {
+    try {
+      return lead.website ? new URL(lead.website).host : null;
+    } catch {
+      return lead.website;
+    }
+  })();
   const { activities } = useLeadActivities(lead.id, lead.owner_id);
   const summary = activitySummary(activities);
 
@@ -570,14 +679,20 @@ function LeadCard({
         <div className="min-w-0 flex-1">
           <div className="font-semibold truncate">{lead.company_name}</div>
           <div className="text-xs text-muted-foreground truncate mt-0.5">
-            {lead.contact_person ?? "—"}{host ? ` · ${host}` : ""}
+            {lead.contact_person ?? "—"}
+            {host ? ` · ${host}` : ""}
           </div>
           {lead.partner_type && (
-            <div className="mt-1.5"><PartnerTypeChip type={lead.partner_type} /></div>
+            <div className="mt-1.5">
+              <PartnerTypeChip type={lead.partner_type} />
+            </div>
           )}
         </div>
         <button
-          onClick={(e) => { e.stopPropagation(); onDelete(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
           title="Delete lead"
           aria-label="Delete lead"
           className="shrink-0 text-muted-foreground hover:text-red-400 text-sm leading-none px-1.5 py-0.5 rounded-md hover:bg-red-500/10"
@@ -593,17 +708,24 @@ function LeadCard({
             {total}/15 · {verdict.label}
           </span>
         ) : (
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Not scored</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            Not scored
+          </span>
         )}
-        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">Drag to move</span>
+        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+          Drag to move
+        </span>
       </div>
       {(summary.openTasks > 0 || lead.next_step_at) && (
         <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
           {summary.openTasks > 0 ? (
             <span className={summary.overdue > 0 ? "text-red-400" : ""}>
-              {summary.openTasks} open · {summary.overdue > 0 ? `${summary.overdue} overdue` : "on track"}
+              {summary.openTasks} open ·{" "}
+              {summary.overdue > 0 ? `${summary.overdue} overdue` : "on track"}
             </span>
-          ) : <span />}
+          ) : (
+            <span />
+          )}
           {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
         </div>
       )}
@@ -619,7 +741,10 @@ function LeadCard({
       )}
       {!lead.promoted_partner_id && lead.status !== "rejected" && (
         <button
-          onClick={(e) => { e.stopPropagation(); onPromote(); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPromote();
+          }}
           className="mt-2 w-full rounded-md bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 text-[11px] font-semibold px-2 py-1 transition"
         >
           Promote to Partner →
@@ -641,18 +766,24 @@ function LeadCard({
 
 function toneClass(tone: "red" | "yellow" | "green") {
   switch (tone) {
-    case "red": return "bg-red-500/15 text-red-400";
-    case "yellow": return "bg-yellow-500/15 text-yellow-400";
-    case "green": return "bg-emerald-500/15 text-emerald-400";
+    case "red":
+      return "bg-red-500/15 text-red-400";
+    case "yellow":
+      return "bg-yellow-500/15 text-yellow-400";
+    case "green":
+      return "bg-emerald-500/15 text-emerald-400";
   }
 }
 
 function NewLeadDialog({
-  onClose, onCreate,
+  onClose,
+  onCreate,
 }: {
   onClose: () => void;
   onCreate: (input: {
-    company_name: string; contact_person?: string; website?: string;
+    company_name: string;
+    contact_person?: string;
+    website?: string;
     partner_type?: PartnerType;
     firstTask?: { title: string; due_date?: string | null } | null;
   }) => Promise<void>;
@@ -666,25 +797,55 @@ function NewLeadDialog({
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h2 className="text-xl font-semibold">New partner lead</h2>
-        <p className="text-sm text-muted-foreground mt-1">Capture the basics — score the 5 dimensions next.</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Capture the basics — score the 5 dimensions next.
+        </p>
 
         <div className="mt-5 space-y-3">
           <Field label="Company name *">
-            <input value={companyName} onChange={(e) => setCompanyName(e.target.value)} className="input" placeholder="e.g. Northwind Cloud" autoFocus />
+            <input
+              value={companyName}
+              onChange={(e) => setCompanyName(e.target.value)}
+              className="input"
+              placeholder="e.g. Northwind Cloud"
+              autoFocus
+            />
           </Field>
           <Field label="Contact person">
-            <input value={contact} onChange={(e) => setContact(e.target.value)} className="input" placeholder="Full name" />
+            <input
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+              className="input"
+              placeholder="Full name"
+            />
           </Field>
           <Field label="Website">
-            <input value={website} onChange={(e) => setWebsite(e.target.value)} className="input" placeholder="https://…" />
+            <input
+              value={website}
+              onChange={(e) => setWebsite(e.target.value)}
+              className="input"
+              placeholder="https://…"
+            />
           </Field>
           <Field label="Partnership type">
-            <select value={partnerType} onChange={(e) => setPartnerType(e.target.value as PartnerType)} className="input">
+            <select
+              value={partnerType}
+              onChange={(e) => setPartnerType(e.target.value as PartnerType)}
+              className="input"
+            >
               {PARTNER_TYPES.map((t) => (
-                <option key={t.key} value={t.key}>{t.label} — {t.description}</option>
+                <option key={t.key} value={t.key}>
+                  {t.label} — {t.description}
+                </option>
               ))}
             </select>
           </Field>
@@ -699,7 +860,12 @@ function NewLeadDialog({
                 placeholder="e.g. Send intro email, schedule discovery call…"
                 className="input text-sm"
               />
-              <input type="date" value={taskDue} onChange={(e) => setTaskDue(e.target.value)} className="input text-xs w-36" />
+              <input
+                type="date"
+                value={taskDue}
+                onChange={(e) => setTaskDue(e.target.value)}
+                className="input text-xs w-36"
+              />
             </div>
             <p className="mt-1.5 text-[11px] text-muted-foreground">
               Attach a task so the lead never sits idle. You can always add more later.
@@ -708,7 +874,12 @@ function NewLeadDialog({
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
-          <button onClick={onClose} className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2">Cancel</button>
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2"
+          >
+            Cancel
+          </button>
           <button
             disabled={!companyName.trim() || busy}
             onClick={async () => {
@@ -738,8 +909,19 @@ function NewLeadDialog({
 }
 
 function LeadDetailPanel({
-  lead, onClose, onUpdate, onSetDimension, onUpdateNotes, onReject, onDelete, onPromote,
-  isLeadership, ownerName, pdms, onReassign, canReassign,
+  lead,
+  onClose,
+  onUpdate,
+  onSetDimension,
+  onUpdateNotes,
+  onReject,
+  onDelete,
+  onPromote,
+  isLeadership,
+  ownerName,
+  pdms,
+  onReassign,
+  canReassign,
 }: {
   lead: LeadRow;
   onClose: () => void;
@@ -760,32 +942,52 @@ function LeadDetailPanel({
   const [notes, setNotes] = useState(freeText);
   const [showReject, setShowReject] = useState(false);
   const [tab, setTab] = useState<"scorecard" | "crm">("scorecard");
-  useEffect(() => { setNotes(freeText); }, [lead.id, freeText]);
+  useEffect(() => {
+    setNotes(freeText);
+  }, [lead.id, freeText]);
 
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
-  const canPromote = !lead.promoted_partner_id && lead.status !== "rejected" && verdict?.tone !== "red";
+  const canPromote =
+    !lead.promoted_partner_id && lead.status !== "rejected" && verdict?.tone !== "red";
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-background/70 backdrop-blur-sm" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex justify-end bg-background/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
         className="w-full max-w-[560px] h-full overflow-y-auto bg-card border-l border-border/60 p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Lead</p>
+            <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+              Lead
+            </p>
             <h2 className="text-xl font-semibold truncate">{lead.company_name}</h2>
             <div className="text-xs text-muted-foreground mt-1">
               {lead.contact_person ?? "No contact"}
-              {lead.website ? <> · <a className="underline" href={lead.website} target="_blank" rel="noreferrer">{lead.website}</a></> : null}
+              {lead.website ? (
+                <>
+                  {" "}
+                  ·{" "}
+                  <a className="underline" href={lead.website} target="_blank" rel="noreferrer">
+                    {lead.website}
+                  </a>
+                </>
+              ) : null}
             </div>
           </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-sm">Close</button>
+          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-sm">
+            Close
+          </button>
         </div>
 
         <div className="mt-4 flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Status</span>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+            Status
+          </span>
           <span className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1">
             {LEAD_STATUSES.find((s) => s.key === lead.status)?.label ?? lead.status}
           </span>
@@ -802,7 +1004,9 @@ function LeadDetailPanel({
         </div>
 
         <div className="mt-3 flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Type</span>
+          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+            Type
+          </span>
           <select
             value={lead.partner_type ?? ""}
             onChange={(e) => {
@@ -813,7 +1017,9 @@ function LeadDetailPanel({
           >
             <option value="">— Not set —</option>
             {PARTNER_TYPES.map((t) => (
-              <option key={t.key} value={t.key}>{t.label}</option>
+              <option key={t.key} value={t.key}>
+                {t.label}
+              </option>
             ))}
           </select>
           {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
@@ -821,7 +1027,9 @@ function LeadDetailPanel({
 
         {(canReassign ?? isLeadership) && (
           <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">PDM</span>
+            <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+              PDM
+            </span>
             <LeadOwnerChip
               currentName={ownerName ?? "Unassigned"}
               currentOwnerId={lead.owner_id}
@@ -835,7 +1043,9 @@ function LeadDetailPanel({
           <div className="mt-4 rounded-xl border border-border/60 bg-surface/40 p-3 flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-sm font-semibold">
-                {lead.promoted_partner_id ? "Already in your portfolio" : "Ready to add to portfolio?"}
+                {lead.promoted_partner_id
+                  ? "Already in your portfolio"
+                  : "Ready to add to portfolio?"}
               </div>
               <div className="text-xs text-muted-foreground mt-0.5">
                 {lead.promoted_partner_id
@@ -883,66 +1093,77 @@ function LeadDetailPanel({
         {tab === "crm" ? (
           <CrmTab lead={lead} onUpdate={onUpdate} />
         ) : (
-        <>
-        <div className="mt-6">
-          <h3 className="text-sm font-semibold">Factorial 5-Dimension Scorecard</h3>
-          <p className="text-xs text-muted-foreground mt-0.5">Score each dimension Low (1) · Medium (2) · High (3). Total ranges 5–15.</p>
+          <>
+            <div className="mt-6">
+              <h3 className="text-sm font-semibold">Factorial 5-Dimension Scorecard</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Score each dimension Low (1) · Medium (2) · High (3). Total ranges 5–15.
+              </p>
 
-          <div className="mt-4 space-y-5">
-            {FACTORIAL_DIMENSIONS.map((d, idx) => {
-              const value = getDimensionValue(lead, d.key);
-              const selectedHelp = d.options.find((o) => o.v === value)?.help ?? null;
-              return (
-                <div key={d.key}>
-                  <div className="text-sm font-medium">
-                    <span className="text-muted-foreground font-mono mr-2">{idx + 1}.</span>{d.label}
+              <div className="mt-4 space-y-5">
+                {FACTORIAL_DIMENSIONS.map((d, idx) => {
+                  const value = getDimensionValue(lead, d.key);
+                  const selectedHelp = d.options.find((o) => o.v === value)?.help ?? null;
+                  return (
+                    <div key={d.key}>
+                      <div className="text-sm font-medium">
+                        <span className="text-muted-foreground font-mono mr-2">{idx + 1}.</span>
+                        {d.label}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-0.5">{d.description}</div>
+                      <div className="mt-2 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
+                        {d.options.map((opt) => (
+                          <button
+                            key={opt.v}
+                            title={opt.help}
+                            onClick={() => onSetDimension(d.key, opt.v)}
+                            className={`px-3 py-1.5 rounded-md transition ${value === opt.v ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      {selectedHelp && (
+                        <div className="text-[11px] text-muted-foreground mt-1.5 italic">
+                          → {selectedHelp}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="mt-6">
+              {verdict && total !== null ? (
+                <div className={`rounded-xl border p-4 ${bannerClass(verdict.tone)}`}>
+                  <div className="text-sm font-semibold">
+                    {verdict.label} · Score {total}/15
                   </div>
-                  <div className="text-xs text-muted-foreground mt-0.5">{d.description}</div>
-                  <div className="mt-2 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
-                    {d.options.map((opt) => (
-                      <button
-                        key={opt.v}
-                        title={opt.help}
-                        onClick={() => onSetDimension(d.key, opt.v)}
-                        className={`px-3 py-1.5 rounded-md transition ${value === opt.v ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                  {selectedHelp && (
-                    <div className="text-[11px] text-muted-foreground mt-1.5 italic">→ {selectedHelp}</div>
-                  )}
+                  <div className="text-xs mt-1 opacity-90">{verdict.message}</div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="mt-6">
-          {verdict && total !== null ? (
-            <div className={`rounded-xl border p-4 ${bannerClass(verdict.tone)}`}>
-              <div className="text-sm font-semibold">{verdict.label} · Score {total}/15</div>
-              <div className="text-xs mt-1 opacity-90">{verdict.message}</div>
+              ) : (
+                <div className="rounded-xl border border-border/60 bg-surface/40 p-4 text-xs text-muted-foreground">
+                  Score all 5 dimensions to see the Factorial fit recommendation.
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="rounded-xl border border-border/60 bg-surface/40 p-4 text-xs text-muted-foreground">
-              Score all 5 dimensions to see the Factorial fit recommendation.
-            </div>
-          )}
-        </div>
 
-        <div className="mt-5">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">Notes</span>
-          <textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            onBlur={() => { if ((freeText ?? "") !== notes) void onUpdateNotes(notes); }}
-            className="input mt-1 min-h-[100px]"
-            placeholder="Context, source of the lead, key conversation points…"
-          />
-        </div>
-        </>
+            <div className="mt-5">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                Notes
+              </span>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                onBlur={() => {
+                  if ((freeText ?? "") !== notes) void onUpdateNotes(notes);
+                }}
+                className="input mt-1 min-h-[100px]"
+                placeholder="Context, source of the lead, key conversation points…"
+              />
+            </div>
+          </>
         )}
 
         <div className="mt-6 flex items-center justify-between gap-3">
@@ -1002,7 +1223,8 @@ const REJECT_REASONS = [
 ] as const;
 
 function RejectReasonDialog({
-  onClose, onConfirm,
+  onClose,
+  onConfirm,
 }: {
   onClose: () => void;
   onConfirm: (reason: string) => Promise<void>;
@@ -1012,26 +1234,49 @@ function RejectReasonDialog({
   const [busy, setBusy] = useState(false);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4" onClick={onClose}>
-      <div className="w-full max-w-md rounded-2xl bg-card border border-border/60 p-6 card-elev" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-md rounded-2xl bg-card border border-border/60 p-6 card-elev"
+        onClick={(e) => e.stopPropagation()}
+      >
         <h3 className="text-lg font-semibold">Reject lead</h3>
-        <p className="text-sm text-muted-foreground mt-1">Pick the primary reason — it will be archived with the lead for context.</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          Pick the primary reason — it will be archived with the lead for context.
+        </p>
 
         <div className="mt-4 space-y-3">
           <Field label="Rejection reason">
             <select value={preset} onChange={(e) => setPreset(e.target.value)} className="input">
-              {REJECT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+              {REJECT_REASONS.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
             </select>
           </Field>
           {preset === "Other" && (
             <Field label="Details">
-              <input value={detail} onChange={(e) => setDetail(e.target.value)} className="input" placeholder="Short description" autoFocus />
+              <input
+                value={detail}
+                onChange={(e) => setDetail(e.target.value)}
+                className="input"
+                placeholder="Short description"
+                autoFocus
+              />
             </Field>
           )}
         </div>
 
         <div className="mt-6 flex justify-end gap-3">
-          <button onClick={onClose} className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2">Cancel</button>
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2"
+          >
+            Cancel
+          </button>
           <button
             disabled={busy || (preset === "Other" && !detail.trim())}
             onClick={async () => {
@@ -1055,16 +1300,21 @@ function RejectReasonDialog({
 
 function bannerClass(tone: "red" | "yellow" | "green") {
   switch (tone) {
-    case "red": return "bg-red-500/10 border-red-500/30 text-red-300";
-    case "yellow": return "bg-yellow-500/10 border-yellow-500/30 text-yellow-300";
-    case "green": return "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+    case "red":
+      return "bg-red-500/10 border-red-500/30 text-red-300";
+    case "yellow":
+      return "bg-yellow-500/10 border-yellow-500/30 text-yellow-300";
+    case "green":
+      return "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
   }
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+        {label}
+      </span>
       <div className="mt-1">{children}</div>
     </label>
   );
@@ -1130,18 +1380,24 @@ function CrmTab({
           <h3 className="text-sm font-semibold">Activities</h3>
           <div className="text-[11px] text-muted-foreground">
             {summary.openTasks} open
-            {summary.overdue > 0 && <span className="text-red-400"> · {summary.overdue} overdue</span>}
+            {summary.overdue > 0 && (
+              <span className="text-red-400"> · {summary.overdue} overdue</span>
+            )}
             {lastActivity && <> · last {new Date(lastActivity).toLocaleDateString()}</>}
           </div>
         </div>
 
-        <NewActivityForm onCreate={(input) => acts.create(input).catch((e) => toast.error((e as Error).message))} />
+        <NewActivityForm
+          onCreate={(input) => acts.create(input).catch((e) => toast.error((e as Error).message))}
+        />
 
         <div className="mt-4 space-y-2">
           {acts.loading ? (
             <div className="text-xs text-muted-foreground py-4 text-center">Loading…</div>
           ) : acts.activities.length === 0 ? (
-            <div className="text-xs text-muted-foreground py-4 text-center">No activities yet — log a call, plan a task, or jot a note.</div>
+            <div className="text-xs text-muted-foreground py-4 text-center">
+              No activities yet — log a call, plan a task, or jot a note.
+            </div>
           ) : (
             acts.activities.map((a) => (
               <ActivityRow
@@ -1150,7 +1406,10 @@ function CrmTab({
                 onToggle={() => acts.toggleDone(a).catch((e) => toast.error((e as Error).message))}
                 onDelete={() => {
                   void (async () => {
-                    const ok = await confirmDialog({ title: "Delete this activity?", actionLabel: "Delete" });
+                    const ok = await confirmDialog({
+                      title: "Delete this activity?",
+                      actionLabel: "Delete",
+                    });
                     if (!ok) return;
                     acts.remove(a.id).catch((e) => toast.error((e as Error).message));
                   })();
@@ -1165,7 +1424,11 @@ function CrmTab({
 }
 
 function InlineField({
-  label, value, placeholder, type = "text", onSave,
+  label,
+  value,
+  placeholder,
+  type = "text",
+  onSave,
 }: {
   label: string;
   value: string;
@@ -1174,16 +1437,22 @@ function InlineField({
   onSave: (v: string) => Promise<void> | void;
 }) {
   const [v, setV] = useState(value);
-  useEffect(() => { setV(value); }, [value]);
+  useEffect(() => {
+    setV(value);
+  }, [value]);
   return (
     <label className="block">
-      <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+        {label}
+      </span>
       <input
         type={type}
         value={v}
         placeholder={placeholder}
         onChange={(e) => setV(e.target.value)}
-        onBlur={() => { if (v !== value) void onSave(v); }}
+        onBlur={() => {
+          if (v !== value) void onSave(v);
+        }}
         className="input mt-1 text-sm"
       />
     </label>
@@ -1191,7 +1460,10 @@ function InlineField({
 }
 
 function InlineSelect({
-  label, value, options, onSave,
+  label,
+  value,
+  options,
+  onSave,
 }: {
   label: string;
   value: string;
@@ -1200,14 +1472,18 @@ function InlineSelect({
 }) {
   return (
     <label className="block">
-      <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</span>
+      <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+        {label}
+      </span>
       <select
         value={value}
         onChange={(e) => void onSave(e.target.value)}
         className="input mt-1 text-sm"
       >
         {options.map((o) => (
-          <option key={o} value={o}>{o || "—"}</option>
+          <option key={o} value={o}>
+            {o || "—"}
+          </option>
         ))}
       </select>
     </label>
@@ -1217,7 +1493,12 @@ function InlineSelect({
 function NewActivityForm({
   onCreate,
 }: {
-  onCreate: (input: { kind: LeadActivityKind; title: string; description?: string; due_date?: string | null }) => void;
+  onCreate: (input: {
+    kind: LeadActivityKind;
+    title: string;
+    description?: string;
+    due_date?: string | null;
+  }) => void;
 }) {
   const [kind, setKind] = useState<LeadActivityKind>("task");
   const [title, setTitle] = useState("");
@@ -1230,7 +1511,7 @@ function NewActivityForm({
       kind,
       title: title.trim(),
       description: desc.trim() || undefined,
-      due_date: kind === "task" ? (due || null) : null,
+      due_date: kind === "task" ? due || null : null,
     });
     setTitle("");
     setDesc("");
@@ -1240,18 +1521,42 @@ function NewActivityForm({
   return (
     <div className="mt-3 rounded-xl border border-border/60 bg-surface/40 p-3 space-y-2">
       <div className="flex gap-2">
-        <select value={kind} onChange={(e) => setKind(e.target.value as LeadActivityKind)} className="input text-xs flex-shrink-0 w-28">
-          {LEAD_ACTIVITY_KINDS.map((k) => <option key={k.key} value={k.key}>{k.label}</option>)}
+        <select
+          value={kind}
+          onChange={(e) => setKind(e.target.value as LeadActivityKind)}
+          className="input text-xs flex-shrink-0 w-28"
+        >
+          {LEAD_ACTIVITY_KINDS.map((k) => (
+            <option key={k.key} value={k.key}>
+              {k.label}
+            </option>
+          ))}
         </select>
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); submit(); } }}
-          placeholder={kind === "task" ? "What needs to happen?" : kind === "note" ? "Quick note…" : `Log a ${kind}…`}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          placeholder={
+            kind === "task"
+              ? "What needs to happen?"
+              : kind === "note"
+                ? "Quick note…"
+                : `Log a ${kind}…`
+          }
           className="input text-sm flex-1"
         />
         {kind === "task" && (
-          <input type="date" value={due} onChange={(e) => setDue(e.target.value)} className="input text-xs w-36" />
+          <input
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+            className="input text-xs w-36"
+          />
         )}
       </div>
       <div className="flex gap-2">
@@ -1274,7 +1579,9 @@ function NewActivityForm({
 }
 
 function ActivityRow({
-  activity, onToggle, onDelete,
+  activity,
+  onToggle,
+  onDelete,
 }: {
   activity: LeadActivityRow;
   onToggle: () => void;
@@ -1282,10 +1589,13 @@ function ActivityRow({
 }) {
   const meta = LEAD_ACTIVITY_KINDS.find((k) => k.key === activity.kind);
   const today = new Date().toISOString().slice(0, 10);
-  const overdue = activity.kind === "task" && !activity.done && activity.due_date && activity.due_date < today;
+  const overdue =
+    activity.kind === "task" && !activity.done && activity.due_date && activity.due_date < today;
 
   return (
-    <div className={`rounded-lg border border-border/60 bg-card/60 p-3 flex items-start gap-3 ${activity.done ? "opacity-60" : ""}`}>
+    <div
+      className={`rounded-lg border border-border/60 bg-card/60 p-3 flex items-start gap-3 ${activity.done ? "opacity-60" : ""}`}
+    >
       {activity.kind === "task" ? (
         <input
           type="checkbox"
@@ -1301,10 +1611,13 @@ function ActivityRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`text-sm ${activity.done ? "line-through" : ""}`}>{activity.title}</span>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{meta?.label}</span>
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            {meta?.label}
+          </span>
           {activity.due_date && (
             <span className={`text-[10px] ${overdue ? "text-red-400" : "text-muted-foreground"}`}>
-              {overdue ? "overdue · " : "due "}{activity.due_date}
+              {overdue ? "overdue · " : "due "}
+              {activity.due_date}
             </span>
           )}
         </div>
@@ -1328,7 +1641,10 @@ function ActivityRow({
 /* ───────────────── Lead Tasks · Next moves ───────────────── */
 
 function LeadTasksSection({
-  tasks, loading, onComplete, onOpenLead,
+  tasks,
+  loading,
+  onComplete,
+  onOpenLead,
 }: {
   tasks: LeadTaskRow[];
   loading: boolean;
@@ -1340,7 +1656,10 @@ function LeadTasksSection({
   const top = tasks.slice(0, 6);
 
   return (
-    <section id="lead-tasks" className="mt-6 rounded-2xl border border-border/60 bg-card p-5 card-elev">
+    <section
+      id="lead-tasks"
+      className="mt-6 rounded-2xl border border-border/60 bg-card p-5 card-elev"
+    >
       <div className="flex items-baseline justify-between gap-2 flex-wrap">
         <div>
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
@@ -1348,7 +1667,9 @@ function LeadTasksSection({
           </p>
           <h2 className="mt-1 text-lg font-semibold">
             {tasks.length} open
-            {overdue > 0 && <span className="ml-2 text-sm font-mono text-red-400">· {overdue} overdue</span>}
+            {overdue > 0 && (
+              <span className="ml-2 text-sm font-mono text-red-400">· {overdue} overdue</span>
+            )}
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
             Tasks attached to leads in the qualification pipeline. Sorted by due date.
@@ -1377,7 +1698,10 @@ function LeadTasksSection({
                 >
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); void onComplete(t.id); }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void onComplete(t.id);
+                    }}
                     title="Mark complete"
                     className="shrink-0 h-5 w-5 rounded border border-border bg-card hover:bg-primary hover:border-primary transition"
                   />
@@ -1390,7 +1714,9 @@ function LeadTasksSection({
                         : ""}
                     </div>
                   </div>
-                  <span className={`text-xs font-mono ${isOverdue ? "text-red-400 font-semibold" : "text-muted-foreground"}`}>
+                  <span
+                    className={`text-xs font-mono ${isOverdue ? "text-red-400 font-semibold" : "text-muted-foreground"}`}
+                  >
                     {t.due_date ?? "no date"}
                   </span>
                 </li>
@@ -1409,7 +1735,10 @@ function LeadTasksSection({
 }
 
 function LeadOwnerChip({
-  currentName, currentOwnerId, pdms, onReassign,
+  currentName,
+  currentOwnerId,
+  pdms,
+  onReassign,
 }: {
   currentName: string;
   currentOwnerId: string;
@@ -1429,7 +1758,11 @@ function LeadOwnerChip({
     <div className="relative inline-block">
       <button
         type="button"
-        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen((v) => !v); }}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
         title="Reassign to another PDM"
         className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border border-border/60 bg-surface/60 font-mono text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-[color:var(--primary)]/60 transition"
       >
@@ -1441,11 +1774,18 @@ function LeadOwnerChip({
         <>
           <div
             className="fixed inset-0 z-30"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(false); }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setOpen(false);
+            }}
           />
           <div
             className="absolute left-0 top-full mt-1 z-40 min-w-[12rem] rounded-lg border border-border bg-card p-1 shadow-lg"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
           >
             <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               Reassign to…
@@ -1461,7 +1801,8 @@ function LeadOwnerChip({
                 }}
                 className={`block w-full text-left px-3 py-1.5 text-sm rounded ${p.id === currentOwnerId ? "bg-surface-2 text-foreground" : "hover:bg-surface-2 text-muted-foreground hover:text-foreground"}`}
               >
-                {p.name}{p.id === currentOwnerId ? " · current" : ""}
+                {p.name}
+                {p.id === currentOwnerId ? " · current" : ""}
               </button>
             ))}
           </div>
