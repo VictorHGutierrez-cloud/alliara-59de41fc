@@ -176,6 +176,7 @@ export const COPY = {
     qualifyLeadsChip: ({ n }: { n: number }) => `Qualify ${n} inbound lead${n === 1 ? "" : "s"} →`,
     overdueNudge: ({ n }: { n: number }) =>
       `${n} Joint Business Plan Move${n === 1 ? "" : "s"} behind schedule →`,
+    initiativesEyebrow: "Joint Business Plan moves",
     initiativesTitleIdle: "Outstanding Joint Business Plan moves",
     initiativesTitleFocus: "Laser focus · top three Moves",
     initiativesBodyIdle:
