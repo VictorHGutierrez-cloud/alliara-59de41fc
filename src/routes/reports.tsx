@@ -111,13 +111,13 @@ function ReportsPage() {
 
   return (
     <div className="page-shell space-y-6">
-      <header className="flex items-end justify-between flex-wrap gap-3">
-        <div>
+      <header className="mx-auto flex w-full max-w-3xl flex-col items-center gap-4 text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
+        <div className="min-w-0 sm:flex-1">
           <p className="page-eyebrow">{COPY.reports.eyebrow}</p>
           <h1 className="page-title">{COPY.reports.pageTitle}</h1>
-          <p className="page-subtitle max-w-2xl">{COPY.reports.intro}</p>
+          <p className="page-subtitle mx-auto max-w-2xl sm:mx-0">{COPY.reports.intro}</p>
         </div>
-        <span className="btn-candy-ghost cursor-not-allowed opacity-70" title="Coming soon">
+        <span className="btn-candy-ghost shrink-0 cursor-not-allowed self-center opacity-70 sm:self-auto" title="Coming soon">
           {COPY.reports.customSoonBadge}
         </span>
       </header>

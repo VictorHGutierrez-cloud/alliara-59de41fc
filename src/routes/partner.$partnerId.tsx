@@ -115,9 +115,9 @@ function PartnerLayout() {
       </Link>
 
       {/* Hero */}
-      <div className="mt-3 rounded-2xl bg-card border border-border/60 p-6 card-elev">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
-          <div className="flex items-start gap-4">
+      <div className="mt-3 rounded-2xl bg-card border border-border/60 p-6 sm:p-8 card-elev">
+        <div className="flex flex-col items-center gap-6 text-center lg:flex-row lg:items-start lg:justify-between lg:text-left">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:text-left">
             <div
               className="h-14 w-14 rounded-xl flex items-center justify-center font-display text-xl font-bold uppercase"
               style={{
@@ -128,7 +128,7 @@ function PartnerLayout() {
               {data.partner.name.slice(0, 2)}
             </div>
             <div>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center justify-center gap-2 flex-wrap sm:justify-start">
                 <h1 className="section-title text-2xl">{data.partner.name}</h1>
                 <span
                   className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded-md"
@@ -159,8 +159,8 @@ function PartnerLayout() {
             </div>
           </div>
 
-          <div className="flex flex-col items-start lg:items-end gap-2">
-            <div className="flex items-baseline gap-2">
+          <div className="flex flex-col items-center gap-2 lg:items-end">
+            <div className="flex items-baseline justify-center gap-2 lg:justify-end">
               <span className="text-5xl font-display font-bold text-gradient">
                 {overall ? overall.toFixed(1) : "—"}
               </span>

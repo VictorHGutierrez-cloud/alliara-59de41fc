@@ -40,7 +40,7 @@ export async function downloadPng(node: HTMLElement | null, filename: string): P
     pixelRatio: 2,
     backgroundColor: "#ffffff",
     cacheBust: true,
-    style: { fontFamily: "Poppins, ui-sans-serif, system-ui, sans-serif" },
+        style: { fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" },
   });
   const a = document.createElement("a");
   a.href = dataUrl;

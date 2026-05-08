@@ -5,17 +5,15 @@ import { useAuth } from "@/lib/auth";
 import {
   usePortfolio,
   statusLabel,
-  tierColor,
   type PortfolioItem,
   type ActionRow,
 } from "../lib/partners-store";
 import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
-import { Check, Focus, X as XIcon, Target } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, HeartHandshake, Plus, X as XIcon } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
-import { PartnerFilterBar, PartnerTypeChip } from "@/components/PartnerFilterBar";
-import { useLatestPartnerRevenue, fmtMoney } from "@/lib/partner-revenue";
+import { PartnerFilterBar } from "@/components/PartnerFilterBar";
 import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import {
@@ -23,7 +21,6 @@ import {
   type ReassignAssignment,
   type ReassignItem,
 } from "@/components/BulkReassignDialog";
-import { CandyBarChart, CandyComposition, type BarDatum } from "@/components/ui/candy-charts";
 import {
   CandyDataTable,
   CandyAvatar,
@@ -36,6 +33,8 @@ import { COPY, buildPortfolioBriefingText } from "@/lib/copy";
 import { EmptyPortfolioOnboarding } from "@/components/onboarding/EmptyPortfolioOnboarding";
 import { TeamPulse } from "@/components/leadership/TeamPulse";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
+
+const PAGE_SIZES = [10, 20, 50, 100, 200] as const;
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: COPY.portfolio.pageMetaTitle }] }),
@@ -57,13 +56,13 @@ function PartnersPage() {
   const [sortKey, setSortKey] = useState<SortKey>("name_asc");
   const [openActions, setOpenActions] = useState<(ActionRow & { partner_name: string })[]>([]);
   const [actionsLoading, setActionsLoading] = useState(true);
-  const [axisFilter, setAxisFilter] = useState<string | "all">("all");
-  const [focusMode, setFocusMode] = useState(false);
   const [selectedAction, setSelectedAction] = useState<EnrichedAction | null>(null);
   const [completing, setCompleting] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [selectedForReassign, setSelectedForReassign] = useState<string[]>([]);
+  const [pageSize, setPageSize] = useState<(typeof PAGE_SIZES)[number]>(20);
+  const [pageIndex, setPageIndex] = useState(0);
   const confirmDialog = useConfirmDialog();
 
   const ownerScope = useOwnerScope({
@@ -241,10 +240,6 @@ function PartnersPage() {
     return portfolio.items.filter(ownerScope.applyFilter);
   }, [user, portfolio.items, portfolio.loading, portfolio.error, ownerScope]);
 
-  const partnerIds = useMemo(() => scoped.map((it) => it.partner.id), [scoped]);
-
-  const { map: revenueMap } = useLatestPartnerRevenue(partnerIds);
-
   const statusCounts = useMemo(
     () => ({
       active: scoped.filter((i) => i.partner.status === "active").length,
@@ -255,21 +250,6 @@ function PartnersPage() {
     }),
     [scoped],
   );
-
-  const activeTotal = statusCounts.active + statusCounts.nurturing + statusCounts.at_risk;
-
-  const sourcedPipeline = useMemo(() => {
-    let total = 0;
-    let withMetrics = 0;
-    for (const id of partnerIds) {
-      const r = revenueMap.get(id);
-      if (!r) continue;
-      const v = r.mrr ?? 0;
-      if (v > 0) withMetrics += 1;
-      total += v;
-    }
-    return { total, withMetrics };
-  }, [partnerIds, revenueMap]);
 
   const filtered = useMemo(() => {
     return scoped.filter((it) => {
@@ -290,20 +270,13 @@ function PartnersPage() {
   const sorted = useMemo(() => {
     const arr = [...filtered];
     arr.sort((a, b) => {
-      const ra = revenueMap.get(a.partner.id);
-      const rb = revenueMap.get(b.partner.id);
       switch (sortKey) {
         case "name_asc":
           return a.partner.name.localeCompare(b.partner.name);
         case "name_desc":
           return b.partner.name.localeCompare(a.partner.name);
-        case "revenue_desc": {
-          const va = (ra?.revenue ?? 0) + (ra?.dealsWonValue ?? 0);
-          const vb = (rb?.revenue ?? 0) + (rb?.dealsWonValue ?? 0);
-          return vb - va;
-        }
+        case "revenue_desc":
         case "mrr_desc":
-          return (rb?.mrr ?? 0) - (ra?.mrr ?? 0);
         case "created_desc":
           return (
             new Date(b.partner.created_at).getTime() - new Date(a.partner.created_at).getTime()
@@ -313,52 +286,67 @@ function PartnersPage() {
       }
     });
     return arr;
-  }, [filtered, sortKey, revenueMap]);
+  }, [filtered, sortKey]);
 
-  const aggregate = useMemo(() => {
-    const scored = filtered.filter((i) => i.latest);
-    const avg = scored.length
-      ? scored.reduce((s, i) => s + Number(i.latest!.overall), 0) / scored.length
-      : 0;
-    return { count: filtered.length, scored: scored.length, avg };
-  }, [filtered]);
+  useEffect(() => {
+    setPageIndex(0);
+  }, [statusFilter, typeFilter, query, sortKey, scopeFilter, ownerFilter, pageSize]);
 
-  const topMrrData = useMemo<BarDatum[]>(() => {
-    const rows = scoped
-      .map((it) => {
-        const r = revenueMap.get(it.partner.id);
-        return {
-          name: it.partner.name,
-          mrr: r?.mrr ?? 0,
-          maturity: it.latest ? Number(it.latest.overall) : 0,
-        };
-      })
-      .filter((r) => r.mrr > 0)
-      .sort((a, b) => b.mrr - a.mrr)
-      .slice(0, 8);
-    return rows.map((r) => ({
-      label: r.name.length > 14 ? r.name.slice(0, 13) + "…" : r.name,
-      value: r.mrr,
-      secondary: r.maturity > 0 ? { label: "Maturity", value: r.maturity.toFixed(1) } : undefined,
-    }));
-  }, [scoped, revenueMap]);
+  useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
+    const maxIdx = pageCount - 1;
+    if (pageIndex > maxIdx) {
+      setPageIndex(maxIdx);
+    }
+  }, [sorted.length, pageSize, pageIndex]);
+
+  const rosterTotal = sorted.length;
+  const pageCount = Math.max(1, Math.ceil(rosterTotal / pageSize));
+  const safePageIndex = Math.min(pageIndex, pageCount - 1);
+  const pageRows = sorted.slice(safePageIndex * pageSize, (safePageIndex + 1) * pageSize);
+  const rangeStart = rosterTotal === 0 ? 0 : safePageIndex * pageSize + 1;
+  const rangeEnd = Math.min((safePageIndex + 1) * pageSize, rosterTotal);
 
   const pendingLeads = leads.leads.filter((l) => l.status === "new" || l.status === "in_review");
   const overdueActions = openActions.filter((a) => isOverdue(a.due_date));
   const highPriorityOpen = openActions.filter((a) => a.priority === "high");
-
-  const visibleActions = useMemo(() => {
-    const base =
-      axisFilter === "all" ? openActions : openActions.filter((a) => a.axis_key === axisFilter);
-    return sortActions(base);
-  }, [openActions, axisFilter]);
-  const focusActions = visibleActions.slice(0, 3);
-
-  const axisCounts = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const a of openActions) m.set(a.axis_key, (m.get(a.axis_key) ?? 0) + 1);
-    return m;
-  }, [openActions]);
+  const sortedOpenActions = useMemo(() => sortActions(openActions), [openActions]);
+  const todayQueueActions = useMemo(() => sortedOpenActions.slice(0, 5), [sortedOpenActions]);
+  const stalePartnersCount = useMemo(
+    () =>
+      scoped.filter((it) => {
+        const lastTouched = it.latest?.created_at ?? it.partner.created_at;
+        return daysAgo(lastTouched) >= 14;
+      }).length,
+    [scoped],
+  );
+  const undiagnosedCount = useMemo(
+    () => scoped.filter((it) => !it.latest || Number(it.latest.overall) <= 0).length,
+    [scoped],
+  );
+  const nextActionByPartner = useMemo(() => {
+    const map = new Map<string, string>();
+    const actionByPartner = new Map<string, EnrichedAction[]>();
+    for (const action of sortedOpenActions) {
+      const list = actionByPartner.get(action.partner_id) ?? [];
+      list.push(action);
+      actionByPartner.set(action.partner_id, list);
+    }
+    for (const item of scoped) {
+      const partnerActions = actionByPartner.get(item.partner.id) ?? [];
+      const hasOverdue = partnerActions.some((a) => isOverdue(a.due_date));
+      if (!item.latest || Number(item.latest.overall) <= 0) {
+        map.set(item.partner.id, COPY.diagnostic.cta);
+      } else if (hasOverdue) {
+        map.set(item.partner.id, "Close overdue move");
+      } else if (partnerActions.length > 0) {
+        map.set(item.partner.id, "Follow up move");
+      } else {
+        map.set(item.partner.id, COPY.jbp.addMoveCta.replace("+ ", ""));
+      }
+    }
+    return map;
+  }, [scoped, sortedOpenActions]);
 
   const briefing = buildPortfolioBriefingText({
     atRisk: statusCounts.at_risk,
@@ -371,11 +359,6 @@ function PartnersPage() {
         ? "your Partner Development team"
         : (ownerNames.get(ownerFilter) ?? "the selected teammate"),
   });
-
-  const displayName =
-    (user?.user_metadata as { display_name?: string } | null)?.display_name ??
-    user?.email?.split("@")[0] ??
-    "operator";
 
   if (loading || !user) {
     return (
@@ -403,456 +386,225 @@ function PartnersPage() {
   }
 
   return (
-    <div className="page-shell">
-      {/* 1. Compact header */}
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60 animate-ping" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-          </span>
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            {scopeFilter === "all"
-              ? COPY.portfolio.kickerAllPartners
-              : COPY.portfolio.kickerPortfolioMine}{" "}
-            · {greeting()}
-          </span>
-        </div>
-        <h1 className="page-title">
-          {greeting()}, {displayName}
-        </h1>
-        <p className="page-subtitle max-w-3xl">{briefing}</p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {statusCounts.at_risk > 0 && (
-            <button
-              onClick={() => setStatusFilter("at_risk")}
-              className="inline-flex items-center gap-2 rounded-lg border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/20 transition"
-            >
-              <span className="h-1.5 w-1.5 rounded-full bg-destructive" />
-              {COPY.portfolio.churnAlert({ n: statusCounts.at_risk })}
-            </button>
-          )}
-          {pendingLeads.length > 0 && (
-            <Link
-              to="/qualification"
-              className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium hover:bg-surface-2 transition"
-            >
-              {COPY.portfolio.qualifyLeadsChip({ n: pendingLeads.length })}
-            </Link>
-          )}
-          {overdueActions.length > 0 && (
-            <a
-              href="#growth-initiatives"
-              className="inline-flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/10 px-3 py-1.5 text-xs font-medium text-warning hover:bg-warning/15 transition"
-            >
-              {COPY.portfolio.overdueNudge({ n: overdueActions.length })}
-            </a>
-          )}
-        </div>
-      </section>
-
-      {/* Global scope + PDM filter — drives KPIs and roster */}
-      {portfolio.isLeadership && (
-        <section className="mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-surface/40 p-2">
-          <span className="px-2 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            View
-          </span>
-          <div className="seg-candy">
-            {(["mine", "all"] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setScopeFilter(f)}
-                className="seg-candy-item"
-                data-active={scopeFilter === f}
-              >
-                {f === "mine" ? "My partners" : "All partners"}
-              </button>
-            ))}
-          </div>
-          {scopeFilter === "all" && (pdmRoster.pdms.length > 0 || ownersInScope.length > 1) && (
-            <select
-              value={ownerFilter}
-              onChange={(e) => setOwnerFilter(e.target.value)}
-              className="select-candy"
-              title="Filter by PDM"
-            >
-              {(() => {
-                const roster: PdmEntry[] =
-                  pdmRoster.pdms.length > 0 ? pdmRoster.pdms : ownersInScope;
-                return (
-                  <>
-                    <option value="all">PDM: All ({roster.length})</option>
-                    {roster.map((o) => (
-                      <option key={o.id} value={o.id}>
-                        PDM: {o.name}
-                      </option>
-                    ))}
-                  </>
-                );
-              })()}
-            </select>
-          )}
-          <span className="ml-auto px-2 text-[11px] text-muted-foreground">
-            {scopeFilter === "mine"
-              ? "Showing your portfolio"
-              : ownerFilter === "all"
-                ? `Showing all PDMs · ${scoped.length} partners`
-                : `Showing ${ownerNames.get(ownerFilter) ?? "PDM"} · ${scoped.length} partners`}
-          </span>
-        </section>
-      )}
-
-      <section className="mt-5 grid sm:grid-cols-3 gap-3">
-        <KpiCard
-          label="Open MRR"
-          value={fmtMoney(sourcedPipeline.total)}
-          hint={`${sourcedPipeline.withMetrics} partner${sourcedPipeline.withMetrics === 1 ? "" : "s"} reporting`}
-          accent="octa-1"
-          primary
-        />
-        <KpiCard
-          label={COPY.status.at_risk}
-          value={String(statusCounts.at_risk)}
-          hint={`${activeTotal} active partners in scope`}
-          accent="octa-5"
-        />
-        <KpiCard
-          label="Avg maturity"
-          value={aggregate.scored > 0 ? aggregate.avg.toFixed(1) : "—"}
-          hint={
-            aggregate.scored > 0
-              ? `${aggregate.scored} diagnosed`
-              : `Run ${COPY.diagnostic.noun.toLowerCase()}s to unlock`
-          }
-          accent="octa-4"
-        />
-      </section>
-
-      {/* Metrics moved to Reports — keep only the qualification queue here */}
-      <section className="mt-6 grid lg:grid-cols-3 gap-4">
-        <Link
-          to="/reports"
-          className="lg:col-span-2 rounded-2xl border border-border/60 bg-card p-6 card-elev relative overflow-hidden hover:border-primary/40 transition group"
-        >
-          <div
-            className="pointer-events-none absolute -top-16 -right-16 h-48 w-48 rounded-full opacity-40 blur-3xl"
-            style={{ background: "var(--primary)" }}
-          />
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            {COPY.portfolio.reportsCardEyebrow}
-          </p>
-            <h2 className="mt-1 section-title">{COPY.portfolio.reportsCardTitle}</h2>
-          <p className="mt-2 text-sm text-muted-foreground max-w-xl">
-            {COPY.portfolio.reportsCardBody}
-          </p>
-          <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-primary group-hover:translate-x-0.5 transition">
-            {COPY.portfolio.reportsCardCta}
-          </span>
-        </Link>
-
-        {/* Qualification Queue */}
-        <div className="rounded-2xl border border-border bg-card p-6 card-elev">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            {COPY.portfolio.qualQueueEyebrow}
-          </p>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span
-              className={`text-5xl font-display font-bold ${pendingLeads.length > 0 ? "text-foreground" : "text-muted-foreground/60"}`}
-            >
-              {pendingLeads.length}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {COPY.portfolio.qualPendingIppSuffix}
-            </span>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            {pendingLeads.length === 0
-              ? COPY.portfolio.qualQueueEmptyCopy
-              : `${leads.leads.filter((l) => l.status === "new").length} new · ${leads.leads.filter((l) => l.status === "in_review").length} in review`}
-          </p>
-          <div className="mt-4 h-1 rounded-full bg-surface-2 overflow-hidden">
-            <div
-              className="h-full bg-primary/50 transition-all"
-              style={{ width: `${Math.min(100, pendingLeads.length * 10)}%` }}
-            />
-          </div>
-          <Link
-            to="/qualification"
-            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary hover:bg-primary/90 px-4 text-sm font-semibold text-primary-foreground transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)]"
-          >
-            {COPY.portfolio.qualReviewCta}
-          </Link>
-        </div>
-      </section>
-
-      {/* 5. Growth Initiatives Due */}
-      <section
-        id="growth-initiatives"
-        className="mt-6 rounded-2xl border border-border/60 bg-card p-6 card-elev"
-      >
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              {COPY.portfolio.initiativesEyebrow}
+    <div className="page-shell space-y-5">
+      <section className="sticky top-20 z-20 rounded-2xl border border-border/70 bg-card/95 px-4 py-4 backdrop-blur sm:px-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <p className="page-eyebrow">
+              {scopeFilter === "all" ? COPY.portfolio.kickerAllPartners : COPY.portfolio.kickerPortfolioMine}
             </p>
-            <h2 className="mt-1 section-title flex items-center gap-2">
-              {focusMode && <Target className="h-4 w-4 text-destructive" />}
-              {focusMode
-                ? COPY.portfolio.initiativesTitleFocus
-                : COPY.portfolio.initiativesTitleIdle}
-            </h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              {focusMode ? COPY.portfolio.initiativesBodyFocus : COPY.portfolio.initiativesBodyIdle}
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Your Partner Portfolio
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Start with the partners who need your attention most today.
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-muted-foreground">
-              {visibleActions.length} open · {overdueActions.length} overdue
-            </span>
+          <div className="flex flex-wrap gap-2">
             <button
-              onClick={() => setFocusMode((v) => !v)}
-              className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition ${
-                focusMode
-                  ? "border-destructive/40 bg-destructive/15 text-destructive shadow-[0_4px_16px_-6px_oklch(0.58_0.2_27_/_0.45)]"
-                  : "border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-surface-2"
-              }`}
+              onClick={() => {
+                const queue = document.getElementById("today-queue");
+                queue?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="btn-candy min-h-11 px-5"
             >
-              <Focus className="h-3.5 w-3.5" />
-              {focusMode ? COPY.portfolio.focusModeExit : COPY.portfolio.focusModeEnter}
+              Start weekly review
+            </button>
+            <button onClick={() => setShowNew(true)} className="btn-candy-secondary min-h-11 px-5">
+              <Plus className="h-4 w-4" />
+              Add partner
             </button>
           </div>
         </div>
-
-        {/* Axis filter chips */}
-        {!focusMode && openActions.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-1.5">
-            <button
-              onClick={() => setAxisFilter("all")}
-              className={`text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-md border transition ${
-                axisFilter === "all"
-                  ? "border-foreground/30 bg-surface-2 text-foreground"
-                  : "border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-surface-2"
-              }`}
-            >
-              All · {openActions.length}
-            </button>
-            {AXES.map((ax) => {
-              const count = axisCounts.get(ax.key) ?? 0;
-              const active = axisFilter === ax.key;
-              const disabled = count === 0;
-              return (
+        {portfolio.isLeadership && (
+          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-surface/50 p-2">
+            <div className="seg-candy">
+              {(["mine", "all"] as const).map((f) => (
                 <button
-                  key={ax.key}
-                  onClick={() => !disabled && setAxisFilter(active ? "all" : ax.key)}
-                  disabled={disabled}
-                  title={ax.name}
-                  className={`text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-md border transition flex items-center gap-1.5 ${
-                    disabled ? "opacity-30 cursor-not-allowed" : "cursor-pointer"
-                  } ${active ? "" : "hover:bg-surface-2"}`}
-                  style={
-                    active
-                      ? {
-                          borderColor: `color-mix(in oklab, var(--${ax.color}) 60%, transparent)`,
-                          background: `color-mix(in oklab, var(--${ax.color}) 18%, transparent)`,
-                          color: `var(--${ax.color})`,
-                        }
-                      : {
-                          borderColor: "rgba(255,255,255,0.06)",
-                          background: "rgba(255,255,255,0.02)",
-                          color: "var(--muted-foreground)",
-                        }
-                  }
+                  key={f}
+                  onClick={() => setScopeFilter(f)}
+                  className="seg-candy-item"
+                  data-active={scopeFilter === f}
                 >
-                  <span style={{ color: `var(--${ax.color})` }}>{ax.letter}</span>
-                  <span>{count}</span>
+                  {f === "mine" ? "My partners" : "All partners"}
                 </button>
-              );
-            })}
+              ))}
+            </div>
+            {scopeFilter === "all" && (pdmRoster.pdms.length > 0 || ownersInScope.length > 1) && (
+              <select
+                value={ownerFilter}
+                onChange={(e) => setOwnerFilter(e.target.value)}
+                className="select-candy"
+                title="Filter by owner"
+              >
+                {(() => {
+                  const roster: PdmEntry[] = pdmRoster.pdms.length > 0 ? pdmRoster.pdms : ownersInScope;
+                  return (
+                    <>
+                      <option value="all">Owner: All ({roster.length})</option>
+                      {roster.map((o) => (
+                        <option key={o.id} value={o.id}>
+                          Owner: {o.name}
+                        </option>
+                      ))}
+                    </>
+                  );
+                })()}
+              </select>
+            )}
+            <span className="ml-auto px-2 text-xs text-muted-foreground">
+              {scopeFilter === "mine"
+                ? "Showing your portfolio"
+                : ownerFilter === "all"
+                  ? `Showing all owners · ${scoped.length} partners`
+                  : `Showing ${ownerNames.get(ownerFilter) ?? "owner"} · ${scoped.length} partners`}
+            </span>
           </div>
         )}
-
-        <div className="mt-5">
-          {actionsLoading ? (
-            <div className="text-sm text-muted-foreground py-6 text-center">
-              {COPY.portfolio.loadingInitiatives}
-            </div>
-          ) : visibleActions.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-border/60 bg-surface/40 p-8 text-center text-sm text-muted-foreground">
-              {openActions.length === 0
-                ? COPY.portfolio.initiativesEmptyWide
-                : COPY.portfolio.initiativesEmptyAxis}
-            </div>
-          ) : (
-            <ul className="space-y-2 -mx-2">
-              {(focusMode ? focusActions : visibleActions.slice(0, 8)).map((a) => {
-                const axis = AXES.find((x) => x.key === a.axis_key);
-                const due = a.due_date ? new Date(a.due_date) : null;
-                const overdue = isOverdue(a.due_date);
-                const isHigh = a.priority === "high";
-                return (
-                  <li key={a.id}>
-                    <div
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedAction(a)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          setSelectedAction(a);
-                        }
-                      }}
-                      className={`group flex items-center gap-3 px-3 py-3 rounded-lg transition border cursor-pointer ${
-                        isHigh
-                          ? "border-l-4 border-l-destructive border-y border-r border-y-destructive/20 border-r-destructive/20 bg-destructive/5 shadow-[0_8px_24px_-8px_oklch(0.58_0.2_27_/_0.35)] hover:bg-destructive/10"
-                          : "border-border bg-surface hover:bg-surface-2"
-                      }`}
-                    >
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void completeAction(a);
-                        }}
-                        disabled={completing === a.id}
-                        title="Mark complete"
-                        className={`shrink-0 h-6 w-6 rounded-md border flex items-center justify-center transition ${
-                          isHigh
-                            ? "border-destructive/50 bg-destructive/10 hover:bg-primary hover:border-primary"
-                            : "border-border bg-surface hover:bg-primary hover:border-primary"
-                        } disabled:opacity-50`}
-                      >
-                        <Check className="h-3.5 w-3.5 opacity-0 group-hover:opacity-100 text-primary-foreground transition" />
-                      </button>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {axis && (
-                            <span
-                              className="text-[9px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
-                              style={{
-                                background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`,
-                                color: `var(--${axis.color})`,
-                              }}
-                            >
-                              {axis.letter}
-                            </span>
-                          )}
-                          <span
-                            className={`text-sm truncate ${isHigh ? "font-bold text-foreground" : "font-medium"}`}
-                          >
-                            {a.title}
-                          </span>
-                        </div>
-                        <div className="mt-1 text-xs text-muted-foreground truncate">
-                          {a.partner_name}
-                          {a.status === "doing" ? " · in motion" : " · planned"}
-                        </div>
-                      </div>
-                      <PriorityPill p={a.priority} />
-                      <span
-                        className={`text-xs font-mono w-20 text-right ${overdue ? "text-destructive font-semibold" : "text-muted-foreground"}`}
-                      >
-                        {due ? formatDue(due, overdue) : "no date"}
-                      </span>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-
-          {focusMode && focusActions.length > 0 && (
-            <p className="mt-4 text-center text-[11px] font-mono text-muted-foreground">
-              {visibleActions.length - focusActions.length > 0
-                ? COPY.focusCopy.hiddenMoreMoves({ n: visibleActions.length - focusActions.length })
-                : COPY.focusCopy.onlyTheseMoves}
-            </p>
-          )}
-        </div>
       </section>
 
-      <section className="mt-6 rounded-2xl border border-border/60 bg-card p-6 card-elev">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              {COPY.portfolio.weeklyReviewEyebrow}
-            </p>
-            <h2 className="mt-1 section-title">{COPY.portfolio.weeklyReviewTitle}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">{COPY.portfolio.weeklyReviewBody}</p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() =>
-                copyWeeklyDigest("slack", {
-                  atRisk: statusCounts.at_risk,
-                  overdue: overdueActions.length,
-                  top: focusActions,
-                })
-              }
-              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-2"
-            >
-              {COPY.portfolio.exportSlack}
-            </button>
-            <button
-              onClick={() =>
-                copyWeeklyDigest("email", {
-                  atRisk: statusCounts.at_risk,
-                  overdue: overdueActions.length,
-                  top: focusActions,
-                })
-              }
-              className="rounded-lg border border-border bg-surface px-3 py-1.5 text-xs hover:bg-surface-2"
-            >
-              {COPY.portfolio.exportEmail}
-            </button>
-          </div>
-        </div>
+      <section className="grid gap-3 sm:grid-cols-3">
+        <FocusCard
+          title="At risk"
+          value={statusCounts.at_risk}
+          hint="Partners that need direct follow-up this week."
+          icon={AlertTriangle}
+          tone="danger"
+          onClick={() => setStatusFilter("at_risk")}
+        />
+        <FocusCard
+          title="Overdue moves"
+          value={overdueActions.length}
+          hint="Commitments that slipped past due date."
+          icon={CalendarClock}
+          tone="warning"
+          onClick={() => {
+            const queue = document.getElementById("today-queue");
+            queue?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }}
+        />
+        <FocusCard
+          title="No update in 14 days"
+          value={stalePartnersCount}
+          hint="Relationships with stale signals or no recent diagnostic."
+          icon={HeartHandshake}
+          tone="info"
+          onClick={() => setStatusFilter("all")}
+        />
       </section>
 
-      {portfolio.isLeadership && scopeFilter === "all" && (
-        <section className="mt-6">
-          <TeamPulse items={scoped} ownerNames={ownerNames} />
-        </section>
-      )}
-
-      {/* 6. Partner Roster */}
-      <section className="mt-8">
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              {COPY.portfolio.rosterEyebrow}
-            </p>
-            <h2 className="mt-1 section-title">{COPY.portfolio.rosterTitle}</h2>
-            {statusFilter !== "all" && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Filtered by{" "}
-                <span className="text-foreground font-medium">{prettyStatus(statusFilter)}</span> ·
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
+        <div className="min-w-0 space-y-4">
+          <div className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="page-eyebrow">{COPY.portfolio.rosterEyebrow}</p>
+                <h2 className="mt-1 section-title">{COPY.portfolio.rosterTitle}</h2>
+                <p className="mt-1 text-xs text-muted-foreground">{briefing}</p>
+              </div>
+              {statusFilter !== "all" && (
                 <button
                   onClick={() => setStatusFilter("all")}
-                  className="ml-1 underline hover:text-foreground"
+                  className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
                 >
-                  show all
+                  Clear status filter ({prettyStatus(statusFilter)})
                 </button>
-              </p>
-            )}
+              )}
+            </div>
+
+            <div className="mt-4 flex flex-wrap gap-2">
+              <button
+                onClick={() => setStatusFilter("all")}
+                className={`rounded-lg border px-3 py-1.5 text-xs transition ${statusFilter === "all" ? "border-foreground/30 bg-surface-2 text-foreground" : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setStatusFilter("active")}
+                className={`rounded-lg border px-3 py-1.5 text-xs transition ${statusFilter === "active" ? "border-primary/40 bg-primary/10 text-primary-foreground" : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
+              >
+                Scaling
+              </button>
+              <button
+                onClick={() => setStatusFilter("nurturing")}
+                className={`rounded-lg border px-3 py-1.5 text-xs transition ${statusFilter === "nurturing" ? "border-warning/40 bg-warning/10 text-warning" : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
+              >
+                Developing
+              </button>
+              <button
+                onClick={() => setStatusFilter("at_risk")}
+                className={`rounded-lg border px-3 py-1.5 text-xs transition ${statusFilter === "at_risk" ? "border-destructive/50 bg-destructive/15 text-destructive" : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
+              >
+                At risk
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <PartnerFilterBar
+                query={query}
+                onQuery={setQuery}
+                type={typeFilter}
+                onType={setTypeFilter}
+                sort={sortKey}
+                onSort={setSortKey}
+              />
+            </div>
           </div>
-          <button onClick={() => setShowNew(true)} className="btn-candy min-h-11 px-5">
-            {COPY.portfolio.addPartnerCta}
-          </button>
-        </div>
 
-        {/* Filters */}
-        <div className="mt-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-          <PartnerFilterBar
-            query={query}
-            onQuery={setQuery}
-            type={typeFilter}
-            onType={setTypeFilter}
-            sort={sortKey}
-            onSort={setSortKey}
-          />
-        </div>
+          {!portfolio.loading && sorted.length > 0 && (
+            <div className="sticky top-20 z-10 flex min-h-11 flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/95 px-3 py-2.5 backdrop-blur sm:px-4">
+              <p className="text-xs tabular-nums text-muted-foreground">
+                Showing{" "}
+                <span className="font-medium text-foreground">{rangeStart}</span>
+                –
+                <span className="font-medium text-foreground">{rangeEnd}</span> of{" "}
+                <span className="font-medium text-foreground">{rosterTotal}</span>
+              </p>
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="whitespace-nowrap">Rows per page</span>
+                  <select
+                    className="select-candy min-h-11 py-2"
+                    value={pageSize}
+                    aria-label="Rows per page"
+                    onChange={(e) =>
+                      setPageSize(Number(e.target.value) as (typeof PAGE_SIZES)[number])
+                    }
+                  >
+                    {PAGE_SIZES.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    className="btn-candy-ghost min-h-11 px-3"
+                    disabled={safePageIndex <= 0}
+                    onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                  >
+                    Prev
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-candy-ghost min-h-11 px-3"
+                    disabled={safePageIndex >= pageCount - 1}
+                    onClick={() =>
+                      setPageIndex((p) => {
+                        const pc = Math.max(1, Math.ceil(rosterTotal / pageSize));
+                        return Math.min(pc - 1, p + 1);
+                      })
+                    }
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
-        <div className="mt-5">
           {portfolio.loading ? (
             <div className="space-y-3">
               <Skeleton className="h-14 w-full rounded-xl" />
@@ -862,43 +614,153 @@ function PartnersPage() {
           ) : sorted.length === 0 ? (
             <EmptyPortfolioOnboarding onAdd={() => setShowNew(true)} />
           ) : (
-            <PartnerRosterTable
-              rows={sorted}
-              revenueMap={revenueMap}
-              isLeadership={portfolio.isLeadership}
-              ownerNames={ownerNames}
-              onRowClick={(it) =>
-                nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })
-              }
-              bulkActions={[
-                {
-                  label: "Mark Active",
-                  onClick: (ids) => void bulkUpdate(ids, { status: "active" }, "Scaling"),
-                  variant: "default",
-                },
-                {
-                  label: "Mark At Risk",
-                  onClick: (ids) => void bulkUpdate(ids, { status: "at_risk" }, "Churn Risk"),
-                  variant: "default",
-                },
-                ...(pdmRoster.pdms.length > 0
-                  ? [
-                      {
-                        label: "Reassign…",
-                        onClick: (ids: string[]) => {
-                          setSelectedForReassign(ids);
-                          setReassignOpen(true);
-                        },
-                        variant: "primary" as const,
-                      },
-                    ]
-                  : []),
-                { label: "Delete", onClick: (ids) => void bulkDelete(ids), variant: "danger" },
-              ]}
-            />
+            <>
+              <div className="space-y-3 md:hidden">
+                {pageRows.map((it) => (
+                  <MobilePartnerCard
+                    key={it.partner.id}
+                    item={it}
+                    ownerName={ownerNames.get(it.partner.owner_id) ?? "—"}
+                    nextAction={nextActionByPartner.get(it.partner.id) ?? "Open partner"}
+                    isLeadership={portfolio.isLeadership}
+                    onOpen={() => nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })}
+                  />
+                ))}
+              </div>
+              <div className="hidden md:block">
+                <PartnerRosterTable
+                  rows={pageRows}
+                  nextActionByPartner={nextActionByPartner}
+                  isLeadership={portfolio.isLeadership}
+                  ownerNames={ownerNames}
+                  onRowClick={(it) =>
+                    nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })
+                  }
+                  bulkActions={[
+                    {
+                      label: "Mark Scaling",
+                      onClick: (ids) => void bulkUpdate(ids, { status: "active" }, "Scaling"),
+                      variant: "default",
+                    },
+                    {
+                      label: "Mark At Risk",
+                      onClick: (ids) => void bulkUpdate(ids, { status: "at_risk" }, "Churn Risk"),
+                      variant: "default",
+                    },
+                    ...(pdmRoster.pdms.length > 0
+                      ? [
+                          {
+                            label: "Reassign…",
+                            onClick: (ids: string[]) => {
+                              setSelectedForReassign(ids);
+                              setReassignOpen(true);
+                            },
+                            variant: "primary" as const,
+                          },
+                        ]
+                      : []),
+                    { label: "Delete", onClick: (ids) => void bulkDelete(ids), variant: "danger" },
+                  ]}
+                />
+              </div>
+            </>
           )}
         </div>
+
+        <aside id="today-queue" className="min-w-0">
+          <div className="sticky top-24 space-y-4 rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
+            <div className="text-center">
+              <p className="page-eyebrow">Today&apos;s queue</p>
+              <h2 className="mt-1 section-title">What should happen next?</h2>
+            </div>
+
+            <button
+              onClick={() => setStatusFilter("at_risk")}
+              className="flex w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-3 text-center min-h-11"
+            >
+              <span className="text-sm text-foreground">Partners needing attention</span>
+              <span className="text-lg font-semibold tabular-nums text-destructive">{statusCounts.at_risk}</span>
+            </button>
+
+            <button
+              onClick={() => setStatusFilter("all")}
+              className="flex w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-warning/30 bg-warning/10 px-3 py-3 text-center min-h-11"
+            >
+              <span className="text-sm text-foreground">Missing diagnostics</span>
+              <span className="text-lg font-semibold tabular-nums text-warning">{undiagnosedCount}</span>
+            </button>
+
+            <button
+              onClick={() => {
+                const queue = document.getElementById("today-queue");
+                queue?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="flex w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-border bg-surface px-3 py-3 text-center min-h-11"
+            >
+              <span className="text-sm text-foreground">Overdue moves</span>
+              <span className="text-lg font-semibold tabular-nums text-foreground">{overdueActions.length}</span>
+            </button>
+
+            <div className="space-y-2 border-t border-border/70 pt-4 text-center">
+              <p className="text-xs font-semibold text-foreground">Next moves</p>
+              {actionsLoading ? (
+                <Skeleton className="h-10 w-full rounded-lg" />
+              ) : todayQueueActions.length === 0 ? (
+                <p className="text-balance text-xs text-muted-foreground">
+                  No open moves for now. Create one from a partner workspace.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {todayQueueActions.map((a) => (
+                    <li key={a.id}>
+                      <button
+                        onClick={() => setSelectedAction(a)}
+                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-center hover:bg-surface-2"
+                      >
+                        <p className="truncate text-sm font-medium text-foreground">{a.title}</p>
+                        <p className="truncate text-xs text-muted-foreground">{a.partner_name}</p>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div className="flex gap-2 border-t border-border/70 pt-4">
+              <button
+                onClick={() =>
+                  copyWeeklyDigest("slack", {
+                    atRisk: statusCounts.at_risk,
+                    overdue: overdueActions.length,
+                    top: todayQueueActions,
+                  })
+                }
+                className="btn-candy-ghost flex-1 justify-center"
+              >
+                {COPY.portfolio.exportSlack}
+              </button>
+              <button
+                onClick={() =>
+                  copyWeeklyDigest("email", {
+                    atRisk: statusCounts.at_risk,
+                    overdue: overdueActions.length,
+                    top: todayQueueActions,
+                  })
+                }
+                className="btn-candy-ghost flex-1 justify-center"
+              >
+                {COPY.portfolio.exportEmail}
+              </button>
+            </div>
+          </div>
+        </aside>
       </section>
+
+      {portfolio.isLeadership && scopeFilter === "all" && (
+        <section>
+          <TeamPulse items={scoped} ownerNames={ownerNames} />
+        </section>
+      )}
 
       {showNew && (
         <NewPartnerDialog
@@ -950,13 +812,6 @@ function PartnersPage() {
 }
 
 /* ─────────────────── helpers ─────────────────── */
-
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
 
 function isOverdue(d: string | null): boolean {
   if (!d) return false;
@@ -1027,94 +882,93 @@ function copyWeeklyDigest(
 
 /* ─────────────────── presentational ─────────────────── */
 
-function KpiCard({
-  label,
+function FocusCard({
+  title,
   value,
   hint,
-  accent,
-  primary,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-  accent: string;
-  primary?: boolean;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-card p-5 card-elev relative overflow-hidden hover:border-border transition">
-      <div
-        className="absolute top-0 left-0 h-1 w-full"
-        style={{ background: `linear-gradient(90deg, var(--${accent}), transparent)` }}
-      />
-      <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-        {label}
-      </div>
-      <div
-        className={`mt-2 text-3xl font-display font-bold ${primary ? "text-gradient" : "text-foreground"}`}
-      >
-        {value}
-      </div>
-      <div className="mt-1 text-xs text-muted-foreground">{hint}</div>
-    </div>
-  );
-}
-
-function HealthBadge({
-  label,
-  count,
-  total,
+  icon: Icon,
   tone,
-  active,
   onClick,
 }: {
-  label: string;
-  count: number;
-  total: number;
-  tone: "green" | "yellow" | "red";
-  active: boolean;
+  title: string;
+  value: number;
+  hint: string;
+  icon: React.ComponentType<{ className?: string }>;
+  tone: "danger" | "warning" | "info";
   onClick: () => void;
 }) {
-  const isZero = count === 0;
-  const ring = isZero
-    ? "border-border bg-surface"
-    : tone === "green"
-      ? "border-primary/30 bg-primary/5"
-      : tone === "yellow"
-        ? "border-warning/30 bg-warning/5"
-        : "border-destructive/40 bg-destructive/5";
-  const dot = isZero
-    ? "bg-muted-foreground/40"
-    : tone === "green"
-      ? "bg-primary"
-      : tone === "yellow"
-        ? "bg-warning"
-        : "bg-destructive";
-  const text = isZero
-    ? "text-muted-foreground"
-    : tone === "green"
-      ? "text-primary"
-      : tone === "yellow"
+  const toneClass =
+    tone === "danger"
+      ? "border-destructive/35 bg-destructive/10"
+      : tone === "warning"
+        ? "border-warning/35 bg-warning/10"
+        : "border-primary/30 bg-primary/10";
+  const iconClass =
+    tone === "danger"
+      ? "text-destructive"
+      : tone === "warning"
         ? "text-warning"
-        : "text-destructive";
-  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+        : "text-primary";
 
   return (
     <button
       onClick={onClick}
-      className={`text-left rounded-xl border p-4 transition ${ring} ${isZero ? "opacity-40 hover:opacity-70" : "hover:bg-surface-2"} ${active ? "ring-2 ring-offset-2 ring-offset-background ring-current opacity-100" : ""}`}
+      className={`flex w-full flex-col items-center rounded-xl border p-5 text-center transition hover:bg-surface-2 ${toneClass}`}
     >
-      <div className="flex items-center gap-2">
-        <span className={`h-2 w-2 rounded-full ${dot}`} />
-        <span className={`text-xs font-medium ${text}`}>{label}</span>
+      <Icon className={`h-5 w-5 shrink-0 ${iconClass}`} />
+      <p className="mt-3 text-[11px] font-medium text-foreground">{title}</p>
+      <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground tabular-nums">{value}</p>
+      <p className="mt-2 max-w-[16rem] text-xs leading-snug text-muted-foreground">{hint}</p>
+    </button>
+  );
+}
+
+function MobilePartnerCard({
+  item,
+  ownerName,
+  nextAction,
+  isLeadership,
+  onOpen,
+}: {
+  item: PortfolioItem;
+  ownerName: string;
+  nextAction: string;
+  isLeadership: boolean;
+  onOpen: () => void;
+}) {
+  const touched = item.latest?.created_at ?? item.partner.created_at;
+  const touchedDays = daysAgo(touched);
+  const toneMap: Record<PortfolioItem["partner"]["status"], StatusTone> = {
+    active: "success",
+    nurturing: "info",
+    at_risk: "danger",
+    paused: "muted",
+    archived: "muted",
+  };
+  return (
+    <button
+      onClick={onOpen}
+      className="w-full rounded-xl border border-border/70 bg-card p-4 text-left hover:bg-surface-2"
+    >
+      <div className="flex items-center gap-3">
+        <CandyAvatar name={item.partner.name} size={34} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">{item.partner.name}</p>
+          <p className="truncate text-xs text-muted-foreground">{item.partner.company ?? "—"}</p>
+        </div>
+        <StatusPill tone={toneMap[item.partner.status]}>{statusLabel(item.partner.status)}</StatusPill>
       </div>
-      <div className="mt-2 flex items-baseline gap-2">
-        <span
-          className={`text-3xl font-display font-bold ${isZero ? "text-muted-foreground" : "text-foreground"}`}
-        >
-          {count}
+      <div className="mt-3 flex items-center justify-between gap-2">
+        <span className="inline-flex rounded-md border border-border bg-surface px-2 py-1 text-xs text-foreground">
+          {nextAction}
         </span>
-        <span className="text-xs text-muted-foreground">{pct}%</span>
+        <span className="text-[11px] text-muted-foreground">
+          {touchedDays === 0 ? "today" : `${touchedDays}d ago`}
+        </span>
       </div>
+      {isLeadership && (
+        <p className="mt-2 text-[11px] text-muted-foreground">Owner: {ownerName}</p>
+      )}
     </button>
   );
 }
@@ -1134,38 +988,18 @@ function PriorityPill({ p }: { p: ActionRow["priority"] }) {
   );
 }
 
-function EmptyState({ onAdd }: { onAdd: () => void }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-      <h2 className="text-lg font-semibold">{COPY.portfolio.filterEmptyTitle}</h2>
-      <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-        {COPY.portfolio.filterEmptyBody}
-      </p>
-      <button
-        onClick={onAdd}
-        className="mt-5 min-h-11 inline-flex items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground glow-ring"
-      >
-        {COPY.portfolio.addPartnerCta}
-      </button>
-    </div>
-  );
-}
-
 /* ─────────────────── Roster table ─────────────────── */
 
 function PartnerRosterTable({
   rows,
-  revenueMap,
+  nextActionByPartner,
   isLeadership,
   ownerNames,
   onRowClick,
   bulkActions,
 }: {
   rows: PortfolioItem[];
-  revenueMap: Map<
-    string,
-    { revenue: number; mrr: number; dealsWonValue: number; dealsOpenValue?: number }
-  >;
+  nextActionByPartner: Map<string, string>;
   isLeadership: boolean;
   ownerNames: Map<string, string>;
   onRowClick: (it: PortfolioItem) => void;
@@ -1203,8 +1037,9 @@ function PartnerRosterTable({
     },
     {
       key: "status",
-      header: "Status",
+      header: "Health",
       width: "140px",
+      align: "center",
       cell: (it) => (
         <StatusPill tone={STATUS_TONE[it.partner.status]}>
           {statusLabel(it.partner.status)}
@@ -1212,29 +1047,15 @@ function PartnerRosterTable({
       ),
     },
     {
-      key: "type",
-      header: "Type",
-      width: "130px",
-      cell: (it) => <PartnerTypeChip type={it.partner.partner_type} />,
-    },
-    {
-      key: "tier",
-      header: "Tier",
-      width: "110px",
-      cell: (it) => {
-        const c = tierColor(it.partner.tier);
-        return (
-          <span
-            className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md"
-            style={{
-              background: `color-mix(in oklab, var(--${c}) 18%, transparent)`,
-              color: `var(--${c})`,
-            }}
-          >
-            {it.partner.tier.replace("_", " ")}
-          </span>
-        );
-      },
+      key: "next",
+      header: "Next action",
+      width: "200px",
+      align: "center",
+      cell: (it) => (
+        <span className="inline-flex max-w-full items-center justify-center rounded-lg border border-border bg-surface px-2.5 py-1 text-center text-xs text-foreground">
+          {nextActionByPartner.get(it.partner.id) ?? "Open partner"}
+        </span>
+      ),
     },
     ...(isLeadership
       ? [
@@ -1242,8 +1063,9 @@ function PartnerRosterTable({
             key: "owner",
             header: "Owner",
             width: "140px",
+            align: "center",
             cell: (it: PortfolioItem) => (
-              <span className="text-xs font-mono text-muted-foreground truncate">
+              <span className="truncate text-center text-xs font-mono text-muted-foreground">
                 {ownerNames.get(it.partner.owner_id) ?? "—"}
               </span>
             ),
@@ -1251,53 +1073,10 @@ function PartnerRosterTable({
         ]
       : []),
     {
-      key: "mrr",
-      header: "MRR",
-      width: "100px",
-      align: "right",
-      cell: (it) => {
-        const mrr = revenueMap.get(it.partner.id)?.mrr ?? 0;
-        return (
-          <span
-            className={`font-mono text-sm tabular-nums ${mrr > 0 ? "text-foreground" : "text-muted-foreground/50"}`}
-          >
-            {mrr > 0 ? fmtMoney(mrr) : "—"}
-          </span>
-        );
-      },
-    },
-    {
-      key: "maturity",
-      header: "Maturity",
-      width: "110px",
-      align: "right",
-      cell: (it) => {
-        const overall = it.latest ? Number(it.latest.overall) : 0;
-        return (
-          <div className="flex items-center justify-end gap-2 w-full">
-            <div className="h-1 w-8 rounded-full bg-surface-2 overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{
-                  width: `${(overall / 5) * 100}%`,
-                  background: overall ? "var(--primary)" : "transparent",
-                }}
-              />
-            </div>
-            <span
-              className={`font-mono text-sm tabular-nums ${overall ? "text-foreground" : "text-muted-foreground/50"}`}
-            >
-              {overall ? overall.toFixed(1) : "—"}
-            </span>
-          </div>
-        );
-      },
-    },
-    {
-      key: "freshness",
-      header: "Freshness",
-      width: "110px",
-      align: "right",
+      key: "lastTouch",
+      header: "Last touch",
+      width: "120px",
+      align: "center",
       cell: (it) => {
         const lastTouched = it.latest?.created_at ?? it.partner.created_at;
         const days = daysAgo(lastTouched);
@@ -1314,7 +1093,7 @@ function PartnerRosterTable({
       key: "actions",
       header: "",
       width: "90px",
-      align: "right",
+      align: "center",
       cell: () => null,
       hoverCell: () => <span className="text-xs font-medium text-primary">Open →</span>,
     },

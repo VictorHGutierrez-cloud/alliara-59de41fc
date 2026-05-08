@@ -158,16 +158,16 @@ function QualificationPage() {
 
   return (
     <div className="page-shell">
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
+      <div className="mx-auto flex max-w-3xl flex-col gap-4 text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
+        <div className="min-w-0 sm:flex-1">
           <p className="page-eyebrow">{COPY.qualification.eyebrow}</p>
           <h1 className="page-title">{COPY.qualification.title}</h1>
-          <p className="page-subtitle">{COPY.qualification.intro}</p>
+          <p className="page-subtitle mx-auto max-w-2xl sm:mx-0">{COPY.qualification.intro}</p>
         </div>
         <button
           type="button"
           onClick={() => setShowNew(true)}
-          className="inline-flex min-h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground glow-ring"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center self-center rounded-lg bg-primary px-5 text-sm font-semibold text-primary-foreground glow-ring sm:self-auto"
         >
           {COPY.qualification.addLeadCta}
         </button>

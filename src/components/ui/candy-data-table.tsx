@@ -243,8 +243,10 @@ export function CandyDataTable<T>({
 
         {/* Body */}
         {rows.length === 0 ? (
-          <div className="px-3 py-12 text-center text-sm text-muted-foreground">
-            {empty ?? "No rows match the current filters."}
+          <div className="px-3 py-12">
+            <p className="mx-auto max-w-sm text-center text-sm text-muted-foreground text-balance">
+              {empty ?? "No rows match the current filters."}
+            </p>
           </div>
         ) : (
           <motion.div

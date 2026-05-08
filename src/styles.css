@@ -11,8 +11,8 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
 
-  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-background: var(--background);
@@ -152,14 +152,37 @@
     overflow-x: clip;
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    font-size: 0.96rem;
-    line-height: 1.6;
+    font-size: 0.9375rem;
+    line-height: 1.58;
     -webkit-font-smoothing: antialiased;
     font-feature-settings: "ss01", "cv11";
   }
 
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; line-height: 1.2; }
-  p { line-height: 1.65; }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.022em;
+    line-height: 1.18;
+  }
+  h2 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    line-height: 1.22;
+  }
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.018em;
+    line-height: 1.25;
+  }
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.016em;
+    line-height: 1.28;
+  }
+  p { line-height: 1.62; }
 
   ::selection { background: oklch(0.52 0.16 160 / 0.2); }
 }
@@ -183,21 +206,21 @@
     margin-top: 0.25rem;
     font-size: clamp(1.6rem, 2.1vw, 2.35rem);
     font-weight: 600;
-    line-height: 1.15;
-    letter-spacing: -0.025em;
+    line-height: 1.14;
+    letter-spacing: -0.028em;
     color: var(--foreground);
   }
   .page-subtitle {
     margin-top: 0.5rem;
     max-width: 54rem;
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
     color: var(--muted-foreground);
-    line-height: 1.6;
+    line-height: 1.62;
   }
   .section-title {
     font-size: clamp(1.1rem, 1.5vw, 1.4rem);
-    line-height: 1.25;
-    letter-spacing: -0.015em;
+    line-height: 1.24;
+    letter-spacing: -0.018em;
     font-weight: 600;
     color: var(--foreground);
   }

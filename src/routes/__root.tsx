@@ -77,7 +77,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;600&family=Poppins:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap",
       },
     ],
   }),
@@ -205,8 +205,7 @@ function AppFrame() {
           <Link to="/" className="flex items-center gap-2">
             <img src={alliaraLogo} alt={COPY.auth.logoAltWordmark} className="h-10 w-auto object-contain" />
           </Link>
-          <p className="mt-2 text-xs text-muted-foreground">{COPY.auth.attributionByline}</p>
-          <nav className="mt-6 space-y-1.5">
+          <nav className="mt-5 space-y-1.5">
             {workspaceItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -262,9 +261,6 @@ function AppFrame() {
                   alt={COPY.auth.logoAltWordmark}
                   className="h-9 sm:h-11 w-auto object-contain"
                 />
-                <span className="ml-2 hidden whitespace-nowrap text-xs text-zinc-500 opacity-70 sm:inline">
-                  {COPY.auth.attributionByline}
-                </span>
               </Link>
             </div>
             <nav className="flex items-center gap-2 text-sm">
@@ -330,8 +326,11 @@ function AppFrame() {
         </main>
 
         {!isLanding && (
-          <footer className="border-t border-border/50 py-6 text-center text-xs text-muted-foreground">
-            {COPY.appShell.footerCredit}
+          <footer className="border-t border-border/50 bg-card/30 py-8 text-center">
+            <p className="text-xs text-muted-foreground">{COPY.appShell.footerCredit}</p>
+            <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/60">
+              {COPY.auth.attributionByline}
+            </p>
           </footer>
         )}
       </div>
