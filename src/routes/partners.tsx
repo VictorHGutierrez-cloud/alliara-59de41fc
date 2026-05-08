@@ -11,7 +11,7 @@ import {
 import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
-import { AlertTriangle, CalendarClock, Check, HeartHandshake, Plus, X as XIcon } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, ChevronDown, ChevronUp, HeartHandshake, Plus, X as XIcon } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar } from "@/components/PartnerFilterBar";
 import { useOwnerScope } from "@/lib/use-owner-scope";
@@ -33,6 +33,7 @@ import { COPY, buildPortfolioBriefingText } from "@/lib/copy";
 import { EmptyPortfolioOnboarding } from "@/components/onboarding/EmptyPortfolioOnboarding";
 import { TeamPulse } from "@/components/leadership/TeamPulse";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZES = [10, 20, 50, 100, 200] as const;
 
@@ -267,63 +268,10 @@ function PartnersPage() {
     });
   }, [scoped, statusFilter, typeFilter, query]);
 
-  const sorted = useMemo(() => {
-    const arr = [...filtered];
-    arr.sort((a, b) => {
-      switch (sortKey) {
-        case "name_asc":
-          return a.partner.name.localeCompare(b.partner.name);
-        case "name_desc":
-          return b.partner.name.localeCompare(a.partner.name);
-        case "revenue_desc":
-        case "mrr_desc":
-        case "created_desc":
-          return (
-            new Date(b.partner.created_at).getTime() - new Date(a.partner.created_at).getTime()
-          );
-        case "maturity_desc":
-          return Number(b.latest?.overall ?? 0) - Number(a.latest?.overall ?? 0);
-      }
-    });
-    return arr;
-  }, [filtered, sortKey]);
-
-  useEffect(() => {
-    setPageIndex(0);
-  }, [statusFilter, typeFilter, query, sortKey, scopeFilter, ownerFilter, pageSize]);
-
-  useEffect(() => {
-    const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
-    const maxIdx = pageCount - 1;
-    if (pageIndex > maxIdx) {
-      setPageIndex(maxIdx);
-    }
-  }, [sorted.length, pageSize, pageIndex]);
-
-  const rosterTotal = sorted.length;
-  const pageCount = Math.max(1, Math.ceil(rosterTotal / pageSize));
-  const safePageIndex = Math.min(pageIndex, pageCount - 1);
-  const pageRows = sorted.slice(safePageIndex * pageSize, (safePageIndex + 1) * pageSize);
-  const rangeStart = rosterTotal === 0 ? 0 : safePageIndex * pageSize + 1;
-  const rangeEnd = Math.min((safePageIndex + 1) * pageSize, rosterTotal);
-
-  const pendingLeads = leads.leads.filter((l) => l.status === "new" || l.status === "in_review");
-  const overdueActions = openActions.filter((a) => isOverdue(a.due_date));
-  const highPriorityOpen = openActions.filter((a) => a.priority === "high");
   const sortedOpenActions = useMemo(() => sortActions(openActions), [openActions]);
+
   const todayQueueActions = useMemo(() => sortedOpenActions.slice(0, 5), [sortedOpenActions]);
-  const stalePartnersCount = useMemo(
-    () =>
-      scoped.filter((it) => {
-        const lastTouched = it.latest?.created_at ?? it.partner.created_at;
-        return daysAgo(lastTouched) >= 14;
-      }).length,
-    [scoped],
-  );
-  const undiagnosedCount = useMemo(
-    () => scoped.filter((it) => !it.latest || Number(it.latest.overall) <= 0).length,
-    [scoped],
-  );
+
   const nextActionByPartner = useMemo(() => {
     const map = new Map<string, string>();
     const actionByPartner = new Map<string, EnrichedAction[]>();
@@ -347,6 +295,84 @@ function PartnersPage() {
     }
     return map;
   }, [scoped, sortedOpenActions]);
+
+  const sorted = useMemo(() => {
+    const arr = [...filtered];
+    const touchMs = (it: PortfolioItem) =>
+      new Date(it.latest?.created_at ?? it.partner.created_at).getTime();
+    const nextText = (it: PortfolioItem) => nextActionByPartner.get(it.partner.id) ?? "";
+    const ownerLabel = (it: PortfolioItem) => ownerNames.get(it.partner.owner_id) ?? "";
+
+    arr.sort((a, b) => {
+      switch (sortKey) {
+        case "name_asc":
+          return a.partner.name.localeCompare(b.partner.name);
+        case "name_desc":
+          return b.partner.name.localeCompare(a.partner.name);
+        case "revenue_desc":
+        case "mrr_desc":
+        case "created_desc":
+          return (
+            new Date(b.partner.created_at).getTime() - new Date(a.partner.created_at).getTime()
+          );
+        case "maturity_desc":
+          return Number(b.latest?.overall ?? 0) - Number(a.latest?.overall ?? 0);
+        case "status_asc":
+          return statusLabel(a.partner.status).localeCompare(statusLabel(b.partner.status));
+        case "status_desc":
+          return statusLabel(b.partner.status).localeCompare(statusLabel(a.partner.status));
+        case "next_action_asc":
+          return nextText(a).localeCompare(nextText(b));
+        case "next_action_desc":
+          return nextText(b).localeCompare(nextText(a));
+        case "owner_asc":
+          return ownerLabel(a).localeCompare(ownerLabel(b));
+        case "owner_desc":
+          return ownerLabel(b).localeCompare(ownerLabel(a));
+        case "last_touch_asc":
+          return touchMs(a) - touchMs(b);
+        case "last_touch_desc":
+          return touchMs(b) - touchMs(a);
+      }
+    });
+    return arr;
+  }, [filtered, sortKey, nextActionByPartner, ownerNames]);
+
+  useEffect(() => {
+    setPageIndex(0);
+  }, [statusFilter, typeFilter, query, sortKey, scopeFilter, ownerFilter, pageSize]);
+
+  useEffect(() => {
+    const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
+    const maxIdx = pageCount - 1;
+    if (pageIndex > maxIdx) {
+      setPageIndex(maxIdx);
+    }
+  }, [sorted.length, pageSize, pageIndex]);
+
+  const rosterTotal = sorted.length;
+  const pageCount = Math.max(1, Math.ceil(rosterTotal / pageSize));
+  const safePageIndex = Math.min(pageIndex, pageCount - 1);
+  const pageRows = sorted.slice(safePageIndex * pageSize, (safePageIndex + 1) * pageSize);
+  const rangeStart = rosterTotal === 0 ? 0 : safePageIndex * pageSize + 1;
+  const rangeEnd = Math.min((safePageIndex + 1) * pageSize, rosterTotal);
+
+  const pendingLeads = leads.leads.filter((l) => l.status === "new" || l.status === "in_review");
+  const overdueActions = openActions.filter((a) => isOverdue(a.due_date));
+  const highPriorityOpen = openActions.filter((a) => a.priority === "high");
+
+  const stalePartnersCount = useMemo(
+    () =>
+      scoped.filter((it) => {
+        const lastTouched = it.latest?.created_at ?? it.partner.created_at;
+        return daysAgo(lastTouched) >= 14;
+      }).length,
+    [scoped],
+  );
+  const undiagnosedCount = useMemo(
+    () => scoped.filter((it) => !it.latest || Number(it.latest.overall) <= 0).length,
+    [scoped],
+  );
 
   const briefing = buildPortfolioBriefingText({
     atRisk: statusCounts.at_risk,
@@ -633,6 +659,8 @@ function PartnersPage() {
                   nextActionByPartner={nextActionByPartner}
                   isLeadership={portfolio.isLeadership}
                   ownerNames={ownerNames}
+                  sortKey={sortKey}
+                  onSortKey={setSortKey}
                   onRowClick={(it) =>
                     nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })
                   }
@@ -882,6 +910,65 @@ function copyWeeklyDigest(
 
 /* ─────────────────── presentational ─────────────────── */
 
+type RosterSortColumn = "partner" | "health" | "next" | "owner" | "last_touch";
+
+function nextRosterSort(column: RosterSortColumn, current: SortKey): SortKey {
+  const pairs: Record<RosterSortColumn, readonly [SortKey, SortKey]> = {
+    partner: ["name_asc", "name_desc"],
+    health: ["status_asc", "status_desc"],
+    next: ["next_action_asc", "next_action_desc"],
+    owner: ["owner_asc", "owner_desc"],
+    last_touch: ["last_touch_asc", "last_touch_desc"],
+  };
+  const [asc, desc] = pairs[column];
+  if (current === asc) return desc;
+  if (current === desc) return asc;
+  return asc;
+}
+
+function RosterSortableHeader({
+  label,
+  align,
+  sortKey,
+  ascKey,
+  descKey,
+  onSort,
+}: {
+  label: string;
+  align: "left" | "center";
+  sortKey: SortKey;
+  ascKey: SortKey;
+  descKey: SortKey;
+  onSort: () => void;
+}) {
+  const active = sortKey === ascKey || sortKey === descKey;
+  const ascending = sortKey === ascKey;
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onSort();
+      }}
+      className={cn(
+        "group inline-flex min-h-11 max-w-full items-center gap-0.5 rounded-lg px-1.5 -mx-1.5 text-[10px] font-mono uppercase tracking-widest transition-colors hover:bg-primary/10 hover:text-foreground",
+        align === "center" ? "justify-center" : "justify-start",
+        active ? "text-foreground" : "text-muted-foreground",
+      )}
+      aria-label={`Sort by ${label}. ${active ? (ascending ? "Ascending" : "Descending") : "Not sorted"}`}
+    >
+      <span className="truncate">{label}</span>
+      {active ? (
+        ascending ? (
+          <ChevronUp className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+        ) : (
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-primary" aria-hidden />
+        )
+      ) : null}
+    </button>
+  );
+}
+
 function FocusCard({
   title,
   value,
@@ -995,6 +1082,8 @@ function PartnerRosterTable({
   nextActionByPartner,
   isLeadership,
   ownerNames,
+  sortKey,
+  onSortKey,
   onRowClick,
   bulkActions,
 }: {
@@ -1002,6 +1091,8 @@ function PartnerRosterTable({
   nextActionByPartner: Map<string, string>;
   isLeadership: boolean;
   ownerNames: Map<string, string>;
+  sortKey: SortKey;
+  onSortKey: (key: SortKey) => void;
   onRowClick: (it: PortfolioItem) => void;
   bulkActions: {
     label: string;
@@ -1020,7 +1111,16 @@ function PartnerRosterTable({
   const columns: CandyColumn<PortfolioItem>[] = [
     {
       key: "partner",
-      header: "Partner",
+      header: (
+        <RosterSortableHeader
+          label="Partner"
+          align="left"
+          sortKey={sortKey}
+          ascKey="name_asc"
+          descKey="name_desc"
+          onSort={() => onSortKey(nextRosterSort("partner", sortKey))}
+        />
+      ),
       width: "minmax(220px,2fr)",
       cell: (it) => (
         <div className="flex items-center gap-3 min-w-0">
@@ -1037,7 +1137,16 @@ function PartnerRosterTable({
     },
     {
       key: "status",
-      header: "Health",
+      header: (
+        <RosterSortableHeader
+          label="Health"
+          align="center"
+          sortKey={sortKey}
+          ascKey="status_asc"
+          descKey="status_desc"
+          onSort={() => onSortKey(nextRosterSort("health", sortKey))}
+        />
+      ),
       width: "140px",
       align: "center",
       cell: (it) => (
@@ -1048,7 +1157,16 @@ function PartnerRosterTable({
     },
     {
       key: "next",
-      header: "Next action",
+      header: (
+        <RosterSortableHeader
+          label="Next action"
+          align="center"
+          sortKey={sortKey}
+          ascKey="next_action_asc"
+          descKey="next_action_desc"
+          onSort={() => onSortKey(nextRosterSort("next", sortKey))}
+        />
+      ),
       width: "200px",
       align: "center",
       cell: (it) => (
@@ -1061,7 +1179,16 @@ function PartnerRosterTable({
       ? [
           {
             key: "owner",
-            header: "Owner",
+            header: (
+              <RosterSortableHeader
+                label="Owner"
+                align="center"
+                sortKey={sortKey}
+                ascKey="owner_asc"
+                descKey="owner_desc"
+                onSort={() => onSortKey(nextRosterSort("owner", sortKey))}
+              />
+            ),
             width: "140px",
             align: "center",
             cell: (it: PortfolioItem) => (
@@ -1074,7 +1201,16 @@ function PartnerRosterTable({
       : []),
     {
       key: "lastTouch",
-      header: "Last touch",
+      header: (
+        <RosterSortableHeader
+          label="Last touch"
+          align="center"
+          sortKey={sortKey}
+          ascKey="last_touch_asc"
+          descKey="last_touch_desc"
+          onSort={() => onSortKey(nextRosterSort("last_touch", sortKey))}
+        />
+      ),
       width: "120px",
       align: "center",
       cell: (it) => {

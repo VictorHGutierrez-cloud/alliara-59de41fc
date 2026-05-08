@@ -24,11 +24,27 @@ export type SortKey =
   | "revenue_desc"
   | "mrr_desc"
   | "created_desc"
-  | "maturity_desc";
+  | "maturity_desc"
+  | "status_asc"
+  | "status_desc"
+  | "next_action_asc"
+  | "next_action_desc"
+  | "owner_asc"
+  | "owner_desc"
+  | "last_touch_asc"
+  | "last_touch_desc";
 
 export const PARTNER_SORTS: { key: SortKey; label: string }[] = [
   { key: "name_asc", label: "Name · A → Z" },
   { key: "name_desc", label: "Name · Z → A" },
+  { key: "status_asc", label: "Health · A → Z" },
+  { key: "status_desc", label: "Health · Z → A" },
+  { key: "next_action_asc", label: "Next action · A → Z" },
+  { key: "next_action_desc", label: "Next action · Z → A" },
+  { key: "owner_asc", label: "Owner · A → Z" },
+  { key: "owner_desc", label: "Owner · Z → A" },
+  { key: "last_touch_asc", label: "Last touch · oldest first" },
+  { key: "last_touch_desc", label: "Last touch · newest first" },
   { key: "revenue_desc", label: "Revenue · highest" },
   { key: "mrr_desc", label: "MRR · highest" },
   { key: "created_desc", label: "Recently added" },
