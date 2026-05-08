@@ -3,7 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import * as Icons from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
-import { PrismaHero } from "@/components/ui/prisma-hero";
+import { FactorialStyleHero } from "@/components/landing/FactorialStyleHero";
 import { AgentPlan, type AgentTask, type AgentStatus } from "@/components/ui/agent-plan";
 import { Typewriter } from "@/components/ui/typewriter";
 import { AXES } from "@/content/octa";
@@ -17,7 +17,6 @@ import {
   CardVisual,
 } from "@/components/ui/animated-card";
 import { CandyBarChart, CandyDonut } from "@/components/ui/candy-charts";
-import { HeroMessage } from "@/components/landing/HeroMessage";
 import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/")({
@@ -185,18 +184,15 @@ function TrustStrip() {
           <p className="mt-1 text-sm text-neutral-700 leading-relaxed">{L.trustBlurb}</p>
         </div>
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
-            <p className="text-lg font-display font-semibold text-neutral-900">8</p>
-            <p className="text-[11px] text-neutral-500">{L.trustStatAxes}</p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
-            <p className="text-lg font-display font-semibold text-neutral-900">1</p>
-            <p className="text-[11px] text-neutral-500">{L.trustStatCenter}</p>
-          </div>
-          <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center">
-            <p className="text-lg font-display font-semibold text-neutral-900">100%</p>
-            <p className="text-[11px] text-neutral-500">{L.trustStatFocus}</p>
-          </div>
+          {L.trustStats.map((stat) => (
+            <div
+              key={stat.label}
+              className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center"
+            >
+              <p className="text-lg font-display font-semibold text-neutral-900">{stat.value}</p>
+              <p className="text-[11px] text-neutral-500">{stat.label}</p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -206,17 +202,8 @@ function TrustStrip() {
 function Landing() {
   return (
     <>
-      {/* 1. HERO */}
-      <PrismaHero
-        videoSrc="/fios.mp4"
-        eyebrow={null}
-        headlineNode={null}
-        description={null}
-        overlayOpacity={0}
-        primaryCta={null}
-        secondaryCta={null}
-      />
-      <HeroMessage />
+      {/* 1. HERO — Factorial-style mesh, centered story, email CTA, feature carousel */}
+      <FactorialStyleHero />
 
       <RevealSection>
         <TrustStrip />
@@ -246,6 +233,27 @@ function Landing() {
 /* ---------------- 2. Manifesto ---------------- */
 function Manifesto() {
   const L = COPY.landing;
+  const reduceMotion = useReducedMotion();
+
+  if (reduceMotion) {
+    const calmSuffix = L.manifestoTyping[0];
+    return (
+      <section className="bg-[#F7F7F8] py-24 sm:py-28 px-6">
+        <div className="mx-auto max-w-5xl text-center">
+          <p className="page-eyebrow text-neutral-500">{L.manifestoEyebrow}</p>
+          <h2 className="mt-5 font-display font-semibold tracking-[-0.03em] text-neutral-900 text-4xl sm:text-6xl leading-[1.07]">
+            <span className="block">{L.manifestoLeading}</span>
+            <span className="block">
+              <span style={{ color: BRAND_ACCENT }} className="italic">
+                {calmSuffix}
+              </span>
+            </span>
+          </h2>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="bg-[#F7F7F8] py-24 sm:py-28 px-6">
       <div className="mx-auto max-w-5xl text-center">
@@ -537,6 +545,7 @@ function FinalCta() {
         <div className="mt-9 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             to="/signup"
+            search={{}}
             className="btn-candy min-h-11 px-8 inline-flex items-center justify-center"
             aria-label={L.finalCtaPrimary}
           >

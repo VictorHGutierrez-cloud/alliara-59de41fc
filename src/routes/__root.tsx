@@ -31,13 +31,15 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-gradient">404</h1>
-        <h2 className="mt-4 text-xl font-semibold">{COPY.auth.notFoundTitle}</h2>
+        <p className="text-7xl font-bold text-gradient" aria-hidden="true">
+          404
+        </p>
+        <h1 className="mt-4 text-xl font-semibold">{COPY.auth.notFoundTitle}</h1>
         <p className="mt-2 text-sm text-muted-foreground">{COPY.auth.notFoundHint}</p>
         <div className="mt-6">
           <Link
             to="/"
-            className="inline-flex min-h-11 items-center justify-center rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="inline-flex min-h-11 items-center justify-center rounded-xl bg-primary px-5 text-sm font-medium text-primary-foreground shadow-sm transition hover:opacity-95"
           >
             {COPY.auth.homeCtaLabel}
           </Link>
@@ -269,14 +271,14 @@ function AppFrame() {
                   <>
                     <Link
                       to="/partners"
-                      className="min-h-11 inline-flex items-center rounded-md px-4 text-sm font-semibold text-foreground hover:bg-neutral-100"
+                      className="min-h-11 inline-flex items-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-neutral-100"
                     >
                       {COPY.auth.openWorkspaceCta}
                     </Link>
                     <button
                       type="button"
                       onClick={() => signOut()}
-                      className="ml-1 min-h-11 inline-flex items-center rounded-md px-4 text-sm font-semibold text-foreground hover:bg-neutral-100"
+                      className="ml-1 min-h-11 inline-flex items-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-neutral-100"
                     >
                       {COPY.auth.signOutLabel}
                     </button>
@@ -285,13 +287,13 @@ function AppFrame() {
                   <>
                     <Link
                       to="/login"
-                      className="min-h-11 inline-flex items-center rounded-md px-4 hover:bg-surface-2 text-foreground"
+                      className="min-h-11 inline-flex items-center rounded-xl px-4 text-foreground transition hover:bg-surface-2"
                     >
                       {COPY.auth.signIn}
                     </Link>
                     <Link
                       to="/signup"
-                      className="ml-1 min-h-11 inline-flex items-center rounded-md px-5 bg-primary text-primary-foreground font-medium hover:opacity-90"
+                      className="ml-1 min-h-11 inline-flex items-center rounded-xl px-5 bg-primary text-primary-foreground font-medium shadow-sm transition hover:opacity-90"
                     >
                       {COPY.auth.getStarted}
                     </Link>
@@ -305,13 +307,13 @@ function AppFrame() {
                 <>
                   <Link
                     to="/login"
-                    className="min-h-11 inline-flex items-center rounded-md px-4 hover:bg-surface-2"
+                    className="min-h-11 inline-flex items-center rounded-xl px-4 transition hover:bg-surface-2"
                   >
                     {COPY.auth.signIn}
                   </Link>
                   <Link
                     to="/signup"
-                    className="ml-1 min-h-11 inline-flex items-center rounded-md px-5 bg-primary text-primary-foreground font-medium hover:opacity-90"
+                    className="ml-1 min-h-11 inline-flex items-center rounded-xl px-5 bg-primary text-primary-foreground font-medium shadow-sm transition hover:opacity-90"
                   >
                     {COPY.auth.getStarted}
                   </Link>

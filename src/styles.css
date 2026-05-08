@@ -71,7 +71,7 @@
  * Pastel pink primary, sky-blue secondary, yellow accent, soft surfaces.
  */
 :root {
-  --radius: 0.5rem;
+  --radius: 0.625rem;
 
   /* Canvas */
   --background: #f7f9fa;
@@ -106,8 +106,8 @@
   --warning: #ffcc00;
   --danger: #ef4444;
 
-  --border: #d4d4d4;
-  --input: #d4d4d4;
+  --border: #e0e3e8;
+  --input: #e0e3e8;
   --ring: #ffc0cb;
 
   /* OCTA axes — re-tuned for legibility on light surfaces */
@@ -126,8 +126,8 @@
   --gradient-glow: linear-gradient(135deg, var(--octa-1), var(--octa-4));
   --shadow-glow: 0 10px 30px -12px rgba(255, 192, 203, 0.45);
   --shadow-card:
-    0 1px 2px 0 rgba(0, 0, 0, 0.04),
-    0 8px 24px -12px rgba(0, 0, 0, 0.08);
+    0 1px 2px 0 rgba(0, 0, 0, 0.035),
+    0 10px 28px -14px rgba(0, 0, 0, 0.07);
 
   --sidebar: #ffffff;
   --sidebar-foreground: #333333;
@@ -135,7 +135,7 @@
   --sidebar-primary-foreground: var(--primary-foreground);
   --sidebar-accent: #f0f2f5;
   --sidebar-accent-foreground: #333333;
-  --sidebar-border: #d4d4d4;
+  --sidebar-border: #e0e3e8;
   --sidebar-ring: var(--ring);
 }
 
@@ -143,7 +143,14 @@
   * { border-color: var(--color-border); }
 
   html, body, #root { height: 100%; }
-  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: no-preference) {
+    html { scroll-behavior: smooth; }
+  }
+
+  :where(a, button, summary):focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 34%, transparent);
+  }
 
   body {
     background-color: var(--color-background);
@@ -233,7 +240,7 @@
   .glass {
     background: color-mix(in oklab, oklch(1 0 0) 80%, transparent);
     backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
   }
   .glow-ring {
     box-shadow: 0 4px 14px -4px rgba(255, 192, 203, 0.55);
@@ -269,7 +276,8 @@
 @layer components {
   .input {
     width: 100%;
-    border-radius: 0.5rem;
+    min-height: 44px;
+    border-radius: calc(var(--radius) + 2px);
     border: 1px solid var(--border);
     background: oklch(1 0 0);
     color: var(--foreground);
@@ -326,7 +334,9 @@
   }
   .btn-candy:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 45%, transparent);
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 5px color-mix(in oklab, var(--primary) 42%, transparent);
   }
   .btn-candy:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
@@ -355,7 +365,9 @@
   }
   .btn-candy-secondary:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--secondary) 45%, transparent);
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 5px color-mix(in oklab, var(--secondary) 42%, transparent);
   }
 
   .btn-candy-ghost {
@@ -377,6 +389,12 @@
     background: color-mix(in oklab, var(--primary) 12%, transparent);
     border-color: color-mix(in oklab, var(--primary) 50%, var(--border));
   }
+  .btn-candy-ghost:focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px var(--background),
+      0 0 0 5px color-mix(in oklab, var(--primary) 32%, transparent);
+  }
 
   .seg-candy {
     display: inline-flex;
@@ -387,7 +405,7 @@
     gap: 2px;
   }
   .seg-candy-item {
-    min-height: 40px;
+    min-height: 44px;
     appearance: none;
     background: transparent;
     border: 0;
@@ -411,7 +429,7 @@
   }
 
   .select-candy {
-    min-height: 40px;
+    min-height: 44px;
     appearance: none;
     -webkit-appearance: none;
     background: var(--surface);
@@ -439,11 +457,21 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   .btn-candy,
   .btn-candy-secondary,
   .btn-candy-ghost,
-  .card-elev {
+  .card-elev,
+  .glow-ring {
     transition: none;
+    transform: none;
+  }
+
+  .glow-ring:hover,
+  .card-elev:hover {
     transform: none;
   }
 }

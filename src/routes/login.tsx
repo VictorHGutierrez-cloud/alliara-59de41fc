@@ -42,11 +42,11 @@ function Login() {
   };
 
   return (
-    <AuthLayout title="Sign in" sub="Continue building your partner OS.">
+    <AuthLayout title="Sign in" sub="Pick up where you left off with your partners.">
       <form onSubmit={onSubmit} className="space-y-3">
         <Input label="Work email" type="email" value={email} onChange={setEmail} required />
         <Input label="Password" type="password" value={pw} onChange={setPw} required />
-        <button disabled={busy} className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
+        <button disabled={busy} className="w-full min-h-11 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50">
           {busy ? "Signing in…" : "Sign in"}
         </button>
         {needsVerify && (
@@ -60,7 +60,7 @@ function Login() {
               if (error) toast.error(error);
               else toast.success("Verification email sent — check your inbox.");
             }}
-            className="w-full rounded-lg border border-border bg-surface py-2 text-xs font-medium hover:bg-surface-2 disabled:opacity-50"
+            className="w-full min-h-11 rounded-xl border border-border bg-surface py-2 text-xs font-medium transition hover:bg-surface-2 disabled:opacity-50"
           >
             {resending ? "Resending…" : "Resend verification email"}
           </button>
@@ -76,7 +76,7 @@ function Login() {
 export function AuthLayout({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto max-w-md px-6 py-16">
-      <div className="rounded-2xl bg-card border border-border/60 p-8 card-elev">
+      <div className="rounded-2xl bg-card border border-border/50 p-8 card-elev shadow-sm">
         <h1 className="text-2xl font-semibold">{title}</h1>
         <p className="text-sm text-muted-foreground mt-1">{sub}</p>
         <div className="mt-6">{children}</div>
@@ -94,7 +94,7 @@ export function Input({ label, value, onChange, type = "text", required }: { lab
         onChange={(e) => onChange(e.target.value)}
         type={type}
         required={required}
-        className="w-full rounded-lg bg-input border border-border px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring/60"
+        className="w-full min-h-11 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm outline-none transition focus-visible:border-primary/45 focus-visible:ring-[3px] focus-visible:ring-primary/15"
       />
     </label>
   );

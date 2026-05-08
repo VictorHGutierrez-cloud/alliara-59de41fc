@@ -10,22 +10,22 @@ export const COPY = {
 
   diagnostic: {
     noun: "Diagnostic",
-    cta: "Run Diagnostic",
-    rerun: "Re-run Diagnostic",
-    hubTitle: "Run diagnostics inside workspaces",
+    cta: "Run diagnostic",
+    rerun: "Run diagnostic again",
+    hubTitle: "Run diagnostics from each workspace",
     hubMetaTitle: "Diagnostics — Alliara",
     partnerWorkspaceMetaTitle: "Partner diagnostics — Alliara",
-    hubCtaWithPartner: "Open Diagnostic →",
+    hubCtaWithPartner: "Open diagnostic →",
     hubCtaPortfolio: "Create partner workspace",
     hubSecondaryCta: "Open portfolio",
-    emptyPartnerOverviewTitle: "Ground the partnership in OCTA signals",
+    emptyPartnerOverviewTitle: "Start from a clear read on this partnership",
     emptyPartnerOverviewBody:
-      "This diagnostic keeps everyone honest about maturity so Joint Business Plans and Copilot nudges feel personal, not scripted.",
-    answerAllQuestions: "Answer every OCTA prompt before saving.",
-    savedToast: "Diagnostic saved · maturity refreshed",
+      "A quick OCTA snapshot helps everyone see the same maturity story—so joint plans and Copilot tips feel grounded, not generic.",
+    answerAllQuestions: "Finish each OCTA prompt so the save reflects a fair, shared picture.",
+    savedToast: "Diagnostic saved — scores updated",
     readOnlyRuns:
-      "You're visiting as a collaborator—only the owning Partner Development Manager can launch diagnostics here.",
-    saveCta: "Save Diagnostic",
+      "You're in as a collaborator. Only the lead Partner Development Manager can start diagnostics in this workspace.",
+    saveCta: "Save diagnostic",
     progressLabel: (current: number, total: number) => `Prompt ${current} of ${total}`,
   },
 
@@ -34,11 +34,11 @@ export const COPY = {
     short: "JBP",
     item: "Move",
     itemPlural: "Moves",
-    emptyPlanTitle: "Draft the first commits together",
+    emptyPlanTitle: "Sketch your first moves together",
     emptyPlanBody:
-      "Log what you owe each other—or open Copilot to translate diagnostics into Moves you can pressure-test live.",
+      "Note what each side owes—or open Copilot to turn diagnostics into moves you can talk through on the next call.",
     newMoveTitle: "New move",
-    addMoveCta: "+ Log move",
+    addMoveCta: "+ Add a move",
     planPageMetaTitle: "Joint Business Plan — Alliara",
   },
 
@@ -49,23 +49,23 @@ export const COPY = {
       read: "Read",
     },
     subtitleForPartner:
-      "Coaching tethered to diagnostics and partner notes—you stay the human accountable for follow-up.",
+      "Ideas grounded in diagnostics and your notes—you still own the follow-up; Copilot just speeds the thinking.",
     needDiagnosticFirst:
-      "Kick off Diagnostic first—we need OCTA grounding before scripting guidance.",
-    goToDiagnosticLink: "Open Diagnostic",
-    emptyTitleOwner: "Awaiting your first Copilot pass",
+      "Run a diagnostic first. OCTA context is what keeps guidance useful.",
+    goToDiagnosticLink: "Open diagnostic",
+    emptyTitleOwner: "Your first Copilot draft goes here",
     emptyBodyOwner:
-      "Generate prompts now, keep what resonates, discard what doesn't—Partners feel the refinement.",
+      "Generate suggestions, keep what sounds like your partner, drop the rest—small edits build real trust.",
     emptyBodyViewer:
-      "The owning Partner Development Manager has not minted Copilot guidance for this ally yet.",
-    busyLabel: "Drafting guidance…",
+      "The lead Partner Development Manager hasn't generated Copilot guidance for this partner yet.",
+    busyLabel: "Drafting suggestions…",
     generateLabel: "Draft guidance",
     regenerateLabel: "Refresh guidance",
-    addedToPlanToast: "Captured on Joint Business Plan",
-    deliveredToast: "Copilot briefing ready",
+    addedToPlanToast: "Added to Joint Business Plan",
+    deliveredToast: "Copilot briefing is ready",
     coachPageMetaTitle: "Partner Copilot — Alliara",
     sectionRecommendationsEyebrow: "Recommendations",
-    sectionMovesEyebrow: "Ready-to-commit moves",
+    sectionMovesEyebrow: "Moves worth committing",
   },
 
   ipp: {
@@ -89,87 +89,121 @@ export const COPY = {
   },
 
   landing: {
-    metaTitle: "Alliara — Weekly clarity for alliance managers",
+    metaTitle: "Alliara — A kinder weekly rhythm for partner teams",
     metaDescription:
-      "Partner Development Managers use Alliara to diagnose alliances, steward Joint Business Plans, and reinforce human follow-through—with OCTO as the lingua franca.",
-    heroEyebrow: "Command center rituals for Partner Development Managers",
-    heroTitle: "Every partner gets a humane weekly tempo.",
+      "Built for Partner Development Managers: weekly reviews, joint plans you can actually track, and gentle nudges that match what you promised partners on calls.",
+    heroEyebrow: "For Partner Development Managers",
+    heroTitle: "A steady rhythm for every partner—without losing the thread.",
     heroBody:
-      "Eight OCTA lenses keep diagnoses crisp, Moves keep commitments legible, and Copilot reinforces what you promised on Zoom.",
-    pillDiagnostic: "Eight-axis Diagnostics",
-    pillJbp: "Joint Business Plan cadence",
-    pillCopilot: "Copilot for follow-through",
-    ctaPrimary: "Begin free workspace",
+      "Health, joint plans, and follow-ups in one gentle workspace. Fewer frantic decks, fewer forgotten promises.",
+    pillDiagnostic: "Structured reviews",
+    pillJbp: "Joint business plans",
+    pillCopilot: "Helpful nudges",
+    ctaPrimary: "Create free workspace",
     ctaSecondary: "Sign in",
-    trustEyebrow: "Operational truth",
+    heroEmailPlaceholder: "Work email",
+    heroEmailHelper: "We’ll take you to signup next to add your name and a password.",
+    heroTourCta: "See how it works",
+    /** Text-only “logo row” — fictional names; no third-party marks. */
+    heroSocialProofEyebrow: "The roster you’ll recognize from the demo",
+    heroSocialProofNames: ["Northwind", "Helix", "Bluepeak", "Orbit"] as const,
+    heroCarousel: [
+      {
+        title: "Partner radar",
+        subtitle: "Maturity signals in one glance",
+        visual: "radar" as const,
+        imgAlt: "Alliara partner maturity radar and OCTA overview",
+      },
+      {
+        title: "Revenue snapshot",
+        subtitle: "Rank and explain partner-sourced MRR",
+        visual: "revenue" as const,
+        imgAlt: "",
+      },
+      {
+        title: "Tier mix",
+        subtitle: "Where coaching time should go",
+        visual: "mix" as const,
+        imgAlt: "",
+      },
+      {
+        title: "Joint business rhythm",
+        subtitle: "Plans and moves stay legible",
+        visual: "skeleton" as const,
+        imgAlt: "",
+      },
+    ] as const,
+    trustEyebrow: "What you’ll feel day to day",
     trustBlurb:
-      "Weekly diagnostics, clear Joint Business Plans, revenue reviews—all mapped to Partner Development rhythms instead of slideware fantasy.",
-    trustStatAxes: "OCTO axes tracked",
-    trustStatCenter: "single cockpit",
-    trustStatFocus: "partner-centric",
-    productEyebrow: "Product glimpses",
-    productTitle: "What your Monday cockpit actually renders",
+      "Weekly check-ins, readable joint plans, and revenue context—so you can work the way you already talk to partners.",
+    trustStats: [
+      { value: "8", label: "OCTO axes tracked" },
+      { value: "1", label: "one calm cockpit" },
+      { value: "100%", label: "partner-first" },
+    ] as const,
+    productEyebrow: "Inside the product",
+    productTitle: "What Monday morning looks like here",
     productIntro:
-      "Live charts plus in-product fidelity—fewer frantic spreadsheets during leadership syncs.",
+      "Live charts and honest detail—so leadership syncs need fewer last-minute spreadsheets.",
     showcase: {
-      radarTitle: "Radar that earns trust quickly",
+      radarTitle: "A radar partners recognize",
       radarBody:
-        "Visualize drifting allies, correlate OCTO axes with revenue stories, teleport into the corrective conversation.",
-      revenueTitle: "Revenue conversations partners trust",
+        "Spot drift early, tie OCTO axes to revenue stories, and walk into the next conversation with shared context.",
+      revenueTitle: "Revenue stories that hold up",
       revenueBody:
-        "Stack-rank Open MMR, snapshot leadership asks, anchor narrative in partner-reported telemetry.",
-      mixTitle: "Tier mix informs coaching minutes",
+        "Rank open MRR, prep quick leadership asks, and keep the narrative tied to what partners report.",
+      mixTitle: "Tier mix that guides your time",
       mixBody:
-        "See imbalance between marquee logos and experimenting allies before resources scatter.",
+        "See when firefighting big logos crowds out newer allies—before the calendar says it first.",
     },
-    manifestoEyebrow: "Belief",
+    manifestoEyebrow: "What we believe",
     manifestoLeading: "We keep partnering ",
     manifestoTyping: [
       "human-first.",
-      "evidence-backed.",
-      "weekly-reset.",
-      "earnest.",
+      "grounded in evidence.",
+      "steady week to week.",
+      "honest.",
       "focused on ally outcomes.",
     ],
     portfolioEyebrow: "Portfolio",
-    portfolioTitle: "One truthful roster for every steward",
+    portfolioTitle: "One honest roster—ready between calls",
     portfolioIntro:
-      "Statuses, tiers, OCTA overlays—signals you skim before hopping between relationship calls.",
+      "Statuses, tiers, and OCTA context you can skim before the next partner conversation.",
     axesEyebrow: "Eight OCTA axes · OCTO",
-    axesTitle: "Teach alliances a shared dialect",
+    axesTitle: "A shared language for alliances",
     axesIntro:
-      "Each axis maps to conversational prompts so diagnostics feel collaborative, not evaluative.",
+      "Each axis opens conversational prompts—diagnostics feel like working together, not grading someone.",
     jbpEyebrow: "Joint Business Plans",
-    jbpDemoTitle: "Moves mirrored to how you steer partners weekly",
+    jbpDemoTitle: "Moves that match how you steer the week",
     jbpDemoIntro:
-      "Flip statuses Planned → Doing → Delivered—or expand checklist depth so recap meetings stay crisp.",
-    finalCtaTitle: "Invite your alliances into disciplined warmth",
+      "Slide statuses from Planned to Doing to Delivered—or deepen checklists so recap calls stay short and kind.",
+    finalCtaTitle: "Bring your alliances into a steadier weekly cadence",
     finalCtaBody:
-      "If you shepherd revenue through partners—diagnose, align, commit, follow up—all without losing the bedside manner.",
-    finalCtaPrimary: "Activate workspace",
-    finalCtaSecondary: "Sign back in",
+      "If you grow through partners—listen, align, commit, follow up—Alliara helps you stay human without dropping the ball.",
+    finalCtaPrimary: "Create workspace",
+    finalCtaSecondary: "Sign in",
     donutCenterPartners: "PARTNERS",
   },
 
   portfolio: {
     pageMetaTitle: "Portfolio — Alliara",
-    loadErrorTitle: "Portfolio unreachable right now",
+    loadErrorTitle: "We couldn't load your portfolio just now",
     retry: "Try again",
     briefingQuietMine:
-      "Portfolio noise is low today—reuse the focus to rerun a Diagnostic or revive a stalled Joint Business Plan.",
+      "Looks calm today—nice moment to rerun a diagnostic or revive a quiet Joint Business Plan.",
     briefingQuietAll:
-      "Across {scope} everyone looks steady—celebrate briefly, then invest in deepening two marquee allies.",
+      "Across {scope} things look steady—take a breath, then maybe deepen two key allies.",
     weeklyDigestHeading: ({ date }: { date: string }) => `Weekly cockpit · ${date}`,
     kickerAllPartners: "Fleet view",
     kickerPortfolioMine: "Your portfolio",
-    reportsCardEyebrow: "Deep analytics migrated",
-    reportsCardTitle: "Head to Reports for MRR dashboards + exports",
+    reportsCardEyebrow: "Reporting lives here",
+    reportsCardTitle: "Open Reports for MRR views and exports",
     reportsCardBody:
-      "Snapshots, segmentation, CSV / PNG bundles—purpose-built narratives for CFO or channel chief asks.",
+      "Snapshots, segments, CSV or PNG bundles—ready when finance or leadership asks for receipts.",
     reportsCardCta: "Explore Reports →",
     qualQueueEyebrow: "Qualification queue",
     qualPendingIppSuffix: "awaiting Ideal Partner Score",
-    qualQueueEmptyCopy: "Queue serene—celebrate airtight follow-through.",
+    qualQueueEmptyCopy: "Queue is clear—nice work keeping follow-through tight.",
     qualReviewCta: "Jump to qualification inbox →",
     churnAlert: ({ n }: { n: number }) =>
       `Check in with ${n} churn-risk ${n === 1 ? "partner" : "partners"}`,
@@ -177,54 +211,54 @@ export const COPY = {
     overdueNudge: ({ n }: { n: number }) =>
       `${n} Joint Business Plan Move${n === 1 ? "" : "s"} behind schedule →`,
     initiativesEyebrow: "Joint Business Plan moves",
-    initiativesTitleIdle: "Outstanding Joint Business Plan moves",
-    initiativesTitleFocus: "Laser focus · top three Moves",
+    initiativesTitleIdle: "Open Joint Business Plan moves",
+    initiativesTitleFocus: "Focus mode · top three moves",
     initiativesBodyIdle:
-      "Harvested automatically from teammate-owned Moves—prioritizes overdue allies first.",
+      "Pulled from what teammates own—overdue partners float up first.",
     initiativesBodyFocus:
-      "Close these before onboarding new urgencies—Partners respect boundaries when you honor them publicly.",
+      "Finish these before new fires land—partners notice when you protect what you already promised.",
     focusModeEnter: "Enter focus mode",
     focusModeExit: "Leave focus mode",
     initiativesEmptyWide:
-      "Nothing scheduled here yet—jump into any partner Joint Business Plan to carve three commitments.",
+      "Nothing here yet—open any partner Joint Business Plan to log a few clear commitments.",
     initiativesEmptyAxis:
-      "Filtered axis is quiet today—widening filters reveals other commitments.",
-    loadingInitiatives: "Hydrating Moves…",
-    weeklyReviewEyebrow: "Monday ritual scaffold",
-    weeklyReviewTitle: "Five-minute stewardship script",
+      "This filter is quiet today—broaden filters to see other commitments.",
+    loadingInitiatives: "Loading your moves…",
+    weeklyReviewEyebrow: "Monday ritual",
+    weeklyReviewTitle: "A five-minute stewardship check-in",
     weeklyReviewBody:
-      "Surface churn risk, finish three Moves, Slack/email leadership with receipts already formatted.",
+      "Surface churn risk, close three moves, and grab a Slack or email recap you can paste as-is.",
     exportSlack: "Copy Slack-friendly recap",
     exportEmail: "Copy email recap",
     rosterEyebrow: "Alliance roster",
-    rosterTitle: "Partners you materially support",
+    rosterTitle: "Partners you support day to day",
     addPartnerCta: "+ Invite partner workspace",
-    filterEmptyTitle: "Filters narrowed to zero allies",
+    filterEmptyTitle: "No partners match these filters",
     filterEmptyBody:
-      "Loosen constraints or onboard a workspace so Diagnostics and Moves stay visible inside one cockpit.",
+      "Widen filters or add a workspace so diagnostics and moves stay easy to find.",
   },
 
   partnerWorkspace: {
     pageMetaTitle: "Partner — Alliara",
-    notFoundTitle: "Partner workspace missing",
-    notFoundBody: "It may live under another teammate or archived territory.",
-    backToPortfolioCta: "Return to portfolio cockpit",
+    notFoundTitle: "We can't find this partner workspace",
+    notFoundBody: "It might belong to another teammate or be archived.",
+    backToPortfolioCta: "Back to portfolio",
     backCrumbLabel: "← Portfolio",
     readOnlyBadge: "Collaborator view",
-    editPartnerHint: "Edit ally profile",
-    scoreUndiagnosed: "Diagnostic not captured yet",
+    editPartnerHint: "Edit partner profile",
+    scoreUndiagnosed: "No diagnostic yet",
     maturityRadarHeading: "Maturity radar",
     growthLeversTitle: "Where coaching lands fastest",
     growthLeversBlurb:
-      "Axes with the lowest Diagnostics highlight human conversations worth scheduling this sprint.",
+      "Lower OCTA scores often point to conversations worth scheduling soon—start with empathy, not a lecture.",
     growthLeversLink: "Open Copilot →",
     diagHistoryHeading: "Diagnostic history",
-    partnerUpdatedToast: "Partner refreshed",
-    partnerDeletedToast: "Partner workspace deleted",
+    partnerUpdatedToast: "Partner updated",
+    partnerDeletedToast: "Partner workspace removed",
     deletePartnerBody:
-      "Deletes diagnostics, Joint Business Plan, and Copilot history for this ally—only do this if the relationship formally ended.",
-    deleteDiagConfirmTitle: "Delete this Diagnostic snapshot?",
-    deleteDiagConfirmHint: "Historical scores for this audit vanish permanently.",
+      "This removes diagnostics, the Joint Business Plan, and Copilot history for this partner—only use it when the relationship has truly ended.",
+    deleteDiagConfirmTitle: "Delete this diagnostic snapshot?",
+    deleteDiagConfirmHint: "Older scores from this run will be gone for good.",
     tabs: {
       overview: "Overview",
       axes: "Axes",
@@ -236,53 +270,90 @@ export const COPY = {
 
   qualification: {
     pageMetaTitle: "Qualification — Alliara",
-    eyebrow: "Lead qualification cockpit",
-    title: "Nurture prospects before committing workspace",
+    eyebrow: "Lead qualification",
+    title: "Nurture prospects before opening a full workspace",
     intro:
-      "Score Ideal Partner Fit before escalating—Partners trust PDM honesty when introductions stay selective.",
-    addLeadCta: "+ Log inbound opportunity",
-    loadingFallback: "Loading qualification cockpit…",
+      "Score Ideal Partner Fit before escalating—partners trust you when introductions stay thoughtful.",
+    addLeadCta: "+ Log inbound lead",
+    loadingFallback: "Loading…",
   },
 
   methodology: {
-    pageMetaTitle: "Methodology — OCTO — Alliara",
+    pageMetaTitle: "Methodology · OCTO · Alliara",
     pageMetaDescription:
-      "Eight OCTA axes translated for alliance conversations—objectives, levers, KPIs, and mistakes worth naming.",
-    ogTitle: "OCTO field guide · eight OCTA axes",
+      "Warm, plain-language guides for all eight OCTA axes—goals, gentle watch-outs, and tiny drills before your next partner conversation.",
+    ogTitle: "Your OCTO field guide · eight OCTA axes",
     ogDescription:
-      "Operational depth for OCTA so Diagnostics and Joint Business Plans stay human-readable.",
-    eyebrowSuffix: "OCTO playbook",
-    pageTitle: "Arm yourself with conversational OCTA depth",
-    intro: "Each axis catalogs objectives, pitfalls, drills—grab one takeaway before ally summits.",
-    statsRunDiagnosticHint: "Kick off Diagnostics from workspaces you shepherd.",
-    statsFullCoverageHint: "Eight-axis coverage unlocked",
-    statsPendingAxes: "{n} axes still unanswered",
-    centralModelEyebrow: "System thinking",
-    centralModelTitle: "Shared scaffolding for alliances",
-    ctaFirstPartner: "Bootstrap first partner cockpit",
-    ctaFirstDiag: "Kick off Diagnostics",
-    axesSectionEyebrow: "Eight axes explorer",
-    axesSectionTitle: "Browse mastery paths before facilitation",
+      "OCTA depth written for humans—so diagnostics and joint plans stay clear and kind.",
+    eyebrowSuffix: "Your OCTO playbook",
+    pageTitle: "Your friendly cheat sheet for each OCTA axis",
+    intro:
+      "Every axis breaks down what matters, where alliances stumble, and quick exercises you can try. Skim one before a call—you'll sound grounded, not scripted.",
+    statsRunDiagnosticHint: "Run a diagnostic when you're ready; we'll map levels together.",
+    statsFullCoverageHint: "You've surfaced every axis—nice coverage.",
+    statsPendingAxes: "{n} axes still waiting for a first pass",
+    centralModelEyebrow: "Big picture",
+    centralModelTitle: "One shared frame for how partnerships grow",
+    ctaFirstPartner: "Create your first partner workspace",
+    ctaFirstDiag: "Run your first diagnostic",
+    axesSectionEyebrow: "Eight axes",
+    axesSectionTitle: "Choose an axis to explore",
     axesSectionHint:
-      "Each card dives into drills, KPIs, and mistakes—preload context for partner calls.",
-    openAxisCta: "Inspect axis blueprint",
-    yourLevel: "Current OCTA footing",
-    statOverallLabel: "Portfolio maturity pulse",
-    statAxesLabel: "Diagnosed OCTA axes",
-    statLessonsLabel: "Micro-lessons logged",
-    statXpLabel: "XP banked",
-    statXpHint: "Lifetime curiosity fuel",
+      "Each card has drills, metrics, and honest mistakes—peek ahead before you facilitate.",
+    openAxisCta: "Open the guide",
+    axisLetterEyebrow: (letter: string) => `Axis ${letter}`,
+    axisCardAriaLabel: (axisName: string) => `Open the ${axisName} guide`,
+    yourLevel: "Where you show up on this axis",
+    statOverallLabel: "Portfolio maturity",
+    statAxesLabel: "Axes you've diagnosed",
+    statLessonsLabel: "Micro-lessons you've tried",
+    statXpLabel: "XP you've collected",
+    statXpHint: "A small high-five for curiosity",
     loadingTitleFallback: "",
+  },
+
+  methodologyAxis: {
+    backLink: "Back to methodology overview",
+    axisEyebrow: "OCTA axis",
+    statYourLevel: "Your level",
+    statLessons: "Lessons",
+    statProgress: "Progress",
+    tabOverview: "Overview",
+    tabLevels: "Levels",
+    tabLessons: "Lessons",
+    toastLessonDone: "+25 XP · Lesson complete",
+    overviewSectionTitle: "The idea in plain language",
+    sectionObjectives: "What good looks like",
+    sectionLevers: "Moves that actually help",
+    sectionMetrics: "Numbers worth watching",
+    commonMistakesTitle: "Common slips (we've all been there)",
+    examplesTitle: "Examples from real alliances",
+    levelsSignals: "Signals",
+    levelsMoveNext: "What helps you level up",
+    badgeYouAreHere: "You're here",
+    lessonExerciseLabel: "Try this",
+    lessonCompleted: "Done",
+    markCompleteCta: "Mark complete · +25 XP",
+    notFoundTitle: "We can't find that axis.",
+    notFoundDashboardLink: "Back to dashboard",
+    loading: "Loading…",
+    lessonMetaLine: ({ minutes, done }: { minutes: number; done: boolean }) =>
+      `${minutes} min · +25 XP${done ? " · Done" : ""}`,
+    expandLessonAria: (title: string, expanded: boolean) =>
+      `${expanded ? "Collapse" : "Expand"} lesson: ${title}`,
+    levelsHiddenHeading: "How maturity steps show up on this axis",
+    lessonsHiddenHeading: "Micro-lessons you can try",
+    statsGroupAriaLabel: "Snapshot for this axis",
   },
 
   reports: {
     pageMetaTitle: "Reports — Alliara",
-    loadErrorTitle: "Reports stalled loading data",
+    loadErrorTitle: "Reports paused while loading",
     retry: "Reload reports",
-    eyebrow: "Portfolio intelligence",
-    pageTitle: "Evidence partners and execs recognize",
+    eyebrow: "Portfolio insight",
+    pageTitle: "Numbers partners and execs can follow",
     intro:
-      "Filter by stewardship, tiers, eras—CSV or PNG snapshots for finance or alliances leadership pings.",
+      "Filter by how you steward accounts, tiers, or time—export CSV or PNG when finance or leadership pings you.",
     customSoonBadge: "+ Custom builder (soon)",
   },
 
@@ -290,19 +361,20 @@ export const COPY = {
     signIn: "Sign in",
     signOutLabel: "Sign out",
     getStarted: "Start free",
-    openWorkspaceCta: "Jump to cockpit",
-    signedInHint: "Active session",
-    rootMetaTitle: "Alliara — Partner stewardship workspace",
+    openWorkspaceCta: "Go to workspace",
+    signedInHint: "You're signed in",
+    rootMetaTitle: "Alliara — Partner workspace with heart",
     rootMetaDescription:
-      "Eight-axis Diagnostics, Joint Business Plans, Copilot—all tuned by Partner Development Managers for weekly rhythm.",
-    ogTitle: "Alliara — Partner Development cockpit · OCTO",
+      "Eight-axis diagnostics, joint business plans, and Copilot—built for Partner Development Managers and weekly partner rhythm.",
+    ogTitle: "Alliara — Partner cockpit · OCTO",
     ogDescription:
-      "Alliance diagnostics plus Moves that reinforce human rapport—purpose-built OCTO choreography.",
-    logoAltWordmark: "Alliara — stewardship for Partner Development Managers",
-    notFoundTitle: "That screen is not routed here",
-    notFoundHint: "Double-check bookmarks or glide back home.",
-    homeCtaLabel: "Fly home",
-    attributionByline: "Crafted thoughtfully by Victor Gutierrez",
+      "Alliance diagnostics and moves that keep rapport central—OCTO without the cold corporate vibe.",
+    logoAltWordmark: "Alliara — partner workspace for Partner Development Managers",
+    notFoundTitle: "This page isn't here",
+    notFoundHint:
+      "The link may be old, or the address has a typo. Head home and we'll get you oriented.",
+    homeCtaLabel: "Back to home",
+    attributionByline: "Crafted with care by Victor Gutierrez",
   },
 
   appShell: {
@@ -313,11 +385,11 @@ export const COPY = {
     dockPulse: "Diagnostics hub",
     dockSettings: "Settings",
     dockSignOut: "Sign out",
-    footerCredit: "Alliara · Partner stewardship workspace with OCTO heart",
-    teamPulseEyebrow: "People signals",
-    teamPulseTitle: "How team load aligns with Diagnostics depth",
+    footerCredit: "Alliara · Partner workspace with OCTO at the center",
+    teamPulseEyebrow: "Team signals",
+    teamPulseTitle: "How load lines up with diagnostic depth",
     teamPulseSubtitle:
-      "Balances portfolio weight with diagnosed maturity coverage—coach leaders before burnout whispers.",
+      "Balances portfolio weight with OCTA coverage—spot strain before it becomes a burnout story.",
     tablePdmCol: "Partner manager",
     tableLoadCol: "Active allies",
     tableMaturityAvg: "Avg maturity",
@@ -325,43 +397,43 @@ export const COPY = {
   },
 
   toast: {
-    reassignedPartner: ({ name }: { name: string }) => `Reassigned to ${name}`,
+    reassignedPartner: ({ name }: { name: string }) => `Now assigned to ${name}`,
     bulkReassignedPartners: ({ n }: { n: number }) =>
       `${n} partner${n === 1 ? "" : "s"} reassigned`,
     partnersUpdated: ({ count, label }: { count: number; label: string }) =>
-      `${count} partner${count === 1 ? "" : "s"} updated → ${label}`,
+      `${count} partner${count === 1 ? "" : "s"} updated · ${label}`,
     partnersDeleted: ({ count }: { count: number }) =>
       `${count} partner${count === 1 ? "" : "s"} removed`,
-    diagDeleted: "Diagnostic deleted",
+    diagDeleted: "Diagnostic removed",
     digestEmail: "Email recap copied",
     digestSlack: "Slack recap copied",
-    partnerCreated: ({ name }: { name: string }) => `${name} workspace live`,
-    moveAdded: "Move captured",
+    partnerCreated: ({ name }: { name: string }) => `${name} workspace is live`,
+    moveAdded: "Move saved",
     partnerProfileSaved: "Partner profile saved",
     partnerWorkspaceRemoved: "Partner workspace removed",
-    addedToJbp: "Added to Joint Business Plan",
-    moveMarkedDone: ({ title }: { title: string }) => `Marked complete · "${title}"`,
+    addedToJbp: "On the Joint Business Plan",
+    moveMarkedDone: ({ title }: { title: string }) => `Done · “${title}”`,
   },
 
   onboarding: {
-    eyebrow: "Momentum primer",
-    title: "Empty portfolio—you're one workspace away",
+    eyebrow: "Quick start",
+    title: "Empty portfolio? You're one workspace from momentum.",
     bodyLead:
-      "Each alliance deserves humane cadence—Diagnostics clarify reality, Moves carry accountability, Copilot nudges follow-through.",
-    stepAddTitle: "Stand up workspace",
-    stepAddBody: "Name ally, friction, aspiration—everything Copilot needs to stay grounded.",
-    stepDiagTitleRuns: ({ noun }: { noun: string }) => `Launch ${noun}`,
-    stepDiagBody: "Score OCTA transparently—the partner should recognize themselves in results.",
+      "Each alliance deserves a humane cadence—diagnostics clarify reality, moves carry accountability, Copilot nudges follow-through.",
+    stepAddTitle: "Create a workspace",
+    stepAddBody: "Name the partner, the friction, the aspiration—Copilot stays grounded when this is honest.",
+    stepDiagTitleRuns: ({ noun }: { noun: string }) => `Run the ${noun.toLowerCase()}`,
+    stepDiagBody: "Score OCTA together—the partner should recognize themselves in the results.",
     stepCopilotTitle: ({ copilot }: { copilot: string }) => `Open ${copilot}`,
     stepCopilotBody:
-      "Generate suggested Moves, tighten language with ally language, paste into commitments.",
-    methodologyCta: "Review OCTO methodology",
+      "Draft suggested moves, tune the language to your partner, paste what you'll commit to.",
+    methodologyCta: "Explore the OCTO methodology",
   },
 
   focusCopy: {
     hiddenMoreMoves: ({ n }: { n: number }) =>
-      `${n} more Moves hidden • finish surfaced work first`,
-    onlyTheseMoves: "Only these Moves remain publicly—celebrate completions loudly.",
+      `${n} more move${n === 1 ? "" : "s"} hidden—finish what's visible first`,
+    onlyTheseMoves: "Only these moves show for now—celebrate wins out loud.",
     unknownStakeholderLabel: "Unassigned teammate",
   },
 } as const;
@@ -376,13 +448,22 @@ export function partnerScoreSubtitle(level: number, runs: number): string {
 
 export function methodologyLessonsBadge(done: number, totalAxisLessons: number): string {
   if (done > 0) {
-    return `${done}/${totalAxisLessons} lessons practiced`;
+    return `${done}/${totalAxisLessons} lessons tried`;
   }
-  return `${totalAxisLessons} lessons available`;
+  return `${totalAxisLessons} lessons ready when you are`;
+}
+
+export function methodologyStatLessonsTotalHint(total: number): string {
+  if (total === 0) return "More lessons landing soon";
+  return total === 1 ? "1 micro-lesson to explore" : `${total} micro-lessons to explore`;
+}
+
+export function methodologyPortfolioLevelHint(level: number): string {
+  return `Level ${level} of 5`;
 }
 
 export function diagnosticHubDescription(): string {
-  return `Diagnostics hug a specific partner cockpit so Moves, ${COPY.copilot.label}, and revenue reviews stay tethered to the same narrative.`;
+  return `Diagnostics stay tied to a partner workspace so moves, ${COPY.copilot.label}, and revenue reviews share one story.`;
 }
 
 export function buildPortfolioBriefingText(input: {
@@ -400,12 +481,12 @@ export function buildPortfolioBriefingText(input: {
   }
   if (input.overdue > 0) {
     parts.push(
-      `${input.overdue} overdue commitment${input.overdue === 1 ? "" : "s"} across Joint Business Plans`,
+      `${input.overdue} overdue commitment${input.overdue === 1 ? "" : "s"} across joint business plans`,
     );
   }
   if (input.highPriority > 0 && input.overdue === 0) {
     parts.push(
-      `${input.highPriority} high-priority move${input.highPriority === 1 ? "" : "s"} awaiting closure`,
+      `${input.highPriority} high-priority move${input.highPriority === 1 ? "" : "s"} waiting to close`,
     );
   }
   if (input.leads > 0) {
@@ -424,7 +505,7 @@ export function buildPortfolioBriefingText(input: {
   const joined = parts.length > 0 ? `${parts.join(", ")}, and ${last}` : last;
 
   const prefixHead =
-    input.scope === "mine" ? "You have " : `Across ${input.ownerLabel}, leaders see `;
+    input.scope === "mine" ? "You have " : `Across ${input.ownerLabel}, you'd notice `;
 
-  return `${prefixHead}${joined}. Triage what's flashing red-tagged before layering new ambitions.`;
+  return `${prefixHead}${joined}. Tend to what's loudest before stacking new goals.`;
 }

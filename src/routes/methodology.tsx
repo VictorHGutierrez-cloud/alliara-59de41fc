@@ -6,7 +6,12 @@ import { usePortfolio } from "@/lib/partners-store";
 import { AXES, CENTRAL_MENTAL_MODEL, OCTA_FULL_NAME } from "@/content/octa";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { COPY, methodologyLessonsBadge } from "@/lib/copy";
+import {
+  COPY,
+  methodologyLessonsBadge,
+  methodologyPortfolioLevelHint,
+  methodologyStatLessonsTotalHint,
+} from "@/lib/copy";
 
 export const Route = createFileRoute("/methodology")({
   head: () => ({
@@ -50,7 +55,7 @@ function MethodologyPage() {
       {/* Header */}
       <section className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-primary" />
+          <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
           <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
             {COPY.methodology.eyebrowSuffix} · {OCTA_FULL_NAME}
           </span>
@@ -69,7 +74,9 @@ function MethodologyPage() {
           label={COPY.methodology.statOverallLabel}
           value={overall ? overall.toFixed(1) : "—"}
           hint={
-            overall ? `Level ${levelFromAvg(overall)} / 5` : COPY.methodology.statsRunDiagnosticHint
+            overall
+              ? methodologyPortfolioLevelHint(levelFromAvg(overall))
+              : COPY.methodology.statsRunDiagnosticHint
           }
           accent="primary"
         />
@@ -86,7 +93,7 @@ function MethodologyPage() {
         <StatCard
           label={COPY.methodology.statLessonsLabel}
           value={`${lessonsDone}`}
-          hint={`${lessonsTotal} available`}
+          hint={methodologyStatLessonsTotalHint(lessonsTotal)}
           accent="octa-5"
         />
         <StatCard
@@ -113,12 +120,12 @@ function MethodologyPage() {
         {!data.latest && (
           <Link
             to={portfolio.items.length === 0 ? "/partners" : "/diagnostic"}
-            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)]"
+            className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             {portfolio.items.length === 0
               ? COPY.methodology.ctaFirstPartner
               : COPY.methodology.ctaFirstDiag}
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         )}
       </section>
@@ -145,7 +152,8 @@ function MethodologyPage() {
                 key={axis.key}
                 to="/axis/$axisKey"
                 params={{ axisKey: axis.key }}
-                className="group relative rounded-2xl border border-border/60 bg-card p-5 card-elev hover:-translate-y-0.5 transition overflow-hidden"
+                aria-label={COPY.methodology.axisCardAriaLabel(axis.name)}
+                className="group relative rounded-2xl border border-border/60 bg-card p-5 card-elev hover:-translate-y-0.5 transition overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
               >
                 <div
                   className="pointer-events-none absolute top-0 left-0 h-1 w-full opacity-80"
@@ -168,7 +176,7 @@ function MethodologyPage() {
                       className="text-[10px] font-mono uppercase tracking-widest"
                       style={{ color: `var(--${axis.color})` }}
                     >
-                      Axis {axis.letter}
+                      {COPY.methodology.axisLetterEyebrow(axis.letter)}
                     </p>
                     <h3 className="text-base font-semibold leading-tight truncate">{axis.name}</h3>
                   </div>
@@ -182,7 +190,7 @@ function MethodologyPage() {
                 <ul className="mt-3 space-y-1.5">
                   {axis.objectives.slice(0, 3).map((o) => (
                     <li key={o} className="text-xs text-foreground/80 flex gap-2">
-                      <span style={{ color: `var(--${axis.color})` }} className="mt-0.5">
+                      <span style={{ color: `var(--${axis.color})` }} className="mt-0.5" aria-hidden>
                         ▸
                       </span>
                       <span className="line-clamp-1">{o}</span>
@@ -216,7 +224,7 @@ function MethodologyPage() {
 
                 <div className="mt-4 inline-flex items-center gap-1 text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition">
                   {COPY.methodology.openAxisCta}
-                  <ArrowRight className="h-3 w-3" />
+                  <ArrowRight className="h-3 w-3" aria-hidden />
                 </div>
               </Link>
             );

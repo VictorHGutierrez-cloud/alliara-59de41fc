@@ -5,14 +5,21 @@ import { toast } from "sonner";
 import { AuthLayout, Input } from "./login";
 
 export const Route = createFileRoute("/signup")({
+  validateSearch: (search: Record<string, unknown>) => {
+    if (typeof search.email === "string" && search.email.trim()) {
+      return { email: search.email.trim().slice(0, 320) };
+    }
+    return {};
+  },
   component: SignUp,
 });
 
 function SignUp() {
   const { signUp, user, resendVerification } = useAuth();
   const nav = useNavigate();
+  const search = Route.useSearch();
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState(() => search.email ?? "");
   const [pw, setPw] = useState("");
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -22,11 +29,15 @@ function SignUp() {
     if (user) nav({ to: "/partners", replace: true });
   }, [user, nav]);
 
+  useEffect(() => {
+    if (search.email) setEmail(search.email);
+  }, [search.email]);
+
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (pw.length < 8) return toast.error("Password must be at least 8 characters.");
+    if (pw.length < 8) return toast.error("Use at least 8 characters for your password.");
     if (!isAllowedEmail(email)) {
-      return toast.error(`Only @${ALLOWED_EMAIL_DOMAIN} email addresses are allowed.`);
+      return toast.error(`For now, sign up with your @${ALLOWED_EMAIL_DOMAIN} work email.`);
     }
     setBusy(true);
     const { error, needsVerification } = await signUp(email, pw, name);
@@ -46,7 +57,7 @@ function SignUp() {
       <AuthLayout title="Check your inbox" sub={`We sent a verification link to ${sentTo}.`}>
         <div className="space-y-4 text-sm">
           <p className="text-muted-foreground">
-            Click the link in the email to activate your account. It may take a minute to arrive — also check spam.
+            Open the link in that email to finish setup. It can take a minute—peek in spam if you do not see it.
           </p>
           <button
             disabled={resending}
@@ -57,7 +68,7 @@ function SignUp() {
               if (error) toast.error(error);
               else toast.success("Verification email resent");
             }}
-            className="w-full rounded-lg border border-border bg-surface py-2.5 text-sm font-semibold hover:bg-surface-2 disabled:opacity-50"
+            className="w-full min-h-11 rounded-xl border border-border bg-surface py-2.5 text-sm font-semibold transition hover:bg-surface-2 disabled:opacity-50"
           >
             {resending ? "Resending…" : "Resend verification email"}
           </button>
@@ -70,12 +81,12 @@ function SignUp() {
   }
 
   return (
-    <AuthLayout title="Create your account" sub={`Sign up with your @${ALLOWED_EMAIL_DOMAIN} email.`}>
+    <AuthLayout title="Create your account" sub={`Use your @${ALLOWED_EMAIL_DOMAIN} email to get started.`}>
       <form onSubmit={onSubmit} className="space-y-3">
         <Input label="Your name" value={name} onChange={setName} required />
         <Input label={`Work email (@${ALLOWED_EMAIL_DOMAIN})`} type="email" value={email} onChange={setEmail} required />
         <Input label="Password (8+ chars)" type="password" value={pw} onChange={setPw} required />
-        <button disabled={busy} className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50">
+        <button disabled={busy} className="w-full min-h-11 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50">
           {busy ? "Creating…" : "Create account"}
         </button>
         <p className="text-center text-sm text-muted-foreground">
