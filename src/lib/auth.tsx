@@ -16,9 +16,8 @@ interface AuthCtx {
   signOut: () => Promise<void>;
 }
 
-export const ALLOWED_EMAIL_DOMAIN = "factorial.co";
-export function isAllowedEmail(email: string): boolean {
-  return email.trim().toLowerCase().endsWith(`@${ALLOWED_EMAIL_DOMAIN}`);
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
 
 const Ctx = createContext<AuthCtx | undefined>(undefined);
@@ -49,8 +48,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error?.message };
     },
     signUp: async (email, password, displayName) => {
-      if (!isAllowedEmail(email)) {
-        return { error: `Only @${ALLOWED_EMAIL_DOMAIN} email addresses are allowed.` };
+      if (!isValidEmail(email)) {
+        return { error: "Please enter a valid email address." };
       }
       const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined;
       const { data, error } = await supabase.auth.signUp({
@@ -76,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const redirect_uri = typeof window !== "undefined" ? window.location.origin : undefined;
       const result = await lovable.auth.signInWithOAuth("google", {
         redirect_uri,
-        extraParams: { hd: ALLOWED_EMAIL_DOMAIN, prompt: "select_account" },
+        extraParams: { prompt: "select_account" },
       });
       if (result.error) {
         const msg = result.error instanceof Error ? result.error.message : String(result.error);

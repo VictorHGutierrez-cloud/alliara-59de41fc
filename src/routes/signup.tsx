@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
-import { useAuth, ALLOWED_EMAIL_DOMAIN, isAllowedEmail } from "@/lib/auth";
+import { useAuth, isValidEmail } from "@/lib/auth";
 import { toast } from "sonner";
 import { AuthLayout, Input, GoogleIcon } from "./login";
 
@@ -37,8 +37,8 @@ function SignUp() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (pw.length < 8) return toast.error("Use at least 8 characters for your password.");
-    if (!isAllowedEmail(email)) {
-      return toast.error(`For now, sign up with your @${ALLOWED_EMAIL_DOMAIN} work email.`);
+    if (!isValidEmail(email)) {
+      return toast.error("Please enter a valid email address.");
     }
     setBusy(true);
     const { error, needsVerification } = await signUp(email, pw, name);
@@ -82,7 +82,7 @@ function SignUp() {
   }
 
   return (
-    <AuthLayout title="Create your account" sub={`Use your @${ALLOWED_EMAIL_DOMAIN} email to get started.`}>
+    <AuthLayout title="Create your account" sub="Sign up in seconds — Google or email, your call.">
       <button
         type="button"
         disabled={googleBusy}
@@ -104,7 +104,7 @@ function SignUp() {
       </div>
       <form onSubmit={onSubmit} className="space-y-3">
         <Input label="Your name" value={name} onChange={setName} required />
-        <Input label={`Work email (@${ALLOWED_EMAIL_DOMAIN})`} type="email" value={email} onChange={setEmail} required />
+        <Input label="Email" type="email" value={email} onChange={setEmail} required />
         <Input label="Password (8+ chars)" type="password" value={pw} onChange={setPw} required />
         <button disabled={busy} className="w-full min-h-11 rounded-xl bg-primary py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition hover:opacity-90 disabled:opacity-50">
           {busy ? "Creating…" : "Create account"}
