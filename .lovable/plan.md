@@ -1,56 +1,62 @@
+## Problema
 
-## Objetivo
+Usuários que fazem signup (Google SSO ou email/senha) não aparecem em `/admin/approvals` porque a tabela `profiles` nunca recebe a linha correspondente. A função `handle_new_user()` existe, mas o **trigger** em `auth.users` que a dispara não foi criado. O mesmo vale para `assign_default_role()`.
 
-Oferecer dois caminhos de autenticação na Alliara:
-1. **Login com Google (SSO)** — um clique, sem senha, e-mail já verificado pelo Google.
-2. **E-mail + senha** — fluxo tradicional, com **verificação obrigatória de e-mail** antes do primeiro acesso e opção de **recuperação de senha**.
+Confirmado no banco:
+- `auth.users` tem `victor.henrique.duarte@alumni.usp.br` (id `2e4b6eaf…`)
+- `profiles` não tem nenhuma linha para esse id
+- Schema dump: "There are no triggers in the database"
 
-Tudo continua restrito ao domínio `@factorial.co` (regra já existente no banco via trigger `handle_new_user`).
+## Correção
 
----
+### 1. Migration
 
-## O que será entregue
+Criar (ou recriar) os triggers em `auth.users`:
 
-### 1. Login com Google (Lovable Cloud Managed)
-- Botão **"Continuar com Google"** nas telas `/login` e `/signup`.
-- Usa o Google OAuth gerenciado pela Lovable Cloud (sem precisar de credenciais próprias).
-- Restrição de domínio aplicada via parâmetro `hd: "factorial.co"` (Google só mostra contas @factorial.co) **+** a trigger do banco que já bloqueia outros domínios como segurança redundante.
-- Após login, redireciona para `/partners`.
+```sql
+-- profile auto-criado no signup
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
 
-### 2. E-mail + senha com verificação
-- Cadastro continua em `/signup`, mas agora o usuário **precisa clicar no link enviado por e-mail** antes de conseguir entrar (a configuração `auto_confirm_email` será desativada).
-- Tela `/signup` já mostra o aviso "Cheque seu inbox" — vamos reforçar a mensagem.
-- `/login` já detecta "email não confirmado" e oferece reenviar verificação — manter.
+-- role 'pdm' default
+drop trigger if exists on_auth_user_created_role on auth.users;
+create trigger on_auth_user_created_role
+  after insert on auth.users
+  for each row execute function public.assign_default_role();
+```
 
-### 3. Recuperação de senha (novo)
-- Nova tela `/forgot-password`: usuário digita o e-mail e recebe link de reset.
-- Nova tela `/reset-password`: usuário define a nova senha (página pública, lê o token do hash da URL).
-- Link "Esqueci minha senha" adicionado em `/login`.
+### 2. Backfill
 
-### 4. Proteção contra senhas vazadas
-- Habilitar **HIBP check** (have-i-been-pwned) — bloqueia senhas que aparecem em vazamentos conhecidos.
+Inserir profiles + roles que faltam para usuários `auth.users` órfãos (incluindo o Victor), com `access_status = 'pending'`:
 
----
+```sql
+insert into public.profiles (id, display_name, access_status)
+select u.id,
+       coalesce(u.raw_user_meta_data->>'display_name',
+                u.raw_user_meta_data->>'full_name',
+                u.raw_user_meta_data->>'name',
+                split_part(u.email,'@',1)),
+       'pending'
+from auth.users u
+left join public.profiles p on p.id = u.id
+where p.id is null;
 
-## Detalhes técnicos
+insert into public.user_roles (user_id, role)
+select u.id, 'pdm'
+from auth.users u
+left join public.user_roles r on r.user_id = u.id
+where r.user_id is null
+on conflict do nothing;
+```
 
-**Configuração de auth (via tool):**
-- `configure_social_auth` com `providers: ["google"]` (mantém email habilitado).
-- `configure_auth` com `auto_confirm_email: false` e `password_hibp_enabled: true`.
+### 3. Verificação
 
-**Código:**
-- Atualizar `src/lib/auth.tsx` para expor `signInWithGoogle()` usando `lovable.auth.signInWithOAuth("google", { redirect_uri, extraParams: { hd: "factorial.co" } })`.
-- Atualizar `src/routes/login.tsx` e `src/routes/signup.tsx` com botão Google + link "Esqueci senha".
-- Criar `src/routes/forgot-password.tsx` e `src/routes/reset-password.tsx`.
-- O integrador da Lovable cria automaticamente `src/integrations/lovable/` ao chamar `configure_social_auth` — não mexo nele.
+Após a migration:
+- O Victor aparece em `/admin/approvals` como pending.
+- Próximo signup (Google ou email) entra automaticamente em `profiles` como pending e em `user_roles` como `pdm`.
 
-**E-mails de verificação / reset:**
-- Por padrão, a Lovable Cloud envia esses e-mails automaticamente com template padrão. Funciona out-of-the-box.
-- Se quiser branding Alliara nos e-mails (logo, cores), posso configurar templates customizados depois — exige domínio de e-mail próprio configurado.
+## Observação
 
----
-
-## Perguntas antes de começar
-
-1. **Restrição @factorial.co no Google**: confirmo que o botão Google deve aceitar **somente** contas `@factorial.co`? (Se sim, uso `hd: "factorial.co"`. Se quiser permitir qualquer Google e validar depois, falo só com a trigger atual — mas a UX fica pior porque o usuário só descobre que foi bloqueado depois de logar.)
-2. **E-mails de verificação com branding Alliara**: quer que eu já configure templates customizados (precisa de domínio de e-mail) ou começamos com o padrão da Lovable Cloud e mexemos no visual depois?
+Não é preciso mexer em código frontend — `auth.tsx`, `admin.approvals.tsx` e o guard em `__root.tsx` já estão corretos. O bug era 100% de banco (trigger ausente).
