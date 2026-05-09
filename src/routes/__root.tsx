@@ -9,9 +9,11 @@ import {
 } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import appCss from "../styles.css?url";
+import alliaraSiteIcon from "@/assets/alliara-mark.png";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
-import alliaraLogo from "@/assets/alliara-logo.png";
+import alliaraLogo from "@/assets/alliara-logo.svg?url";
+import alliaraLogoSidebar from "@/assets/alliara-logo.svg?url";
 import {
   Menu,
   Users,
@@ -77,6 +79,8 @@ export const Route = createRootRoute({
       },
     ],
     links: [
+      { rel: "icon", href: alliaraSiteIcon, type: "image/png" },
+      { rel: "apple-touch-icon", href: alliaraSiteIcon },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -223,9 +227,9 @@ function AppFrame() {
         <aside className="hidden border-r border-sidebar-border/80 bg-sidebar/95 px-4 py-5 lg:flex lg:flex-col">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src={alliaraLogo}
+              src={alliaraLogoSidebar}
               alt={COPY.auth.logoAltWordmark}
-              className="h-12 w-auto max-w-[min(100%,12.5rem)] object-contain object-left"
+              className="h-auto w-full max-h-[4.75rem] max-w-[13.5rem] object-contain object-left"
             />
           </Link>
           <nav className="mt-5 space-y-1.5">
@@ -383,7 +387,11 @@ function AppFrame() {
             <SheetTitle className="sr-only">App navigation</SheetTitle>
             <div className="flex h-full flex-col px-3 py-4">
               <Link to="/" className="flex items-center gap-2 px-2" onClick={() => setMobileNavOpen(false)}>
-                <img src={alliaraLogo} alt={COPY.auth.logoAltWordmark} className="h-12 w-auto max-w-[min(100%,12.5rem)] object-contain object-left" />
+                <img
+                  src={alliaraLogoSidebar}
+                  alt={COPY.auth.logoAltWordmark}
+                  className="h-auto w-full max-h-[4.75rem] max-w-[13.5rem] object-contain object-left"
+                />
               </Link>
               <nav className="mt-6 space-y-1.5">
                 {workspaceItems.map((item) => {

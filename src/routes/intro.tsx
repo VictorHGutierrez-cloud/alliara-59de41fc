@@ -7,7 +7,7 @@ import {
   type KeptIllustrationVariant,
 } from "@/components/brand/KeptIllustration";
 import { useAuth } from "@/lib/auth";
-import alliaraLogo from "@/assets/alliara-logo.png";
+import alliaraLogo from "@/assets/alliara-logo.svg?url";
 
 export const Route = createFileRoute("/intro")({
   head: () => ({
