@@ -25,6 +25,7 @@ import {
   Sparkles,
   Settings as SettingsIcon,
   LogOut,
+  ShieldCheck,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
@@ -121,7 +122,7 @@ function RootComponent() {
 }
 
 function AppFrame() {
-  const { user, loading, signOut, accessStatus } = useAuth();
+  const { user, loading, signOut, accessStatus, isAdmin } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isLanding = path === "/";
   const navigate = useNavigate();
@@ -201,9 +202,18 @@ function AppFrame() {
               active: path.startsWith("/settings"),
               onClick: () => navigate({ to: "/settings" }),
             },
+            ...(isAdmin
+              ? [{
+                  key: "approvals",
+                  icon: ShieldCheck,
+                  label: "Approvals",
+                  active: path.startsWith("/admin/approvals"),
+                  onClick: () => navigate({ to: "/admin/approvals" }),
+                }]
+              : []),
           ]
         : [],
-    [navigate, path, user],
+    [navigate, path, user, isAdmin],
   );
 
   if (loading) {
