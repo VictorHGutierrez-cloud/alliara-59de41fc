@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
 import {
   BadgeCheck,
   CheckCircle2,
@@ -23,10 +23,14 @@ import {
 } from "@/components/certification/CertificateBody";
 import {
   EXPERT_CERT_TOTAL_SESSIONS,
-  buildCertificateId,
+  FACTORIAL_CERT_PROGRAMS,
   buildEligibilityFromSessions,
   formatCertificateDate,
+  generateRandomCertificateId,
+  parseIssueDateIsoLocal,
+  todayIsoDateLocal,
   type CertificationSessionRow,
+  type FactorialCertProgramId,
   type StakeholderRow,
 } from "@/lib/certification-eligibility";
 import type { Database } from "@/integrations/supabase/types";
@@ -44,7 +48,7 @@ function supabaseClientErrorDetail(e: unknown): string {
 }
 
 export const Route = createFileRoute("/partner/$partnerId/certification")({
-  head: () => ({ meta: [{ title: "Certification — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Factorial certification — Partner" }] }),
   component: PartnerCertificationPage,
 });
 
@@ -63,6 +67,12 @@ function PartnerCertificationPage() {
   const [selectedStakeholderId, setSelectedStakeholderId] = useState<string>("");
   const [issuerName, setIssuerName] = useState<string>("");
   const [preview, setPreview] = useState<CertificateBodyState | null>(null);
+  const [certProgramId, setCertProgramId] = useState<FactorialCertProgramId>(
+    FACTORIAL_CERT_PROGRAMS[0].id,
+  );
+  const [issueDateIso, setIssueDateIso] = useState<string>(() => todayIsoDateLocal());
+  const [companyLogoDataUrl, setCompanyLogoDataUrl] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) navigate({ to: "/login" });
@@ -181,23 +191,48 @@ function PartnerCertificationPage() {
     }
   };
 
+  const onCompanyLogoChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error(COPY.certification.logoInvalidType);
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error(COPY.certification.logoTooLarge);
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => toast.error(COPY.certification.previewToastError);
+    reader.onload = () => {
+      const r = reader.result;
+      if (typeof r === "string") setCompanyLogoDataUrl(r);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const openPreview = () => {
     if (!eligibility?.isEligible || !partner) return;
+    if (!companyLogoDataUrl) {
+      toast.error(COPY.certification.logoRequiredForPreview);
+      return;
+    }
     const stakeholder =
       stakeholders.find((s) => s.id === selectedStakeholderId) ?? stakeholders[0];
     if (!stakeholder) return;
-    const issuedAt = new Date();
+    const program =
+      FACTORIAL_CERT_PROGRAMS.find((p) => p.id === certProgramId) ?? FACTORIAL_CERT_PROGRAMS[0];
+    const issuedAt = parseIssueDateIsoLocal(issueDateIso);
     setPreview({
       partnerName: partner.company || partner.name,
       recipientName: stakeholder.name,
       recipientPosition: stakeholder.position,
       issuedAt,
-      certId: buildCertificateId({
-        partnerId: partner.id,
-        stakeholderId: stakeholder.id,
-        issuedAt,
-      }),
+      certId: generateRandomCertificateId(issuedAt),
       issuerName: issuerName || COPY.certification.certIssuerFallback,
+      programLabel: program.label,
+      companyLogoDataUrl,
     });
   };
 
@@ -310,6 +345,38 @@ function PartnerCertificationPage() {
           )}
         </div>
 
+        <div className="mt-5 grid gap-4 sm:grid-cols-2">
+          <label className="block">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+              {COPY.certification.cardSelectProgramLabel}
+            </span>
+            <select
+              className="input mt-1.5"
+              value={certProgramId}
+              onChange={(e) => setCertProgramId(e.target.value as FactorialCertProgramId)}
+              disabled={!canEdit}
+            >
+              {FACTORIAL_CERT_PROGRAMS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+              {COPY.certification.cardIssueDateLabel}
+            </span>
+            <input
+              type="date"
+              className="input mt-1.5"
+              value={issueDateIso}
+              onChange={(e) => setIssueDateIso(e.target.value)}
+              disabled={!canEdit}
+            />
+          </label>
+        </div>
+
         <div className="mt-5 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
           <label className="block">
             <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
@@ -339,6 +406,51 @@ function PartnerCertificationPage() {
           >
             {COPY.certification.cardManageStakeholdersCta}
           </Link>
+        </div>
+
+        <div className="mt-5 rounded-xl border border-border/60 bg-surface/40 p-4">
+          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+            {COPY.certification.certCompanyLogoLabel}
+          </span>
+          <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+            {COPY.certification.certCompanyLogoHint}
+          </p>
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="sr-only"
+            aria-hidden
+            tabIndex={-1}
+            onChange={onCompanyLogoChange}
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={!canEdit}
+              onClick={() => logoInputRef.current?.click()}
+              className="rounded-lg border border-border/70 bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-surface-2 transition disabled:opacity-50"
+            >
+              {COPY.certification.certCompanyLogoButton}
+            </button>
+            {companyLogoDataUrl ? (
+              <>
+                <img
+                  src={companyLogoDataUrl}
+                  alt=""
+                  className="h-10 max-w-[140px] rounded border border-border/60 bg-white object-contain p-1"
+                />
+                <button
+                  type="button"
+                  disabled={!canEdit}
+                  onClick={() => setCompanyLogoDataUrl(null)}
+                  className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-50"
+                >
+                  {COPY.certification.certCompanyLogoClear}
+                </button>
+              </>
+            ) : null}
+          </div>
         </div>
 
         {!isEligible && (
@@ -527,7 +639,7 @@ function CertificatePreviewDialog({
     if (!certRef.current || downloading) return;
     setDownloading(true);
     try {
-      const filename = `alliara-certificate-${slugifyForFile(state.partnerName)}-${slugifyForFile(state.recipientName)}.pdf`;
+      const filename = `factorial-certificate-${slugifyForFile(state.partnerName)}-${slugifyForFile(state.recipientName)}.pdf`;
       await downloadPdfFromNode(certRef.current, filename);
       toast.success(COPY.certification.previewToastSuccess);
     } catch (err) {

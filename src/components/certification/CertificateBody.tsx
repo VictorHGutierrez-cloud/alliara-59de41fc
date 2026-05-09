@@ -1,5 +1,4 @@
 import type { RefObject } from "react";
-import alliaraLogo from "@/assets/alliara-logo.png";
 import { COPY } from "@/lib/copy";
 import { formatCertificateDate } from "@/lib/certification-eligibility";
 
@@ -10,6 +9,9 @@ export interface CertificateBodyState {
   issuedAt: Date;
   certId: string;
   issuerName: string;
+  programLabel: string;
+  /** Data URL from uploaded partner company logo (PNG/JPEG/WebP). */
+  companyLogoDataUrl: string | null;
 }
 
 export function CertificateBody({
@@ -39,14 +41,25 @@ export function CertificateBody({
         aria-hidden
       />
 
-      <div className="flex items-center justify-between">
-        <img
-          src={alliaraLogo}
-          alt="Alliara"
-          className="h-9 w-auto object-contain"
-          crossOrigin="anonymous"
-        />
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-h-10 flex min-w-0 flex-1 items-center">
+          {state.companyLogoDataUrl ? (
+            <img
+              src={state.companyLogoDataUrl}
+              alt={COPY.certification.certPartnerLogoAlt}
+              className="max-h-10 w-auto max-w-[min(220px,100%)] object-contain object-left"
+              crossOrigin="anonymous"
+            />
+          ) : (
+            <span
+              className="font-display text-xl font-bold tracking-tight text-foreground"
+              style={{ color: "var(--primary)" }}
+            >
+              {COPY.certification.certLogoFallbackWordmark}
+            </span>
+          )}
+        </div>
+        <p className="shrink-0 text-right text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
           {COPY.certification.eyebrow}
         </p>
       </div>
@@ -70,19 +83,24 @@ export function CertificateBody({
         <p className="text-[11px] font-mono uppercase tracking-[0.24em] text-muted-foreground">
           {COPY.certification.certPartnerLabel}
         </p>
-        <p className="mt-1 font-display text-xl font-semibold text-foreground">
-          {state.partnerName}
-        </p>
+        <p className="mt-1 font-display text-xl font-semibold text-foreground">{state.partnerName}</p>
       </div>
 
       <h2 className="mt-8 font-display text-lg sm:text-xl font-semibold tracking-tight text-foreground">
         {COPY.certification.certTitle}
       </h2>
+      <p
+        className="mt-2 font-display text-base font-semibold tracking-tight"
+        style={{ color: "var(--primary)" }}
+      >
+        {state.programLabel}
+      </p>
       <p className="mt-3 max-w-xl text-sm leading-relaxed text-foreground/85">
         {COPY.certification.certBodyLine}
       </p>
 
-      <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+      <div className="mt-10 grid grid-cols-1 gap-4 text-xs sm:grid-cols-2 lg:grid-cols-4">
+        <Field label={COPY.certification.certProgramLabel} value={state.programLabel} />
         <Field
           label={COPY.certification.certDateLabel}
           value={formatCertificateDate(state.issuedAt)}
@@ -90,6 +108,10 @@ export function CertificateBody({
         <Field label={COPY.certification.certIdLabel} value={state.certId} mono />
         <Field label={COPY.certification.certIssuerLabel} value={state.issuerName} />
       </div>
+
+      <p className="mt-8 text-center text-[10px] leading-relaxed text-muted-foreground">
+        {COPY.certification.certFooterFactorial}
+      </p>
     </div>
   );
 }
@@ -108,7 +130,7 @@ function Field({
       <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
         {label}
       </p>
-      <p className={`mt-1 text-sm font-semibold ${mono ? "font-mono" : ""} text-foreground`}>
+      <p className={`mt-1 break-all text-sm font-semibold ${mono ? "font-mono text-[11px]" : ""} text-foreground`}>
         {value}
       </p>
     </div>

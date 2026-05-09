@@ -20,6 +20,16 @@ export type CertificationSessionRow =
 /** Total number of sessions in the Expert program. */
 export const EXPERT_CERT_TOTAL_SESSIONS = 5;
 
+/** Factorial channel programs shown on the certificate (internal catalogue). */
+export const FACTORIAL_CERT_PROGRAMS = [
+  { id: "operations", label: "Factorial Operations" },
+  { id: "performance", label: "Factorial Performance" },
+  { id: "finance", label: "Factorial Finance" },
+  { id: "core", label: "Factorial Core" },
+] as const;
+
+export type FactorialCertProgramId = (typeof FACTORIAL_CERT_PROGRAMS)[number]["id"];
+
 export type EligibilityReason =
   | "not_expert"
   | "no_stakeholder"
@@ -75,17 +85,33 @@ export function buildEligibilityFromSessions(
   };
 }
 
-/** Stable-ish certificate id, e.g. `ALLI-20260509-A1B2C3`. Includes a deterministic
- *  hash of partner + stakeholder so re-issuing the same pair on the same day yields
- *  the same id (handy for support conversations) without any DB write. */
-export function buildCertificateId(input: {
-  partnerId: string;
-  stakeholderId: string;
-  issuedAt: Date;
-}): string {
-  const datePart = formatYmd(input.issuedAt);
-  const hash = shortHash(`${input.partnerId}:${input.stakeholderId}:${datePart}`);
-  return `ALLI-${datePart}-${hash}`;
+/** Random unique certificate id for each issuance, e.g. `FAC-20260509-A1B2…`. */
+export function generateRandomCertificateId(issuedAt: Date): string {
+  const datePart = formatYmd(issuedAt);
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  const randomPart = Array.from(bytes, (b) => b.toString(16).padStart(2, "0"))
+    .join("")
+    .toUpperCase();
+  return `FAC-${datePart}-${randomPart}`;
+}
+
+/** Local calendar date from an `<input type="date">` value (`yyyy-mm-dd`). */
+export function parseIssueDateIsoLocal(isoDate: string): Date {
+  const parts = isoDate.split("-").map((s) => Number(s));
+  const y = parts[0];
+  const m = parts[1];
+  const d = parts[2];
+  if (!y || !m || !d) return new Date();
+  return new Date(y, m - 1, d, 12, 0, 0, 0);
+}
+
+export function todayIsoDateLocal(): string {
+  const x = new Date();
+  const y = x.getFullYear();
+  const mo = String(x.getMonth() + 1).padStart(2, "0");
+  const day = String(x.getDate()).padStart(2, "0");
+  return `${y}-${mo}-${day}`;
 }
 
 export function formatCertificateDate(date: Date): string {
@@ -101,13 +127,4 @@ function formatYmd(date: Date): string {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   const d = String(date.getDate()).padStart(2, "0");
   return `${y}${m}${d}`;
-}
-
-function shortHash(input: string): string {
-  let hash = 0x811c9dc5;
-  for (let i = 0; i < input.length; i++) {
-    hash ^= input.charCodeAt(i);
-    hash = (hash + ((hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24))) >>> 0;
-  }
-  return hash.toString(36).toUpperCase().padStart(6, "0").slice(0, 6);
 }

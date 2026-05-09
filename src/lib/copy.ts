@@ -287,7 +287,7 @@ export const COPY = {
       stakeholders: "Stakeholders",
       metrics: "Metrics",
       intel: "Intel",
-      certification: "Certification",
+      certification: "Factorial certification",
     },
   },
 
@@ -405,7 +405,7 @@ export const COPY = {
     dockQualification: "Qualification",
     dockReports: "Reports",
     dockMethodology: "Methodology",
-    dockCertification: "Certification",
+    dockCertification: "Factorial certs",
     dockPulse: "Diagnostics hub",
     dockSettings: "Settings",
     dockSignOut: "Sign out",
@@ -440,17 +440,17 @@ export const COPY = {
   },
 
   certification: {
-    pageMetaTitle: "Certification — Alliara",
+    pageMetaTitle: "Certification — Factorial",
     pageMetaDescription:
-      "Track each Expert partner's 5-session program and issue their certificate when the journey is complete.",
-    eyebrow: "Expert partner program",
-    pageTitle: "Track each Expert ally's certification journey",
+      "Track each Expert partner's 5-session Factorial program and issue a Factorial certificate when the journey is complete.",
+    eyebrow: "Factorial · Expert partner",
+    pageTitle: "Track each Expert ally's Factorial certification journey",
     intro:
-      "Each Expert partner has its own session checklist inside their workspace. This is the portfolio view—use it to spot who's ready, who's mid-program, and who hasn't started yet.",
+      "Each Expert partner has its own session checklist inside their workspace. This portfolio view shows who's ready for a Factorial certificate, who's mid-program, and who hasn't started yet.",
 
     sectionReadyTitle: "Ready to certify",
     sectionReadySubtitle:
-      "All 5 sessions are checked and a stakeholder is mapped. Open the partner to issue the certificate.",
+      "All 5 sessions are checked and a stakeholder is mapped. Open the partner to issue the Factorial certificate.",
     sectionInProgressTitle: "In progress",
     sectionInProgressSubtitle:
       "Sessions ticked but not yet 5/5—or a stakeholder still missing. Keep nudging.",
@@ -460,7 +460,7 @@ export const COPY = {
 
     emptyExpertTitle: "No Expert partners yet",
     emptyExpertBody:
-      "Open a partner and set the type to Expert. The certification tab will appear inside their workspace.",
+      "Open a partner and set the type to Expert. The Factorial certification tab will appear inside their workspace.",
     emptyExpertCta: "Open the portfolio",
 
     statsReadyLabel: "Ready",
@@ -478,14 +478,15 @@ export const COPY = {
       `${done} of ${total} sessions completed`,
 
     /* ---------- inside the partner workspace ---------- */
-    tabIntroTitle: "Expert program · 5 sessions",
+    tabIntroTitle: "Factorial Expert program · 5 sessions",
     tabIntroBody:
-      "Tick each session as you finish it with this partner. When all 5 are done and a stakeholder is mapped, you can issue the certificate.",
-    notExpertTitle: "Certification is for Expert partners",
+      "Tick each session as you finish it with this partner. When all 5 are done and a stakeholder is mapped, you can issue a Factorial certificate (pick the program, issue date, partner logo, then preview).",
+    notExpertTitle: "Factorial certification is for Expert partners",
     notExpertBody:
-      "Open the partner editor and switch the partner type to Expert to unlock the 5-session checklist.",
+      "Open the partner editor and switch the partner type to Expert to unlock the 5-session checklist and certificate tooling.",
     notExpertCta: "Edit partner profile",
-    readOnlyHint: "You're visiting as a collaborator—only the owning PDM (or leadership) can mark sessions or issue certificates here.",
+    readOnlyHint:
+      "You're visiting as a collaborator—only the owning Partner Development contact (or leadership) can mark sessions or issue Factorial certificates here.",
     sessionLabel: ({ n }: { n: number }) => `Session ${n}`,
     sessionMarkDone: "Mark as completed",
     sessionUndo: "Undo",
@@ -501,15 +502,25 @@ export const COPY = {
     progressLabel: ({ done, total }: { done: number; total: number }) =>
       `${done} of ${total} sessions completed`,
 
-    issueSectionTitle: "Issue the certificate",
+    issueSectionTitle: "Issue the Factorial certificate",
     issueSectionSubtitleReady:
-      "All 5 sessions are checked. Pick the stakeholder this certificate is for and download the PDF.",
+      "Choose the Factorial program, issue date, and upload the partner's company logo for the PDF. Then pick the stakeholder and preview.",
     issueSectionSubtitleGated:
-      "Once all 5 sessions are checked and at least one stakeholder is mapped, you'll be able to issue the certificate here.",
+      "Once all 5 sessions are checked and at least one stakeholder is mapped, you'll be able to issue the Factorial certificate here.",
     issueGatedReasonSessions: ({ done, total }: { done: number; total: number }) =>
       `Sessions: ${done}/${total} completed`,
     issueGatedReasonStakeholder: "No stakeholder mapped yet",
     issueGatedReasonNotExpert: "Partner is not marked as Expert",
+    cardSelectProgramLabel: "Factorial program",
+    cardIssueDateLabel: "Issue date",
+    certCompanyLogoLabel: "Partner company logo",
+    certCompanyLogoHint:
+      "Upload their logo (PNG, JPEG, or WebP, max 2 MB). It appears top-left on the certificate PDF.",
+    certCompanyLogoButton: "Choose image…",
+    certCompanyLogoClear: "Remove logo",
+    logoRequiredForPreview: "Upload the partner company logo before previewing the certificate.",
+    logoInvalidType: "Use an image file (PNG, JPEG, or WebP).",
+    logoTooLarge: "Image is too large. Use a file under 2 MB.",
     cardSelectStakeholderLabel: "Certify on behalf of",
     cardSelectStakeholderPlaceholder: "Pick a stakeholder…",
     cardNoStakeholderHint: "Add a stakeholder first to fill the recipient name.",
@@ -519,16 +530,21 @@ export const COPY = {
     cardDownloadingLabel: "Preparing…",
 
     /* ---------- shared certificate body ---------- */
-    certTitle: "Expert Partner — Alliara Certification",
+    certTitle: "Expert partner certification",
+    certProgramLabel: "Program",
     certBodyLine:
-      "This certificate confirms that the partner has completed the 5-session Expert program with their Partner Development Manager, demonstrating fluency across the OCTA framework needed to grow the alliance.",
+      "This certificate confirms that the named individual has completed the 5-session enablement track for the selected Factorial program, demonstrating readiness to grow the alliance together with Factorial.",
     certIssuedToLabel: "Issued to",
     certPartnerLabel: "Partner organisation",
+    certPartnerLogoAlt: "Partner company logo",
+    certLogoFallbackWordmark: "Factorial",
     certDateLabel: "Date issued",
     certIdLabel: "Certificate ID",
     certIssuerLabel: "Delivered by",
-    certIssuerFallback: "Alliara Partner Development",
-    previewToastSuccess: "Certificate downloaded — share it warmly.",
+    certIssuerFallback: "Factorial Partner Development",
+    certFooterFactorial:
+      "This credential is issued by Factorial. The certificate ID above is unique to this issuance.",
+    previewToastSuccess: "Factorial certificate downloaded.",
     previewToastError: "Could not export certificate. Try again in a moment.",
     previewCloseLabel: "Close preview",
   },
