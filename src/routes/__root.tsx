@@ -7,7 +7,7 @@ import {
   useRouterState,
   useNavigate,
 } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import appCss from "../styles.css?url";
 import alliaraSiteIcon from "@/assets/alliara-mark.png";
 import { AuthProvider, useAuth } from "@/lib/auth";
@@ -25,6 +25,7 @@ import {
   Sparkles,
   Settings as SettingsIcon,
   LogOut,
+  ShieldCheck,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
@@ -121,11 +122,25 @@ function RootComponent() {
 }
 
 function AppFrame() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, accessStatus, isAdmin } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isLanding = path === "/";
   const navigate = useNavigate();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // SaaS approval gate: signed-in users without approved access can only
+  // see public/auth pages and the pending screen.
+  const PUBLIC_PATHS = useMemo(
+    () => ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/pending-approval", "/intro", "/meet-kept"],
+    [],
+  );
+  useEffect(() => {
+    if (!user || !accessStatus) return;
+    if (accessStatus === "approved") return;
+    if (!PUBLIC_PATHS.includes(path)) {
+      navigate({ to: "/pending-approval", replace: true });
+    }
+  }, [user, accessStatus, path, PUBLIC_PATHS, navigate]);
 
   const workspaceItems = useMemo(
     () =>
@@ -187,9 +202,18 @@ function AppFrame() {
               active: path.startsWith("/settings"),
               onClick: () => navigate({ to: "/settings" }),
             },
+            ...(isAdmin
+              ? [{
+                  key: "approvals",
+                  icon: ShieldCheck,
+                  label: "Approvals",
+                  active: path.startsWith("/admin/approvals"),
+                  onClick: () => navigate({ to: "/admin/approvals" }),
+                }]
+              : []),
           ]
         : [],
-    [navigate, path, user],
+    [navigate, path, user, isAdmin],
   );
 
   if (loading) {

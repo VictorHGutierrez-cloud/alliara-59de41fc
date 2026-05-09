@@ -14,6 +14,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as QualificationRouteImport } from './routes/qualification'
+import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as MeetKeptRouteImport } from './routes/meet-kept'
@@ -26,6 +27,7 @@ import { Route as CertificationRouteImport } from './routes/certification'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartnerPartnerIdRouteImport } from './routes/partner.$partnerId'
 import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
+import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as PartnerPartnerIdStakeholdersRouteImport } from './routes/partner.$partnerId.stakeholders'
 import { Route as PartnerPartnerIdPlanRouteImport } from './routes/partner.$partnerId.plan'
 import { Route as PartnerPartnerIdMetricsRouteImport } from './routes/partner.$partnerId.metrics'
@@ -58,6 +60,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const QualificationRoute = QualificationRouteImport.update({
   id: '/qualification',
   path: '/qualification',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PendingApprovalRoute = PendingApprovalRouteImport.update({
+  id: '/pending-approval',
+  path: '/pending-approval',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PartnersRoute = PartnersRouteImport.update({
@@ -120,6 +127,11 @@ const AxisAxisKeyRoute = AxisAxisKeyRouteImport.update({
   path: '/axis/$axisKey',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
+  id: '/admin/approvals',
+  path: '/admin/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PartnerPartnerIdStakeholdersRoute =
   PartnerPartnerIdStakeholdersRouteImport.update({
     id: '/stakeholders',
@@ -175,11 +187,13 @@ export interface FileRoutesByFullPath {
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
@@ -202,11 +216,13 @@ export interface FileRoutesByTo {
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
@@ -230,11 +246,13 @@ export interface FileRoutesById {
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
+  '/pending-approval': typeof PendingApprovalRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
@@ -259,11 +277,13 @@ export interface FileRouteTypes {
     | '/meet-kept'
     | '/methodology'
     | '/partners'
+    | '/pending-approval'
     | '/qualification'
     | '/reports'
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/admin/approvals'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
@@ -286,11 +306,13 @@ export interface FileRouteTypes {
     | '/meet-kept'
     | '/methodology'
     | '/partners'
+    | '/pending-approval'
     | '/qualification'
     | '/reports'
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/admin/approvals'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
@@ -313,11 +335,13 @@ export interface FileRouteTypes {
     | '/meet-kept'
     | '/methodology'
     | '/partners'
+    | '/pending-approval'
     | '/qualification'
     | '/reports'
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/admin/approvals'
     | '/axis/$axisKey'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
@@ -341,11 +365,13 @@ export interface RootRouteChildren {
   MeetKeptRoute: typeof MeetKeptRoute
   MethodologyRoute: typeof MethodologyRoute
   PartnersRoute: typeof PartnersRoute
+  PendingApprovalRoute: typeof PendingApprovalRoute
   QualificationRoute: typeof QualificationRoute
   ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
+  AdminApprovalsRoute: typeof AdminApprovalsRoute
   AxisAxisKeyRoute: typeof AxisAxisKeyRoute
   PartnerPartnerIdRoute: typeof PartnerPartnerIdRouteWithChildren
 }
@@ -385,6 +411,13 @@ declare module '@tanstack/react-router' {
       path: '/qualification'
       fullPath: '/qualification'
       preLoaderRoute: typeof QualificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pending-approval': {
+      id: '/pending-approval'
+      path: '/pending-approval'
+      fullPath: '/pending-approval'
+      preLoaderRoute: typeof PendingApprovalRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partners': {
@@ -469,6 +502,13 @@ declare module '@tanstack/react-router' {
       path: '/axis/$axisKey'
       fullPath: '/axis/$axisKey'
       preLoaderRoute: typeof AxisAxisKeyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/approvals': {
+      id: '/admin/approvals'
+      path: '/admin/approvals'
+      fullPath: '/admin/approvals'
+      preLoaderRoute: typeof AdminApprovalsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/partner/$partnerId/stakeholders': {
@@ -566,11 +606,13 @@ const rootRouteChildren: RootRouteChildren = {
   MeetKeptRoute: MeetKeptRoute,
   MethodologyRoute: MethodologyRoute,
   PartnersRoute: PartnersRoute,
+  PendingApprovalRoute: PendingApprovalRoute,
   QualificationRoute: QualificationRoute,
   ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
+  AdminApprovalsRoute: AdminApprovalsRoute,
   AxisAxisKeyRoute: AxisAxisKeyRoute,
   PartnerPartnerIdRoute: PartnerPartnerIdRouteWithChildren,
 }
