@@ -558,6 +558,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          access_status: Database["public"]["Enums"]["access_status"]
           avatar_url: string | null
           company: string | null
           created_at: string
@@ -568,6 +569,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_status?: Database["public"]["Enums"]["access_status"]
           avatar_url?: string | null
           company?: string | null
           created_at?: string
@@ -578,6 +580,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_status?: Database["public"]["Enums"]["access_status"]
           avatar_url?: string | null
           company?: string | null
           created_at?: string
@@ -622,6 +625,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_approved: { Args: { _user_id: string }; Returns: boolean }
       list_pdm_roster: {
         Args: never
         Returns: {
@@ -631,6 +635,7 @@ export type Database = {
       }
     }
     Enums: {
+      access_status: "pending" | "approved" | "rejected"
       action_priority: "low" | "medium" | "high"
       action_status: "todo" | "doing" | "done"
       app_role: "pdm" | "leadership" | "admin"
@@ -767,6 +772,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      access_status: ["pending", "approved", "rejected"],
       action_priority: ["low", "medium", "high"],
       action_status: ["todo", "doing", "done"],
       app_role: ["pdm", "leadership", "admin"],
