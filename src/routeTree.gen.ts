@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as QualificationRouteImport } from './routes/qualification'
 import { Route as PartnersRouteImport } from './routes/partners'
@@ -18,6 +19,7 @@ import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as MeetKeptRouteImport } from './routes/meet-kept'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IntroRouteImport } from './routes/intro'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CertificationRouteImport } from './routes/certification'
@@ -41,6 +43,11 @@ const SignupRoute = SignupRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -76,6 +83,11 @@ const LoginRoute = LoginRouteImport.update({
 const IntroRoute = IntroRouteImport.update({
   id: '/intro',
   path: '/intro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiagnosticRoute = DiagnosticRouteImport.update({
@@ -157,6 +169,7 @@ export interface FileRoutesByFullPath {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
@@ -164,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
@@ -182,6 +196,7 @@ export interface FileRoutesByTo {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
@@ -189,6 +204,7 @@ export interface FileRoutesByTo {
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
@@ -208,6 +224,7 @@ export interface FileRoutesById {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
@@ -215,6 +232,7 @@ export interface FileRoutesById {
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
   '/reports': typeof ReportsRoute
+  '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
@@ -235,6 +253,7 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/forgot-password'
     | '/intro'
     | '/login'
     | '/meet-kept'
@@ -242,6 +261,7 @@ export interface FileRouteTypes {
     | '/partners'
     | '/qualification'
     | '/reports'
+    | '/reset-password'
     | '/settings'
     | '/signup'
     | '/axis/$axisKey'
@@ -260,6 +280,7 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/forgot-password'
     | '/intro'
     | '/login'
     | '/meet-kept'
@@ -267,6 +288,7 @@ export interface FileRouteTypes {
     | '/partners'
     | '/qualification'
     | '/reports'
+    | '/reset-password'
     | '/settings'
     | '/signup'
     | '/axis/$axisKey'
@@ -285,6 +307,7 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/forgot-password'
     | '/intro'
     | '/login'
     | '/meet-kept'
@@ -292,6 +315,7 @@ export interface FileRouteTypes {
     | '/partners'
     | '/qualification'
     | '/reports'
+    | '/reset-password'
     | '/settings'
     | '/signup'
     | '/axis/$axisKey'
@@ -311,6 +335,7 @@ export interface RootRouteChildren {
   CertificationRoute: typeof CertificationRoute
   DashboardRoute: typeof DashboardRoute
   DiagnosticRoute: typeof DiagnosticRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
   IntroRoute: typeof IntroRoute
   LoginRoute: typeof LoginRoute
   MeetKeptRoute: typeof MeetKeptRoute
@@ -318,6 +343,7 @@ export interface RootRouteChildren {
   PartnersRoute: typeof PartnersRoute
   QualificationRoute: typeof QualificationRoute
   ReportsRoute: typeof ReportsRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
   AxisAxisKeyRoute: typeof AxisAxisKeyRoute
@@ -338,6 +364,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -387,6 +420,13 @@ declare module '@tanstack/react-router' {
       path: '/intro'
       fullPath: '/intro'
       preLoaderRoute: typeof IntroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/diagnostic': {
@@ -520,6 +560,7 @@ const rootRouteChildren: RootRouteChildren = {
   CertificationRoute: CertificationRoute,
   DashboardRoute: DashboardRoute,
   DiagnosticRoute: DiagnosticRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   IntroRoute: IntroRoute,
   LoginRoute: LoginRoute,
   MeetKeptRoute: MeetKeptRoute,
@@ -527,6 +568,7 @@ const rootRouteChildren: RootRouteChildren = {
   PartnersRoute: PartnersRoute,
   QualificationRoute: QualificationRoute,
   ReportsRoute: ReportsRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
   AxisAxisKeyRoute: AxisAxisKeyRoute,
@@ -535,12 +577,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
