@@ -7,7 +7,7 @@ import {
   useRouterState,
   useNavigate,
 } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import appCss from "../styles.css?url";
 import alliaraSiteIcon from "@/assets/alliara-mark.png";
 import { AuthProvider, useAuth } from "@/lib/auth";
