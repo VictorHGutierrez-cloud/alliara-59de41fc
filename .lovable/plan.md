@@ -1,43 +1,22 @@
-## Diagnóstico
+## Problema
 
-O **Copilot em si está 100% funcional** — testei a edge function `ai-coach` direto e ela retornou status 200 com recomendações válidas em ~3s.
+A tabela `public.partner_certification_sessions` não existe no banco de dados (erro PGRST205). O código já espera essa tabela (vide `src/lib/certification-eligibility.ts` e `src/routes/certification.tsx`), mas a migração nunca foi aplicada — só existe um script manual em `supabase/repair_partner_certification_sessions.sql`.
 
-O motivo do erro vermelho na tela é outro: **o app está com erros de build de TypeScript** que foram introduzidos em edições anteriores e quebram qualquer interação que dispare uma rota (incluindo clicar em "Generate" no Copilot).
+## Solução
 
-## Erros encontrados
+Criar a tabela via migração oficial do Lovable Cloud (não precisa rodar SQL manualmente no painel — eu faço pela ferramenta de migração e você só aprova).
 
-**1. `src/routes/partner.$partnerId.tsx` linha 455**
-```
-Cannot find name 'confirmDialog'. Did you mean 'useConfirmDialog'?
-```
-O componente `DiagnosticHistory` (linha 420) usa `confirmDialog(...)` no botão de deletar diagnóstico, mas nunca chamou `const confirmDialog = useConfirmDialog();` no topo do componente. Os outros dois componentes do arquivo (`PartnerLayout` linha 26 e `Overview` linha 193) já têm essa linha — falta só em `DiagnosticHistory`.
+### O que a migração vai criar
 
-**2. `src/routes/reports.tsx` linhas 120, 129, 154**
-```
-Parameter 'prev' implicitly has an 'any' type.
-```
-Três callbacks `(prev) => ({ ...prev, ... })` passados para `navigate({ search })` sem tipo explícito. O TanStack Router em modo strict exige tipagem.
+- **Tabela `partner_certification_sessions`** com os campos: `partner_id`, `session_number` (1 a 5), `completed_at`, `completed_by`, `notes`, `created_at`, `updated_at`. Restrição de unicidade por (partner, número da sessão) para evitar duplicatas.
+- **Regras de acesso (RLS)**:
+  - Ver: dono do parceiro, leadership ou admin podem ver as sessões.
+  - Criar/Editar/Apagar: apenas o dono do parceiro, leadership ou admin.
+- **Trigger** para atualizar `updated_at` automaticamente.
+- **Foreign keys**: `partner_id` → `partners` (cascade delete), `completed_by` → `profiles`.
 
-## Correções
+### Depois da aprovação
 
-### 1. `src/routes/partner.$partnerId.tsx`
-Adicionar uma linha no início do componente `DiagnosticHistory`:
-```tsx
-function DiagnosticHistory({ data }: { data: ReturnType<typeof usePartner> }) {
-  const confirmDialog = useConfirmDialog();   // ← adicionar
-  // ...resto igual
-}
-```
+Não preciso mudar código — o frontend já está pronto pra usar essa tabela. Assim que a migração rodar, salvar sessões de certificação vai funcionar imediatamente.
 
-### 2. `src/routes/reports.tsx`
-Tipar o `prev` nos 3 callbacks de `navigate({ search })` como `Record<string, unknown>` (ou o tipo do search schema da rota, se existir):
-```tsx
-search: (prev: Record<string, unknown>) => ({ ...prev, [k === "pdmId" ? "pdm" : k]: v }),
-```
-Mesma mudança nas 3 chamadas.
-
-## Validação
-
-Após as correções, o build volta a passar e o botão **Generate** do Copilot vai chamar a edge function (que já está saudável) e mostrar as recomendações na tela normalmente.
-
-Nenhuma mudança em lógica de negócio, na edge function `ai-coach` ou no fluxo do Copilot — só destravar o build.
+Posso prosseguir?

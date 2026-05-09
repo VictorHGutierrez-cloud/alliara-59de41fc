@@ -180,6 +180,54 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_certification_sessions: {
+        Row: {
+          completed_at: string
+          completed_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          partner_id: string
+          session_number: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          partner_id: string
+          session_number: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          partner_id?: string
+          session_number?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_certification_sessions_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "partner_certification_sessions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partner_documents: {
         Row: {
           created_at: string
