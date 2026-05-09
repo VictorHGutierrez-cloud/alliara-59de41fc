@@ -3,10 +3,14 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 
+export type AccessStatus = "pending" | "approved" | "rejected";
+
 interface AuthCtx {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  accessStatus: AccessStatus | null;
+  isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error?: string; needsVerification?: boolean }>;
   resendVerification: (email: string) => Promise<{ error?: string }>;
@@ -25,6 +29,8 @@ const Ctx = createContext<AuthCtx | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [accessStatus, setAccessStatus] = useState<AccessStatus | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     // Set listener BEFORE getSession (per Lovable Cloud guidance)
@@ -39,10 +45,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Load access_status + admin role whenever the user changes
+  useEffect(() => {
+    const uid = session?.user?.id;
+    if (!uid) {
+      setAccessStatus(null);
+      setIsAdmin(false);
+      return;
+    }
+    let cancelled = false;
+    void (async () => {
+      const [{ data: prof }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("access_status").eq("id", uid).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", uid),
+      ]);
+      if (cancelled) return;
+      const status = (prof as { access_status?: AccessStatus } | null)?.access_status ?? "pending";
+      setAccessStatus(status);
+      setIsAdmin((roles ?? []).some((r) => r.role === "admin"));
+    })();
+    return () => { cancelled = true; };
+  }, [session?.user?.id]);
+
   const value: AuthCtx = {
     session,
     user: session?.user ?? null,
     loading,
+    accessStatus,
+    isAdmin,
     signIn: async (email, password) => {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       return { error: error?.message };
