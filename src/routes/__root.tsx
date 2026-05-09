@@ -121,11 +121,25 @@ function RootComponent() {
 }
 
 function AppFrame() {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading, signOut, accessStatus } = useAuth();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isLanding = path === "/";
   const navigate = useNavigate();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  // SaaS approval gate: signed-in users without approved access can only
+  // see public/auth pages and the pending screen.
+  const PUBLIC_PATHS = useMemo(
+    () => ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/pending-approval", "/intro", "/meet-kept"],
+    [],
+  );
+  useEffect(() => {
+    if (!user || !accessStatus) return;
+    if (accessStatus === "approved") return;
+    if (!PUBLIC_PATHS.includes(path)) {
+      navigate({ to: "/pending-approval", replace: true });
+    }
+  }, [user, accessStatus, path, PUBLIC_PATHS, navigate]);
 
   const workspaceItems = useMemo(
     () =>
