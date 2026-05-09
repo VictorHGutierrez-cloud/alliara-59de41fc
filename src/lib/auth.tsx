@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 
 interface AuthCtx {
   session: Session | null;
@@ -9,6 +10,9 @@ interface AuthCtx {
   signIn: (email: string, password: string) => Promise<{ error?: string }>;
   signUp: (email: string, password: string, displayName: string) => Promise<{ error?: string; needsVerification?: boolean }>;
   resendVerification: (email: string) => Promise<{ error?: string }>;
+  signInWithGoogle: () => Promise<{ error?: string }>;
+  sendPasswordReset: (email: string) => Promise<{ error?: string }>;
+  updatePassword: (password: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
 }
 
@@ -66,6 +70,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         email,
         options: { emailRedirectTo: redirectUrl },
       });
+      return { error: error?.message };
+    },
+    signInWithGoogle: async () => {
+      const redirect_uri = typeof window !== "undefined" ? window.location.origin : undefined;
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri,
+        extraParams: { hd: ALLOWED_EMAIL_DOMAIN, prompt: "select_account" },
+      });
+      if (result.error) {
+        const msg = result.error instanceof Error ? result.error.message : String(result.error);
+        return { error: msg };
+      }
+      return {};
+    },
+    sendPasswordReset: async (email) => {
+      const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/reset-password` : undefined;
+      const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+      return { error: error?.message };
+    },
+    updatePassword: async (password) => {
+      const { error } = await supabase.auth.updateUser({ password });
       return { error: error?.message };
     },
     signOut: async () => { await supabase.auth.signOut(); },

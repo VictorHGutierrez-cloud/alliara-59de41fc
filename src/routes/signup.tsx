@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth, ALLOWED_EMAIL_DOMAIN, isAllowedEmail } from "@/lib/auth";
 import { toast } from "sonner";
-import { AuthLayout, Input } from "./login";
+import { AuthLayout, Input, GoogleIcon } from "./login";
 
 export const Route = createFileRoute("/signup")({
   validateSearch: (search: Record<string, unknown>) => {
@@ -15,7 +15,7 @@ export const Route = createFileRoute("/signup")({
 });
 
 function SignUp() {
-  const { signUp, user, resendVerification } = useAuth();
+  const { signUp, user, resendVerification, signInWithGoogle } = useAuth();
   const nav = useNavigate();
   const search = Route.useSearch();
   const [name, setName] = useState("");
@@ -24,6 +24,7 @@ function SignUp() {
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [resending, setResending] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
 
   useEffect(() => {
     if (user) nav({ to: "/partners", replace: true });
@@ -82,6 +83,25 @@ function SignUp() {
 
   return (
     <AuthLayout title="Create your account" sub={`Use your @${ALLOWED_EMAIL_DOMAIN} email to get started.`}>
+      <button
+        type="button"
+        disabled={googleBusy}
+        onClick={async () => {
+          setGoogleBusy(true);
+          const { error } = await signInWithGoogle();
+          if (error) {
+            setGoogleBusy(false);
+            toast.error(error);
+          }
+        }}
+        className="mb-4 w-full min-h-11 inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-surface py-2.5 text-sm font-semibold transition hover:bg-surface-2 disabled:opacity-50"
+      >
+        <GoogleIcon />
+        {googleBusy ? "Connecting…" : "Continue with Google"}
+      </button>
+      <div className="mb-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+        <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
+      </div>
       <form onSubmit={onSubmit} className="space-y-3">
         <Input label="Your name" value={name} onChange={setName} required />
         <Input label={`Work email (@${ALLOWED_EMAIL_DOMAIN})`} type="email" value={email} onChange={setEmail} required />
