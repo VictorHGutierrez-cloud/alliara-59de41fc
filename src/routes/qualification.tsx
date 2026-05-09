@@ -815,7 +815,7 @@ function NewLeadDialog({
       >
         <h2 className="text-xl font-semibold">New partner lead</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Capture the basics — score the 5 dimensions next.
+          Capture the basics. Then score the five dimensions next.
         </p>
 
         <div className="mt-5 space-y-3">
@@ -852,7 +852,7 @@ function NewLeadDialog({
             >
               {PARTNER_TYPES.map((t) => (
                 <option key={t.key} value={t.key}>
-                  {t.label} — {t.description}
+                  {t.label} · {t.description}
                 </option>
               ))}
             </select>
@@ -1023,7 +1023,7 @@ function LeadDetailPanel({
             }}
             className="rounded-md bg-surface border border-border/60 px-2 py-1 text-xs"
           >
-            <option value="">— Not set —</option>
+            <option value="">Not set</option>
             {PARTNER_TYPES.map((t) => (
               <option key={t.key} value={t.key}>
                 {t.label}
@@ -1059,7 +1059,7 @@ function LeadDetailPanel({
                 {lead.promoted_partner_id
                   ? "This lead has been promoted to a partner."
                   : verdict?.tone === "red"
-                    ? "Score the lead first — current verdict is too low to promote."
+                    ? "Score the lead first. The current verdict is too low to promote."
                     : "Promotes the lead and opens the new partner workspace."}
               </div>
             </div>
@@ -1105,7 +1105,7 @@ function LeadDetailPanel({
             <div className="mt-6">
               <h3 className="text-sm font-semibold">Factorial 5-Dimension Scorecard</h3>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Score each dimension Low (1) · Medium (2) · High (3). Total ranges 5–15.
+                Score each dimension Low (1) · Medium (2) · High (3). Total ranges 5 to 15.
               </p>
 
               <div className="mt-4 space-y-5">
@@ -1252,7 +1252,7 @@ function RejectReasonDialog({
       >
         <h3 className="text-lg font-semibold">Reject lead</h3>
         <p className="text-sm text-muted-foreground mt-1">
-          Pick the primary reason — it will be archived with the lead for context.
+          Pick the primary reason. It will be archived with the lead for context.
         </p>
 
         <div className="mt-4 space-y-3">
@@ -1404,7 +1404,7 @@ function CrmTab({
             <div className="text-xs text-muted-foreground py-4 text-center">Loading…</div>
           ) : acts.activities.length === 0 ? (
             <div className="text-xs text-muted-foreground py-4 text-center">
-              No activities yet — log a call, plan a task, or jot a note.
+              No activities yet. Log a call, plan a task, or jot a note.
             </div>
           ) : (
             acts.activities.map((a) => (

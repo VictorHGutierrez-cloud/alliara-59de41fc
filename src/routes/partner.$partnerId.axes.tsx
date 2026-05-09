@@ -5,7 +5,7 @@ import { AXES, type Axis } from "../content/octa";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/partner/$partnerId/axes")({
-  head: () => ({ meta: [{ title: "Axes — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Axes · Alliara" }] }),
   component: PartnerAxes,
 });
 

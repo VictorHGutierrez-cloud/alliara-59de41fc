@@ -788,7 +788,7 @@ function EditPartnerDialog({
             >
               {PARTNER_TYPES.map((t) => (
                 <option key={t.key} value={t.key}>
-                  {t.label} — {t.description}
+                  {t.label} · {t.description}
                 </option>
               ))}
             </select>

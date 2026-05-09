@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId/metrics")({
-  head: () => ({ meta: [{ title: "Metrics — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Metrics · Alliara" }] }),
   component: MetricsPage,
 });
 

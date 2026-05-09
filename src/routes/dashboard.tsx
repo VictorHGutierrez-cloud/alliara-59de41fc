@@ -8,7 +8,7 @@ import { COPY } from "@/lib/copy";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Dashboard · Alliara" }] }),
   component: Dashboard,
 });
 

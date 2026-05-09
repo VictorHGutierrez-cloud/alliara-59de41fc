@@ -48,7 +48,7 @@ function supabaseClientErrorDetail(e: unknown): string {
 }
 
 export const Route = createFileRoute("/partner/$partnerId/certification")({
-  head: () => ({ meta: [{ title: "Factorial certification — Partner" }] }),
+  head: () => ({ meta: [{ title: "Factorial certification · Partner" }] }),
   component: PartnerCertificationPage,
 });
 

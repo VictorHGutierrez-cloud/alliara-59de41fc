@@ -11,7 +11,7 @@ import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId/intel")({
-  head: () => ({ meta: [{ title: "Intel — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Intel · Alliara" }] }),
   component: PartnerIntel,
 });
 
@@ -228,7 +228,7 @@ function PartnerIntel() {
 
         <div className="rounded-2xl bg-card border border-border/60 p-5 card-elev">
           <h2 className="font-semibold">Notes for this decode</h2>
-          <p className="text-xs text-muted-foreground mt-1">One-shot context the AI uses for the next decode only — not saved to the partner profile. Recent calls, deal context, market shifts…</p>
+          <p className="text-xs text-muted-foreground mt-1">One-shot context the AI uses for the next decode only, not saved to the partner profile. Recent calls, deal context, market shifts…</p>
           <textarea
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
@@ -394,7 +394,7 @@ function DocumentsCard({
   return (
     <div className="rounded-2xl bg-card border border-border/60 p-5 card-elev">
       <h2 className="font-semibold">Documents</h2>
-      <p className="text-xs text-muted-foreground mt-1">Business plans, sales data, decks, contracts, notes — anything about this partner.</p>
+      <p className="text-xs text-muted-foreground mt-1">Business plans, sales data, decks, contracts, notes, anything about this partner.</p>
 
       {isOwner && (
         <div className="mt-4 rounded-xl border border-dashed border-border/60 bg-surface/40 p-4">

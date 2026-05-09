@@ -15,7 +15,7 @@ import { KeptIllustration } from "@/components/brand/KeptIllustration";
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — Alliara" },
+      { title: "Settings · Alliara" },
       { name: "description", content: "Manage your profile, photo, role and password." },
     ],
   }),

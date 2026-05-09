@@ -154,7 +154,7 @@ function ProductShowcase() {
               </div>
               <div className="flex-1 min-w-0 lg:max-w-md">
                 <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-muted-foreground">
-                  {String(i + 1).padStart(2, "0")} —{" "}
+                  {String(i + 1).padStart(2, "0")} ·{" "}
                   {b.kind === "image" ? "Screen" : "Live preview"}
                 </p>
                 <h3 className="mt-3 font-display font-semibold text-2xl sm:text-3xl text-foreground tracking-tight">

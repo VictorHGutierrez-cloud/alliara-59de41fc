@@ -1385,7 +1385,7 @@ function NewPartnerDialog({
             >
               {PARTNER_TYPES.map((t) => (
                 <option key={t.key} value={t.key}>
-                  {t.label} — {t.description}
+                  {t.label} · {t.description}
                 </option>
               ))}
             </select>
@@ -1422,7 +1422,7 @@ function NewPartnerDialog({
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="input min-h-[80px]"
-              placeholder="Context the AI coach should know — relationship history, key contacts, current friction…"
+              placeholder="Context the AI coach should know: relationship history, key contacts, current friction…"
             />
           </Field>
         </div>
@@ -1572,7 +1572,7 @@ function ActionDetailSheet({
                     className="text-[10px] font-mono uppercase tracking-widest"
                     style={{ color: `var(--${axis.color})` }}
                   >
-                    Target · Level {targetLevel.level} — {targetLevel.name}
+                    Target · Level {targetLevel.level} · {targetLevel.name}
                   </p>
                   <p className="mt-1 text-sm text-foreground/90">{targetLevel.summary}</p>
                   <p className="mt-2 text-xs text-muted-foreground">

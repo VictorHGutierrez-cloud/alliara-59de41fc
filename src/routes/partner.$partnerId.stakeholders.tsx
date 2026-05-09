@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId/stakeholders")({
-  head: () => ({ meta: [{ title: "Stakeholders — Alliara" }] }),
+  head: () => ({ meta: [{ title: "Stakeholders · Alliara" }] }),
   component: StakeholdersPage,
 });
 
