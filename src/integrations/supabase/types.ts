@@ -180,6 +180,39 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_certification_sessions: {
+        Row: {
+          completed_at: string
+          completed_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          partner_id: string
+          session_number: number
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          partner_id: string
+          session_number: number
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          partner_id?: string
+          session_number?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       partner_documents: {
         Row: {
           created_at: string

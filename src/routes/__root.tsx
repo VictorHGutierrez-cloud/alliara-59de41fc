@@ -19,6 +19,7 @@ import {
   BarChart3,
   Trophy,
   Compass,
+  BadgeCheck,
   Settings as SettingsIcon,
   LogOut,
 } from "lucide-react";
@@ -79,7 +80,7 @@ export const Route = createRootRoute({
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&family=Roboto+Mono:wght@400;500&display=swap",
       },
     ],
   }),
@@ -151,6 +152,13 @@ function AppFrame() {
               label: COPY.appShell.dockMethodology,
               active: path.startsWith("/methodology") || path.startsWith("/axis"),
               onClick: () => navigate({ to: "/methodology" }),
+            },
+            {
+              key: "certification",
+              icon: BadgeCheck,
+              label: COPY.appShell.dockCertification,
+              active: path.startsWith("/certification"),
+              onClick: () => navigate({ to: "/certification" }),
             },
             {
               key: "pulse",

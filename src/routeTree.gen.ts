@@ -18,6 +18,7 @@ import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CertificationRouteImport } from './routes/certification'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartnerPartnerIdRouteImport } from './routes/partner.$partnerId'
 import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
@@ -27,6 +28,7 @@ import { Route as PartnerPartnerIdMetricsRouteImport } from './routes/partner.$p
 import { Route as PartnerPartnerIdIntelRouteImport } from './routes/partner.$partnerId.intel'
 import { Route as PartnerPartnerIdDiagnosticRouteImport } from './routes/partner.$partnerId.diagnostic'
 import { Route as PartnerPartnerIdCoachRouteImport } from './routes/partner.$partnerId.coach'
+import { Route as PartnerPartnerIdCertificationRouteImport } from './routes/partner.$partnerId.certification'
 import { Route as PartnerPartnerIdAxesRouteImport } from './routes/partner.$partnerId.axes'
 
 const SignupRoute = SignupRouteImport.update({
@@ -72,6 +74,11 @@ const DiagnosticRoute = DiagnosticRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CertificationRoute = CertificationRouteImport.update({
+  id: '/certification',
+  path: '/certification',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -121,6 +128,12 @@ const PartnerPartnerIdCoachRoute = PartnerPartnerIdCoachRouteImport.update({
   path: '/coach',
   getParentRoute: () => PartnerPartnerIdRoute,
 } as any)
+const PartnerPartnerIdCertificationRoute =
+  PartnerPartnerIdCertificationRouteImport.update({
+    id: '/certification',
+    path: '/certification',
+    getParentRoute: () => PartnerPartnerIdRoute,
+  } as any)
 const PartnerPartnerIdAxesRoute = PartnerPartnerIdAxesRouteImport.update({
   id: '/axes',
   path: '/axes',
@@ -129,6 +142,7 @@ const PartnerPartnerIdAxesRoute = PartnerPartnerIdAxesRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
@@ -141,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
+  '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
   '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
   '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
   '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
@@ -150,6 +165,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
@@ -162,6 +178,7 @@ export interface FileRoutesByTo {
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
+  '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
   '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
   '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
   '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
@@ -172,6 +189,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
   '/login': typeof LoginRoute
@@ -184,6 +202,7 @@ export interface FileRoutesById {
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
+  '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
   '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
   '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
   '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
@@ -195,6 +214,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/certification'
     | '/dashboard'
     | '/diagnostic'
     | '/login'
@@ -207,6 +227,7 @@ export interface FileRouteTypes {
     | '/axis/$axisKey'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
+    | '/partner/$partnerId/certification'
     | '/partner/$partnerId/coach'
     | '/partner/$partnerId/diagnostic'
     | '/partner/$partnerId/intel'
@@ -216,6 +237,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/certification'
     | '/dashboard'
     | '/diagnostic'
     | '/login'
@@ -228,6 +250,7 @@ export interface FileRouteTypes {
     | '/axis/$axisKey'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
+    | '/partner/$partnerId/certification'
     | '/partner/$partnerId/coach'
     | '/partner/$partnerId/diagnostic'
     | '/partner/$partnerId/intel'
@@ -237,6 +260,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/certification'
     | '/dashboard'
     | '/diagnostic'
     | '/login'
@@ -249,6 +273,7 @@ export interface FileRouteTypes {
     | '/axis/$axisKey'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
+    | '/partner/$partnerId/certification'
     | '/partner/$partnerId/coach'
     | '/partner/$partnerId/diagnostic'
     | '/partner/$partnerId/intel'
@@ -259,6 +284,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CertificationRoute: typeof CertificationRoute
   DashboardRoute: typeof DashboardRoute
   DiagnosticRoute: typeof DiagnosticRoute
   LoginRoute: typeof LoginRoute
@@ -337,6 +363,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/certification': {
+      id: '/certification'
+      path: '/certification'
+      fullPath: '/certification'
+      preLoaderRoute: typeof CertificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -400,6 +433,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartnerPartnerIdCoachRouteImport
       parentRoute: typeof PartnerPartnerIdRoute
     }
+    '/partner/$partnerId/certification': {
+      id: '/partner/$partnerId/certification'
+      path: '/certification'
+      fullPath: '/partner/$partnerId/certification'
+      preLoaderRoute: typeof PartnerPartnerIdCertificationRouteImport
+      parentRoute: typeof PartnerPartnerIdRoute
+    }
     '/partner/$partnerId/axes': {
       id: '/partner/$partnerId/axes'
       path: '/axes'
@@ -412,6 +452,7 @@ declare module '@tanstack/react-router' {
 
 interface PartnerPartnerIdRouteChildren {
   PartnerPartnerIdAxesRoute: typeof PartnerPartnerIdAxesRoute
+  PartnerPartnerIdCertificationRoute: typeof PartnerPartnerIdCertificationRoute
   PartnerPartnerIdCoachRoute: typeof PartnerPartnerIdCoachRoute
   PartnerPartnerIdDiagnosticRoute: typeof PartnerPartnerIdDiagnosticRoute
   PartnerPartnerIdIntelRoute: typeof PartnerPartnerIdIntelRoute
@@ -422,6 +463,7 @@ interface PartnerPartnerIdRouteChildren {
 
 const PartnerPartnerIdRouteChildren: PartnerPartnerIdRouteChildren = {
   PartnerPartnerIdAxesRoute: PartnerPartnerIdAxesRoute,
+  PartnerPartnerIdCertificationRoute: PartnerPartnerIdCertificationRoute,
   PartnerPartnerIdCoachRoute: PartnerPartnerIdCoachRoute,
   PartnerPartnerIdDiagnosticRoute: PartnerPartnerIdDiagnosticRoute,
   PartnerPartnerIdIntelRoute: PartnerPartnerIdIntelRoute,
@@ -435,6 +477,7 @@ const PartnerPartnerIdRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CertificationRoute: CertificationRoute,
   DashboardRoute: DashboardRoute,
   DiagnosticRoute: DiagnosticRoute,
   LoginRoute: LoginRoute,

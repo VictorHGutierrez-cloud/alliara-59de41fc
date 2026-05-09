@@ -236,6 +236,21 @@ export const COPY = {
     filterEmptyTitle: "No partners match these filters",
     filterEmptyBody:
       "Widen filters or add a workspace so diagnostics and moves stay easy to find.",
+    rowOpenCue: "Open",
+    rowOpenAria: ({ name }: { name: string }) => `Open ${name} workspace`,
+    statusFilterLegend: "Filter by health",
+    statusFilterAll: "All",
+    statusFilterScaling: "Scaling",
+    statusFilterDeveloping: "Developing",
+    statusFilterAtRisk: "At risk",
+    bulkSelectionActiveHint:
+      "Filters stay locked while you have partners selected to keep the bulk action safe.",
+    paginationLabel: "Roster pagination",
+    paginationRange: ({ start, end, total }: { start: number; end: number; total: number }) =>
+      `Showing ${start}–${end} of ${total}`,
+    paginationPrev: "Previous page",
+    paginationNext: "Next page",
+    paginationRowsLabel: "Rows per page",
   },
 
   partnerWorkspace: {
@@ -259,12 +274,20 @@ export const COPY = {
       "This removes diagnostics, the Joint Business Plan, and Copilot history for this partner—only use it when the relationship has truly ended.",
     deleteDiagConfirmTitle: "Delete this diagnostic snapshot?",
     deleteDiagConfirmHint: "Older scores from this run will be gone for good.",
+    ownerLabel: "Owner",
+    ownerUnassigned: "Unassigned",
+    ownerLoading: "Loading owner…",
+    changeOwnerCta: "Change",
+    changeOwnerHint: "Reassign this partner to another Partner Development Manager.",
+    changeOwnerDialogTitle: "Reassign partner ownership",
+    changeOwnerSameTargetError: "Pick a different teammate to reassign to.",
     tabs: {
       overview: "Overview",
       axes: "Axes",
       stakeholders: "Stakeholders",
       metrics: "Metrics",
       intel: "Intel",
+      certification: "Certification",
     },
   },
 
@@ -382,6 +405,7 @@ export const COPY = {
     dockQualification: "Qualification",
     dockReports: "Reports",
     dockMethodology: "Methodology",
+    dockCertification: "Certification",
     dockPulse: "Diagnostics hub",
     dockSettings: "Settings",
     dockSignOut: "Sign out",
@@ -413,6 +437,100 @@ export const COPY = {
     partnerWorkspaceRemoved: "Partner workspace removed",
     addedToJbp: "On the Joint Business Plan",
     moveMarkedDone: ({ title }: { title: string }) => `Done · “${title}”`,
+  },
+
+  certification: {
+    pageMetaTitle: "Certification — Alliara",
+    pageMetaDescription:
+      "Track each Expert partner's 5-session program and issue their certificate when the journey is complete.",
+    eyebrow: "Expert partner program",
+    pageTitle: "Track each Expert ally's certification journey",
+    intro:
+      "Each Expert partner has its own session checklist inside their workspace. This is the portfolio view—use it to spot who's ready, who's mid-program, and who hasn't started yet.",
+
+    sectionReadyTitle: "Ready to certify",
+    sectionReadySubtitle:
+      "All 5 sessions are checked and a stakeholder is mapped. Open the partner to issue the certificate.",
+    sectionInProgressTitle: "In progress",
+    sectionInProgressSubtitle:
+      "Sessions ticked but not yet 5/5—or a stakeholder still missing. Keep nudging.",
+    sectionNotStartedTitle: "Not started",
+    sectionNotStartedSubtitle:
+      "These Expert partners haven't ticked any session yet. Open one to mark Session 1 as done.",
+
+    emptyExpertTitle: "No Expert partners yet",
+    emptyExpertBody:
+      "Open a partner and set the type to Expert. The certification tab will appear inside their workspace.",
+    emptyExpertCta: "Open the portfolio",
+
+    statsReadyLabel: "Ready",
+    statsInProgressLabel: "In progress",
+    statsNotStartedLabel: "Not started",
+
+    cardReadyBadge: "5/5 ready",
+    cardInProgressBadge: ({ done, total }: { done: number; total: number }) =>
+      `${done}/${total} done`,
+    cardNotStartedBadge: "0/5",
+    cardOpenWorkspaceCta: "Open partner",
+    cardOpenCertTabCta: "Open certification tab",
+    cardMissingStakeholderHint: "Stakeholder missing",
+    cardSessionsLabel: ({ done, total }: { done: number; total: number }) =>
+      `${done} of ${total} sessions completed`,
+
+    /* ---------- inside the partner workspace ---------- */
+    tabIntroTitle: "Expert program · 5 sessions",
+    tabIntroBody:
+      "Tick each session as you finish it with this partner. When all 5 are done and a stakeholder is mapped, you can issue the certificate.",
+    notExpertTitle: "Certification is for Expert partners",
+    notExpertBody:
+      "Open the partner editor and switch the partner type to Expert to unlock the 5-session checklist.",
+    notExpertCta: "Edit partner profile",
+    readOnlyHint: "You're visiting as a collaborator—only the owning PDM (or leadership) can mark sessions or issue certificates here.",
+    sessionLabel: ({ n }: { n: number }) => `Session ${n}`,
+    sessionMarkDone: "Mark as completed",
+    sessionUndo: "Undo",
+    sessionDoneOn: ({ date }: { date: string }) => `Completed · ${date}`,
+    sessionNotesLabel: "Notes (optional)",
+    sessionNotesPlaceholder: "What did you cover, what stuck, anything to follow up on?",
+    sessionNotesSaved: "Notes saved",
+    sessionToggledOnToast: ({ n }: { n: number }) => `Session ${n} marked as completed`,
+    sessionToggledOffToast: ({ n }: { n: number }) => `Session ${n} reopened`,
+    sessionSaveError: "Could not save the session. Try again in a moment.",
+    sessionSaveErrorWithDetail: (detail: string) =>
+      `Could not save the session. Try again in a moment. (${detail})`,
+    progressLabel: ({ done, total }: { done: number; total: number }) =>
+      `${done} of ${total} sessions completed`,
+
+    issueSectionTitle: "Issue the certificate",
+    issueSectionSubtitleReady:
+      "All 5 sessions are checked. Pick the stakeholder this certificate is for and download the PDF.",
+    issueSectionSubtitleGated:
+      "Once all 5 sessions are checked and at least one stakeholder is mapped, you'll be able to issue the certificate here.",
+    issueGatedReasonSessions: ({ done, total }: { done: number; total: number }) =>
+      `Sessions: ${done}/${total} completed`,
+    issueGatedReasonStakeholder: "No stakeholder mapped yet",
+    issueGatedReasonNotExpert: "Partner is not marked as Expert",
+    cardSelectStakeholderLabel: "Certify on behalf of",
+    cardSelectStakeholderPlaceholder: "Pick a stakeholder…",
+    cardNoStakeholderHint: "Add a stakeholder first to fill the recipient name.",
+    cardManageStakeholdersCta: "Manage stakeholders",
+    cardPreviewCta: "Preview certificate",
+    cardDownloadPdfCta: "Download PDF",
+    cardDownloadingLabel: "Preparing…",
+
+    /* ---------- shared certificate body ---------- */
+    certTitle: "Expert Partner — Alliara Certification",
+    certBodyLine:
+      "This certificate confirms that the partner has completed the 5-session Expert program with their Partner Development Manager, demonstrating fluency across the OCTA framework needed to grow the alliance.",
+    certIssuedToLabel: "Issued to",
+    certPartnerLabel: "Partner organisation",
+    certDateLabel: "Date issued",
+    certIdLabel: "Certificate ID",
+    certIssuerLabel: "Delivered by",
+    certIssuerFallback: "Alliara Partner Development",
+    previewToastSuccess: "Certificate downloaded — share it warmly.",
+    previewToastError: "Could not export certificate. Try again in a moment.",
+    previewCloseLabel: "Close preview",
   },
 
   onboarding: {

@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
   usePartner,
@@ -24,6 +25,14 @@ import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY, partnerScoreSubtitle } from "@/lib/copy";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
+import { useLeadership } from "@/lib/use-leadership";
+import { usePdmRoster } from "@/lib/use-pdm-roster";
+import {
+  BulkReassignDialog,
+  type ReassignAssignment,
+  type ReassignItem,
+} from "@/components/BulkReassignDialog";
+import { UserRound } from "lucide-react";
 
 export const Route = createFileRoute("/partner/$partnerId")({
   head: () => ({ meta: [{ title: COPY.partnerWorkspace.pageMetaTitle }] }),
@@ -37,11 +46,42 @@ function PartnerLayout() {
   const data = usePartner(partnerId);
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [editOpen, setEditOpen] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
+  const [reassignBusy, setReassignBusy] = useState(false);
+  const [ownerName, setOwnerName] = useState<string | null>(null);
+  const [ownerLoading, setOwnerLoading] = useState(false);
   const confirmDialog = useConfirmDialog();
+  const { isLeadership } = useLeadership(user?.id);
+  const pdmRoster = usePdmRoster();
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/login" });
   }, [loading, user, nav]);
+
+  const ownerId = data.partner?.owner_id;
+
+  useEffect(() => {
+    if (!ownerId) {
+      setOwnerName(null);
+      return;
+    }
+    let cancelled = false;
+    setOwnerLoading(true);
+    void (async () => {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name")
+        .eq("id", ownerId)
+        .maybeSingle();
+      if (cancelled) return;
+      const name = profile?.display_name?.trim() || null;
+      setOwnerName(name);
+      setOwnerLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ownerId]);
 
   // Refetch when leaving the diagnostic sub-route. The diagnostic page uses a
   // separate usePartner instance, so saving a new assessment there doesn't
@@ -82,6 +122,31 @@ function PartnerLayout() {
   const lvl = overall ? levelFromAvg(overall) : 0;
   const tColor = tierColor(data.partner.tier);
   const isOwner = data.partner.owner_id === user.id;
+  const canReassign = (isOwner || isLeadership) && pdmRoster.pdms.length > 0;
+  const resolvedOwnerName = ownerName ?? (ownerLoading ? null : COPY.partnerWorkspace.ownerUnassigned);
+
+  const handleReassign = async (assignments: ReassignAssignment[]) => {
+    const next = assignments[0];
+    if (!next) {
+      setReassignOpen(false);
+      return;
+    }
+    if (next.newOwnerId === data.partner!.owner_id) {
+      toast.error(COPY.partnerWorkspace.changeOwnerSameTargetError);
+      return;
+    }
+    setReassignBusy(true);
+    try {
+      await data.updatePartner({ owner_id: next.newOwnerId });
+      toast.success(COPY.toast.reassignedPartner({ name: next.newOwnerName }));
+      setOwnerName(next.newOwnerName);
+      setReassignOpen(false);
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setReassignBusy(false);
+    }
+  };
 
   const Tb = COPY.partnerWorkspace.tabs;
   const tabs: { key: string; label: string; to: string }[] = [
@@ -101,6 +166,7 @@ function PartnerLayout() {
     { key: "stakeholders", label: Tb.stakeholders, to: `/partner/${partnerId}/stakeholders` },
     { key: "metrics", label: Tb.metrics, to: `/partner/${partnerId}/metrics` },
     { key: "intel", label: Tb.intel, to: `/partner/${partnerId}/intel` },
+    { key: "certification", label: Tb.certification, to: `/partner/${partnerId}/certification` },
   ];
 
   const isOverview = path === `/partner/${partnerId}` || path === `/partner/${partnerId}/`;
@@ -153,6 +219,12 @@ function PartnerLayout() {
                 {data.partner.company ?? "—"}
                 {data.partner.segment ? ` · ${data.partner.segment}` : ""}
               </p>
+              <OwnerRow
+                ownerName={resolvedOwnerName}
+                loading={ownerLoading}
+                canChange={canReassign}
+                onChange={() => setReassignOpen(true)}
+              />
               {data.partner.notes && (
                 <p className="text-sm text-muted-foreground mt-2 max-w-xl">{data.partner.notes}</p>
               )}
@@ -235,6 +307,67 @@ function PartnerLayout() {
             }
           }}
         />
+      )}
+
+      {canReassign && (
+        <BulkReassignDialog
+          open={reassignOpen}
+          items={[
+            {
+              id: data.partner.id,
+              name: data.partner.name,
+              currentOwnerId: data.partner.owner_id,
+              currentOwnerName:
+                resolvedOwnerName ?? COPY.partnerWorkspace.ownerUnassigned,
+            } satisfies ReassignItem,
+          ]}
+          pdms={pdmRoster.pdms}
+          entityLabel="partner"
+          busy={reassignBusy}
+          onClose={() => setReassignOpen(false)}
+          onConfirm={handleReassign}
+        />
+      )}
+    </div>
+  );
+}
+
+function OwnerRow({
+  ownerName,
+  loading,
+  canChange,
+  onChange,
+}: {
+  ownerName: string | null;
+  loading: boolean;
+  canChange: boolean;
+  onChange: () => void;
+}) {
+  const label = loading
+    ? COPY.partnerWorkspace.ownerLoading
+    : (ownerName ?? COPY.partnerWorkspace.ownerUnassigned);
+  return (
+    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+      <span
+        className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-surface/70 px-2.5 py-1 text-muted-foreground"
+        aria-label={`${COPY.partnerWorkspace.ownerLabel}: ${label}`}
+      >
+        <UserRound className="h-3.5 w-3.5" aria-hidden />
+        <span className="font-mono uppercase tracking-widest text-[10px] text-muted-foreground/80">
+          {COPY.partnerWorkspace.ownerLabel}
+        </span>
+        <span className="text-foreground font-medium normal-case">{label}</span>
+      </span>
+      {canChange && (
+        <button
+          type="button"
+          onClick={onChange}
+          className="min-h-9 rounded-full border border-border/60 bg-surface px-3 py-1 text-[11px] font-medium text-foreground hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          aria-label={COPY.partnerWorkspace.changeOwnerHint}
+          title={COPY.partnerWorkspace.changeOwnerHint}
+        >
+          {COPY.partnerWorkspace.changeOwnerCta}
+        </button>
       )}
     </div>
   );

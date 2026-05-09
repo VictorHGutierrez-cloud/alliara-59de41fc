@@ -147,6 +147,8 @@ export interface CandyDataTableProps<T> {
   empty?: React.ReactNode;
   /** Aria label for the table region. */
   ariaLabel?: string;
+  /** Optional aria-label for each row when it's clickable (defaults to "Open row {id}"). */
+  getRowAriaLabel?: (row: T) => string;
 }
 
 const ALIGN: Record<NonNullable<CandyColumn<unknown>["align"]>, string> = {
@@ -164,6 +166,7 @@ export function CandyDataTable<T>({
   bulkActions,
   empty,
   ariaLabel,
+  getRowAriaLabel,
 }: CandyDataTableProps<T>) {
   const [selected, setSelected] = React.useState<Set<string>>(new Set());
   const [hoveredId, setHoveredId] = React.useState<string | null>(null);
@@ -287,10 +290,15 @@ export function CandyDataTable<T>({
                     }
                   }}
                   tabIndex={onRowClick ? 0 : -1}
-                  aria-label={onRowClick ? `Open row ${id}` : undefined}
+                  aria-label={
+                    onRowClick
+                      ? (getRowAriaLabel?.(row) ?? `Open row ${id}`)
+                      : undefined
+                  }
                   className={cn(
-                    "grid items-center gap-3 border-b border-border/40 px-3 py-3 text-sm transition-colors",
-                    onRowClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                    "group grid items-center gap-3 border-b border-border/40 px-3 py-3 text-sm transition-colors",
+                    onRowClick &&
+                      "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset",
                     isSel
                       ? "bg-primary/[0.06]"
                       : "hover:bg-primary/[0.04]",

@@ -78,7 +78,7 @@ function ProductShowcase() {
   ] as const;
 
   return (
-    <section className="relative py-24 sm:py-28 px-6 overflow-hidden bg-gradient-to-b from-[#F7F7F8] via-white to-[#F7F7F8]">
+    <section className="relative py-24 sm:py-28 px-6 overflow-hidden bg-gradient-to-b from-background via-card to-background">
       <div
         className="pointer-events-none absolute -top-20 right-[-10%] h-[28rem] w-[28rem] rounded-full bg-[#EC1E79]/[0.07] blur-3xl"
         aria-hidden
@@ -91,10 +91,8 @@ function ProductShowcase() {
       <div className="relative mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <p className="page-eyebrow">{intro.productEyebrow}</p>
-          <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
-            {intro.productTitle}
-          </h2>
-          <p className="section-subtitle mt-3 max-w-xl text-neutral-600">{intro.productIntro}</p>
+          <h2 className="mt-3 section-title text-3xl sm:text-4xl text-foreground">{intro.productTitle}</h2>
+          <p className="section-subtitle mt-3 max-w-xl">{intro.productIntro}</p>
         </div>
 
         <div className="mt-14 sm:mt-16 flex flex-col gap-16 sm:gap-20">
@@ -155,14 +153,14 @@ function ProductShowcase() {
                 )}
               </div>
               <div className="flex-1 min-w-0 lg:max-w-md">
-                <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-neutral-400">
+                <p className="text-[11px] font-mono uppercase tracking-[0.16em] text-muted-foreground">
                   {String(i + 1).padStart(2, "0")} —{" "}
                   {b.kind === "image" ? "Screen" : "Live preview"}
                 </p>
-                <h3 className="mt-3 font-display font-semibold text-2xl sm:text-3xl text-neutral-900 tracking-tight">
+                <h3 className="mt-3 font-display font-semibold text-2xl sm:text-3xl text-foreground tracking-tight">
                   {b.title}
                 </h3>
-                <p className="mt-3 text-neutral-600 leading-relaxed">{b.body}</p>
+                <p className="mt-3 text-muted-foreground leading-relaxed">{b.body}</p>
               </div>
             </div>
           ))}
@@ -175,22 +173,20 @@ function ProductShowcase() {
 function TrustStrip() {
   const L = COPY.landing;
   return (
-    <section className="bg-white px-6 py-8">
-      <div className="mx-auto max-w-6xl rounded-2xl border border-neutral-200/80 bg-gradient-to-r from-white to-neutral-50 px-5 py-5 sm:px-6 sm:py-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <section className="bg-background px-6 py-8">
+      <div className="mx-auto max-w-6xl rounded-2xl border border-border/80 bg-card/90 px-5 py-5 sm:px-6 sm:py-6 shadow-[var(--shadow-card)] flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="page-eyebrow text-neutral-500">
-            {L.trustEyebrow}
-          </p>
-          <p className="mt-1 text-sm text-neutral-700 leading-relaxed">{L.trustBlurb}</p>
+          <p className="page-eyebrow">{L.trustEyebrow}</p>
+          <p className="mt-1 text-sm text-muted-foreground leading-relaxed">{L.trustBlurb}</p>
         </div>
         <div className="grid grid-cols-3 gap-3 sm:gap-4">
           {L.trustStats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-center"
+              className="rounded-xl border border-border/70 bg-muted/40 px-3 py-2 text-center"
             >
-              <p className="text-lg font-display font-semibold text-neutral-900">{stat.value}</p>
-              <p className="text-[11px] text-neutral-500">{stat.label}</p>
+              <p className="text-lg font-display font-semibold text-foreground">{stat.value}</p>
+              <p className="text-[11px] text-muted-foreground">{stat.label}</p>
             </div>
           ))}
         </div>

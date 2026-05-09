@@ -24,16 +24,21 @@ function Dashboard() {
   if (loading || !user) return <div className="p-10 text-muted-foreground">Loading…</div>;
 
   return (
-    <div className="theme-candy min-h-screen">
+    <div className="min-h-screen bg-background/80">
       <div className="mx-auto max-w-7xl px-6 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">My Performance</p>
-          <h1 className="text-3xl font-semibold mt-1">{data.profile?.display_name ?? COPY.role.short}</h1>
-          <p className="text-sm text-muted-foreground mt-1">Live KPIs across your portfolio.</p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+            {data.profile?.display_name ?? COPY.role.short}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground leading-relaxed">Live KPIs across your portfolio.</p>
         </div>
-        <Link to="/partners" className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring">
+        <Link
+          to="/partners"
+          className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-card)] transition hover:shadow-[var(--shadow-card-hover)]"
+        >
           Open portfolio →
         </Link>
       </div>
@@ -49,9 +54,9 @@ function Dashboard() {
 
       {/* Activity & Tasks */}
       <div className="mt-6 grid lg:grid-cols-2 gap-4">
-        <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
+        <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-[var(--shadow-card)] transition-[box-shadow] duration-200 hover:shadow-[var(--shadow-card-hover)]">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Tasks in the platform</h2>
+            <h2 className="font-semibold text-foreground">Tasks in the platform</h2>
             <span className="text-xs font-mono text-muted-foreground">{stats.tasks.total} total</span>
           </div>
           <div className="mt-4 grid grid-cols-3 gap-3">
@@ -65,9 +70,9 @@ function Dashboard() {
           </div>
         </div>
 
-        <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
+        <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-[var(--shadow-card)] transition-[box-shadow] duration-200 hover:shadow-[var(--shadow-card-hover)]">
           <div className="flex items-center justify-between">
-            <h2 className="font-semibold">Lead pipeline</h2>
+            <h2 className="font-semibold text-foreground">Lead pipeline</h2>
             <Link to="/qualification" className="text-xs text-primary hover:underline">View all →</Link>
           </div>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -89,8 +94,8 @@ function Dashboard() {
       </div>
 
       {/* Internal PDM KPIs */}
-      <div className="mt-6 rounded-2xl bg-card border border-border/60 p-6 card-elev">
-        <h2 className="font-semibold">Internal PDM KPIs</h2>
+      <div className="mt-6 rounded-2xl border border-border/60 bg-card p-6 shadow-[var(--shadow-card)] transition-[box-shadow] duration-200 hover:shadow-[var(--shadow-card-hover)]">
+        <h2 className="font-semibold text-foreground">Internal PDM KPIs</h2>
         <p className="text-sm text-muted-foreground mt-1">Coverage and depth across your portfolio.</p>
         <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
           <MiniStat label="Stakeholders mapped" value={stats.stakeholders.total} hint={`${stats.stakeholders.coverage}% coverage`} />
@@ -117,7 +122,7 @@ function Dashboard() {
 
 function Tile({ label, value, hint, accent }: { label: string; value: string | number; hint?: string; accent?: boolean }) {
   return (
-    <div className="rounded-2xl bg-card border border-border/60 p-5 card-elev">
+    <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-[var(--shadow-card)] transition-[box-shadow] duration-200 hover:shadow-[var(--shadow-card-hover)]">
       <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{label}</p>
       <div className={`mt-2 text-3xl font-display font-bold ${accent ? "text-gradient" : ""}`}>{value}</div>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}

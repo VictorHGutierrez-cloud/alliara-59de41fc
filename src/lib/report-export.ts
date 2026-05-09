@@ -50,6 +50,51 @@ export async function downloadPng(node: HTMLElement | null, filename: string): P
   a.remove();
 }
 
+/** Render a DOM node to an A4 landscape PDF and trigger a download.
+ *  Uses html-to-image to capture the node, then jspdf to embed it on a single page.
+ *  Honours the node's intrinsic aspect ratio (we already render the certificate as 1.414:1). */
+export async function downloadPdfFromNode(
+  node: HTMLElement | null,
+  filename: string,
+): Promise<void> {
+  if (typeof window === "undefined" || !node) return;
+  const [{ toPng }, { jsPDF }] = await Promise.all([
+    import("html-to-image"),
+    import("jspdf"),
+  ]);
+  const dataUrl = await toPng(node, {
+    pixelRatio: 2,
+    backgroundColor: "#ffffff",
+    cacheBust: true,
+    style: { fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" },
+  });
+
+  const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+
+  const img = new Image();
+  img.src = dataUrl;
+  await new Promise<void>((resolve, reject) => {
+    img.onload = () => resolve();
+    img.onerror = () => reject(new Error("image_load_failed"));
+  });
+
+  const imgRatio = img.width / img.height;
+  const pageRatio = pageW / pageH;
+  let drawW = pageW;
+  let drawH = pageH;
+  if (imgRatio > pageRatio) {
+    drawH = pageW / imgRatio;
+  } else {
+    drawW = pageH * imgRatio;
+  }
+  const x = (pageW - drawW) / 2;
+  const y = (pageH - drawH) / 2;
+  pdf.addImage(dataUrl, "PNG", x, y, drawW, drawH, undefined, "FAST");
+  pdf.save(filename);
+}
+
 function triggerDownload(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");

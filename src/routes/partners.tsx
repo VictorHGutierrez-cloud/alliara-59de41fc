@@ -11,7 +11,7 @@ import {
 import { useLeads } from "../lib/leads-store";
 import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
-import { AlertTriangle, CalendarClock, Check, ChevronDown, ChevronUp, HeartHandshake, Plus, X as XIcon } from "lucide-react";
+import { AlertTriangle, CalendarClock, Check, ChevronDown, ChevronRight, ChevronUp, HeartHandshake, Plus, X as XIcon } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar } from "@/components/PartnerFilterBar";
 import { useOwnerScope } from "@/lib/use-owner-scope";
@@ -538,31 +538,35 @@ function PartnersPage() {
               )}
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              <button
+            <div
+              className="mt-4 flex flex-wrap gap-2"
+              role="group"
+              aria-label={COPY.portfolio.statusFilterLegend}
+            >
+              <StatusChip
+                active={statusFilter === "all"}
+                tone="neutral"
                 onClick={() => setStatusFilter("all")}
-                className={`rounded-lg border px-3 py-1.5 text-xs transition ${statusFilter === "all" ? "border-foreground/30 bg-surface-2 text-foreground" : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
-              >
-                All
-              </button>
-              <button
+                label={COPY.portfolio.statusFilterAll}
+              />
+              <StatusChip
+                active={statusFilter === "active"}
+                tone="primary"
                 onClick={() => setStatusFilter("active")}
-                className={`rounded-lg border px-3 py-1.5 text-xs transition ${statusFilter === "active" ? "border-primary/40 bg-primary/10 text-primary-foreground" : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
-              >
-                Scaling
-              </button>
-              <button
+                label={COPY.portfolio.statusFilterScaling}
+              />
+              <StatusChip
+                active={statusFilter === "nurturing"}
+                tone="warning"
                 onClick={() => setStatusFilter("nurturing")}
-                className={`rounded-lg border px-3 py-1.5 text-xs transition ${statusFilter === "nurturing" ? "border-warning/40 bg-warning/10 text-warning" : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
-              >
-                Developing
-              </button>
-              <button
+                label={COPY.portfolio.statusFilterDeveloping}
+              />
+              <StatusChip
+                active={statusFilter === "at_risk"}
+                tone="danger"
                 onClick={() => setStatusFilter("at_risk")}
-                className={`rounded-lg border px-3 py-1.5 text-xs transition ${statusFilter === "at_risk" ? "border-destructive/50 bg-destructive/15 text-destructive" : "border-border bg-surface text-muted-foreground hover:text-foreground"}`}
-              >
-                At risk
-              </button>
+                label={COPY.portfolio.statusFilterAtRisk}
+              />
             </div>
 
             <div className="mt-4">
@@ -578,21 +582,24 @@ function PartnersPage() {
           </div>
 
           {!portfolio.loading && sorted.length > 0 && (
-            <div className="sticky top-20 z-10 flex min-h-11 flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/95 px-3 py-2.5 backdrop-blur sm:px-4">
+            <nav
+              aria-label={COPY.portfolio.paginationLabel}
+              className="flex min-h-11 flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card px-3 py-2.5 sm:px-4"
+            >
               <p className="text-xs tabular-nums text-muted-foreground">
-                Showing{" "}
-                <span className="font-medium text-foreground">{rangeStart}</span>
-                –
-                <span className="font-medium text-foreground">{rangeEnd}</span> of{" "}
-                <span className="font-medium text-foreground">{rosterTotal}</span>
+                {COPY.portfolio.paginationRange({
+                  start: rangeStart,
+                  end: rangeEnd,
+                  total: rosterTotal,
+                })}
               </p>
               <div className="flex flex-wrap items-center gap-3">
                 <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="whitespace-nowrap">Rows per page</span>
+                  <span className="whitespace-nowrap">{COPY.portfolio.paginationRowsLabel}</span>
                   <select
                     className="select-candy min-h-11 py-2"
                     value={pageSize}
-                    aria-label="Rows per page"
+                    aria-label={COPY.portfolio.paginationRowsLabel}
                     onChange={(e) =>
                       setPageSize(Number(e.target.value) as (typeof PAGE_SIZES)[number])
                     }
@@ -610,6 +617,7 @@ function PartnersPage() {
                     className="btn-candy-ghost min-h-11 px-3"
                     disabled={safePageIndex <= 0}
                     onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                    aria-label={COPY.portfolio.paginationPrev}
                   >
                     Prev
                   </button>
@@ -623,12 +631,13 @@ function PartnersPage() {
                         return Math.min(pc - 1, p + 1);
                       })
                     }
+                    aria-label={COPY.portfolio.paginationNext}
                   >
                     Next
                   </button>
                 </div>
               </div>
-            </div>
+            </nav>
           )}
 
           {portfolio.loading ? (
@@ -969,6 +978,42 @@ function RosterSortableHeader({
   );
 }
 
+function StatusChip({
+  active,
+  tone,
+  onClick,
+  label,
+}: {
+  active: boolean;
+  tone: "neutral" | "primary" | "warning" | "danger";
+  onClick: () => void;
+  label: string;
+}) {
+  const toneClass =
+    tone === "primary"
+      ? "border-primary/40 bg-primary/10 text-foreground"
+      : tone === "warning"
+        ? "border-warning/40 bg-warning/10 text-warning"
+        : tone === "danger"
+          ? "border-destructive/50 bg-destructive/15 text-destructive"
+          : "border-foreground/30 bg-surface-2 text-foreground";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={cn(
+        "min-h-9 rounded-lg border px-3 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        active
+          ? toneClass
+          : "border-border bg-surface text-muted-foreground hover:text-foreground",
+      )}
+    >
+      {label}
+    </button>
+  );
+}
+
 function FocusCard({
   title,
   value,
@@ -1034,8 +1079,10 @@ function MobilePartnerCard({
   };
   return (
     <button
+      type="button"
       onClick={onOpen}
-      className="w-full rounded-xl border border-border/70 bg-card p-4 text-left hover:bg-surface-2"
+      aria-label={COPY.portfolio.rowOpenAria({ name: item.partner.name })}
+      className="group flex w-full flex-col gap-3 rounded-xl border border-border/70 bg-card p-4 text-left transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset"
     >
       <div className="flex items-center gap-3">
         <CandyAvatar name={item.partner.name} size={34} />
@@ -1045,16 +1092,22 @@ function MobilePartnerCard({
         </div>
         <StatusPill tone={toneMap[item.partner.status]}>{statusLabel(item.partner.status)}</StatusPill>
       </div>
-      <div className="mt-3 flex items-center justify-between gap-2">
-        <span className="inline-flex rounded-md border border-border bg-surface px-2 py-1 text-xs text-foreground">
+      <div className="flex items-center justify-between gap-2">
+        <span className="inline-flex max-w-full items-center rounded-md border border-border bg-surface px-2 py-1 text-xs text-foreground">
           {nextAction}
         </span>
-        <span className="text-[11px] text-muted-foreground">
-          {touchedDays === 0 ? "today" : `${touchedDays}d ago`}
+        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+          <span>{touchedDays === 0 ? "today" : `${touchedDays}d ago`}</span>
+          <ChevronRight
+            className="h-4 w-4 text-muted-foreground/60 transition-colors group-hover:text-primary group-focus-visible:text-primary"
+            aria-hidden
+          />
         </span>
       </div>
       {isLeadership && (
-        <p className="mt-2 text-[11px] text-muted-foreground">Owner: {ownerName}</p>
+        <p className="text-[11px] text-muted-foreground">
+          {COPY.partnerWorkspace.ownerLabel}: {ownerName}
+        </p>
       )}
     </button>
   );
@@ -1229,9 +1282,13 @@ function PartnerRosterTable({
       key: "actions",
       header: "",
       width: "90px",
-      align: "center",
-      cell: () => null,
-      hoverCell: () => <span className="text-xs font-medium text-primary">Open →</span>,
+      align: "right",
+      cell: () => (
+        <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground/70 transition-colors group-hover:text-primary group-focus-visible:text-primary">
+          <span>{COPY.portfolio.rowOpenCue}</span>
+          <ChevronRight className="h-4 w-4" aria-hidden />
+        </span>
+      ),
     },
   ];
 
@@ -1244,6 +1301,7 @@ function PartnerRosterTable({
       onRowClick={onRowClick}
       bulkActions={bulkActions}
       ariaLabel="Partner roster"
+      getRowAriaLabel={(it) => COPY.portfolio.rowOpenAria({ name: it.partner.name })}
     />
   );
 }

@@ -67,48 +67,48 @@
   --color-chart-5: var(--octa-2);
 }
 
-/* Candy theme — applied globally.
- * Pastel pink primary, sky-blue secondary, yellow accent, soft surfaces.
+/* Professional SaaS theme — soft surfaces, pastel accents, Factorial-like rhythm.
+ * Lavender primary, sky secondary, mint accent; neutral diffuse shadows.
  */
 :root {
-  --radius: 0.625rem;
+  --radius: 1rem;
 
   /* Canvas */
-  --background: #f7f9fa;
-  --foreground: #333333;
+  --background: #f8fafc;
+  --foreground: #0f172a;
 
   /* Surfaces */
   --surface: #ffffff;
-  --surface-2: #f0f2f5;
+  --surface-2: #f1f5f9;
 
   --card: #ffffff;
-  --card-foreground: #333333;
+  --card-foreground: #0f172a;
 
   --popover: #ffffff;
-  --popover-foreground: #333333;
+  --popover-foreground: #0f172a;
 
-  --primary: #ffc0cb;
-  --primary-foreground: #1a1a1a;
+  --primary: #ddd6fe;
+  --primary-foreground: #1e1b4b;
 
-  --secondary: #87ceeb;
-  --secondary-foreground: #1a1a1a;
+  --secondary: #bae6fd;
+  --secondary-foreground: #0c4a6e;
 
-  --muted: #ddd9c4;
-  --muted-foreground: #6e6e6e;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
 
-  --accent: #ffff00;
-  --accent-foreground: #1a1a1a;
+  --accent: #a7f3d0;
+  --accent-foreground: #134e4a;
 
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
-  --success: #33cc33;
-  --warning: #ffcc00;
+  --success: #22c55e;
+  --warning: #d97706;
   --danger: #ef4444;
 
-  --border: #e0e3e8;
-  --input: #e0e3e8;
-  --ring: #ffc0cb;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #c4b5fd;
 
   /* OCTA axes — re-tuned for legibility on light surfaces */
   --octa-1: oklch(0.52 0.16 160); /* emerald — Strategy */
@@ -121,21 +121,24 @@
   --octa-8: oklch(0.6 0.18 110);  /* olive — Success */
 
   --gradient-hero:
-    radial-gradient(ellipse 80% 60% at 80% 30%, oklch(0.97 0.02 75 / 0.7), transparent 60%),
-    radial-gradient(ellipse 60% 50% at 10% 90%, oklch(0.95 0.025 160 / 0.5), transparent 60%);
+    radial-gradient(ellipse 80% 60% at 78% 28%, oklch(0.97 0.02 285 / 0.45), transparent 58%),
+    radial-gradient(ellipse 65% 52% at 12% 88%, oklch(0.96 0.018 200 / 0.38), transparent 58%);
   --gradient-glow: linear-gradient(135deg, var(--octa-1), var(--octa-4));
-  --shadow-glow: 0 10px 30px -12px rgba(255, 192, 203, 0.45);
+  --shadow-glow: 0 10px 28px -14px rgb(99 102 241 / 0.14);
   --shadow-card:
-    0 1px 2px 0 rgba(0, 0, 0, 0.035),
-    0 10px 28px -14px rgba(0, 0, 0, 0.07);
+    0 1px 2px rgb(15 23 42 / 0.04),
+    0 12px 32px -16px rgb(15 23 42 / 0.08);
+  --shadow-card-hover:
+    0 2px 4px rgb(15 23 42 / 0.05),
+    0 18px 42px -18px rgb(15 23 42 / 0.11);
 
-  --sidebar: #ffffff;
-  --sidebar-foreground: #333333;
+  --sidebar: #f3f4f6;
+  --sidebar-foreground: #0f172a;
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
-  --sidebar-accent: #f0f2f5;
-  --sidebar-accent-foreground: #333333;
-  --sidebar-border: #e0e3e8;
+  --sidebar-accent: #e5e7eb;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e5e7eb;
   --sidebar-ring: var(--ring);
 }
 
@@ -160,16 +163,17 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-size: 0.9375rem;
-    line-height: 1.58;
+    font-weight: 450;
+    line-height: 1.62;
     -webkit-font-smoothing: antialiased;
     font-feature-settings: "ss01", "cv11";
   }
 
   h1 {
     font-family: var(--font-display);
-    font-weight: 600;
-    letter-spacing: -0.022em;
-    line-height: 1.18;
+    font-weight: 700;
+    letter-spacing: -0.024em;
+    line-height: 1.16;
   }
   h2 {
     font-family: var(--font-display);
@@ -189,7 +193,7 @@
     letter-spacing: -0.016em;
     line-height: 1.28;
   }
-  p { line-height: 1.62; }
+  p { line-height: 1.65; font-weight: 400; }
 
   ::selection { background: oklch(0.52 0.16 160 / 0.2); }
 }
@@ -212,9 +216,9 @@
   .page-title {
     margin-top: 0.25rem;
     font-size: clamp(1.6rem, 2.1vw, 2.35rem);
-    font-weight: 600;
-    line-height: 1.14;
-    letter-spacing: -0.028em;
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.03em;
     color: var(--foreground);
   }
   .page-subtitle {
@@ -233,9 +237,9 @@
   }
   .section-subtitle {
     margin-top: 0.3rem;
-    font-size: 0.85rem;
+    font-size: 0.8125rem;
     color: var(--muted-foreground);
-    line-height: 1.55;
+    line-height: 1.58;
   }
   .glass {
     background: color-mix(in oklab, oklch(1 0 0) 80%, transparent);
@@ -243,26 +247,22 @@
     border-bottom: 1px solid color-mix(in oklab, var(--border) 78%, transparent);
   }
   .glow-ring {
-    box-shadow: 0 4px 14px -4px rgba(255, 192, 203, 0.55);
+    box-shadow: var(--shadow-glow);
     transition: box-shadow 200ms ease, transform 200ms ease;
   }
   .glow-ring:hover {
-    box-shadow: 0 8px 22px -6px rgba(255, 192, 203, 0.75);
+    box-shadow: 0 14px 34px -14px rgb(99 102 241 / 0.2);
     transform: translateY(-1px);
   }
   .card-elev {
-    box-shadow:
-      0 1px 2px rgba(0, 0, 0, 0.04),
-      0 6px 18px -10px rgba(255, 192, 203, 0.35);
-    border-color: color-mix(in oklab, var(--border) 85%, transparent);
+    box-shadow: var(--shadow-card);
+    border-color: color-mix(in oklab, var(--border) 92%, transparent);
     transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
   }
   .card-elev:hover {
     transform: translateY(-2px);
-    border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
-    box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.05),
-      0 14px 32px -12px rgba(255, 192, 203, 0.55);
+    border-color: color-mix(in oklab, var(--primary) 35%, var(--border));
+    box-shadow: var(--shadow-card-hover);
   }
   .text-gradient {
     background: linear-gradient(135deg, var(--octa-1), var(--octa-4) 70%);
@@ -277,7 +277,7 @@
   .input {
     width: 100%;
     min-height: 44px;
-    border-radius: calc(var(--radius) + 2px);
+    border-radius: calc(var(--radius) + 0.125rem);
     border: 1px solid var(--border);
     background: oklch(1 0 0);
     color: var(--foreground);
@@ -318,10 +318,10 @@
     line-height: 1;
     color: var(--primary-foreground);
     background: var(--primary);
-    border: 1px solid color-mix(in oklab, var(--primary) 70%, #00000010);
+    border: 1px solid color-mix(in oklab, var(--primary) 55%, #00000012);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.6) inset,
-      0 6px 18px -8px rgba(255,192,203,0.75);
+      0 1px 0 rgb(255 255 255 / 0.7) inset,
+      var(--shadow-card);
     transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
     cursor: pointer;
   }
@@ -329,8 +329,8 @@
     transform: translateY(-1px);
     background: color-mix(in oklab, var(--primary) 88%, white);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.7) inset,
-      0 10px 24px -8px rgba(255,192,203,0.95);
+      0 1px 0 rgb(255 255 255 / 0.75) inset,
+      var(--shadow-card-hover);
   }
   .btn-candy:focus-visible {
     outline: none;
@@ -352,10 +352,10 @@
     font-weight: 600;
     color: var(--secondary-foreground);
     background: var(--secondary);
-    border: 1px solid color-mix(in oklab, var(--secondary) 70%, #00000010);
+    border: 1px solid color-mix(in oklab, var(--secondary) 55%, #00000012);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.6) inset,
-      0 6px 18px -8px rgba(135,206,235,0.7);
+      0 1px 0 rgb(255 255 255 / 0.7) inset,
+      var(--shadow-card);
     transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
     cursor: pointer;
   }
@@ -423,9 +423,9 @@
     background: var(--surface);
     color: var(--foreground);
     box-shadow:
-      0 1px 0 rgba(255,255,255,0.8) inset,
-      0 1px 4px rgba(255,192,203,0.45),
-      0 0 0 1px color-mix(in oklab, var(--primary) 35%, transparent);
+      0 1px 0 rgb(255 255 255 / 0.85) inset,
+      0 1px 3px rgb(15 23 42 / 0.05),
+      0 0 0 1px color-mix(in oklab, var(--primary) 28%, transparent);
   }
 
   .select-candy {
