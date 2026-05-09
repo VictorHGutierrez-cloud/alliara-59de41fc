@@ -5,6 +5,7 @@ import { useOctaData } from "../lib/octa-store";
 import { usePdmStats, fmtMoney } from "../lib/pdm-stats";
 import { useEffect } from "react";
 import { COPY } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Alliara" }] }),
@@ -27,13 +28,22 @@ function Dashboard() {
     <div className="min-h-screen bg-background/80">
       <div className="mx-auto max-w-7xl px-6 py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">My Performance</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground">
-            {data.profile?.display_name ?? COPY.role.short}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground leading-relaxed">Live KPIs across your portfolio.</p>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:gap-5">
+            <div>
+              <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">My Performance</p>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight text-foreground">
+                {data.profile?.display_name ?? COPY.role.short}
+              </h1>
+              <p className="mt-1 text-sm text-muted-foreground leading-relaxed">Live KPIs across your portfolio.</p>
+            </div>
+            <KeptIllustration
+              variant="everythingOnTrack"
+              className="mx-auto mt-2 h-[100px] w-auto object-contain opacity-95 sm:mx-0 sm:mt-0 sm:h-[108px]"
+              decorative
+            />
+          </div>
         </div>
         <Link
           to="/partners"

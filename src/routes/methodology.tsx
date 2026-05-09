@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useOctaData, levelFromAvg } from "@/lib/octa-store";
 import { usePortfolio } from "@/lib/partners-store";
-import { AXES, CENTRAL_MENTAL_MODEL, OCTA_FULL_NAME } from "@/content/octa";
+import { AXES, CENTRAL_MENTAL_MODEL } from "@/content/octa";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -12,6 +12,7 @@ import {
   methodologyPortfolioLevelHint,
   methodologyStatLessonsTotalHint,
 } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/methodology")({
   head: () => ({
@@ -53,19 +54,26 @@ function MethodologyPage() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 pb-32">
       {/* Header */}
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            {COPY.methodology.eyebrowSuffix} · {OCTA_FULL_NAME}
-          </span>
+      <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              {COPY.methodology.eyebrowSuffix}
+            </span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
+            {COPY.methodology.pageTitle}
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
+            {COPY.methodology.intro}
+          </p>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
-          {COPY.methodology.pageTitle}
-        </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-          {COPY.methodology.intro}
-        </p>
+        <KeptIllustration
+          variant="idleAllClear"
+          className="mx-auto h-[118px] w-auto shrink-0 object-contain opacity-95 lg:mx-0"
+          decorative
+        />
       </section>
 
       {/* Stats */}

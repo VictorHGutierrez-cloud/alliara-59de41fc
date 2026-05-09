@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/candy-data-table";
 import { downloadCsv, slugifyForFile } from "@/lib/report-export";
 import { COPY } from "@/lib/copy";
+import { KeptWorkspaceRibbon } from "@/components/brand/KeptWorkspaceRibbon";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -171,6 +172,10 @@ function QualificationPage() {
         >
           {COPY.qualification.addLeadCta}
         </button>
+      </div>
+
+      <div className="mt-4">
+        <KeptWorkspaceRibbon variant="keepsContext" />
       </div>
 
       <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3">

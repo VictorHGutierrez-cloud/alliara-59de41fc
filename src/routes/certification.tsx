@@ -7,6 +7,7 @@ import { usePortfolio, type PortfolioItem } from "@/lib/partners-store";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import {
   EXPERT_CERT_TOTAL_SESSIONS,
   type CertificationSessionRow,
@@ -126,19 +127,24 @@ function CertificationDirectoryPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 pb-32">
-      <section className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <BadgeCheck className="h-3.5 w-3.5 text-primary" aria-hidden />
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            {COPY.certification.eyebrow}
-          </span>
+      <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-10">
+        <div className="min-w-0 flex-1 space-y-2">
+          <div className="flex items-center gap-2">
+            <BadgeCheck className="h-3.5 w-3.5 text-primary" aria-hidden />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              {COPY.certification.eyebrow}
+            </span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
+            {COPY.certification.pageTitle}
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">{COPY.certification.intro}</p>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight text-foreground">
-          {COPY.certification.pageTitle}
-        </h1>
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-3xl">
-          {COPY.certification.intro}
-        </p>
+        <KeptIllustration
+          variant="bringsCalm"
+          className="mx-auto h-[120px] w-auto shrink-0 object-contain opacity-95 lg:mx-0"
+          decorative
+        />
       </section>
 
       <section className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -314,8 +320,8 @@ function DirectoryCard({
 function EmptyExpertState() {
   return (
     <div className="mt-10 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-      <BadgeCheck className="mx-auto h-8 w-8 text-muted-foreground/70" aria-hidden />
-      <h2 className="mt-3 text-lg font-semibold">{COPY.certification.emptyExpertTitle}</h2>
+      <KeptIllustration variant="idleAllClear" className="mx-auto h-28 w-auto object-contain opacity-95" decorative />
+      <h2 className="mt-4 text-lg font-semibold">{COPY.certification.emptyExpertTitle}</h2>
       <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
         {COPY.certification.emptyExpertBody}
       </p>

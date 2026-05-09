@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/partner/$partnerId/diagnostic")({
   head: () => ({ meta: [{ title: COPY.diagnostic.partnerWorkspaceMetaTitle }] }),
@@ -75,8 +76,9 @@ function PartnerDiagnostic() {
 
   if (data.partner.owner_id !== user.id && !canRunForOthers) {
     return (
-      <div className="rounded-2xl border border-border/60 bg-surface/40 p-8 text-center text-muted-foreground">
-        {COPY.diagnostic.readOnlyRuns}
+      <div className="rounded-2xl border border-border/60 bg-surface/40 p-8 text-center text-muted-foreground flex flex-col items-center gap-4">
+        <KeptIllustration variant="remindsGently" className="h-24 w-auto object-contain opacity-90" decorative />
+        <p className="max-w-md text-sm leading-relaxed">{COPY.diagnostic.readOnlyRuns}</p>
       </div>
     );
   }
@@ -119,7 +121,7 @@ function PartnerDiagnostic() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <div className="flex items-center justify-between text-xs font-mono text-muted-foreground">
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-mono text-muted-foreground">
         <span>{COPY.diagnostic.progressLabel(idx + 1, total)}</span>
         <span>{pct}%</span>
       </div>
@@ -134,13 +136,22 @@ function PartnerDiagnostic() {
         className="mt-6 rounded-2xl bg-card border border-border/60 p-8 card-elev"
         style={{ borderColor: `color-mix(in oklab, var(--${step.color}) 35%, var(--border))` }}
       >
-        <p
-          className="text-xs font-mono uppercase tracking-widest"
-          style={{ color: `var(--${step.color})` }}
-        >
-          {step.axisName}
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold">{step.prompt}</h2>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+          <div className="min-w-0 flex-1">
+            <p
+              className="text-xs font-mono uppercase tracking-widest"
+              style={{ color: `var(--${step.color})` }}
+            >
+              {step.axisName}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold">{step.prompt}</h2>
+          </div>
+          <KeptIllustration
+            variant="keepsContext"
+            className="mx-auto h-20 w-auto shrink-0 object-contain opacity-90 sm:mx-0 sm:h-[5.5rem]"
+            decorative
+          />
+        </div>
 
         <div className="mt-6 space-y-2">
           {step.options.map((opt, i) => {

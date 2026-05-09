@@ -90,7 +90,7 @@ export function FactorialStyleHero() {
           <div className="mt-6 flex flex-wrap justify-center gap-2">
             <Pill>{L.pillDiagnostic}</Pill>
             <Pill>{L.pillJbp}</Pill>
-            <Pill>{L.pillCopilot}</Pill>
+            <Pill>{L.pillKept}</Pill>
           </div>
 
           <form
@@ -121,6 +121,13 @@ export function FactorialStyleHero() {
 
           <div className="mt-5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-sm">
             <Link
+              to="/intro"
+              className="inline-flex items-center gap-1.5 font-semibold text-neutral-900 hover:underline"
+            >
+              {COPY.introTour.heroCta}
+              <span aria-hidden>→</span>
+            </Link>
+            <Link
               to="/methodology"
               className="inline-flex items-center gap-1.5 font-medium text-[oklch(0.52_0.12_200)] hover:underline"
             >
@@ -134,6 +141,7 @@ export function FactorialStyleHero() {
               {L.ctaSecondary}
             </Link>
           </div>
+          <p className="mx-auto mt-3 max-w-md text-center text-xs text-neutral-500">{COPY.introTour.introTourHint}</p>
         </div>
       </div>
 

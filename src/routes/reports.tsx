@@ -16,6 +16,7 @@ import { PipelineReport } from "@/components/reports/PipelineReport";
 import { MixReport } from "@/components/reports/MixReport";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -117,9 +118,12 @@ function ReportsPage() {
           <h1 className="page-title">{COPY.reports.pageTitle}</h1>
           <p className="page-subtitle mx-auto max-w-2xl sm:mx-0">{COPY.reports.intro}</p>
         </div>
-        <span className="btn-candy-ghost shrink-0 cursor-not-allowed self-center opacity-70 sm:self-auto" title="Coming soon">
-          {COPY.reports.customSoonBadge}
-        </span>
+        <div className="flex shrink-0 flex-col items-center gap-3 sm:items-end">
+          <KeptIllustration variant="radarLooking" className="h-[92px] w-auto object-contain opacity-95" decorative />
+          <span className="btn-candy-ghost shrink-0 cursor-not-allowed self-center opacity-70 sm:self-auto" title="Coming soon">
+            {COPY.reports.customSoonBadge}
+          </span>
+        </div>
       </header>
 
       <ReportFiltersBar

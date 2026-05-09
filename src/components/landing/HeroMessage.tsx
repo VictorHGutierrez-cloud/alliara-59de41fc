@@ -20,7 +20,7 @@ export function HeroMessage() {
           <div className="mt-6 flex flex-wrap gap-2">
             <Pill>{L.pillDiagnostic}</Pill>
             <Pill>{L.pillJbp}</Pill>
-            <Pill>{L.pillCopilot}</Pill>
+            <Pill>{L.pillKept}</Pill>
           </div>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link

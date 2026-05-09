@@ -2,7 +2,7 @@
 // OCTA Methodology — content model for the OCTA OS platform.
 // Partner-centric edition: every axis evaluates the PARTNER's capability,
 // not the orchestrator's internal program. Used by the Readiness Assessment,
-// the Joint Business Plan, the Partner Intel decoder, and the Ecosystem Copilot.
+// the Joint Business Plan, the Partner Intel decoder, and Kept (presence assistant).
 
 export type Level = 1 | 2 | 3 | 4 | 5;
 

@@ -25,6 +25,7 @@ import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY, partnerScoreSubtitle } from "@/lib/copy";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { useLeadership } from "@/lib/use-leadership";
 import { usePdmRoster } from "@/lib/use-pdm-roster";
 import {
@@ -151,7 +152,7 @@ function PartnerLayout() {
   const Tb = COPY.partnerWorkspace.tabs;
   const tabs: { key: string; label: string; to: string }[] = [
     { key: "overview", label: Tb.overview, to: `/partner/${partnerId}` },
-    { key: "coach", label: COPY.copilot.label, to: `/partner/${partnerId}/coach` },
+    { key: "coach", label: COPY.kept.label, to: `/partner/${partnerId}/coach` },
     {
       key: "plan",
       label: `${COPY.jbp.short}${data.openActions.length ? ` (${data.openActions.length})` : ""}`,
@@ -412,7 +413,12 @@ function Overview({ partnerId, data }: { partnerId: string; data: ReturnType<typ
   if (!hasDiagnostic) {
     return (
       <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-        <h2 className="text-lg font-semibold">{COPY.diagnostic.emptyPartnerOverviewTitle}</h2>
+        <KeptIllustration
+          variant="radarLooking"
+          className="mx-auto h-28 w-auto max-w-[200px] object-contain opacity-95"
+          decorative
+        />
+        <h2 className="mt-4 text-lg font-semibold">{COPY.diagnostic.emptyPartnerOverviewTitle}</h2>
         <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
           {COPY.diagnostic.emptyPartnerOverviewBody}
         </p>
@@ -554,8 +560,15 @@ function Overview({ partnerId, data }: { partnerId: string; data: ReturnType<typ
 
       <div className="lg:col-span-3 space-y-4">
         <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold">{COPY.partnerWorkspace.growthLeversTitle}</h2>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <KeptIllustration
+                variant="noticesDrift"
+                className="hidden md:block h-14 w-auto shrink-0 object-contain opacity-90"
+                decorative
+              />
+              <h2 className="font-semibold">{COPY.partnerWorkspace.growthLeversTitle}</h2>
+            </div>
             <Link
               to="/partner/$partnerId/coach"
               params={{ partnerId }}

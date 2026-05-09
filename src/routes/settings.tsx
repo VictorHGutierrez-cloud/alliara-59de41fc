@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Camera, Loader2, Lock, User as UserIcon } from "lucide-react";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
@@ -160,11 +161,14 @@ function SettingsPage() {
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-10 pb-32">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage your personal info. Your data and partner assignments stay linked to your account, even if you change your name or photo.
-        </p>
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your personal info. Your data and partner assignments stay linked to your account, even if you change your name or photo.
+          </p>
+        </div>
+        <KeptIllustration variant="sidebarPeek" className="h-24 w-auto shrink-0 object-contain opacity-90 sm:mt-1" decorative />
       </div>
 
       <Card>

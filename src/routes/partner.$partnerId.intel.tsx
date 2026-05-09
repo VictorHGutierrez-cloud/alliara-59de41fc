@@ -7,6 +7,7 @@ import { AXES } from "../content/octa";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId/intel")({
@@ -268,7 +269,14 @@ function PartnerIntel() {
             <div className="mt-4 text-sm text-muted-foreground">Loading…</div>
           ) : runs.length === 0 ? (
             <div className="mt-6 rounded-xl border border-dashed border-border/60 bg-surface/40 p-6 text-center text-sm text-muted-foreground">
-              No signals decoded yet. Add docs/metrics and click <span className="font-medium">Decode Partner Signals</span>.
+              <KeptIllustration
+                variant="notifySomethingToCheck"
+                className="mx-auto h-24 w-auto object-contain opacity-95"
+                decorative
+              />
+              <p className="mt-3">
+                No signals decoded yet. Add docs/metrics and click <span className="font-medium">Decode Partner Signals</span>.
+              </p>
             </div>
           ) : (
             <div className="mt-4 space-y-3">
@@ -568,13 +576,13 @@ function RunCard({
     <div className="rounded-xl border border-border/60 bg-surface/50">
       <div className="relative">
         <button onClick={() => setOpen((v) => !v)} className="w-full p-4 text-left hover:bg-surface-2 transition rounded-xl">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0 pr-16">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1 pr-12">
               <div className="text-xs font-mono text-muted-foreground">{new Date(run.created_at).toLocaleString()}</div>
-              <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{COPY.copilot.label} executive read</div>
+              <div className="mt-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{COPY.kept.label} executive read</div>
               <div className="mt-1 text-sm font-medium line-clamp-2">{out.executive_summary}</div>
             </div>
-            <span className="text-muted-foreground ml-2">{open ? "−" : "+"}</span>
+            <span className="text-muted-foreground ml-2 shrink-0">{open ? "−" : "+"}</span>
           </div>
           <div className="mt-2 text-[10px] font-mono text-muted-foreground">
             {run.input_summary ?? ""} · {run.model}

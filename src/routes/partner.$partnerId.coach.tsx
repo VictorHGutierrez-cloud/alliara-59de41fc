@@ -7,12 +7,13 @@ import { AXES } from "../content/octa";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/partner/$partnerId/coach")({
   validateSearch: (search: Record<string, unknown>) => ({
     autorun: search.autorun === "1" ? "1" : undefined,
   }),
-  head: () => ({ meta: [{ title: COPY.copilot.coachPageMetaTitle }] }),
+  head: () => ({ meta: [{ title: COPY.kept.coachPageMetaTitle }] }),
   component: PartnerCoach,
 });
 
@@ -93,7 +94,7 @@ function PartnerCoach() {
 
   const generate = async () => {
     if (!user || !data.partner || !data.latest) {
-      toast.error(COPY.copilot.needDiagnosticFirst);
+      toast.error(COPY.kept.needDiagnosticFirst);
       return;
     }
     setBusy(true);
@@ -134,7 +135,7 @@ function PartnerCoach() {
       if (!resp?.ok) throw new Error(resp?.error ?? "Coach failed");
 
       await data.saveRecommendation(focus || null, resp.content, resp.model ?? "");
-      toast.success(COPY.copilot.deliveredToast);
+      toast.success(COPY.kept.deliveredToast);
     } catch (e) {
       toast.error((e as Error).message);
     } finally {
@@ -162,13 +163,20 @@ function PartnerCoach() {
   return (
     <div>
       <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h2 className="font-semibold">{COPY.copilot.label}</h2>
-            <p className="text-sm text-muted-foreground mt-1">{COPY.copilot.subtitleForPartner}</p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 flex-1 gap-4">
+            <KeptIllustration
+              variant={hasDiagnostic ? "contextBeforeCall" : "notifySomethingToCheck"}
+              className="mx-auto h-[104px] w-auto shrink-0 object-contain sm:mx-0 sm:h-24"
+              decorative
+            />
+            <div className="min-w-0 flex-1">
+              <h2 className="font-semibold">{COPY.kept.label}</h2>
+              <p className="text-sm text-muted-foreground mt-1">{COPY.kept.subtitleForPartner}</p>
+            </div>
           </div>
           {isOwner && (
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
               <select
                 value={focus}
                 onChange={(e) => setFocus(e.target.value)}
@@ -187,23 +195,23 @@ function PartnerCoach() {
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
               >
                 {busy
-                  ? COPY.copilot.busyLabel
+                  ? COPY.kept.busyLabel
                   : data.recs.length
-                    ? COPY.copilot.regenerateLabel
-                    : COPY.copilot.generateLabel}
+                    ? COPY.kept.regenerateLabel
+                    : COPY.kept.generateLabel}
               </button>
             </div>
           )}
         </div>
         {!hasDiagnostic && (
           <div className="mt-4 text-sm text-muted-foreground">
-            {COPY.copilot.needDiagnosticFirst}{" "}
+            {COPY.kept.needDiagnosticFirst}{" "}
             <Link
               to="/partner/$partnerId/diagnostic"
               params={{ partnerId }}
               className="text-primary underline"
             >
-              {COPY.copilot.goToDiagnosticLink}
+              {COPY.kept.goToDiagnosticLink}
             </Link>
           </div>
         )}
@@ -212,9 +220,10 @@ function PartnerCoach() {
       {data.recs.length === 0 ? (
         hasDiagnostic && (
           <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-            <h3 className="text-lg font-semibold">{COPY.copilot.emptyTitleOwner}</h3>
+            <KeptIllustration variant="bringsCalm" className="mx-auto h-24 w-auto object-contain opacity-95" decorative />
+            <h3 className="mt-4 text-lg font-semibold">{COPY.kept.emptyTitleOwner}</h3>
             <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-              {isOwner ? COPY.copilot.emptyBodyOwner : COPY.copilot.emptyBodyViewer}
+              {isOwner ? COPY.kept.emptyBodyOwner : COPY.kept.emptyBodyViewer}
             </p>
           </div>
         )
@@ -275,7 +284,7 @@ function RecommendationCard({
 
       <div className="mt-5">
         <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-          {COPY.copilot.sectionRecommendationsEyebrow}
+          {COPY.kept.sectionRecommendationsEyebrow}
         </h4>
         <div className="mt-2 space-y-3">
           {c.recommendations.map((r, i) => {
@@ -324,7 +333,7 @@ function RecommendationCard({
 
       <div className="mt-5">
         <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-          {COPY.copilot.sectionMovesEyebrow}
+          {COPY.kept.sectionMovesEyebrow}
         </h4>
         <div className="mt-2 grid sm:grid-cols-2 gap-2">
           {c.action_items.map((it, i) => {

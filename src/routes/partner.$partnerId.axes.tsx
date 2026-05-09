@@ -145,7 +145,7 @@ function AxisDetail({ axis, myLevel, actions, partnerId }: { axis: Axis; myLevel
         >
           <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Methodology lessons</div>
           <div className="mt-1 text-sm font-medium">Open axis {axis.letter} in Methodology</div>
-          <div className="mt-1 text-xs text-muted-foreground">Cross-link this partner axis with OCTO lessons →</div>
+          <div className="mt-1 text-xs text-muted-foreground">Open drills and lessons for this axis in Methodology →</div>
         </Link>
       </div>
     </div>

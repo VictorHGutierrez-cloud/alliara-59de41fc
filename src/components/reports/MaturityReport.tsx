@@ -7,7 +7,7 @@ export function MaturityReport({ items }: { items: PortfolioItem[] }) {
   const data = axisAverages(items);
   return (
     <ReportCard
-      title="Maturity by OCTA dimension"
+      title="Maturity by axis"
       description="Portfolio-wide average per axis. The shortest bar is your biggest unlock."
       csvRows={() => data.map((d) => ({ axis: d.axis, avg_maturity: d.avg.toFixed(2), partners_scored: d.n }))}
     >

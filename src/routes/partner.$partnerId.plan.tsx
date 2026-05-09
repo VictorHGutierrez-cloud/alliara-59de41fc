@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { AgentPlan, type AgentTask } from "@/components/ui/agent-plan";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/partner/$partnerId/plan")({
   head: () => ({ meta: [{ title: COPY.jbp.planPageMetaTitle }] }),
@@ -80,7 +81,8 @@ function PartnerPlan() {
 
       {data.actions.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-          <h2 className="text-lg font-semibold">{COPY.jbp.emptyPlanTitle}</h2>
+          <KeptIllustration variant="jbpStanding" className="mx-auto h-28 w-auto object-contain opacity-95" decorative />
+          <h2 className="mt-4 text-lg font-semibold">{COPY.jbp.emptyPlanTitle}</h2>
           <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
             {COPY.jbp.emptyPlanBody}
           </p>

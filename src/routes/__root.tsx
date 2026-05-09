@@ -20,6 +20,7 @@ import {
   Trophy,
   Compass,
   BadgeCheck,
+  Sparkles,
   Settings as SettingsIcon,
   LogOut,
 } from "lucide-react";
@@ -27,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { COPY } from "@/lib/copy";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { KeptAmbientPresence } from "@/components/brand/KeptAmbientPresence";
 
 function NotFoundComponent() {
   return (
@@ -161,6 +163,13 @@ function AppFrame() {
               onClick: () => navigate({ to: "/certification" }),
             },
             {
+              key: "meet-kept",
+              icon: Sparkles,
+              label: COPY.introTour.heroCta,
+              active: path === "/intro",
+              onClick: () => navigate({ to: "/intro" }),
+            },
+            {
               key: "pulse",
               icon: Trophy,
               label: COPY.appShell.dockPulse,
@@ -213,7 +222,11 @@ function AppFrame() {
       {inAppWorkspace && (
         <aside className="hidden border-r border-sidebar-border/80 bg-sidebar/95 px-4 py-5 lg:flex lg:flex-col">
           <Link to="/" className="flex items-center gap-2">
-            <img src={alliaraLogo} alt={COPY.auth.logoAltWordmark} className="h-10 w-auto object-contain" />
+            <img
+              src={alliaraLogo}
+              alt={COPY.auth.logoAltWordmark}
+              className="h-12 w-auto max-w-[min(100%,12.5rem)] object-contain object-left"
+            />
           </Link>
           <nav className="mt-5 space-y-1.5">
             {workspaceItems.map((item) => {
@@ -269,7 +282,7 @@ function AppFrame() {
                 <img
                   src={alliaraLogo}
                   alt={COPY.auth.logoAltWordmark}
-                  className="h-9 sm:h-11 w-auto object-contain"
+                  className="h-10 w-auto max-w-[min(100%,13rem)] object-contain sm:h-12"
                 />
               </Link>
             </div>
@@ -300,6 +313,12 @@ function AppFrame() {
                       {COPY.auth.signIn}
                     </Link>
                     <Link
+                      to="/intro"
+                      className="min-h-11 inline-flex items-center rounded-xl px-4 font-semibold text-foreground transition hover:bg-surface-2"
+                    >
+                      {COPY.introTour.heroCta}
+                    </Link>
+                    <Link
                       to="/signup"
                       className="ml-1 min-h-11 inline-flex items-center rounded-xl px-5 bg-primary text-primary-foreground font-medium shadow-sm transition hover:opacity-90"
                     >
@@ -308,9 +327,15 @@ function AppFrame() {
                   </>
                 )
               ) : user ? (
-                <span className="hidden text-xs text-muted-foreground sm:inline">
-                  {COPY.auth.signedInHint}
-                </span>
+                <>
+                  <Link
+                    to="/intro"
+                    className="min-h-11 inline-flex items-center rounded-xl px-3 text-sm font-semibold text-foreground transition hover:bg-surface-2 sm:px-4"
+                  >
+                    {COPY.introTour.heroCta}
+                  </Link>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">{COPY.auth.signedInHint}</span>
+                </>
               ) : (
                 <>
                   <Link
@@ -318,6 +343,12 @@ function AppFrame() {
                     className="min-h-11 inline-flex items-center rounded-xl px-4 transition hover:bg-surface-2"
                   >
                     {COPY.auth.signIn}
+                  </Link>
+                  <Link
+                    to="/intro"
+                    className="min-h-11 inline-flex items-center rounded-xl px-4 font-semibold transition hover:bg-surface-2"
+                  >
+                    {COPY.introTour.heroCta}
                   </Link>
                   <Link
                     to="/signup"
@@ -331,8 +362,9 @@ function AppFrame() {
           </div>
         </header>
 
-        <main className="min-w-0 flex-1">
+        <main className="relative min-w-0 flex-1">
           <Outlet />
+          {inAppWorkspace && <KeptAmbientPresence />}
         </main>
 
         {!isLanding && (
@@ -351,7 +383,7 @@ function AppFrame() {
             <SheetTitle className="sr-only">App navigation</SheetTitle>
             <div className="flex h-full flex-col px-3 py-4">
               <Link to="/" className="flex items-center gap-2 px-2" onClick={() => setMobileNavOpen(false)}>
-                <img src={alliaraLogo} alt={COPY.auth.logoAltWordmark} className="h-10 w-auto object-contain" />
+                <img src={alliaraLogo} alt={COPY.auth.logoAltWordmark} className="h-12 w-auto max-w-[min(100%,12.5rem)] object-contain object-left" />
               </Link>
               <nav className="mt-6 space-y-1.5">
                 {workspaceItems.map((item) => {

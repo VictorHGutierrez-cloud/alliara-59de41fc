@@ -15,7 +15,9 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as QualificationRouteImport } from './routes/qualification'
 import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as MethodologyRouteImport } from './routes/methodology'
+import { Route as MeetKeptRouteImport } from './routes/meet-kept'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as IntroRouteImport } from './routes/intro'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CertificationRouteImport } from './routes/certification'
@@ -61,9 +63,19 @@ const MethodologyRoute = MethodologyRouteImport.update({
   path: '/methodology',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MeetKeptRoute = MeetKeptRouteImport.update({
+  id: '/meet-kept',
+  path: '/meet-kept',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntroRoute = IntroRouteImport.update({
+  id: '/intro',
+  path: '/intro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiagnosticRoute = DiagnosticRouteImport.update({
@@ -145,7 +157,9 @@ export interface FileRoutesByFullPath {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
+  '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
@@ -168,7 +182,9 @@ export interface FileRoutesByTo {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
+  '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
@@ -192,7 +208,9 @@ export interface FileRoutesById {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
+  '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
   '/partners': typeof PartnersRoute
   '/qualification': typeof QualificationRoute
@@ -217,7 +235,9 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/intro'
     | '/login'
+    | '/meet-kept'
     | '/methodology'
     | '/partners'
     | '/qualification'
@@ -240,7 +260,9 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/intro'
     | '/login'
+    | '/meet-kept'
     | '/methodology'
     | '/partners'
     | '/qualification'
@@ -263,7 +285,9 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/intro'
     | '/login'
+    | '/meet-kept'
     | '/methodology'
     | '/partners'
     | '/qualification'
@@ -287,7 +311,9 @@ export interface RootRouteChildren {
   CertificationRoute: typeof CertificationRoute
   DashboardRoute: typeof DashboardRoute
   DiagnosticRoute: typeof DiagnosticRoute
+  IntroRoute: typeof IntroRoute
   LoginRoute: typeof LoginRoute
+  MeetKeptRoute: typeof MeetKeptRoute
   MethodologyRoute: typeof MethodologyRoute
   PartnersRoute: typeof PartnersRoute
   QualificationRoute: typeof QualificationRoute
@@ -342,11 +368,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MethodologyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meet-kept': {
+      id: '/meet-kept'
+      path: '/meet-kept'
+      fullPath: '/meet-kept'
+      preLoaderRoute: typeof MeetKeptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/intro': {
+      id: '/intro'
+      path: '/intro'
+      fullPath: '/intro'
+      preLoaderRoute: typeof IntroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/diagnostic': {
@@ -480,7 +520,9 @@ const rootRouteChildren: RootRouteChildren = {
   CertificationRoute: CertificationRoute,
   DashboardRoute: DashboardRoute,
   DiagnosticRoute: DiagnosticRoute,
+  IntroRoute: IntroRoute,
   LoginRoute: LoginRoute,
+  MeetKeptRoute: MeetKeptRoute,
   MethodologyRoute: MethodologyRoute,
   PartnersRoute: PartnersRoute,
   QualificationRoute: QualificationRoute,

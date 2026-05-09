@@ -63,7 +63,7 @@ function ProductShowcase() {
       title: S.radarTitle,
       body: S.radarBody,
       img: imgProductRadar,
-      alt: "Alliara partner overview with OCTA maturity radar and coaching-ready growth levers",
+      alt: "Alliara partner overview with maturity radar and coaching-ready growth levers",
     },
     {
       kind: "bars" as const,
@@ -371,7 +371,7 @@ function PortfolioPreview() {
               </p>
               <div className="mt-5 flex items-end justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-neutral-400">OCTA score</p>
+                  <p className="text-[11px] uppercase tracking-wide text-neutral-400">Axis average</p>
                   <p className="text-2xl font-semibold text-neutral-900">{p.score.toFixed(1)}</p>
                 </div>
                 <div className="flex gap-0.5">
@@ -391,7 +391,7 @@ function PortfolioPreview() {
   );
 }
 
-/* ---------------- 4. 8 OCTA Axes preview ---------------- */
+/* ---------------- 4. Eight-axis preview ---------------- */
 function AxesPreview() {
   const L = COPY.landing;
   return (

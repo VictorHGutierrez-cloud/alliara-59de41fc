@@ -33,6 +33,7 @@ import { COPY, buildPortfolioBriefingText } from "@/lib/copy";
 import { EmptyPortfolioOnboarding } from "@/components/onboarding/EmptyPortfolioOnboarding";
 import { TeamPulse } from "@/components/leadership/TeamPulse";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
+import { KeptWorkspaceRibbon } from "@/components/brand/KeptWorkspaceRibbon";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZES = [10, 20, 50, 100, 200] as const;
@@ -425,6 +426,9 @@ function PartnersPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               Start with the partners who need your attention most today.
             </p>
+            <div className="mt-3">
+              <KeptWorkspaceRibbon variant="remindsGently" />
+            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
