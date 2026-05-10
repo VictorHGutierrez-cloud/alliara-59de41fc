@@ -1,62 +1,36 @@
-## Problema
+## Problem
 
-Usuários que fazem signup (Google SSO ou email/senha) não aparecem em `/admin/approvals` porque a tabela `profiles` nunca recebe a linha correspondente. A função `handle_new_user()` existe, mas o **trigger** em `auth.users` que a dispara não foi criado. O mesmo vale para `assign_default_role()`.
+The `partner_leads` table has check constraints from the old 3-level scorecard:
 
-Confirmado no banco:
-- `auth.users` tem `victor.henrique.duarte@alumni.usp.br` (id `2e4b6eaf…`)
-- `profiles` não tem nenhuma linha para esse id
-- Schema dump: "There are no triggers in the database"
+- `sales_score` BETWEEN 1 AND 3
+- `expertise_score` BETWEEN 1 AND 3
+- `fit_score` BETWEEN 1 AND 3
 
-## Correção
+The app's current 5-dimension scorecard writes values 1–5 (`ScoreLevel = 1|2|3|4|5`). Any rating of 4 or 5 throws:
 
-### 1. Migration
+> new row for relation "partner_leads" violates check constraint "partner_leads_sales_score_check"
 
-Criar (ou recriar) os triggers em `auth.users`:
+## Fix (migration only — no app code changes)
 
-```sql
--- profile auto-criado no signup
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
--- role 'pdm' default
-drop trigger if exists on_auth_user_created_role on auth.users;
-create trigger on_auth_user_created_role
-  after insert on auth.users
-  for each row execute function public.assign_default_role();
-```
-
-### 2. Backfill
-
-Inserir profiles + roles que faltam para usuários `auth.users` órfãos (incluindo o Victor), com `access_status = 'pending'`:
+Drop the three old check constraints and recreate them with the 1–5 range:
 
 ```sql
-insert into public.profiles (id, display_name, access_status)
-select u.id,
-       coalesce(u.raw_user_meta_data->>'display_name',
-                u.raw_user_meta_data->>'full_name',
-                u.raw_user_meta_data->>'name',
-                split_part(u.email,'@',1)),
-       'pending'
-from auth.users u
-left join public.profiles p on p.id = u.id
-where p.id is null;
+alter table public.partner_leads
+  drop constraint if exists partner_leads_sales_score_check,
+  drop constraint if exists partner_leads_expertise_score_check,
+  drop constraint if exists partner_leads_fit_score_check;
 
-insert into public.user_roles (user_id, role)
-select u.id, 'pdm'
-from auth.users u
-left join public.user_roles r on r.user_id = u.id
-where r.user_id is null
-on conflict do nothing;
+alter table public.partner_leads
+  add constraint partner_leads_sales_score_check
+    check (sales_score is null or (sales_score between 1 and 5)),
+  add constraint partner_leads_expertise_score_check
+    check (expertise_score is null or (expertise_score between 1 and 5)),
+  add constraint partner_leads_fit_score_check
+    check (fit_score is null or (fit_score between 1 and 5));
 ```
 
-### 3. Verificação
+`total_score` (smallint) already fits the new max (5×5 = 25), so no change needed there. No frontend changes required — `setDimension` already sends 1–5.
 
-Após a migration:
-- O Victor aparece em `/admin/approvals` como pending.
-- Próximo signup (Google ou email) entra automaticamente em `profiles` como pending e em `user_roles` como `pdm`.
+## Verification
 
-## Observação
-
-Não é preciso mexer em código frontend — `auth.tsx`, `admin.approvals.tsx` e o guard em `__root.tsx` já estão corretos. O bug era 100% de banco (trigger ausente).
+After the migration, rating any dimension as 4 or 5 in `/qualification` saves without error.
