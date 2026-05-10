@@ -9,11 +9,10 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import appCss from "../styles.css?url";
-import alliaraSiteIcon from "@/assets/alliara-mark.png";
+import alliaraMark from "@/assets/alliara-mark.svg?url";
+import alliaraLogo from "@/assets/alliara-logo.svg?url";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
-import alliaraLogo from "@/assets/alliara-logo.svg?url";
-import alliaraLogoSidebar from "@/assets/alliara-logo.svg?url";
 import {
   Menu,
   Users,
@@ -26,12 +25,17 @@ import {
   Settings as SettingsIcon,
   LogOut,
   ShieldCheck,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { COPY } from "@/lib/copy";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { KeptAmbientPresence } from "@/components/brand/KeptAmbientPresence";
+import { cn } from "@/lib/utils";
+
+const SIDEBAR_COLLAPSED_KEY = "alliara-sidebar-collapsed";
 
 function NotFoundComponent() {
   return (
@@ -80,8 +84,8 @@ export const Route = createRootRoute({
       },
     ],
     links: [
-      { rel: "icon", href: alliaraSiteIcon, type: "image/png" },
-      { rel: "apple-touch-icon", href: alliaraSiteIcon },
+      { rel: "icon", href: alliaraMark, type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: alliaraMark },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -127,6 +131,26 @@ function AppFrame() {
   const isLanding = path === "/";
   const navigate = useNavigate();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebarCollapsed = () => {
+    setSidebarCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  };
 
   // SaaS approval gate: signed-in users without approved access can only
   // see public/auth pages and the pending screen.
@@ -239,24 +263,63 @@ function AppFrame() {
 
   const inAppWorkspace = Boolean(user && !isLanding);
 
+  const sidebarColClass = sidebarCollapsed ? "lg:grid-cols-[4.5rem_1fr]" : "lg:grid-cols-[17rem_1fr]";
+
   return (
     <div
       className={
         inAppWorkspace
-          ? "min-h-screen w-full overflow-x-clip lg:grid lg:grid-cols-[17rem_1fr]"
+          ? cn("min-h-screen w-full overflow-x-clip lg:grid", sidebarColClass)
           : "min-h-screen w-full overflow-x-clip"
       }
     >
       {inAppWorkspace && (
-        <aside className="hidden border-r border-sidebar-border/80 bg-sidebar/95 px-4 py-5 lg:flex lg:flex-col">
-          <Link to="/" className="flex items-center gap-2">
-            <img
-              src={alliaraLogoSidebar}
-              alt={COPY.auth.logoAltWordmark}
-              className="h-auto w-full max-h-[4.75rem] max-w-[13.5rem] object-contain object-left"
-            />
-          </Link>
-          <nav className="mt-5 space-y-1.5">
+        <aside
+          className={cn(
+            "hidden border-r border-sidebar-border/80 bg-sidebar/95 py-5 lg:flex lg:flex-col lg:shrink-0 lg:transition-[width] lg:duration-200 lg:ease-out",
+            sidebarCollapsed ? "lg:w-[4.5rem] lg:min-w-[4.5rem] lg:px-2" : "lg:w-[17rem] lg:min-w-[17rem] lg:px-4",
+          )}
+        >
+          <div
+            className={cn(
+              "mb-3 flex shrink-0 items-start gap-2",
+              sidebarCollapsed ? "flex-col items-center" : "flex-row items-center justify-between",
+            )}
+          >
+            <Link
+              to="/"
+              className={cn(
+                "flex min-w-0 rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring",
+                sidebarCollapsed ? "justify-center p-0.5" : "flex-1 pr-1",
+              )}
+            >
+              <img
+                src={sidebarCollapsed ? alliaraMark : alliaraLogo}
+                alt={COPY.auth.logoAltWordmark}
+                className={cn(
+                  "object-contain",
+                  sidebarCollapsed
+                    ? "mx-auto size-10"
+                    : "h-auto max-h-12 w-full max-w-[12.5rem] object-left sm:max-h-[3.35rem]",
+                )}
+                decoding="async"
+              />
+            </Link>
+            <button
+              type="button"
+              onClick={toggleSidebarCollapsed}
+              aria-expanded={!sidebarCollapsed}
+              aria-controls="workspace-dock-nav"
+              aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
+              className={cn(
+                "inline-flex shrink-0 min-h-10 min-w-10 items-center justify-center rounded-lg border border-border/60 text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground",
+                sidebarCollapsed && "mt-1",
+              )}
+            >
+              {sidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            </button>
+          </div>
+          <nav id="workspace-dock-nav" className="mt-1 space-y-1.5">
             {workspaceItems.map((item) => {
               const Icon = item.icon;
               return (
@@ -264,14 +327,17 @@ function AppFrame() {
                   key={item.key}
                   type="button"
                   onClick={item.onClick}
-                  className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition ${
+                  title={sidebarCollapsed ? item.label : undefined}
+                  className={cn(
+                    "flex min-h-11 w-full items-center gap-3 rounded-xl text-left text-sm transition",
+                    sidebarCollapsed ? "justify-center px-0" : "px-3",
                     item.active
                       ? "bg-primary/14 text-foreground shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
-                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-                  }`}
+                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                  )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span className="truncate">{item.label}</span>
+                  <span className={cn("truncate", sidebarCollapsed && "sr-only")}>{item.label}</span>
                 </button>
               );
             })}
@@ -279,10 +345,14 @@ function AppFrame() {
           <button
             type="button"
             onClick={() => signOut()}
-            className="mt-auto flex min-h-11 items-center gap-3 rounded-xl border border-border/70 px-3 text-sm text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground"
+            title={sidebarCollapsed ? COPY.appShell.dockSignOut : undefined}
+            className={cn(
+              "mt-auto flex min-h-11 items-center gap-3 rounded-xl border border-border/70 text-sm text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground",
+              sidebarCollapsed ? "justify-center px-0" : "px-3",
+            )}
           >
             <LogOut className="h-4 w-4 shrink-0" />
-            <span>{COPY.appShell.dockSignOut}</span>
+            <span className={cn(sidebarCollapsed && "sr-only")}>{COPY.appShell.dockSignOut}</span>
           </button>
         </aside>
       )}
@@ -291,28 +361,41 @@ function AppFrame() {
         <header
           className={isLanding && !user ? "sticky top-0 z-40 bg-white" : "sticky top-0 z-40 glass"}
         >
-          <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6">
-            <div className="flex items-center gap-3">
+          <div
+            className={cn(
+              "mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6",
+              isLanding && !inAppWorkspace ? "min-h-[5.25rem] py-3 sm:min-h-28 sm:py-5" : "h-20",
+            )}
+          >
+            <div className="flex min-w-0 items-center gap-3">
               {inAppWorkspace && (
                 <button
                   type="button"
                   onClick={() => setMobileNavOpen(true)}
-                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border/70 bg-surface lg:hidden"
+                  className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-surface lg:hidden"
                   aria-label="Open navigation menu"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
               )}
-              <Link
-                to="/"
-                className="flex items-center gap-2 font-display font-bold tracking-tight text-foreground"
-              >
-                <img
-                  src={alliaraLogo}
-                  alt={COPY.auth.logoAltWordmark}
-                  className="h-10 w-auto max-w-[min(100%,13rem)] object-contain sm:h-12"
-                />
-              </Link>
+              {!inAppWorkspace && (
+                <Link
+                  to="/"
+                  className="flex min-w-0 items-center gap-2 font-display font-bold tracking-tight text-foreground"
+                >
+                  <img
+                    src={alliaraLogo}
+                    alt={COPY.auth.logoAltWordmark}
+                    className={cn(
+                      "w-auto object-contain object-left",
+                      isLanding
+                        ? "h-16 max-w-[min(100%,30rem)] sm:h-[5.25rem] md:h-28"
+                        : "h-10 max-w-[min(100%,13rem)] sm:h-12",
+                    )}
+                    decoding="async"
+                  />
+                </Link>
+              )}
             </div>
             <nav className="flex items-center gap-2 text-sm">
               {isLanding ? (
@@ -410,14 +493,19 @@ function AppFrame() {
           <SheetContent side="left" className="w-[18rem] border-r border-sidebar-border bg-sidebar p-0">
             <SheetTitle className="sr-only">App navigation</SheetTitle>
             <div className="flex h-full flex-col px-3 py-4">
-              <Link to="/" className="flex items-center gap-2 px-2" onClick={() => setMobileNavOpen(false)}>
+              <Link
+                to="/"
+                className="mb-4 flex px-2"
+                onClick={() => setMobileNavOpen(false)}
+              >
                 <img
-                  src={alliaraLogoSidebar}
+                  src={alliaraLogo}
                   alt={COPY.auth.logoAltWordmark}
-                  className="h-auto w-full max-h-[4.75rem] max-w-[13.5rem] object-contain object-left"
+                  className="h-auto max-h-11 w-full max-w-[12.5rem] object-contain object-left"
+                  decoding="async"
                 />
               </Link>
-              <nav className="mt-6 space-y-1.5">
+              <nav className="space-y-1.5">
                 {workspaceItems.map((item) => {
                   const Icon = item.icon;
                   return (
