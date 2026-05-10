@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
 import {
@@ -15,9 +16,11 @@ import {
   LEAD_SOURCES,
   LEAD_ACTIVITY_KINDS,
   useAllLeadTasks,
+  SCORECARD_MAX_TOTAL,
   type LeadRow,
   type LeadStatus,
   type DimensionKey,
+  type ScoreLevel,
   type LeadActivityKind,
   type LeadActivityRow,
   type LeadTaskRow,
@@ -27,7 +30,8 @@ import { PartnerTypeChip } from "@/components/PartnerFilterBar";
 import { useOwnerScope } from "@/lib/use-owner-scope";
 import { usePdmRoster, type PdmEntry } from "@/lib/use-pdm-roster";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronDown } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { PromoteLeadDialog } from "@/components/PromoteLeadDialog";
 import {
   CandyDataTable,
@@ -59,6 +63,9 @@ function QualificationPage() {
   const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
   const leadTasks = useAllLeadTasks(user?.id, leadsStore.leads);
   const [view, setView] = useState<"kanban" | "list">("kanban");
+  const [kanbanSelectedIds, setKanbanSelectedIds] = useState<Set<string>>(() => new Set());
+  const [kanbanBulkSelectKey, setKanbanBulkSelectKey] = useState(0);
+
   const confirmDialog = useConfirmDialog();
 
   const ownerScope = useOwnerScope({
@@ -78,7 +85,7 @@ function QualificationPage() {
         .eq("id", leadId);
       if (error) throw error;
       toast.success(`Lead reassigned to ${newOwnerName}`);
-      await leadsStore.refresh();
+      await leadsStore.refresh({ silent: true });
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -142,6 +149,62 @@ function QualificationPage() {
       // Approved on the kanban — open the promotion dialog instead of using
       // the native confirm so the user can review owner + partner type.
       setPromoteLead({ ...lead, status: "approved" });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const toggleKanbanLeadSelected = useCallback((leadId: string) => {
+    setKanbanSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(leadId)) next.delete(leadId);
+      else next.add(leadId);
+      return next;
+    });
+  }, []);
+
+  const clearKanbanSelection = useCallback(() => {
+    setKanbanSelectedIds(new Set());
+    setKanbanBulkSelectKey((k) => k + 1);
+  }, []);
+
+  useEffect(() => {
+    if (view !== "kanban") {
+      setKanbanSelectedIds(new Set());
+      setKanbanBulkSelectKey((k) => k + 1);
+    }
+  }, [view]);
+
+  const bulkUpdateLeadStatus = async (ids: string[], status: LeadStatus) => {
+    try {
+      await Promise.all(ids.map((id) => leadsStore.updateLead(id, { status })));
+      toast.success(`Updated ${ids.length} lead${ids.length === 1 ? "" : "s"}`);
+      clearKanbanSelection();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const bulkRejectLeads = async (ids: string[]) => {
+    const reason = "Bulk reject — qualification";
+    try {
+      for (const id of ids) {
+        const lead = leadsStore.leads.find((l) => l.id === id);
+        if (lead) await leadsStore.rejectLead(lead, reason);
+      }
+      toast.success(`Rejected ${ids.length} lead${ids.length === 1 ? "" : "s"}`);
+      clearKanbanSelection();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const bulkDeleteLeads = async (ids: string[]) => {
+    try {
+      await Promise.all(ids.map((id) => leadsStore.deleteLead(id)));
+      toast.success(`Deleted ${ids.length} lead${ids.length === 1 ? "" : "s"}`);
+      if (activeId && ids.includes(activeId)) setActiveId(null);
+      clearKanbanSelection();
     } catch (e) {
       toast.error((e as Error).message);
     }
@@ -323,7 +386,7 @@ function QualificationPage() {
                             company: l.company_name,
                             contact: l.contact_person ?? "",
                             type: l.partner_type ?? "",
-                            score: total !== null ? `${total}/15` : "",
+                            score: total !== null ? `${total}/${SCORECARD_MAX_TOTAL}` : "",
                             verdict: verdict?.label ?? "",
                             status:
                               LEAD_STATUSES.find((s) => s.key === l.status)?.label ?? l.status,
@@ -332,6 +395,45 @@ function QualificationPage() {
                           };
                         });
                       downloadCsv(`${slugifyForFile("leads-selection")}.csv`, rows);
+                    },
+                  },
+                  {
+                    label: "Mark: New",
+                    onClick: (ids) => void bulkUpdateLeadStatus(ids, "new"),
+                  },
+                  {
+                    label: "Mark: In review",
+                    onClick: (ids) => void bulkUpdateLeadStatus(ids, "in_review"),
+                  },
+                  {
+                    label: "Mark: Approved",
+                    onClick: (ids) => void bulkUpdateLeadStatus(ids, "approved"),
+                  },
+                  {
+                    label: "Mark: Rejected",
+                    variant: "danger",
+                    onClick: async (ids) => {
+                      const ok = await confirmDialog({
+                        title: `Reject ${ids.length} lead${ids.length === 1 ? "" : "s"}?`,
+                        description:
+                          "They will move to Rejected with a shared reason. You can still open each lead for detail.",
+                        actionLabel: "Reject all",
+                      });
+                      if (!ok) return;
+                      void bulkRejectLeads(ids);
+                    },
+                  },
+                  {
+                    label: "Delete",
+                    variant: "danger",
+                    onClick: async (ids) => {
+                      const ok = await confirmDialog({
+                        title: `Delete ${ids.length} lead${ids.length === 1 ? "" : "s"}?`,
+                        description: "This cannot be undone.",
+                        actionLabel: "Delete",
+                      });
+                      if (!ok) return;
+                      void bulkDeleteLeads(ids);
                     },
                   },
                 ]}
@@ -382,7 +484,7 @@ function QualificationPage() {
                             : "danger";
                       return (
                         <StatusPill tone={tone}>
-                          {total}/15 · {verdict.label}
+                          {total}/{SCORECARD_MAX_TOTAL} · {verdict.label}
                         </StatusPill>
                       );
                     },
@@ -470,68 +572,181 @@ function QualificationPage() {
                 ]}
               />
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                {LEAD_STATUSES.map((col) => {
-                  const items = visibleLeads.filter((l) => l.status === col.key);
-                  return (
-                    <div
-                      key={col.key}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        const leadId = e.dataTransfer.getData("text/plain");
-                        const lead = leadsStore.leads.find((l) => l.id === leadId);
-                        if (lead) void moveLeadInQualificationKanban(lead, col.key);
-                      }}
-                      className="rounded-2xl bg-surface/40 border border-border/60 p-3 min-h-[200px]"
-                    >
-                      <div className="flex items-center justify-between px-1 pb-2">
-                        <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-                          {col.label}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{items.length}</span>
+              <>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  {LEAD_STATUSES.map((col) => {
+                    const items = visibleLeads.filter((l) => l.status === col.key);
+                    const accent =
+                      col.key === "new"
+                        ? "border-sky-500/25"
+                        : col.key === "in_review"
+                          ? "border-amber-500/30"
+                          : col.key === "approved"
+                            ? "border-emerald-500/25"
+                            : "border-rose-500/25";
+                    return (
+                      <div
+                        key={col.key}
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const leadId = e.dataTransfer.getData("text/plain");
+                          const lead = leadsStore.leads.find((l) => l.id === leadId);
+                          if (lead) void moveLeadInQualificationKanban(lead, col.key);
+                        }}
+                        className={cn(
+                          "flex min-h-[220px] flex-col rounded-2xl border border-border/50 bg-gradient-to-b from-card to-surface/25 p-4 shadow-sm ring-1 ring-black/[0.03] dark:ring-white/[0.04]",
+                          accent,
+                        )}
+                      >
+                        <div className="mb-3 flex items-center justify-between gap-2 border-b border-border/40 pb-3">
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-foreground">{col.label}</div>
+                            <div className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                              Drop cards here
+                            </div>
+                          </div>
+                          <span className="shrink-0 rounded-full bg-surface-2 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-foreground">
+                            {items.length}
+                          </span>
+                        </div>
+                        <div className="flex min-h-0 flex-1 flex-col gap-2.5">
+                          {items.map((lead) => (
+                            <LeadCard
+                              key={lead.id}
+                              lead={lead}
+                              selected={kanbanSelectedIds.has(lead.id)}
+                              onToggleSelect={() => toggleKanbanLeadSelected(lead.id)}
+                              onClick={() => setActiveId(lead.id)}
+                              onPromote={() => promoteLeadToPartner(lead)}
+                              isLeadership={leadsStore.isLeadership}
+                              ownerName={ownerNames.get(lead.owner_id) ?? null}
+                              pdms={pdmRoster.pdms}
+                              canReassign={leadsStore.isLeadership || lead.owner_id === user.id}
+                              onReassign={(newOwnerId, name) =>
+                                reassignLead(lead.id, newOwnerId, name)
+                              }
+                              onDelete={async () => {
+                                const ok = await confirmDialog({
+                                  title: `Delete lead "${lead.company_name}"?`,
+                                  description: "This action cannot be undone.",
+                                  actionLabel: "Delete",
+                                });
+                                if (!ok) return;
+                                try {
+                                  await leadsStore.deleteLead(lead.id);
+                                  toast.success("Lead deleted");
+                                  setKanbanSelectedIds((prev) => {
+                                    const n = new Set(prev);
+                                    n.delete(lead.id);
+                                    return n;
+                                  });
+                                  if (activeId === lead.id) setActiveId(null);
+                                } catch (e) {
+                                  toast.error((e as Error).message);
+                                }
+                              }}
+                            />
+                          ))}
+                          {items.length === 0 && (
+                            <div className="flex flex-1 flex-col items-center justify-center rounded-xl border border-dashed border-border/50 bg-surface/20 px-3 py-8 text-center text-xs text-muted-foreground">
+                              No leads in this stage
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        {items.map((lead) => (
-                          <LeadCard
-                            key={lead.id}
-                            lead={lead}
-                            onClick={() => setActiveId(lead.id)}
-                            onPromote={() => promoteLeadToPartner(lead)}
-                            isLeadership={leadsStore.isLeadership}
-                            ownerName={ownerNames.get(lead.owner_id) ?? null}
-                            pdms={pdmRoster.pdms}
-                            canReassign={leadsStore.isLeadership || lead.owner_id === user.id}
-                            onReassign={(newOwnerId, name) =>
-                              reassignLead(lead.id, newOwnerId, name)
-                            }
-                            onDelete={async () => {
+                    );
+                  })}
+                </div>
+
+                <AnimatePresence>
+                  {kanbanSelectedIds.size > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 24 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 24 }}
+                      transition={{ type: "spring", stiffness: 320, damping: 28 }}
+                      className="fixed left-1/2 z-40 w-[min(100vw-1.5rem,520px)] -translate-x-1/2"
+                      style={{
+                        bottom: "calc(env(safe-area-inset-bottom, 0px) + 116px)",
+                      }}
+                    >
+                      <div
+                        className="flex flex-col gap-2 rounded-2xl border border-border/70 bg-card/95 p-3 shadow-xl backdrop-blur-md sm:flex-row sm:flex-wrap sm:items-center sm:justify-center"
+                        style={{
+                          boxShadow:
+                            "0 18px 40px -16px color-mix(in oklab, var(--primary) 50%, transparent)",
+                        }}
+                      >
+                        <span className="px-1 text-center text-xs font-medium text-foreground sm:text-left">
+                          {kanbanSelectedIds.size} selected
+                        </span>
+                        <span className="hidden h-4 w-px bg-border/70 sm:block" />
+                        <select
+                          key={kanbanBulkSelectKey}
+                          defaultValue=""
+                          className="min-h-11 w-full rounded-xl border border-border/60 bg-surface/80 px-3 py-2 text-xs font-medium sm:min-w-[160px] sm:flex-1"
+                          aria-label="Move selected leads to stage"
+                          onChange={(e) => {
+                            const v = e.target.value as LeadStatus | "";
+                            setKanbanBulkSelectKey((k) => k + 1);
+                            void (async () => {
+                              if (!v) return;
+                              const ids = Array.from(kanbanSelectedIds);
+                              if (ids.length === 0) return;
+                              if (v === "rejected") {
+                                const ok = await confirmDialog({
+                                  title: `Reject ${ids.length} lead${ids.length === 1 ? "" : "s"}?`,
+                                  description:
+                                    "They will move to Rejected with a shared bulk reason.",
+                                  actionLabel: "Reject all",
+                                });
+                                if (ok) void bulkRejectLeads(ids);
+                                return;
+                              }
+                              void bulkUpdateLeadStatus(ids, v);
+                            })();
+                          }}
+                        >
+                          <option value="" disabled>
+                            Move to stage…
+                          </option>
+                          {LEAD_STATUSES.map((s) => (
+                            <option key={s.key} value={s.key}>
+                              {s.label}
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          className="min-h-11 w-full rounded-xl bg-destructive/15 px-3 py-2 text-xs font-semibold text-destructive hover:bg-destructive/25 sm:w-auto"
+                          onClick={() => {
+                            void (async () => {
+                              const ids = Array.from(kanbanSelectedIds);
                               const ok = await confirmDialog({
-                                title: `Delete lead "${lead.company_name}"?`,
-                                description: "This action cannot be undone.",
+                                title: `Delete ${ids.length} lead${ids.length === 1 ? "" : "s"}?`,
+                                description: "This cannot be undone.",
                                 actionLabel: "Delete",
                               });
                               if (!ok) return;
-                              try {
-                                await leadsStore.deleteLead(lead.id);
-                                toast.success("Lead deleted");
-                                if (activeId === lead.id) setActiveId(null);
-                              } catch (e) {
-                                toast.error((e as Error).message);
-                              }
-                            }}
-                          />
-                        ))}
-                        {items.length === 0 && (
-                          <div className="text-xs text-muted-foreground text-center py-4">
-                            No leads
-                          </div>
-                        )}
+                              void bulkDeleteLeads(ids);
+                            })();
+                          }}
+                        >
+                          Delete
+                        </button>
+                        <button
+                          type="button"
+                          className="min-h-11 rounded-xl px-3 py-2 text-xs font-medium text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+                          onClick={clearKanbanSelection}
+                        >
+                          Clear
+                        </button>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </>
             )}
           </>
         )}
@@ -650,6 +865,8 @@ function LeadCard({
   pdms,
   onReassign,
   canReassign,
+  selected,
+  onToggleSelect,
 }: {
   lead: LeadRow;
   onClick: () => void;
@@ -660,6 +877,8 @@ function LeadCard({
   pdms?: PdmEntry[];
   onReassign?: (newOwnerId: string, newOwnerName: string) => void | Promise<void>;
   canReassign?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }) {
   const total = computeFactorialTotal(lead);
   const verdict = factorialVerdict(total);
@@ -681,93 +900,123 @@ function LeadCard({
         e.dataTransfer.effectAllowed = "move";
       }}
       onClick={onClick}
-      className="rounded-xl bg-card border border-border/60 p-3 cursor-grab active:cursor-grabbing hover:-translate-y-0.5 transition card-elev"
+      className={cn(
+        "cursor-grab rounded-xl border border-border/50 bg-card/90 p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md active:cursor-grabbing card-elev",
+        selected && "ring-2 ring-primary/55 ring-offset-2 ring-offset-card",
+      )}
     >
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-start gap-2">
+        {onToggleSelect && (
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={selected ?? false}
+            aria-label={selected ? "Remove lead from selection" : "Select lead for bulk actions"}
+            className={cn(
+              "mt-0.5 flex h-11 w-11 shrink-0 touch-manipulation items-center justify-center rounded-xl border text-sm font-semibold transition",
+              selected
+                ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                : "border-border/60 bg-surface/80 text-muted-foreground hover:border-primary/40 hover:text-foreground",
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelect();
+            }}
+          >
+            {selected ? <Check className="h-4 w-4" strokeWidth={3} /> : null}
+          </button>
+        )}
         <div className="min-w-0 flex-1">
-          <div className="font-semibold truncate">{lead.company_name}</div>
-          <div className="text-xs text-muted-foreground truncate mt-0.5">
-            {lead.contact_person ?? "—"}
-            {host ? ` · ${host}` : ""}
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <div className="font-semibold leading-snug text-foreground">{lead.company_name}</div>
+              <div className="mt-0.5 truncate text-xs text-muted-foreground">
+                {lead.contact_person ?? "—"}
+                {host ? ` · ${host}` : ""}
+              </div>
+              {lead.partner_type && (
+                <div className="mt-1.5">
+                  <PartnerTypeChip type={lead.partner_type} />
+                </div>
+              )}
+            </div>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              title="Delete lead"
+              aria-label="Delete lead"
+              className="min-h-9 min-w-9 shrink-0 rounded-lg text-sm leading-none text-muted-foreground hover:bg-red-500/10 hover:text-red-400"
+            >
+              ✕
+            </button>
           </div>
-          {lead.partner_type && (
-            <div className="mt-1.5">
-              <PartnerTypeChip type={lead.partner_type} />
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+            {verdict && total !== null ? (
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-md border px-2 py-1 text-[10px] font-mono uppercase tracking-widest",
+                  toneClass(verdict.tone),
+                )}
+              >
+                {total}/{SCORECARD_MAX_TOTAL} · {verdict.label}
+              </span>
+            ) : (
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                Not scored
+              </span>
+            )}
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+              Drag to move
+            </span>
+          </div>
+          {(summary.openTasks > 0 || lead.next_step_at) && (
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-[10px] text-muted-foreground">
+              {summary.openTasks > 0 ? (
+                <span className={summary.overdue > 0 ? "text-red-400" : ""}>
+                  {summary.openTasks} open ·{" "}
+                  {summary.overdue > 0 ? `${summary.overdue} overdue` : "on track"}
+                </span>
+              ) : (
+                <span />
+              )}
+              {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
             </div>
           )}
-        </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          title="Delete lead"
-          aria-label="Delete lead"
-          className="shrink-0 text-muted-foreground hover:text-red-400 text-sm leading-none px-1.5 py-0.5 rounded-md hover:bg-red-500/10"
-        >
-          ✕
-        </button>
-      </div>
-      <div className="mt-3 flex items-center justify-between gap-2">
-        {verdict && total !== null ? (
-          <span
-            className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md ${toneClass(verdict.tone)}`}
-          >
-            {total}/15 · {verdict.label}
-          </span>
-        ) : (
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            Not scored
-          </span>
-        )}
-        <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-          Drag to move
-        </span>
-      </div>
-      {(summary.openTasks > 0 || lead.next_step_at) && (
-        <div className="mt-2 flex items-center justify-between gap-2 text-[10px] text-muted-foreground">
-          {summary.openTasks > 0 ? (
-            <span className={summary.overdue > 0 ? "text-red-400" : ""}>
-              {summary.openTasks} open ·{" "}
-              {summary.overdue > 0 ? `${summary.overdue} overdue` : "on track"}
-            </span>
-          ) : (
-            <span />
+          {(canReassign ?? isLeadership) && (
+            <div className="mt-2" onClick={(e) => e.stopPropagation()}>
+              <LeadOwnerChip
+                currentName={ownerName ?? "Unassigned"}
+                currentOwnerId={lead.owner_id}
+                pdms={pdms ?? []}
+                onReassign={onReassign}
+              />
+            </div>
           )}
-          {lead.next_step_at && <span>next: {lead.next_step_at}</span>}
+          {!lead.promoted_partner_id && lead.status !== "rejected" && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onPromote();
+              }}
+              className="mt-2 min-h-11 w-full rounded-lg bg-emerald-500/15 text-sm font-semibold text-emerald-300 transition hover:bg-emerald-500/25 dark:text-emerald-400"
+            >
+              Promote to Partner →
+            </button>
+          )}
+          {lead.promoted_partner_id && (
+            <Link
+              to="/partner/$partnerId"
+              params={{ partnerId: lead.promoted_partner_id }}
+              onClick={(e) => e.stopPropagation()}
+              className="mt-2 block min-h-11 w-full rounded-lg border border-border/60 bg-surface py-2.5 text-center text-sm font-semibold text-muted-foreground transition hover:text-foreground"
+            >
+              Open partner →
+            </Link>
+          )}
         </div>
-      )}
-      {(canReassign ?? isLeadership) && (
-        <div className="mt-2" onClick={(e) => e.stopPropagation()}>
-          <LeadOwnerChip
-            currentName={ownerName ?? "Unassigned"}
-            currentOwnerId={lead.owner_id}
-            pdms={pdms ?? []}
-            onReassign={onReassign}
-          />
-        </div>
-      )}
-      {!lead.promoted_partner_id && lead.status !== "rejected" && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onPromote();
-          }}
-          className="mt-2 w-full rounded-md bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 text-[11px] font-semibold px-2 py-1 transition"
-        >
-          Promote to Partner →
-        </button>
-      )}
-      {lead.promoted_partner_id && (
-        <Link
-          to="/partner/$partnerId"
-          params={{ partnerId: lead.promoted_partner_id }}
-          onClick={(e) => e.stopPropagation()}
-          className="mt-2 block w-full text-center rounded-md bg-surface text-muted-foreground hover:text-foreground text-[11px] font-semibold px-2 py-1 transition border border-border/60"
-        >
-          Open partner →
-        </Link>
-      )}
+      </div>
     </div>
   );
 }
@@ -775,11 +1024,11 @@ function LeadCard({
 function toneClass(tone: "red" | "yellow" | "green") {
   switch (tone) {
     case "red":
-      return "bg-red-500/15 text-red-400";
+      return "border-red-600/35 bg-red-100 text-red-950 dark:border-red-500/35 dark:bg-red-950/40 dark:text-red-100";
     case "yellow":
-      return "bg-yellow-500/15 text-yellow-400";
+      return "border-amber-600/40 bg-amber-100 text-amber-950 dark:border-amber-400/45 dark:bg-amber-950/55 dark:text-amber-50";
     case "green":
-      return "bg-emerald-500/15 text-emerald-400";
+      return "border-emerald-600/35 bg-emerald-100 text-emerald-950 dark:border-emerald-500/35 dark:bg-emerald-950/40 dark:text-emerald-100";
   }
 }
 
@@ -934,7 +1183,7 @@ function LeadDetailPanel({
   lead: LeadRow;
   onClose: () => void;
   onUpdate: (patch: Partial<LeadRow>) => Promise<void>;
-  onSetDimension: (key: DimensionKey, v: 1 | 2 | 3) => Promise<void>;
+  onSetDimension: (key: DimensionKey, v: ScoreLevel) => Promise<void>;
   onUpdateNotes: (text: string) => Promise<void>;
   onReject: (reason: string) => Promise<void>;
   onDelete: () => Promise<void>;
@@ -959,252 +1208,316 @@ function LeadDetailPanel({
   const canPromote =
     !lead.promoted_partner_id && lead.status !== "rejected" && verdict?.tone !== "red";
 
+  const handlePipelineStatusChange = async (next: LeadStatus) => {
+    if (next === lead.status) return;
+    if (next === "rejected") {
+      setShowReject(true);
+      return;
+    }
+    if (next === "approved" && !lead.promoted_partner_id) {
+      try {
+        await onUpdate({ status: "approved" });
+        onPromote();
+      } catch (e) {
+        toast.error((e as Error).message);
+      }
+      return;
+    }
+    try {
+      await onUpdate({ status: next });
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
+  };
+
+  const handleSetDimension = async (key: DimensionKey, v: ScoreLevel) => {
+    try {
+      await onSetDimension(key, v);
+    } catch (err) {
+      toast.error((err as Error).message);
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex justify-end bg-background/70 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-[560px] h-full overflow-y-auto bg-card border-l border-border/60 p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="lead-panel-title"
+        className="flex h-[100dvh] w-full max-w-full flex-col border-l border-border/60 bg-card shadow-2xl md:max-w-lg lg:max-w-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-              Lead
-            </p>
-            <h2 className="text-xl font-semibold truncate">{lead.company_name}</h2>
-            <div className="text-xs text-muted-foreground mt-1">
-              {lead.contact_person ?? "No contact"}
-              {lead.website ? (
-                <>
-                  {" "}
-                  ·{" "}
-                  <a className="underline" href={lead.website} target="_blank" rel="noreferrer">
-                    {lead.website}
-                  </a>
-                </>
-              ) : null}
-            </div>
-          </div>
-          <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-sm">
-            Close
-          </button>
-        </div>
-
-        <div className="mt-4 flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-            Status
-          </span>
-          <span className="text-xs rounded-md bg-surface border border-border/60 px-2 py-1">
-            {LEAD_STATUSES.find((s) => s.key === lead.status)?.label ?? lead.status}
-          </span>
-          {lead.promoted_partner_id && (
-            <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400">
-              Promoted
-            </span>
-          )}
-          {meta.rejection_reason && lead.status === "rejected" && (
-            <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md bg-red-500/15 text-red-400">
-              Reason: {meta.rejection_reason}
-            </span>
-          )}
-        </div>
-
-        <div className="mt-3 flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-            Type
-          </span>
-          <select
-            value={lead.partner_type ?? ""}
-            onChange={(e) => {
-              const v = e.target.value as PartnerType | "";
-              void onUpdate({ partner_type: v ? v : null });
-            }}
-            className="rounded-md bg-surface border border-border/60 px-2 py-1 text-xs"
-          >
-            <option value="">Not set</option>
-            {PARTNER_TYPES.map((t) => (
-              <option key={t.key} value={t.key}>
-                {t.label}
-              </option>
-            ))}
-          </select>
-          {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
-        </div>
-
-        {(canReassign ?? isLeadership) && (
-          <div className="mt-3 flex items-center gap-2 flex-wrap">
-            <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-              PDM
-            </span>
-            <LeadOwnerChip
-              currentName={ownerName ?? "Unassigned"}
-              currentOwnerId={lead.owner_id}
-              pdms={pdms ?? []}
-              onReassign={onReassign}
-            />
-          </div>
-        )}
-
-        {lead.status !== "rejected" && (
-          <div className="mt-4 rounded-xl border border-border/60 bg-surface/40 p-3 flex items-center justify-between gap-3">
+        <header className="shrink-0 border-b border-border/60 px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-sm font-semibold">
-                {lead.promoted_partner_id
-                  ? "Already in your portfolio"
-                  : "Ready to add to portfolio?"}
-              </div>
-              <div className="text-xs text-muted-foreground mt-0.5">
-                {lead.promoted_partner_id
-                  ? "This lead has been promoted to a partner."
-                  : verdict?.tone === "red"
-                    ? "Score the lead first. The current verdict is too low to promote."
-                    : "Promotes the lead and opens the new partner workspace."}
+              <p className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                Lead
+              </p>
+              <h2 id="lead-panel-title" className="truncate text-xl font-semibold text-foreground">
+                {lead.company_name}
+              </h2>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {lead.contact_person ?? "No contact"}
+                {lead.website ? (
+                  <>
+                    {" "}
+                    ·{" "}
+                    <a className="underline" href={lead.website} target="_blank" rel="noreferrer">
+                      {lead.website}
+                    </a>
+                  </>
+                ) : null}
               </div>
             </div>
-            {lead.promoted_partner_id ? (
-              <Link
-                to="/partner/$partnerId"
-                params={{ partnerId: lead.promoted_partner_id }}
-                className="shrink-0 rounded-lg border border-border bg-surface px-3 py-2 text-xs font-semibold hover:bg-surface-2"
+            <button
+              type="button"
+              onClick={onClose}
+              className="min-h-11 shrink-0 rounded-lg px-3 text-sm text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+            >
+              Close
+            </button>
+          </div>
+        </header>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 py-4 sm:px-6 sm:py-5 [scrollbar-gutter:stable]">
+          <div className="space-y-4">
+            <div>
+              <Field label="Pipeline status">
+                <select
+                  value={lead.status}
+                  onChange={(e) => void handlePipelineStatusChange(e.target.value as LeadStatus)}
+                  className="input w-full min-h-11 touch-manipulation"
+                  aria-label="Edit qualification pipeline status"
+                >
+                  {LEAD_STATUSES.map((s) => (
+                    <option key={s.key} value={s.key}>
+                      {s.label}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                Choosing Approved opens promote to partner when this lead is not in the portfolio yet.
+                Choosing Rejected asks for a reason next.
+              </p>
+            </div>
+
+            {lead.promoted_partner_id && (
+              <span className="inline-flex rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
+                Promoted to partner
+              </span>
+            )}
+            {meta.rejection_reason && lead.status === "rejected" && (
+              <span className="inline-flex rounded-md border border-red-500/30 bg-red-500/10 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-red-700 dark:text-red-400">
+                Reason: {meta.rejection_reason}
+              </span>
+            )}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                Type
+              </span>
+              <select
+                value={lead.partner_type ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value as PartnerType | "";
+                  void onUpdate({ partner_type: v ? v : null });
+                }}
+                className="min-h-11 rounded-md border border-border/60 bg-surface px-2 py-2 text-xs touch-manipulation"
               >
-                Open partner →
-              </Link>
-            ) : (
-              <button
-                onClick={onPromote}
-                disabled={!canPromote}
-                className="shrink-0 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground glow-ring disabled:opacity-40"
-              >
-                Promote to Partner →
-              </button>
+                <option value="">Not set</option>
+                {PARTNER_TYPES.map((t) => (
+                  <option key={t.key} value={t.key}>
+                    {t.label}
+                  </option>
+                ))}
+              </select>
+              {lead.partner_type && <PartnerTypeChip type={lead.partner_type} />}
+            </div>
+
+            {(canReassign ?? isLeadership) && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                  PDM
+                </span>
+                <LeadOwnerChip
+                  currentName={ownerName ?? "Unassigned"}
+                  currentOwnerId={lead.owner_id}
+                  pdms={pdms ?? []}
+                  onReassign={onReassign}
+                />
+              </div>
+            )}
+
+            {lead.status !== "rejected" && (
+              <div className="flex flex-col gap-3 rounded-xl border border-border/60 bg-surface/40 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold text-foreground">
+                    {lead.promoted_partner_id
+                      ? "Already in your portfolio"
+                      : "Ready to add to portfolio?"}
+                  </div>
+                  <div className="mt-0.5 text-xs text-muted-foreground">
+                    {lead.promoted_partner_id
+                      ? "This lead has been promoted to a partner."
+                      : verdict?.tone === "red"
+                        ? "Score the lead first. The current verdict is too low to promote."
+                        : "Creates the partner record and opens the workspace."}
+                  </div>
+                </div>
+                {lead.promoted_partner_id ? (
+                  <Link
+                    to="/partner/$partnerId"
+                    params={{ partnerId: lead.promoted_partner_id }}
+                    className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg border border-border bg-surface px-4 text-sm font-semibold hover:bg-surface-2"
+                  >
+                    Open partner →
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={onPromote}
+                    disabled={!canPromote}
+                    className="min-h-11 shrink-0 rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
+                  >
+                    Promote to Partner →
+                  </button>
+                )}
+              </div>
             )}
           </div>
-        )}
 
-        <div className="mt-5 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
-          <button
-            onClick={() => setTab("scorecard")}
-            className={`px-3 py-1.5 rounded-md transition ${tab === "scorecard" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            Scorecard
-          </button>
-          <button
-            onClick={() => setTab("crm")}
-            className={`px-3 py-1.5 rounded-md transition ${tab === "crm" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            CRM & Activities
-          </button>
-        </div>
-
-        {tab === "crm" ? (
-          <CrmTab lead={lead} onUpdate={onUpdate} />
-        ) : (
-          <>
-            <div className="mt-6">
-              <h3 className="text-sm font-semibold">Factorial 5-Dimension Scorecard</h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Score each dimension Low (1) · Medium (2) · High (3). Total ranges 5 to 15.
-              </p>
-
-              <div className="mt-4 space-y-5">
-                {FACTORIAL_DIMENSIONS.map((d, idx) => {
-                  const value = getDimensionValue(lead, d.key);
-                  const selectedHelp = d.options.find((o) => o.v === value)?.help ?? null;
-                  return (
-                    <div key={d.key}>
-                      <div className="text-sm font-medium">
-                        <span className="text-muted-foreground font-mono mr-2">{idx + 1}.</span>
-                        {d.label}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{d.description}</div>
-                      <div className="mt-2 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
-                        {d.options.map((opt) => (
-                          <button
-                            key={opt.v}
-                            title={opt.help}
-                            onClick={() => onSetDimension(d.key, opt.v)}
-                            className={`px-3 py-1.5 rounded-md transition ${value === opt.v ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                          >
-                            {opt.label}
-                          </button>
-                        ))}
-                      </div>
-                      {selectedHelp && (
-                        <div className="text-[11px] text-muted-foreground mt-1.5 italic">
-                          → {selectedHelp}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="mt-6">
-              {verdict && total !== null ? (
-                <div className={`rounded-xl border p-4 ${bannerClass(verdict.tone)}`}>
-                  <div className="text-sm font-semibold">
-                    {verdict.label} · Score {total}/15
-                  </div>
-                  <div className="text-xs mt-1 opacity-90">{verdict.message}</div>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-border/60 bg-surface/40 p-4 text-xs text-muted-foreground">
-                  Score all 5 dimensions to see the Factorial fit recommendation.
-                </div>
-              )}
-            </div>
-
-            <div className="mt-5">
-              <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
-                Notes
-              </span>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                onBlur={() => {
-                  if ((freeText ?? "") !== notes) void onUpdateNotes(notes);
-                }}
-                className="input mt-1 min-h-[100px]"
-                placeholder="Context, source of the lead, key conversation points…"
-              />
-            </div>
-          </>
-        )}
-
-        <div className="mt-6 flex items-center justify-between gap-3">
-          <button
-            onClick={async () => {
-              const ok = await confirmDialog({
-                title: "Delete this lead?",
-                description: "This action cannot be undone.",
-                actionLabel: "Delete",
-              });
-              if (ok) void onDelete();
-            }}
-            className="text-xs text-red-400 hover:text-red-300"
-          >
-            Delete lead
-          </button>
-          <div className="flex gap-2">
+          <div className="mt-6 inline-flex rounded-lg border border-border/60 bg-surface/60 p-1 text-xs">
             <button
-              onClick={() => setShowReject(true)}
-              disabled={lead.status === "rejected"}
-              className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2 disabled:opacity-40"
+              type="button"
+              onClick={() => setTab("scorecard")}
+              className={`min-h-10 rounded-md px-3 py-2 transition touch-manipulation ${tab === "scorecard" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
             >
-              Reject Lead
+              Scorecard
             </button>
             <button
-              disabled={lead.status !== "new"}
-              onClick={() => void onUpdate({ status: "in_review" })}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
+              type="button"
+              onClick={() => setTab("crm")}
+              className={`min-h-10 rounded-md px-3 py-2 transition touch-manipulation ${tab === "crm" ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
             >
-              {lead.status === "new" ? "Put in Qualification Pipe" : "In Qualification Pipe"}
+              CRM & Activities
             </button>
           </div>
+
+          {tab === "crm" ? (
+            <CrmTab lead={lead} onUpdate={onUpdate} />
+          ) : (
+            <>
+              <div className="mt-6">
+                <h3 className="text-sm font-semibold text-foreground">Alliara 5-dimension scorecard</h3>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Rate each dimension from 1 (weakest) to 5 (strongest). Total ranges from 5 to{" "}
+                  {SCORECARD_MAX_TOTAL}.
+                </p>
+
+                <div className="mt-4 space-y-6">
+                  {FACTORIAL_DIMENSIONS.map((d, idx) => {
+                    const value = getDimensionValue(lead, d.key);
+                    const selectedHelp = d.options.find((o) => o.v === value)?.help ?? null;
+                    return (
+                      <div key={d.key} className="rounded-xl border border-border/50 bg-surface/20 p-3 sm:p-4">
+                        <div className="text-sm font-medium text-foreground">
+                          <span className="mr-2 font-mono text-muted-foreground">{idx + 1}.</span>
+                          {d.label}
+                        </div>
+                        <div className="mt-0.5 text-xs text-muted-foreground">{d.description}</div>
+                        <div className="mt-3 flex flex-col gap-2 sm:grid sm:grid-cols-5 sm:gap-2.5">
+                          {d.options.map((opt) => (
+                            <button
+                              key={opt.v}
+                              type="button"
+                              title={opt.help}
+                              onClick={() => void handleSetDimension(d.key, opt.v)}
+                              className={cn(
+                                "flex min-h-14 w-full touch-manipulation select-none items-center justify-center rounded-xl border px-2 text-base font-semibold transition sm:min-h-[52px] sm:text-sm",
+                                value === opt.v
+                                  ? "border-primary bg-primary/15 text-foreground ring-2 ring-primary/35"
+                                  : "border-border/60 bg-background/80 text-muted-foreground hover:border-border hover:bg-surface hover:text-foreground",
+                              )}
+                              style={{ WebkitTapHighlightColor: "transparent" }}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                        {selectedHelp && (
+                          <div className="mt-2 text-[11px] leading-snug text-muted-foreground italic">
+                            → {selectedHelp}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="mt-6">
+                {verdict && total !== null ? (
+                  <div className={`rounded-xl border p-4 ${bannerClass(verdict.tone)}`}>
+                    <div className="text-sm font-semibold leading-snug">{verdict.label} · Score {total}/{SCORECARD_MAX_TOTAL}</div>
+                    <div className="verdict-sub mt-2 text-xs leading-relaxed">{verdict.message}</div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-border/60 bg-surface/40 p-4 text-xs text-muted-foreground">
+                    Score all 5 dimensions to see the fit recommendation.
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-6">
+                <span className="text-[11px] font-mono uppercase tracking-widest text-muted-foreground">
+                  Notes
+                </span>
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  onBlur={() => {
+                    if ((freeText ?? "") !== notes) void onUpdateNotes(notes);
+                  }}
+                  className="input mt-1 min-h-[100px]"
+                  placeholder="Context, source of the lead, key conversation points…"
+                />
+              </div>
+            </>
+          )}
         </div>
+
+        <footer className="shrink-0 border-t border-border/60 bg-card/95 px-4 py-4 backdrop-blur-sm sm:px-6 sm:py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                void (async () => {
+                  const ok = await confirmDialog({
+                    title: "Delete this lead?",
+                    description: "This action cannot be undone.",
+                    actionLabel: "Delete",
+                  });
+                  if (ok) await onDelete();
+                })();
+              }}
+              className="min-h-11 text-left text-sm text-red-600 hover:text-red-500 dark:text-red-400 dark:hover:text-red-300"
+            >
+              Delete lead
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowReject(true)}
+              disabled={lead.status === "rejected"}
+              className="min-h-11 rounded-lg border border-border bg-surface px-4 text-sm font-medium hover:bg-surface-2 disabled:opacity-40"
+            >
+              Reject lead
+            </button>
+          </div>
+        </footer>
 
         {showReject && (
           <RejectReasonDialog
@@ -1309,11 +1622,23 @@ function RejectReasonDialog({
 function bannerClass(tone: "red" | "yellow" | "green") {
   switch (tone) {
     case "red":
-      return "bg-red-500/10 border-red-500/30 text-red-300";
+      return [
+        "border-red-600/35 bg-red-100 text-red-950",
+        "dark:border-red-500/35 dark:bg-red-950/45 dark:text-red-50",
+        "[&_.verdict-sub]:text-red-900/90 dark:[&_.verdict-sub]:text-red-100/90",
+      ].join(" ");
     case "yellow":
-      return "bg-yellow-500/10 border-yellow-500/30 text-yellow-300";
+      return [
+        "border-amber-700/40 bg-amber-100 text-amber-950",
+        "dark:border-amber-400/50 dark:bg-amber-950/65 dark:text-amber-50",
+        "[&_.verdict-sub]:text-amber-950/90 dark:[&_.verdict-sub]:text-amber-100/95",
+      ].join(" ");
     case "green":
-      return "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
+      return [
+        "border-emerald-600/35 bg-emerald-100 text-emerald-950",
+        "dark:border-emerald-500/35 dark:bg-emerald-950/45 dark:text-emerald-50",
+        "[&_.verdict-sub]:text-emerald-900/90 dark:[&_.verdict-sub]:text-emerald-100/90",
+      ].join(" ");
   }
 }
 

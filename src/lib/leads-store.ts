@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -49,7 +49,7 @@ export function leadStatusLabel(s: LeadStatus): string {
   return LEAD_STATUSES.find((x) => x.key === s)?.label ?? s;
 }
 
-/* ───────────────── Factorial 5-Dimension Scorecard ───────────────── */
+/* ───────────────── Alliara 5-Dimension Scorecard (1–5 per dimension, total 5–25) ───────────────── */
 
 export type DimensionKey =
   | "icp_overlap"
@@ -58,65 +58,85 @@ export type DimensionKey =
   | "business_commitment"
   | "strategic_alignment";
 
-export type DimensionOption = { v: 1 | 2 | 3; label: "Low" | "Medium" | "High"; help: string };
+export type ScoreLevel = 1 | 2 | 3 | 4 | 5;
+
+export type DimensionOption = { v: ScoreLevel; label: string; help: string };
+
+export const SCORECARD_MAX_TOTAL = 25;
 
 export const FACTORIAL_DIMENSIONS: {
   key: DimensionKey;
   label: string;
   description: string;
-  options: [DimensionOption, DimensionOption, DimensionOption];
+  options: readonly [DimensionOption, DimensionOption, DimensionOption, DimensionOption, DimensionOption];
 }[] = [
   {
     key: "icp_overlap",
-    label: "ICP Overlap",
-    description: "How well does the partner's customer base match Factorial's Ideal Customer Profile?",
+    label: "ICP overlap",
+    description: "How well does the partner's customer base match your ideal customer profile?",
     options: [
-      { v: 1, label: "Low", help: "<20 or >3000 employees" },
-      { v: 2, label: "Medium", help: "Broad SMBs" },
-      { v: 3, label: "High", help: "50–500 employees in Hospitality, Tech, Construction, Pharma" },
+      { v: 1, label: "1", help: "Wrong segments or company size; almost no addressable overlap." },
+      { v: 2, label: "2", help: "Occasional overlap; many accounts are outside target." },
+      { v: 3, label: "3", help: "Solid share in broad SMB or mid-market; workable fit." },
+      { v: 4, label: "4", help: "Most prospects sit in core size bands and relevant verticals." },
+      { v: 5, label: "5", help: "Primary ICP: right size, industry, and buyer you want most." },
     ],
   },
   {
     key: "sales_capacity",
-    label: "Sales Capacity",
-    description: "Does the partner have a real engine to source and close opportunities?",
+    label: "Sales capacity",
+    description: "How many people are dedicated to selling (and closing) deals like yours?",
     options: [
-      { v: 1, label: "Low", help: "No sales team" },
-      { v: 2, label: "Medium", help: "Reactive referrals" },
-      { v: 3, label: "High", help: "Proactive sales machine targeting CEOs / HR Managers" },
+      { v: 1, label: "1", help: "No one dedicated; only ad-hoc mentions or passive inbound." },
+      { v: 2, label: "2", help: "One person spends part-time on your category (< half their time)." },
+      { v: 3, label: "3", help: "At least one seller largely focused on your offer." },
+      { v: 4, label: "4", help: "Small team (about 2–4) actively prospecting and closing." },
+      { v: 5, label: "5", help: "Larger pod (5+) or mature machine with quota on your product line." },
     ],
   },
   {
     key: "delivery_muscle",
-    label: "Delivery Muscle",
-    description: "Can the partner deploy and support Factorial autonomously?",
+    label: "Delivery muscle",
+    description: "Can the partner implement and support customers without you carrying every rollout?",
     options: [
-      { v: 1, label: "Low", help: "Needs Factorial to do onboarding" },
-      { v: 2, label: "Medium", help: "Basic setup" },
-      { v: 3, label: "High", help: "Autonomous — can deploy Performance or Factorial IT/MDM" },
+      { v: 1, label: "1", help: "Expects you to own delivery end-to-end." },
+      { v: 2, label: "2", help: "Light assist only; still leans on you for most rollouts." },
+      { v: 3, label: "3", help: "Handles standard onboarding and first value with some guidance." },
+      { v: 4, label: "4", help: "Runs most implementations independently; escalates edge cases." },
+      { v: 5, label: "5", help: "Owns complex rollouts, adoption, and ongoing success playbooks." },
     ],
   },
   {
     key: "business_commitment",
-    label: "Business Commitment",
-    description: "How serious is the partner about building a real business with Factorial?",
+    label: "Business commitment",
+    description: "How serious is the partner about building revenue and joint plans with you?",
     options: [
-      { v: 1, label: "Low", help: "Opportunistic" },
-      { v: 2, label: "Medium", help: "Casual referrals" },
-      { v: 3, label: "High", help: "Ready for a Joint Business Plan" },
+      { v: 1, label: "1", help: "Opportunistic; no real time or targets." },
+      { v: 2, label: "2", help: "Friendly but informal; no shared plan or metrics." },
+      { v: 3, label: "3", help: "Active pipeline conversations and lightweight goals." },
+      { v: 4, label: "4", help: "Named targets, regular QBRs, and sponsor on their side." },
+      { v: 5, label: "5", help: "Executive-backed joint plan with clear revenue and milestone commitments." },
     ],
   },
   {
     key: "strategic_alignment",
-    label: "Strategic Alignment",
-    description: "How well does the partner's positioning align with Factorial's GTM?",
+    label: "Strategic alignment",
+    description: "How well does their positioning and GTM align with yours?",
     options: [
-      { v: 1, label: "Low", help: "Competitor overlap" },
-      { v: 2, label: "Medium", help: "Neutral" },
-      { v: 3, label: "High", help: "Perfect synergy (e.g. HR Consultancies, IT MSPs)" },
+      { v: 1, label: "1", help: "Overlaps with competitors or conflicts with your story." },
+      { v: 2, label: "2", help: "Neutral; unclear how you fit their narrative." },
+      { v: 3, label: "3", help: "Compatible; they can attach your offer without friction." },
+      { v: 4, label: "4", help: "Strong fit; your product is a natural upsell or bundle." },
+      { v: 5, label: "5", help: "Strategic lane: ideal partners (e.g. MSP, HR advisory, vertical integrator)." },
     ],
   },
 ];
+
+export function dimensionHelpForValue(key: DimensionKey, v: ScoreLevel | null): string {
+  if (v === null) return "";
+  const dim = FACTORIAL_DIMENSIONS.find((d) => d.key === key);
+  return dim?.options.find((o) => o.v === v)?.help ?? "";
+}
 
 /* Storage mapping:
  *   icp_overlap          → sales_score
@@ -127,8 +147,8 @@ export const FACTORIAL_DIMENSIONS: {
  */
 
 export type ScorecardMeta = {
-  commitment: 1 | 2 | 3 | null;
-  alignment: 1 | 2 | 3 | null;
+  commitment: ScoreLevel | null;
+  alignment: ScoreLevel | null;
   rejection_reason: string | null;
 };
 
@@ -167,10 +187,10 @@ export function serializeScorecard(meta: ScorecardMeta, freeText: string): strin
   return `<!--FACTORIAL_SCORECARD:${json}-->\n${trimmed}`;
 }
 
-export function getDimensionValue(lead: LeadRow, key: DimensionKey): 1 | 2 | 3 | null {
-  if (key === "icp_overlap") return (lead.sales_score as 1 | 2 | 3 | null) ?? null;
-  if (key === "sales_capacity") return (lead.expertise_score as 1 | 2 | 3 | null) ?? null;
-  if (key === "delivery_muscle") return (lead.fit_score as 1 | 2 | 3 | null) ?? null;
+export function getDimensionValue(lead: LeadRow, key: DimensionKey): ScoreLevel | null {
+  if (key === "icp_overlap") return (lead.sales_score as ScoreLevel | null) ?? null;
+  if (key === "sales_capacity") return (lead.expertise_score as ScoreLevel | null) ?? null;
+  if (key === "delivery_muscle") return (lead.fit_score as ScoreLevel | null) ?? null;
   const { meta } = parseScorecard(lead.notes);
   if (key === "business_commitment") return meta.commitment;
   return meta.alignment;
@@ -184,54 +204,65 @@ export function computeFactorialTotal(lead: LeadRow): number | null {
 
 export function factorialVerdict(total: number | null) {
   if (total === null || total < 5) return null;
-  if (total <= 8) return {
-    tone: "red" as const, label: "Low Fit",
-    message: "High risk of churn. Target company size or capacity is misaligned. Recommendation: Reject.",
-  };
   if (total <= 12) return {
-    tone: "yellow" as const, label: "Moderate Fit",
-    message: "Potential synergy, but review implementation muscle and ICP overlap before promoting.",
+    tone: "red" as const,
+    label: "Low fit",
+    message: "Signals are weak across ICP, capacity, or commitment. Recommendation: reject or keep in nurture.",
+  };
+  if (total <= 19) return {
+    tone: "yellow" as const,
+    label: "Moderate fit",
+    message: "Worth a closer look. Clarify delivery, commitment, and alignment before promoting.",
   };
   return {
-    tone: "green" as const, label: "Strong Fit",
-    message: "Ideal partner for Factorial. Highly recommended to Promote.",
+    tone: "green" as const,
+    label: "Strong fit",
+    message: "Strong match for Alliara. Good candidate to promote when the deal story is confirmed.",
   };
 }
+
+export type LeadsRefreshOpts = { silent?: boolean };
 
 export function useLeads(userId: string | undefined) {
   const [leads, setLeads] = useState<LeadRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLeadership, setIsLeadership] = useState(false);
+  const leadsRef = useRef<LeadRow[]>([]);
+  leadsRef.current = leads;
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (opts?: LeadsRefreshOpts) => {
     if (!userId) return;
-    setLoading(true);
-    const [{ data: roles }, { data }] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", userId),
-      supabase.from("partner_leads").select("*").order("created_at", { ascending: false }),
-    ]);
-    setIsLeadership((roles ?? []).some((r) => r.role === "leadership" || r.role === "admin"));
-    let leadRows = (data ?? []) as LeadRow[];
-    // Defensive: if any approved lead points to a partner that no longer exists,
-    // the FK should NULL it out automatically — but we double-check on the
-    // client to surface "Re-promote" UI instantly without waiting for a refresh.
-    const promotedIds = leadRows
-      .map((l) => l.promoted_partner_id)
-      .filter((id): id is string => Boolean(id));
-    if (promotedIds.length > 0) {
-      const { data: existing } = await supabase
-        .from("partners")
-        .select("id")
-        .in("id", promotedIds);
-      const alive = new Set((existing ?? []).map((p) => (p as { id: string }).id));
-      leadRows = leadRows.map((l) =>
-        l.promoted_partner_id && !alive.has(l.promoted_partner_id)
-          ? { ...l, promoted_partner_id: null, status: l.status === "approved" ? "in_review" : l.status }
-          : l
-      );
+    const silent = opts?.silent ?? false;
+    if (!silent) setLoading(true);
+    try {
+      const [{ data: roles }, { data }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId),
+        supabase.from("partner_leads").select("*").order("created_at", { ascending: false }),
+      ]);
+      setIsLeadership((roles ?? []).some((r) => r.role === "leadership" || r.role === "admin"));
+      let leadRows = (data ?? []) as LeadRow[];
+      // Defensive: if any approved lead points to a partner that no longer exists,
+      // the FK should NULL it out automatically — but we double-check on the
+      // client to surface "Re-promote" UI instantly without waiting for a refresh.
+      const promotedIds = leadRows
+        .map((l) => l.promoted_partner_id)
+        .filter((id): id is string => Boolean(id));
+      if (promotedIds.length > 0) {
+        const { data: existing } = await supabase
+          .from("partners")
+          .select("id")
+          .in("id", promotedIds);
+        const alive = new Set((existing ?? []).map((p) => (p as { id: string }).id));
+        leadRows = leadRows.map((l) =>
+          l.promoted_partner_id && !alive.has(l.promoted_partner_id)
+            ? { ...l, promoted_partner_id: null, status: l.status === "approved" ? "in_review" : l.status }
+            : l
+        );
+      }
+      setLeads(leadRows);
+    } finally {
+      if (!silent) setLoading(false);
     }
-    setLeads(leadRows);
-    setLoading(false);
   }, [userId]);
 
   useEffect(() => { void refresh(); }, [refresh]);
@@ -260,25 +291,26 @@ export function useLeads(userId: string | undefined) {
         due_date: input.firstTask.due_date ?? null,
       } as never);
     }
-    await refresh();
+    await refresh({ silent: true });
     return data as LeadRow;
   }, [userId, refresh]);
 
   const updateLead = useCallback(async (id: string, patch: Partial<LeadRow>) => {
     const { error } = await supabase.from("partner_leads").update(patch).eq("id", id);
     if (error) throw error;
-    await refresh();
+    await refresh({ silent: true });
   }, [refresh]);
 
   const deleteLead = useCallback(async (id: string) => {
     const { error } = await supabase.from("partner_leads").delete().eq("id", id);
     if (error) throw error;
-    await refresh();
+    await refresh({ silent: true });
   }, [refresh]);
 
-  const setDimension = useCallback(async (lead: LeadRow, key: DimensionKey, value: 1 | 2 | 3) => {
-    const { meta, freeText } = parseScorecard(lead.notes);
-    const next: LeadRow = { ...lead };
+  const setDimension = useCallback(async (lead: LeadRow, key: DimensionKey, value: ScoreLevel) => {
+    const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
+    const { meta, freeText } = parseScorecard(latest.notes);
+    const next: LeadRow = { ...latest };
     const patch: Partial<LeadRow> = {};
     if (key === "icp_overlap") { next.sales_score = value; patch.sales_score = value; }
     else if (key === "sales_capacity") { next.expertise_score = value; patch.expertise_score = value; }
@@ -293,28 +325,30 @@ export function useLeads(userId: string | undefined) {
     }
     const total = computeFactorialTotal(next);
     patch.total_score = total;
-    const { error } = await supabase.from("partner_leads").update(patch).eq("id", lead.id);
+    const { error } = await supabase.from("partner_leads").update(patch).eq("id", latest.id);
     if (error) throw error;
-    await refresh();
+    await refresh({ silent: true });
   }, [refresh]);
 
   const updateFreeNotes = useCallback(async (lead: LeadRow, freeText: string) => {
-    const { meta } = parseScorecard(lead.notes);
+    const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
+    const { meta } = parseScorecard(latest.notes);
     const newNotes = serializeScorecard(meta, freeText);
-    const { error } = await supabase.from("partner_leads").update({ notes: newNotes }).eq("id", lead.id);
+    const { error } = await supabase.from("partner_leads").update({ notes: newNotes }).eq("id", latest.id);
     if (error) throw error;
-    await refresh();
+    await refresh({ silent: true });
   }, [refresh]);
 
   const rejectLead = useCallback(async (lead: LeadRow, reason: string) => {
-    const { meta, freeText } = parseScorecard(lead.notes);
+    const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
+    const { meta, freeText } = parseScorecard(latest.notes);
     const nextMeta: ScorecardMeta = { ...meta, rejection_reason: reason };
     const newNotes = serializeScorecard(nextMeta, freeText);
     const { error } = await supabase.from("partner_leads")
       .update({ status: "rejected", notes: newNotes })
-      .eq("id", lead.id);
+      .eq("id", latest.id);
     if (error) throw error;
-    await refresh();
+    await refresh({ silent: true });
   }, [refresh]);
 
   const promoteLead = useCallback(async (
@@ -322,16 +356,18 @@ export function useLeads(userId: string | undefined) {
     overrides?: { partner_type?: PartnerType }
   ): Promise<string> => {
     if (!userId) throw new Error("Not signed in");
-    const { freeText } = parseScorecard(lead.notes);
-    const total = computeFactorialTotal(lead);
+    const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
+    const { freeText } = parseScorecard(latest.notes);
+    const total = computeFactorialTotal(latest);
     const lines = FACTORIAL_DIMENSIONS.map((d) => {
-      const v = getDimensionValue(lead, d.key);
-      return `  • ${d.label}: ${v ?? "-"}`;
+      const v = getDimensionValue(latest, d.key);
+      const hint = v !== null ? dimensionHelpForValue(d.key, v) : "";
+      return `  • ${d.label}: ${v ?? "-"}${hint ? ` — ${hint}` : ""}`;
     });
     const promotedByLine =
-      lead.owner_id !== userId ? `\n  • Promoted by leadership on behalf of lead owner` : "";
+      latest.owner_id !== userId ? `\n  • Promoted by leadership on behalf of lead owner` : "";
     const notesPrefix =
-      `Promoted from qualification — Factorial 5-Dimension Scorecard (Total ${total ?? "-"}/15):\n` +
+      `Promoted from qualification — Alliara 5-dimension scorecard (total ${total ?? "-"}/${SCORECARD_MAX_TOTAL}):\n` +
       lines.join("\n") + promotedByLine;
     const combinedNotes = freeText ? `${notesPrefix}\n\n${freeText}` : notesPrefix;
 
@@ -340,13 +376,13 @@ export function useLeads(userId: string | undefined) {
       .insert({
         // The partner lands in the lead owner's portfolio, not the promoter's.
         // RLS allows leadership/admin to insert with another owner_id.
-        owner_id: lead.owner_id,
-        name: lead.company_name,
-        company: lead.company_name,
+        owner_id: latest.owner_id,
+        name: latest.company_name,
+        company: latest.company_name,
         tier: "emerging",
         status: "active",
         notes: combinedNotes,
-        partner_type: overrides?.partner_type ?? lead.partner_type ?? "referral",
+        partner_type: overrides?.partner_type ?? latest.partner_type ?? "referral",
       })
       .select("*")
       .single();
@@ -355,10 +391,10 @@ export function useLeads(userId: string | undefined) {
     const { error: updErr } = await supabase
       .from("partner_leads")
       .update({ status: "approved", promoted_partner_id: partner.id })
-      .eq("id", lead.id);
+      .eq("id", latest.id);
     if (updErr) throw updErr;
 
-    await refresh();
+    await refresh({ silent: true });
     return partner.id as string;
   }, [userId, refresh]);
 
