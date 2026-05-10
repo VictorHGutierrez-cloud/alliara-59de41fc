@@ -1207,6 +1207,7 @@ function LeadDetailPanel({
   const verdict = factorialVerdict(total);
   const canPromote =
     !lead.promoted_partner_id && lead.status !== "rejected" && verdict?.tone !== "red";
+  const isLocked = lead.status === "approved";
 
   const handlePipelineStatusChange = async (next: LeadStatus) => {
     if (next === lead.status) return;
@@ -1417,6 +1418,11 @@ function LeadDetailPanel({
                   Rate each dimension from 1 (weakest) to 5 (strongest). Total ranges from 5 to{" "}
                   {SCORECARD_MAX_TOTAL}.
                 </p>
+                {isLocked && (
+                  <div className="mt-3 rounded-lg border border-border/60 bg-surface/40 px-3 py-2 text-xs text-muted-foreground">
+                    This lead has been approved and promoted. The scorecard is locked. Move the pipeline status back to <span className="font-medium text-foreground">In review</span> to edit.
+                  </div>
+                )}
 
                 <div className="mt-4 space-y-6">
                   {FACTORIAL_DIMENSIONS.map((d, idx) => {
@@ -1435,12 +1441,14 @@ function LeadDetailPanel({
                               key={opt.v}
                               type="button"
                               title={opt.help}
+                              disabled={isLocked}
                               onClick={() => void handleSetDimension(d.key, opt.v)}
                               className={cn(
                                 "flex min-h-14 w-full touch-manipulation select-none items-center justify-center rounded-xl border px-2 text-base font-semibold transition sm:min-h-[52px] sm:text-sm",
                                 value === opt.v
                                   ? "border-primary bg-primary/15 text-foreground ring-2 ring-primary/35"
                                   : "border-border/60 bg-background/80 text-muted-foreground hover:border-border hover:bg-surface hover:text-foreground",
+                                isLocked && "cursor-not-allowed opacity-60 hover:bg-background/80 hover:text-muted-foreground",
                               )}
                               style={{ WebkitTapHighlightColor: "transparent" }}
                             >
@@ -1480,8 +1488,10 @@ function LeadDetailPanel({
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   onBlur={() => {
+                    if (isLocked) return;
                     if ((freeText ?? "") !== notes) void onUpdateNotes(notes);
                   }}
+                  readOnly={isLocked}
                   className="input mt-1 min-h-[100px]"
                   placeholder="Context, source of the lead, key conversation points…"
                 />
