@@ -187,6 +187,14 @@ function MethodologyPage() {
                       {COPY.methodology.axisLetterEyebrow(axis.letter)}
                     </p>
                     <h3 className="text-base font-semibold leading-tight truncate">{axis.name}</h3>
+                    <p className="mt-1 text-[10px] text-muted-foreground leading-snug line-clamp-2">
+                      {COPY.methodology.bookChapterLine({
+                        n: String(axis.bookChapterIndex),
+                        titlePt: axis.bookPrognosisTitlePt,
+                        aspect: axis.bookAspectPt,
+                      })}
+                      {axis.bookRelatedPrognosisPt ? ` · also: ${axis.bookRelatedPrognosisPt}` : ""}
+                    </p>
                   </div>
                 </div>
 

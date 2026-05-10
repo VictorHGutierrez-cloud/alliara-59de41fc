@@ -7,9 +7,10 @@ import { toast } from "sonner";
 import * as XLSX from "xlsx";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
+import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/partner/$partnerId/metrics")({
-  head: () => ({ meta: [{ title: "Metrics · Alliara" }] }),
+  head: () => ({ meta: [{ title: COPY.partnerWorkspace.metricsPageMetaTitle }] }),
   component: MetricsPage,
 });
 
@@ -88,8 +89,8 @@ function MetricsPage() {
     <div>
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-lg font-semibold">Commercial Metrics</h2>
-          <p className="text-sm text-muted-foreground">Track MRR, pipeline, and enablement over time.</p>
+          <h2 className="text-lg font-semibold">{COPY.partnerWorkspace.metricsPageTitle}</h2>
+          <p className="text-sm text-muted-foreground">{COPY.partnerWorkspace.metricsPageSubtitle}</p>
         </div>
         {isOwner && (
           <div className="flex gap-2">

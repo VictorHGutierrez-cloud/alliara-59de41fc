@@ -1,8 +1,7 @@
-// rev: octa-partner-centric
-// OCTA Methodology — content model for the OCTA OS platform.
-// Partner-centric edition: every axis evaluates the PARTNER's capability,
-// not the orchestrator's internal program. Used by the Readiness Assessment,
-// the Joint Business Plan, the Partner Intel decoder, and Kept (presence assistant).
+// rev: channel-maturity-framing
+// Eight-axis methodology content (stable axis_key for DB). Framed as maturity of the
+// indirect / channel motion with each partner-workspace — aligned to «Ecossistema de
+// Parceiros» (Octo): parceiros como canais. See octa-book-mapping.ts for book chapter mapping.
 
 export type Level = 1 | 2 | 3 | 4 | 5;
 
@@ -31,7 +30,15 @@ export interface DiagnosticQuestion {
 
 export interface Axis {
   key: string;
+  /** 1–8 badge order in the product (stable, matches assessment order); not an acronym. */
   letter: string;
+  /** «Prognóstico de maturidade» chapter index in the book (1–8; may repeat across axes). */
+  bookChapterIndex: number;
+  bookPrognosisTitlePt: string;
+  /** When two axes share one book chapter (e.g. Capacitação). */
+  bookAspectPt?: string;
+  /** Strongly related book chapter title (PT), e.g. atração complements design. */
+  bookRelatedPrognosisPt?: string;
   name: string;
   tagline: string;
   color: string; // CSS var token, e.g. "octa-1"
@@ -47,13 +54,9 @@ export interface Axis {
   diagnostic: DiagnosticQuestion[];
 }
 
-export const CENTRAL_MENTAL_MODEL = `Think of each partner as its own little growth engine—messy, human, and worth understanding on its own terms.
+export const CENTRAL_MENTAL_MODEL = `Partners are extra routes to market: how you recruit, equip, and run the indirect motion with them is channel maturity—not a vague «score for the company».
 
-OCTA gives you a shared language for that work: eight axes that spell out revenue maturity without turning people into spreadsheets. You're not running a generic program from HQ—you're orchestrating a portfolio of alliances, often one Joint Business Plan at a time.
-
-When the frame is kind and clear, diagnostics and plans stay grounded—and partners recognize themselves in the story.`;
-
-export const OCTA_FULL_NAME = "Operating model for Channel and Tech Orchestration";
+These eight dimensions spell out how strong that channel relationship really is—from fit and offer design to demand, delivery, program mechanics, day-to-day rhythm, and end-customer outcomes. Same language as in the «Ecossistema de Parceiros» / Octo line of work: clear so diagnostics and joint plans stay grounded.`;
 
 const lvl = (
   level: Level,
@@ -66,7 +69,9 @@ const lvl = (
 export const AXES: Axis[] = [
   {
     key: "strategy",
-    letter: "S",
+    letter: "1",
+    bookChapterIndex: 1,
+    bookPrognosisTitlePt: "Visão e estratégia",
     name: "Strategic Alignment (Fit)",
     tagline: "Are they aiming at the same customers—and the same future—you care about?",
     color: "octa-1",
@@ -117,7 +122,10 @@ export const AXES: Axis[] = [
   },
   {
     key: "offer",
-    letter: "O",
+    letter: "2",
+    bookChapterIndex: 2,
+    bookPrognosisTitlePt: "Design e modelos",
+    bookRelatedPrognosisPt: "Atração e recrutamento",
     name: "Commercial & Operational Capacity",
     tagline: "Do they have real sales and delivery bench—or only good intentions?",
     color: "octa-2",
@@ -168,7 +176,10 @@ export const AXES: Axis[] = [
   },
   {
     key: "recruit",
-    letter: "R",
+    letter: "3",
+    bookChapterIndex: 4,
+    bookPrognosisTitlePt: "Capacitação",
+    bookAspectPt: "Treino, certificação e autonomia no ciclo",
     name: "Solution Mastery (Enablement)",
     tagline: "Can they run discovery and demos without you babysitting every slide?",
     color: "octa-3",
@@ -219,7 +230,9 @@ export const AXES: Axis[] = [
   },
   {
     key: "enable",
-    letter: "E",
+    letter: "4",
+    bookChapterIndex: 5,
+    bookPrognosisTitlePt: "Co-GTM",
     name: "Go-to-Market Strength (Pipeline)",
     tagline: "Are they sourcing real EQLs—or mostly riding your pipeline coat-tails?",
     color: "octa-4",
@@ -270,7 +283,10 @@ export const AXES: Axis[] = [
   },
   {
     key: "cosell",
-    letter: "C",
+    letter: "5",
+    bookChapterIndex: 4,
+    bookPrognosisTitlePt: "Capacitação",
+    bookAspectPt: "Entrega, qualidade e valor ao cliente final",
     name: "Delivery Quality & Value",
     tagline: "Do customers land well—and stay happy—when this partner delivers?",
     color: "octa-5",
@@ -321,7 +337,9 @@ export const AXES: Axis[] = [
   },
   {
     key: "operate",
-    letter: "T",
+    letter: "6",
+    bookChapterIndex: 6,
+    bookPrognosisTitlePt: "Programa de parceiros",
     name: "Program Engagement",
     tagline: "Are they inside your portal, MDF, and tiers—or signed up and ghosting?",
     color: "octa-6",
@@ -372,7 +390,9 @@ export const AXES: Axis[] = [
   },
   {
     key: "growth",
-    letter: "G",
+    letter: "7",
+    bookChapterIndex: 7,
+    bookPrognosisTitlePt: "Time de parceiros",
     name: "Collaboration & Relationship",
     tagline: "Day-to-day: proactive, transparent, and actually pleasant to run?",
     color: "octa-7",
@@ -423,7 +443,9 @@ export const AXES: Axis[] = [
   },
   {
     key: "success",
-    letter: "X",
+    letter: "8",
+    bookChapterIndex: 8,
+    bookPrognosisTitlePt: "Gestão do ecossistema",
     name: "Customer Success & Impact",
     tagline: "Do customers they bring stick around—and grow—with warmth?",
     color: "octa-8",
@@ -485,11 +507,15 @@ export const overallLevelLabel = (avg: number): string => {
 };
 
 export const overallLevelDescription = (avg: number): string => {
-  if (avg < 1.5) return "This partner is misaligned. Start with strategic fit before investing further.";
-  if (avg < 2.5) return "Foundations are forming. Document the JBP and unlock one growth axis.";
-  if (avg < 3.5) return "A productive partner. Tighten capacity, enablement, and pipeline rhythm.";
-  if (avg < 4.5) return "Strategically aligned and producing. Co-invest and push toward predictable scale.";
-  return "A compounding partner. Treat as a flagship — co-author the category narrative.";
+  if (avg < 1.5)
+    return "This channel relationship looks misaligned. Clarify fit and operating model before scaling effort.";
+  if (avg < 2.5)
+    return "Foundations are forming. Document the JBP and unlock one priority dimension.";
+  if (avg < 3.5)
+    return "A productive channel motion. Tighten capacity, enablement, and pipeline rhythm.";
+  if (avg < 4.5)
+    return "Strong alignment and throughput. Co-invest and push toward predictable scale.";
+  return "A compounding partnership route. Treat as flagship — co-author the category narrative.";
 };
 
 export const xpToLevel = (xp: number) => {

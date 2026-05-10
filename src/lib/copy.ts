@@ -12,6 +12,7 @@ export const COPY = {
     noun: "Diagnostic",
     cta: "Run diagnostic",
     rerun: "Run diagnostic again",
+    updateCta: "Update diagnostic",
     hubTitle: "Run diagnostics from each workspace",
     hubMetaTitle: "Diagnostics · Alliara",
     partnerWorkspaceMetaTitle: "Partner diagnostics · Alliara",
@@ -20,7 +21,7 @@ export const COPY = {
     hubSecondaryCta: "Open portfolio",
     emptyPartnerOverviewTitle: "Start from a clear read on this partnership",
     emptyPartnerOverviewBody:
-      "A quick diagnostic snapshot helps everyone see the same maturity story. Joint plans and Kept suggestions stay grounded, not generic.",
+      "A quick diagnostic snapshot helps everyone see the same channel-maturity story for this relationship. Joint plans and Kept suggestions stay grounded, not generic.",
     answerAllQuestions: "Answer each prompt so the save reflects the full picture.",
     savedToast: "Diagnostic saved. Scores updated.",
     readOnlyRuns:
@@ -30,16 +31,16 @@ export const COPY = {
   },
 
   jbp: {
-    full: "Joint Business Plan",
-    short: "JBP",
-    item: "Move",
-    itemPlural: "Moves",
-    emptyPlanTitle: "Sketch your first moves together",
+    full: "Partner tasks",
+    short: "Tasks",
+    item: "Task",
+    itemPlural: "Tasks",
+    emptyPlanTitle: "Sketch your first tasks together",
     emptyPlanBody:
-      "Note what each side owes, or open Kept to turn diagnostics into moves you can talk through on the next call.",
-    newMoveTitle: "New move",
-    addMoveCta: "+ Add a move",
-    planPageMetaTitle: "Joint Business Plan · Alliara",
+      "Note what each side owes, or open Kept to turn diagnostics into tasks you can talk through on the next call.",
+    newMoveTitle: "New task",
+    addMoveCta: "+ Add a task",
+    planPageMetaTitle: "Tasks · Alliara",
   },
 
   kept: {
@@ -64,11 +65,18 @@ export const COPY = {
     busyLabel: "Drafting suggestions…",
     generateLabel: "Draft guidance",
     regenerateLabel: "Refresh guidance",
-    addedToPlanToast: "Added to Joint Business Plan",
+    addedToPlanToast: "Added to tasks",
+    hubMetaTitle: "Kept · Alliara",
+    hubTitle: "Kept",
+    hubIntro: "Choose a partner to open AI guidance built from the latest diagnostic.",
+    hubSearchPlaceholder: "Search by partner or company",
+    hubEmpty: "No partners match your search.",
+    hubOpenCoachCta: "Open Kept",
+    hubBackToPortfolio: "Back to portfolio",
     deliveredToast: "Kept briefing is ready",
     coachPageMetaTitle: "Kept · Alliara",
     sectionRecommendationsEyebrow: "Recommendations",
-    sectionMovesEyebrow: "Moves worth committing",
+    sectionMovesEyebrow: "Tasks worth committing",
   },
 
   ipp: {
@@ -114,7 +122,7 @@ export const COPY = {
         title: "Partner radar",
         subtitle: "Who’s sliding before the QBR deck says so",
         visual: "radar" as const,
-        imgAlt: "Alliara partner maturity radar and axis overview",
+        imgAlt: "Alliara channel maturity radar and eight-dimension overview",
       },
       {
         title: "Revenue snapshot",
@@ -150,7 +158,7 @@ export const COPY = {
     showcase: {
       radarTitle: "A radar partners recognize",
       radarBody:
-        "Catch softness early, thread axis signals into pipeline stories, and walk into the next touchpoint with the same facts your counterpart has.",
+        "Catch softness early, thread dimension signals into pipeline stories, and walk into the next touchpoint with the same facts your counterpart has.",
       revenueTitle: "Numbers you don’t have to rebuild overnight",
       revenueBody:
         "Sort open MRR, draft short asks for execs, and keep the story anchored to what partners reported, not what you wish had happened.",
@@ -170,11 +178,11 @@ export const COPY = {
     portfolioEyebrow: "Portfolio",
     portfolioTitle: "One roster you skim before you dial",
     portfolioIntro:
-      "Statuses, tiers, and axis notes land in one place. The first five minutes of a call are not archaeology.",
+      "Statuses, tiers, and dimension notes land in one place. The first five minutes of a call are not archaeology.",
     axesEyebrow: "Eight axes",
     axesTitle: "A shared language for alliances",
     axesIntro:
-      "Each axis is a prompt, not a verdict. Good diagnostics sound like planning together, not handing out grades.",
+      "Each dimension is a prompt, not a verdict. Good diagnostics sound like planning together, not handing out grades.",
     jbpEyebrow: "Joint Business Plans",
     jbpDemoTitle: "Moves that match how you steer the week",
     jbpDemoIntro:
@@ -190,8 +198,8 @@ export const COPY = {
   introTour: {
     metaTitle: "Meet Kept · Intro to Alliara",
     metaDescription:
-      "Eight quick screens on partner rhythm, diagnostics on every axis, joint plans, and how Kept keeps context.",
-    heroCta: "Meet Kept",
+      "Eight quick screens on partner rhythm, diagnostics on every dimension, joint plans, and how Kept keeps context.",
+    heroCta: "How Kept works",
     emptyPortfolioHint: "New to Alliara? Take the two minute intro tour with Kept.",
     emptyPortfolioCta: "Start intro tour",
     skip: "Skip intro",
@@ -219,7 +227,7 @@ export const COPY = {
         variant: "keepsContext",
         title: "Plans that survive the recap",
         body:
-          "Joint Business Plans stay readable: statuses, owners, and commitments stay tied to axis scores so decks stop rewriting themselves every Monday.",
+          "Joint Business Plans stay readable: statuses, owners, and commitments stay tied to dimension scores so decks stop rewriting themselves every Monday.",
       },
       {
         variant: "noticesDrift",
@@ -259,12 +267,15 @@ export const COPY = {
     loadErrorTitle: "We couldn't load your portfolio just now",
     retry: "Try again",
     briefingQuietMine:
-      "Looks calm today. Nice moment to rerun a diagnostic or revive a quiet Joint Business Plan.",
+      "Looks calm today. Nice moment to rerun a diagnostic or revive a quiet task list.",
     briefingQuietAll:
       "Across {scope} things look steady. Take a breath, then maybe deepen two key allies.",
-    weeklyDigestHeading: ({ date }: { date: string }) => `Weekly cockpit · ${date}`,
-    kickerAllPartners: "Fleet view",
     kickerPortfolioMine: "Your portfolio",
+    stickyHeroTitle: "Your Partner Portfolio",
+    stickyHeroSubtitle:
+      "Start with the partners who need your attention most today.",
+    startWeeklyReviewCta: "Start weekly review",
+    stickyAddPartnerCta: "Add partner",
     reportsCardEyebrow: "Reporting lives here",
     reportsCardTitle: "Open Reports for MRR views and exports",
     reportsCardBody:
@@ -278,10 +289,13 @@ export const COPY = {
       `Check in with ${n} churn risk ${n === 1 ? "partner" : "partners"}`,
     qualifyLeadsChip: ({ n }: { n: number }) => `Qualify ${n} inbound lead${n === 1 ? "" : "s"} →`,
     overdueNudge: ({ n }: { n: number }) =>
-      `${n} Joint Business Plan Move${n === 1 ? "" : "s"} behind schedule →`,
-    initiativesEyebrow: "Joint Business Plan moves",
-    initiativesTitleIdle: "Open Joint Business Plan moves",
-    initiativesTitleFocus: "Focus mode · top three moves",
+      `${n} task${n === 1 ? "" : "s"} behind schedule →`,
+    openTasksEyebrow: "Open tasks",
+    openTasksEmpty: "No open tasks in this roster view.",
+    openTasksShowingCap: ({ n }: { n: number }) => `Showing first ${n} tasks. Open a partner for the full list.`,
+    initiativesEyebrow: "Partner tasks",
+    initiativesTitleIdle: "Open partner tasks",
+    initiativesTitleFocus: "Focus mode, top three tasks",
     initiativesBodyIdle:
       "Pulled from what teammates own. Overdue partners float up first.",
     initiativesBodyFocus:
@@ -289,17 +303,10 @@ export const COPY = {
     focusModeEnter: "Enter focus mode",
     focusModeExit: "Leave focus mode",
     initiativesEmptyWide:
-      "Nothing here yet. Open any partner Joint Business Plan to log a few clear commitments.",
+      "Nothing here yet. Open any partner workspace and add a few clear tasks.",
     initiativesEmptyAxis:
       "This filter is quiet today. Broaden filters to see other commitments.",
-    loadingInitiatives: "Loading your moves…",
-    weeklyReviewEyebrow: "Monday ritual",
-    weeklyReviewTitle: "A five minute stewardship check in",
-    weeklyReviewBody:
-      "Surface churn risk, close three moves, and grab a Slack or email recap you can paste as is.",
-    exportSlack: "Copy Slack friendly recap",
-    exportEmail: "Copy email recap",
-    rosterEyebrow: "Alliance roster",
+    loadingInitiatives: "Loading your tasks…",
     rosterTitle: "Partners you support day to day",
     addPartnerCta: "+ Invite partner workspace",
     filterEmptyTitle: "No partners match these filters",
@@ -331,16 +338,16 @@ export const COPY = {
     readOnlyBadge: "Collaborator view",
     editPartnerHint: "Edit partner profile",
     scoreUndiagnosed: "No diagnostic yet",
-    maturityRadarHeading: "Maturity radar",
+    maturityRadarHeading: "Channel maturity radar",
     growthLeversTitle: "Where coaching lands fastest",
     growthLeversBlurb:
-      "Lower scores on an axis often mean a conversation worth scheduling soon. Lead with empathy, not a lecture.",
+      "Lower scores on a dimension often mean a conversation worth scheduling soon. Lead with empathy, not a lecture.",
     growthLeversLink: "Open Kept →",
     diagHistoryHeading: "Diagnostic history",
     partnerUpdatedToast: "Partner updated",
     partnerDeletedToast: "Partner workspace removed",
     deletePartnerBody:
-      "This removes diagnostics, the Joint Business Plan, and Kept history for this partner. Only use it when the relationship has truly ended.",
+      "This removes diagnostics, tasks, and Kept history for this partner. Only use it when the relationship has truly ended.",
     deleteDiagConfirmTitle: "Delete this diagnostic snapshot?",
     deleteDiagConfirmHint: "Older scores from this run will be gone for good.",
     ownerLabel: "Owner",
@@ -354,50 +361,60 @@ export const COPY = {
       overview: "Overview",
       axes: "Axes",
       stakeholders: "Stakeholders",
-      metrics: "Metrics",
-      intel: "Intel",
-      certification: "Factorial certification",
+      metrics: "Numbers",
+      intel: "Files and insights",
+      certification: "Factorial certs",
     },
+    metricsPageTitle: "Your numbers",
+    metricsPageSubtitle: "You log each period yourself: MRR, pipeline, and training snapshots.",
+    metricsPageMetaTitle: "Numbers · Alliara",
+    intelPageIntro:
+      "Upload files or short notes. The AI readout can also use the numbers you already saved on the Numbers tab.",
+    intelPageMetaTitle: "Files and insights · Alliara",
   },
 
   qualification: {
     pageMetaTitle: "Qualification · Alliara",
     eyebrow: "Lead qualification",
-    title: "Nurture prospects before opening a full workspace",
+    title: "Work the opportunity before it becomes a full workspace",
     intro:
-      "Score Ideal Partner Fit before you escalate. Partners trust you when introductions stay thoughtful. Kept uses the same cadence once they graduate to a workspace.",
-    addLeadCta: "+ Log inbound lead",
+      "Add a simple fit score before you open a full partner record. That keeps first steps thoughtful and trustworthy. When someone graduates here, Kept keeps the same steady rhythm in their workspace.",
+    addLeadCta: "Add Partner Opportunity",
     loadingFallback: "Loading…",
   },
 
   methodology: {
-    pageMetaTitle: "Methodology · Axis guides · Alliara",
+    pageMetaTitle: "Methodology · Channel dimensions · Alliara",
     pageMetaDescription:
-      "Plain language guides for all eight axes: what good looks like, gentle watch outs, and tiny drills before your next partner conversation.",
-    ogTitle: "Axis by axis field guide",
+      "Guides for all eight dimensions of channel maturity: what good looks like, what to watch for, and small drills before your next collaborator call.",
+    ogTitle: "Channel dimension guides",
     ogDescription:
-      "Readable depth for humans, so diagnostics and joint plans stay clear and kind.",
-    eyebrowSuffix: "Axis playbook",
-    pageTitle: "Friendly cheat sheets for each axis",
+      "Readable guides so diagnostics and plans stay clear and kind.",
+    eyebrowSuffix: "Channel dimensions",
+    pageTitle: "Guides for each maturity dimension",
     intro:
-      "Every axis breaks down what matters, where alliances stumble, and quick exercises you can try. Skim one before a call. You will sound grounded, not scripted.",
+      "Each dimension explains what matters in your indirect motion with this relationship, where deals wobble, and a small drill you can try. Read one before a call so you stay clear and human.",
     statsRunDiagnosticHint: "Run a diagnostic when you're ready; we'll map levels together.",
-    statsFullCoverageHint: "You have surfaced every axis. Nice coverage.",
-    statsPendingAxes: "{n} axes still waiting for a first pass",
+    statsFullCoverageHint: "You have surfaced every dimension. Nice coverage.",
+    statsPendingAxes: "{n} dimensions still waiting for a first pass",
     centralModelEyebrow: "Big picture",
-    centralModelTitle: "One shared frame for how partnerships grow",
+    centralModelTitle: "One shared frame for channel and partner-ecosystem maturity",
+    bookChapterLine: (args: { titlePt: string; n: string; aspect?: string }) =>
+      args.aspect
+        ? `Book · Cap. ${args.n}: ${args.titlePt} — ${args.aspect}`
+        : `Book · Cap. ${args.n}: ${args.titlePt}`,
     ctaFirstPartner: "Create your first partner workspace",
     ctaFirstDiag: "Run your first diagnostic",
-    axesSectionEyebrow: "Eight axes",
-    axesSectionTitle: "Choose an axis to explore",
+    axesSectionEyebrow: "Eight dimensions",
+    axesSectionTitle: "Choose a dimension to explore",
     axesSectionHint:
-      "Each card has drills, metrics, and honest mistakes. Peek ahead before you facilitate.",
+      "Badges are 1–8 (product order). Each card links to the closest «Prognóstico de maturidade» chapter in Ecossistema de Parceiros where wording differs.",
     openAxisCta: "Open the guide",
-    axisLetterEyebrow: (letter: string) => `Axis ${letter}`,
+    axisLetterEyebrow: (letter: string) => `Dimension ${letter}`,
     axisCardAriaLabel: (axisName: string) => `Open the ${axisName} guide`,
-    yourLevel: "Where you show up on this axis",
-    statOverallLabel: "Portfolio maturity",
-    statAxesLabel: "Axes you've diagnosed",
+    yourLevel: "Where you show up on this dimension",
+    statOverallLabel: "Portfolio channel maturity",
+    statAxesLabel: "Dimensions you've diagnosed",
     statLessonsLabel: "Micro lessons you have tried",
     statXpLabel: "XP you've collected",
     statXpHint: "A small high five for curiosity",
@@ -406,7 +423,7 @@ export const COPY = {
 
   methodologyAxis: {
     backLink: "Back to methodology overview",
-    axisEyebrow: "Axis",
+    axisEyebrow: "Dimension",
     statYourLevel: "Your level",
     statLessons: "Lessons",
     statProgress: "Progress",
@@ -426,26 +443,26 @@ export const COPY = {
     lessonExerciseLabel: "Try this",
     lessonCompleted: "Done",
     markCompleteCta: "Mark complete · +25 XP",
-    notFoundTitle: "We can't find that axis.",
+    notFoundTitle: "We can't find that dimension.",
     notFoundDashboardLink: "Back to dashboard",
     loading: "Loading…",
     lessonMetaLine: ({ minutes, done }: { minutes: number; done: boolean }) =>
       `${minutes} min · +25 XP${done ? " · Done" : ""}`,
     expandLessonAria: (title: string, expanded: boolean) =>
       `${expanded ? "Collapse" : "Expand"} lesson: ${title}`,
-    levelsHiddenHeading: "How maturity steps show up on this axis",
+    levelsHiddenHeading: "How maturity steps show up on this dimension",
     lessonsHiddenHeading: "Micro lessons you can try",
-    statsGroupAriaLabel: "Snapshot for this axis",
+    statsGroupAriaLabel: "Snapshot for this dimension",
   },
 
   reports: {
     pageMetaTitle: "Reports · Alliara",
     loadErrorTitle: "Reports paused while loading",
     retry: "Reload reports",
-    eyebrow: "Portfolio insight",
-    pageTitle: "Numbers partners and execs can follow",
+    eyebrow: "Portfolio reports",
+    pageTitle: "Numbers your team can share",
     intro:
-      "Filter by how you steward accounts, tiers, or time, then export CSV or PNG when finance or leadership pings you.",
+      "Filter by how you manage accounts, tier, or date. Export a CSV or image when finance or leadership asks.",
     customSoonBadge: "+ Custom builder (soon)",
   },
 
@@ -454,10 +471,11 @@ export const COPY = {
     signOutLabel: "Sign out",
     getStarted: "Start free",
     openWorkspaceCta: "Go to workspace",
-    signedInHint: "You're signed in",
+    signedInHint: "Signed in",
+    headerKeptCta: "Kept",
     rootMetaTitle: "Alliara · Partner workspace with heart",
     rootMetaDescription:
-      "Eight axis diagnostics, joint business plans, and Kept, built for Partner Development Managers and weekly partner rhythm.",
+      "Eight dimensions of channel maturity, joint business plans, and Kept—built for Partner Development Managers and steady collaborator rhythm.",
     ogTitle: "Alliara · Partner cockpit",
     ogDescription:
       "Alliance diagnostics and moves that keep rapport at the center: steady rhythm without the cold corporate vibe.",
@@ -470,23 +488,25 @@ export const COPY = {
   },
 
   appShell: {
+    goToPortfolio: "Go to portfolio",
     dockPortfolio: "Portfolio",
-    dockQualification: "Qualification",
+    dockQualification: "Qualify",
     dockReports: "Reports",
-    dockMethodology: "Methodology",
-    dockCertification: "Factorial certs",
-    dockPulse: "Diagnostics hub",
+    dockMethodology: "Guides",
+    dockCertification: "Certs",
+    dockPulse: "Diagnostics",
     dockSettings: "Settings",
     dockSignOut: "Sign out",
+    dockApprovals: "Approvals",
     footerCredit: "Alliara · Partner workspace with diagnostics, axes, and Kept in rhythm",
     teamPulseEyebrow: "Team signals",
-    teamPulseTitle: "How load lines up with diagnostic depth",
+    teamPulseTitle: "Who has how many partners, and how many already have a diagnostic",
     teamPulseSubtitle:
-      "Balances portfolio weight with diagnostic coverage. Spot strain before it becomes a burnout story.",
+      "Each person's row shows their partner count and how many of those partners already have a diagnostic. Use it to notice overload before people get swamped.",
     tablePdmCol: "Partner manager",
     tableLoadCol: "Active allies",
     tableMaturityAvg: "Avg maturity",
-    tableDiagnosedCovered: "Diagnostics coverage",
+    tableDiagnosedCovered: "Partners diagnosed",
   },
 
   toast: {
@@ -498,14 +518,11 @@ export const COPY = {
     partnersDeleted: ({ count }: { count: number }) =>
       `${count} partner${count === 1 ? "" : "s"} removed`,
     diagDeleted: "Diagnostic removed",
-    digestEmail: "Email recap copied",
-    digestSlack: "Slack recap copied",
     partnerCreated: ({ name }: { name: string }) => `${name} workspace is live`,
     moveAdded: "Move saved",
     partnerProfileSaved: "Partner profile saved",
     partnerWorkspaceRemoved: "Partner workspace removed",
-    addedToJbp: "On the Joint Business Plan",
-    moveMarkedDone: ({ title }: { title: string }) => `Done · “${title}”`,
+    addedToJbp: "On the task list",
   },
 
   certification: {
@@ -631,7 +648,7 @@ export const COPY = {
     stepKeptTitle: ({ kept }: { kept: string }) => `Open ${kept}`,
     stepKeptBody:
       "Treat drafts as a starting point: rewrite, trim, and carry only what you'll commit to.",
-    methodologyCta: "Browse guides by axis",
+    methodologyCta: "Browse guides by dimension",
   },
 
   focusCopy: {

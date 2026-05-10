@@ -19,6 +19,7 @@ import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as MeetKeptRouteImport } from './routes/meet-kept'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as KeptRouteImport } from './routes/kept'
 import { Route as IntroRouteImport } from './routes/intro'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
@@ -85,6 +86,11 @@ const MeetKeptRoute = MeetKeptRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KeptRoute = KeptRouteImport.update({
+  id: '/kept',
+  path: '/kept',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntroRoute = IntroRouteImport.update({
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/diagnostic': typeof DiagnosticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
+  '/kept': typeof KeptRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/diagnostic': typeof DiagnosticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
+  '/kept': typeof KeptRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
@@ -242,6 +250,7 @@ export interface FileRoutesById {
   '/diagnostic': typeof DiagnosticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
+  '/kept': typeof KeptRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
@@ -273,6 +282,7 @@ export interface FileRouteTypes {
     | '/diagnostic'
     | '/forgot-password'
     | '/intro'
+    | '/kept'
     | '/login'
     | '/meet-kept'
     | '/methodology'
@@ -302,6 +312,7 @@ export interface FileRouteTypes {
     | '/diagnostic'
     | '/forgot-password'
     | '/intro'
+    | '/kept'
     | '/login'
     | '/meet-kept'
     | '/methodology'
@@ -331,6 +342,7 @@ export interface FileRouteTypes {
     | '/diagnostic'
     | '/forgot-password'
     | '/intro'
+    | '/kept'
     | '/login'
     | '/meet-kept'
     | '/methodology'
@@ -361,6 +373,7 @@ export interface RootRouteChildren {
   DiagnosticRoute: typeof DiagnosticRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IntroRoute: typeof IntroRoute
+  KeptRoute: typeof KeptRoute
   LoginRoute: typeof LoginRoute
   MeetKeptRoute: typeof MeetKeptRoute
   MethodologyRoute: typeof MethodologyRoute
@@ -446,6 +459,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/kept': {
+      id: '/kept'
+      path: '/kept'
+      fullPath: '/kept'
+      preLoaderRoute: typeof KeptRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/intro': {
@@ -602,6 +622,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiagnosticRoute: DiagnosticRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IntroRoute: IntroRoute,
+  KeptRoute: KeptRoute,
   LoginRoute: LoginRoute,
   MeetKeptRoute: MeetKeptRoute,
   MethodologyRoute: MethodologyRoute,

@@ -208,9 +208,9 @@ function AppFrame() {
             {
               key: "meet-kept",
               icon: Sparkles,
-              label: COPY.introTour.heroCta,
-              active: path === "/intro",
-              onClick: () => navigate({ to: "/intro" }),
+              label: COPY.kept.label,
+              active: path.startsWith("/kept"),
+              onClick: () => navigate({ to: "/kept" }),
             },
             {
               key: "pulse",
@@ -230,7 +230,7 @@ function AppFrame() {
               ? [{
                   key: "approvals",
                   icon: ShieldCheck,
-                  label: "Approvals",
+                  label: COPY.appShell.dockApprovals,
                   active: path.startsWith("/admin/approvals"),
                   onClick: () => navigate({ to: "/admin/approvals" }),
                 }]
@@ -287,7 +287,7 @@ function AppFrame() {
             )}
           >
             <Link
-              to="/"
+              to="/partners"
               className={cn(
                 "flex min-w-0 rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring",
                 sidebarCollapsed ? "justify-center p-0.5" : "flex-1 pr-1",
@@ -369,14 +369,28 @@ function AppFrame() {
           >
             <div className="flex min-w-0 items-center gap-3">
               {inAppWorkspace && (
-                <button
-                  type="button"
-                  onClick={() => setMobileNavOpen(true)}
-                  className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-surface lg:hidden"
-                  aria-label="Open navigation menu"
-                >
-                  <Menu className="h-5 w-5" />
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setMobileNavOpen(true)}
+                    className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-surface lg:hidden"
+                    aria-label="Open navigation menu"
+                  >
+                    <Menu className="h-5 w-5" />
+                  </button>
+                  <Link
+                    to="/partners"
+                    className="inline-flex min-h-11 min-w-[2.75rem] shrink-0 items-center justify-center rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
+                    aria-label={COPY.appShell.goToPortfolio}
+                  >
+                    <img
+                      src={alliaraMark}
+                      alt=""
+                      className="size-9 object-contain"
+                      decoding="async"
+                    />
+                  </Link>
+                </>
               )}
               {!inAppWorkspace && (
                 <Link
@@ -440,10 +454,10 @@ function AppFrame() {
               ) : user ? (
                 <>
                   <Link
-                    to="/intro"
+                    to="/kept"
                     className="min-h-11 inline-flex items-center rounded-xl px-3 text-sm font-semibold text-foreground transition hover:bg-surface-2 sm:px-4"
                   >
-                    {COPY.introTour.heroCta}
+                    {COPY.auth.headerKeptCta}
                   </Link>
                   <span className="hidden text-xs text-muted-foreground sm:inline">{COPY.auth.signedInHint}</span>
                 </>
@@ -494,7 +508,7 @@ function AppFrame() {
             <SheetTitle className="sr-only">App navigation</SheetTitle>
             <div className="flex h-full flex-col px-3 py-4">
               <Link
-                to="/"
+                to="/partners"
                 className="mb-4 flex px-2"
                 onClick={() => setMobileNavOpen(false)}
               >

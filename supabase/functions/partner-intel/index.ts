@@ -54,10 +54,10 @@ serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const system = `You are a senior B2B partnership intelligence analyst inside the OCTA OS platform.
+    const system = `You are a senior B2B partnership intelligence analyst inside the Alliara platform.
 You read raw inputs about ONE specific partner — uploaded documents (business plans, sales data, decks, notes), quick metrics, and free-form notes — and turn them into structured intelligence for the Partner Development Manager (PDM).
-You map every signal to one of the 8 OCTA axes (strategy, offer, recruit, enable, cosell, operate, growth, success).
-Be specific to THIS partner. Cite the source of each signal (filename or "metrics" or "notes"). Never invent data — if something isn't in the inputs, say so.`;
+You map every signal to one of the 8 channel-maturity dimensions (stable keys: strategy, offer, recruit, enable, cosell, operate, growth, success).
+Be specific to THIS relationship. Cite the source of each signal (filename or "metrics" or "notes"). Never invent data — if something isn't in the inputs, say so.`;
 
     const tool = {
       type: "function",
@@ -88,7 +88,7 @@ Be specific to THIS partner. Cite the source of each signal (filename or "metric
               type: "array",
               minItems: 8,
               maxItems: 8,
-              description: "One entry per OCTA axis. Use these axis keys exactly: strategy, offer, recruit, enable, cosell, operate, growth, success.",
+              description: "One entry per dimension. Use these axis keys exactly: strategy, offer, recruit, enable, cosell, operate, growth, success.",
               items: {
                 type: "object",
                 properties: {
@@ -183,7 +183,7 @@ function buildPrompt(body: IntelRequest): string {
   if (body.partner.status) lines.push(`- Status: ${body.partner.status}`);
   if (body.partner.notes) lines.push(`- PDM notes on file: ${body.partner.notes}`);
   lines.push("");
-  lines.push("CURRENT OCTA SCORES (0 = not assessed):");
+  lines.push("CURRENT DIMENSION SCORES (0 = not assessed):");
   for (const a of body.axes) lines.push(`- ${a.name} (${a.key}): ${a.current_score.toFixed(1)} / 5`);
   lines.push("");
 
@@ -223,6 +223,6 @@ function buildPrompt(body: IntelRequest): string {
   }
 
   lines.push("TASK:");
-  lines.push("Analyze the inputs and return: (1) an executive summary, (2) red flags with evidence, (3) signals + suggested maturity level for each of the 8 OCTA axes (always include all 8 — if there is no evidence, set confidence to 'low' and say so in observations), (4) 3–6 ready-to-paste action items for the partner plan. Be ruthlessly specific to this partner. Cite which document or metric supports each signal.");
+  lines.push("Analyze the inputs and return: (1) an executive summary, (2) red flags with evidence, (3) signals + suggested maturity level for each of the 8 dimensions (always include all 8 — if there is no evidence, set confidence to 'low' and say so in observations), (4) 3–6 ready-to-paste action items for the partner plan. Be ruthlessly specific to this partner. Cite which document or metric supports each signal.");
   return lines.join("\n");
 }

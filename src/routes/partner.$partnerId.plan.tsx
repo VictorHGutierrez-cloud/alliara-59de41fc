@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { usePartner, type ActionRow } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
-import { AgentPlan, type AgentTask } from "@/components/ui/agent-plan";
+import { AgentPlan } from "@/components/ui/agent-plan";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { MoveCompleteCelebration } from "@/components/ui/move-complete-celebration";
+import { actionRowToAgentTask } from "@/lib/agent-task-mapper";
 
 export const Route = createFileRoute("/partner/$partnerId/plan")({
   head: () => ({ meta: [{ title: COPY.jbp.planPageMetaTitle }] }),
@@ -20,21 +22,13 @@ function PartnerPlan() {
   const data = usePartner(partnerId);
   const [filterAxis, setFilterAxis] = useState<string>("all");
   const [showNew, setShowNew] = useState(false);
+  const [moveBurstAt, setMoveBurstAt] = useState<number | null>(null);
+  const clearMoveBurst = useCallback(() => setMoveBurstAt(null), []);
 
-  const agentTasks = useMemo<AgentTask[]>(() => {
+  const agentTasks = useMemo(() => {
     return data.actions
       .filter((a) => filterAxis === "all" || a.axis_key === filterAxis)
-      .map((a) => ({
-        id: a.id,
-        title: a.title,
-        description: a.description ?? undefined,
-        status: a.status,
-        priority: a.priority,
-        axisKey: a.axis_key,
-        dueDate: a.due_date,
-        targetLevel: a.target_level,
-        source: a.source,
-      }));
+      .map((a) => actionRowToAgentTask(a));
   }, [data.actions, filterAxis]);
 
   if (data.loading || !user) {
@@ -49,7 +43,8 @@ function PartnerPlan() {
   const isOwner = data.partner?.owner_id === user.id;
 
   return (
-    <div>
+    <>
+      <div>
       <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
         <div className="flex items-center gap-2 flex-wrap">
           <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
@@ -92,17 +87,20 @@ function PartnerPlan() {
           <AgentPlan
             tasks={agentTasks}
             isOwner={isOwner}
-            onCycleStatus={(id) => {
+            onCycleStatus={async (id) => {
               const current = data.actions.find((a) => a.id === id);
               if (!current) return;
               const next: ActionRow["status"] =
                 current.status === "todo" ? "doing" : current.status === "doing" ? "done" : "todo";
-              data
-                .updateAction(id, {
+              try {
+                await data.updateAction(id, {
                   status: next,
                   completed_at: next === "done" ? new Date().toISOString() : null,
-                })
-                .catch((e) => toast.error((e as Error).message));
+                });
+                if (next === "done") setMoveBurstAt(Date.now());
+              } catch (e) {
+                toast.error((e as Error).message);
+              }
             }}
             onDelete={(id) => data.deleteAction(id).catch((e) => toast.error((e as Error).message))}
           />
@@ -123,7 +121,9 @@ function PartnerPlan() {
           }}
         />
       )}
-    </div>
+      </div>
+      <MoveCompleteCelebration burstAt={moveBurstAt} onConsumed={clearMoveBurst} />
+    </>
   );
 }
 

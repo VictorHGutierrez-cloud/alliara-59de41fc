@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   CheckCircle2,
   Circle,
@@ -30,6 +31,11 @@ export interface AgentTask {
   targetLevel?: number | null;
   source?: string | null;
   subtasks?: AgentSubtask[];
+  partnerId?: string;
+  partnerName?: string;
+  partnerCompany?: string | null;
+  /** When false, disables cycle/delete even if isOwner is true (e.g. cross-partner portfolio view). */
+  canMutate?: boolean;
 }
 
 interface AgentPlanProps {
@@ -39,7 +45,7 @@ interface AgentPlanProps {
   onDelete?: (taskId: string) => void;
 }
 
-function StatusIcon({ status, className = "h-4.5 w-4.5" }: { status: AgentStatus; className?: string }) {
+export function StatusIcon({ status, className = "h-4.5 w-4.5" }: { status: AgentStatus; className?: string }) {
   if (status === "done") return <CheckCircle2 className={`${className} text-emerald-400`} />;
   if (status === "doing") return <CircleDotDashed className={`${className} text-sky-400 animate-spin-slow`} />;
   if (status === "need-help") return <CircleAlert className={`${className} text-amber-400`} />;
@@ -87,142 +93,190 @@ const detailsVariants = {
   visible: { opacity: 1, height: "auto" as const, transition: { duration: 0.25, ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number] } },
 };
 
+function taskCanEdit(task: AgentTask, isOwner: boolean): boolean {
+  if (task.canMutate === true) return true;
+  if (task.canMutate === false) return false;
+  return isOwner;
+}
+
+export interface AgentTaskCardProps {
+  task: AgentTask;
+  isOwner: boolean;
+  onCycleStatus?: (taskId: string) => void;
+  onDelete?: (taskId: string) => void;
+  /** Tighter layout for table cells and mobile cards */
+  compact?: boolean;
+  className?: string;
+}
+
+/** Single task card: same chrome as items inside AgentPlan, for use in portfolio table/mobile without the list wrapper. */
+export function AgentTaskCard({
+  task,
+  isOwner,
+  onCycleStatus,
+  onDelete,
+  compact = false,
+  className = "",
+}: AgentTaskCardProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const axis = task.axisKey ? AXES.find((a) => a.key === task.axisKey) : undefined;
+  const hasDetails = (task.subtasks && task.subtasks.length > 0) || !!task.description;
+  const canEdit = taskCanEdit(task, isOwner);
+  const pad = compact ? "p-2" : "p-3";
+  const titleCls = compact ? "text-xs font-medium" : "text-sm font-medium";
+  const iconSz = compact ? "h-4 w-4" : "h-5 w-5";
+
+  return (
+    <div className={`rounded-xl bg-card border border-border/60 ${className}`}>
+      <div className={`flex items-start gap-2 ${pad}`}>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (canEdit) onCycleStatus?.(task.id);
+          }}
+          className={`mt-0.5 shrink-0 ${!canEdit ? "cursor-default opacity-60" : ""}`}
+          aria-label="Cycle status"
+        >
+          <StatusIcon status={task.status} className={iconSz} />
+        </button>
+
+        <div className="flex-1 min-w-0">
+          {(task.partnerName && task.partnerId) && (
+            <div className="mb-1">
+              <Link
+                to="/partner/$partnerId/plan"
+                params={{ partnerId: task.partnerId }}
+                onClick={(e) => e.stopPropagation()}
+                className="text-[10px] font-mono uppercase tracking-widest text-primary hover:underline"
+              >
+                {task.partnerName}
+                {task.partnerCompany ? ` · ${task.partnerCompany}` : ""}
+              </Link>
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => hasDetails && setIsOpen((o) => !o)}
+            className="w-full text-left"
+          >
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {axis && (
+                <span
+                  className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
+                  style={{
+                    background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`,
+                    color: `var(--${axis.color})`,
+                  }}
+                >
+                  {axis.letter} · {axis.name}
+                </span>
+              )}
+              {task.source === "ai" && (
+                <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-surface-2 text-muted-foreground">AI</span>
+              )}
+              <PriorityChip p={task.priority} />
+              {task.targetLevel ? (
+                <span className="text-[10px] font-mono text-muted-foreground">→ L{task.targetLevel}</span>
+              ) : null}
+            </div>
+            <div className={`mt-1 ${titleCls} ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
+              {task.title}
+            </div>
+            {task.dueDate && (
+              <div className="text-[10px] font-mono text-muted-foreground mt-0.5">due {task.dueDate}</div>
+            )}
+          </button>
+        </div>
+
+        <div className="flex flex-col items-end gap-1 shrink-0">
+          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground rounded-full border border-border/60 px-2 py-0.5">
+            {statusLabel(task.status)}
+          </span>
+          {canEdit && onDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(task.id);
+              }}
+              className="text-[11px] text-destructive hover:underline"
+            >
+              Delete
+            </button>
+          )}
+        </div>
+      </div>
+
+      <AnimatePresence initial={false}>
+        {isOpen && hasDetails && (
+          <motion.div
+            variants={detailsVariants}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+            className="overflow-hidden"
+          >
+            <div className="relative pl-9 pr-4 pb-4">
+              <span className="absolute left-[22px] top-0 bottom-3 w-px bg-border/60" />
+              {task.description && (
+                <p className="text-xs text-muted-foreground mb-3">{task.description}</p>
+              )}
+              {task.subtasks && task.subtasks.length > 0 && (
+                <motion.ul
+                  variants={subtaskListVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  className="space-y-1.5"
+                >
+                  {task.subtasks.map((sub) => (
+                    <motion.li
+                      key={sub.id}
+                      variants={subtaskVariants}
+                      className="flex items-start gap-2 rounded-lg bg-surface/40 border border-border/40 px-2.5 py-1.5"
+                    >
+                      <StatusIcon status={sub.status} className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className={`text-xs ${sub.status === "done" ? "line-through text-muted-foreground" : ""}`}>{sub.title}</div>
+                        {sub.description && (
+                          <div className="text-[11px] text-muted-foreground mt-0.5">{sub.description}</div>
+                        )}
+                      </div>
+                    </motion.li>
+                  ))}
+                </motion.ul>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function AgentPlan({ tasks, isOwner = false, onCycleStatus, onDelete }: AgentPlanProps) {
-  const [expanded, setExpanded] = useState<string[]>(tasks[0] ? [tasks[0].id] : []);
-
-  const toggle = (id: string) =>
-    setExpanded((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-
   return (
     <LayoutGroup>
       <ul className="space-y-2">
         <AnimatePresence initial={false}>
-          {tasks.map((task) => {
-            const isOpen = expanded.includes(task.id);
-            const axis = task.axisKey ? AXES.find((a) => a.key === task.axisKey) : undefined;
-            const hasDetails = (task.subtasks && task.subtasks.length > 0) || !!task.description;
-
-            return (
-              <motion.li
-                key={task.id}
-                variants={taskVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                layout
-                className="rounded-xl bg-card border border-border/60"
-              >
-                <div className="flex items-start gap-3 p-3">
-                  <motion.button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (isOwner) onCycleStatus?.(task.id);
-                    }}
-                    whileTap={{ scale: 0.9 }}
-                    whileHover={{ scale: 1.1 }}
-                    className="mt-0.5 shrink-0"
-                    aria-label="Cycle status"
-                  >
-                    <StatusIcon status={task.status} className="h-5 w-5" />
-                  </motion.button>
-
-                  <button
-                    type="button"
-                    onClick={() => hasDetails && toggle(task.id)}
-                    className="flex-1 min-w-0 text-left"
-                  >
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {axis && (
-                        <span
-                          className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
-                          style={{
-                            background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`,
-                            color: `var(--${axis.color})`,
-                          }}
-                        >
-                          {axis.letter} · {axis.name}
-                        </span>
-                      )}
-                      {task.source === "ai" && (
-                        <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-surface-2 text-muted-foreground">AI</span>
-                      )}
-                      <PriorityChip p={task.priority} />
-                      {task.targetLevel && (
-                        <span className="text-[10px] font-mono text-muted-foreground">→ L{task.targetLevel}</span>
-                      )}
-                    </div>
-                    <div className={`mt-1.5 text-sm font-medium ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
-                      {task.title}
-                    </div>
-                    {task.dueDate && (
-                      <div className="text-[10px] font-mono text-muted-foreground mt-1">due {task.dueDate}</div>
-                    )}
-                  </button>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground rounded-full border border-border/60 px-2 py-0.5">
-                      {statusLabel(task.status)}
-                    </span>
-                    {isOwner && onDelete && (
-                      <button
-                        type="button"
-                        onClick={() => onDelete(task.id)}
-                        className="text-[11px] text-destructive hover:underline"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                <AnimatePresence initial={false}>
-                  {isOpen && hasDetails && (
-                    <motion.div
-                      variants={detailsVariants}
-                      initial="hidden"
-                      animate="visible"
-                      exit="hidden"
-                      className="overflow-hidden"
-                    >
-                      <div className="relative pl-9 pr-4 pb-4">
-                        {/* connector */}
-                        <span className="absolute left-[22px] top-0 bottom-3 w-px bg-border/60" />
-                        {task.description && (
-                          <p className="text-xs text-muted-foreground mb-3">{task.description}</p>
-                        )}
-                        {task.subtasks && task.subtasks.length > 0 && (
-                          <motion.ul
-                            variants={subtaskListVariants}
-                            initial="hidden"
-                            animate="visible"
-                            exit="exit"
-                            className="space-y-1.5"
-                          >
-                            {task.subtasks.map((sub) => (
-                              <motion.li
-                                key={sub.id}
-                                variants={subtaskVariants}
-                                className="flex items-start gap-2 rounded-lg bg-surface/40 border border-border/40 px-2.5 py-1.5"
-                              >
-                                <StatusIcon status={sub.status} className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <div className={`text-xs ${sub.status === "done" ? "line-through text-muted-foreground" : ""}`}>{sub.title}</div>
-                                  {sub.description && (
-                                    <div className="text-[11px] text-muted-foreground mt-0.5">{sub.description}</div>
-                                  )}
-                                </div>
-                              </motion.li>
-                            ))}
-                          </motion.ul>
-                        )}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.li>
-            );
-          })}
+          {tasks.map((task) => (
+            <motion.li
+              key={task.id}
+              variants={taskVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              layout
+            >
+              <AgentTaskCard
+                task={task}
+                isOwner={isOwner}
+                onCycleStatus={onCycleStatus}
+                onDelete={onDelete}
+              />
+            </motion.li>
+          ))}
         </AnimatePresence>
       </ul>
     </LayoutGroup>

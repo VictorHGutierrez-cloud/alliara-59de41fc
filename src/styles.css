@@ -110,7 +110,7 @@
   --input: #e5e7eb;
   --ring: #c4b5fd;
 
-  /* OCTA axes — re-tuned for legibility on light surfaces */
+  /* Channel maturity dimensions (legacy token names octa-1…octa-8) — tuned for legibility */
   --octa-1: oklch(0.52 0.16 160); /* emerald — Strategy */
   --octa-2: oklch(0.55 0.14 200); /* teal — Offer */
   --octa-3: oklch(0.52 0.16 240); /* indigo — Recruit */

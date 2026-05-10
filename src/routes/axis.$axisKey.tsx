@@ -12,7 +12,7 @@ const M = COPY.methodologyAxis;
 export const Route = createFileRoute("/axis/$axisKey")({
   head: ({ params }) => {
     const a = AXES.find((x) => x.key === params.axisKey);
-    return { meta: [{ title: a ? `${a.name} · Alliara` : "Axis · Alliara" }] };
+    return { meta: [{ title: a ? `${a.name} · Alliara` : "Dimension · Alliara" }] };
   },
   component: AxisPage,
   notFoundComponent: () => (
@@ -90,6 +90,14 @@ function AxisPage() {
             </p>
             <h1 className="text-3xl font-semibold">{axis.name}</h1>
             <p className="text-sm text-muted-foreground">{axis.tagline}</p>
+            <p className="mt-2 text-xs text-muted-foreground/90 leading-snug max-w-2xl">
+              {COPY.methodology.bookChapterLine({
+                n: String(axis.bookChapterIndex),
+                titlePt: axis.bookPrognosisTitlePt,
+                aspect: axis.bookAspectPt,
+              })}
+              {axis.bookRelatedPrognosisPt ? ` · ${axis.bookRelatedPrognosisPt}` : ""}
+            </p>
           </div>
         </div>
         <div className="flex gap-3" role="group" aria-label={M.statsGroupAriaLabel}>
@@ -100,7 +108,7 @@ function AxisPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-6 flex gap-1 border-b border-border/60" role="tablist" aria-label="Axis sections">
+      <div className="mt-6 flex gap-1 border-b border-border/60" role="tablist" aria-label="Dimension sections">
         {tabs.map((t) => {
           const selected = tab === t.key;
           const panelId =

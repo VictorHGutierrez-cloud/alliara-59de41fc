@@ -7,7 +7,7 @@
  *   - all 5 sessions are completed, AND
  *   - at least one stakeholder is mapped (so the certificate has a real recipient).
  *
- * No more dependency on the PDM's OCTA lesson progress — that was misleading.
+ * No more dependency on the PDM's lesson progress alone for eligibility — that was misleading.
  */
 
 import type { Database } from "@/integrations/supabase/types";

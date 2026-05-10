@@ -1,5 +1,5 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
 import {
@@ -9,9 +9,8 @@ import {
   type ActionRow,
 } from "../lib/partners-store";
 import { useLeads } from "../lib/leads-store";
-import { AXES, type Axis } from "../content/octa";
 import { toast } from "sonner";
-import { AlertTriangle, CalendarClock, Check, ChevronDown, ChevronRight, ChevronUp, HeartHandshake, Plus, X as XIcon } from "lucide-react";
+import { AlertTriangle, CalendarClock, ChevronDown, ChevronRight, ChevronUp, HeartHandshake, Plus } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar } from "@/components/PartnerFilterBar";
 import { useOwnerScope } from "@/lib/use-owner-scope";
@@ -33,8 +32,10 @@ import { COPY, buildPortfolioBriefingText } from "@/lib/copy";
 import { EmptyPortfolioOnboarding } from "@/components/onboarding/EmptyPortfolioOnboarding";
 import { TeamPulse } from "@/components/leadership/TeamPulse";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
-import { KeptWorkspaceRibbon } from "@/components/brand/KeptWorkspaceRibbon";
 import { cn } from "@/lib/utils";
+import { AgentPlan, AgentTaskCard, type AgentTask } from "@/components/ui/agent-plan";
+import { MoveCompleteCelebration } from "@/components/ui/move-complete-celebration";
+import { actionRowToAgentTask } from "@/lib/agent-task-mapper";
 
 const PAGE_SIZES = [10, 20, 50, 100, 200] as const;
 
@@ -57,9 +58,6 @@ function PartnersPage() {
   const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
   const [sortKey, setSortKey] = useState<SortKey>("name_asc");
   const [openActions, setOpenActions] = useState<(ActionRow & { partner_name: string })[]>([]);
-  const [actionsLoading, setActionsLoading] = useState(true);
-  const [selectedAction, setSelectedAction] = useState<EnrichedAction | null>(null);
-  const [completing, setCompleting] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [selectedForReassign, setSelectedForReassign] = useState<string[]>([]);
@@ -180,40 +178,38 @@ function PartnersPage() {
     }
   };
 
-  const completeAction = async (a: EnrichedAction) => {
-    setCompleting(a.id);
-    try {
-      const { error } = await supabase
-        .from("action_plans")
-        .update({ status: "done", completed_at: new Date().toISOString() })
-        .eq("id", a.id);
-      if (error) throw error;
-      setOpenActions((prev) => prev.filter((x) => x.id !== a.id));
-      if (selectedAction?.id === a.id) setSelectedAction(null);
-      toast.success(COPY.toast.moveMarkedDone({ title: a.title }));
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setCompleting(null);
-    }
-  };
-
   useEffect(() => {
     if (!loading && !user) nav({ to: "/login" });
   }, [loading, user, nav]);
 
-  // Aggregate open growth initiatives across all visible partners
+  const scoped = useMemo(() => {
+    if (!user || portfolio.loading || portfolio.error) return [] as PortfolioItem[];
+    return portfolio.items.filter(ownerScope.applyFilter);
+  }, [user, portfolio.items, portfolio.loading, portfolio.error, ownerScope]);
+
+  const scopedRosterKey = useMemo(
+    () =>
+      scoped
+        .map((it) => `${it.partner.id}:${it.partner.name}`)
+        .sort()
+        .join("|"),
+    [scoped],
+  );
+
+  const ownerIdByPartner = useMemo(
+    () => new Map(scoped.map((it) => [it.partner.id, it.partner.owner_id])),
+    [scoped],
+  );
+
+  // Aggregate open tasks for partners in the current roster scope (same as scoped grid)
   useEffect(() => {
     let cancelled = false;
     void (async () => {
       if (!user || portfolio.loading) return;
-      setActionsLoading(true);
-      const ownPartners = portfolio.items.filter((it) => it.partner.owner_id === user.id);
-      const ids = ownPartners.map((p) => p.partner.id);
+      const ids = scoped.map((it) => it.partner.id);
       if (ids.length === 0) {
         if (!cancelled) {
           setOpenActions([]);
-          setActionsLoading(false);
         }
         return;
       }
@@ -224,23 +220,20 @@ function PartnersPage() {
         .neq("status", "done")
         .order("due_date", { ascending: true, nullsFirst: false });
       if (cancelled) return;
-      const nameMap = new Map(ownPartners.map((p) => [p.partner.id, p.partner.name]));
-      const enriched = (data ?? []).map((a) => ({
-        ...(a as ActionRow),
-        partner_name: nameMap.get((a as ActionRow).partner_id) ?? "—",
-      }));
+      const nameMap = new Map(scoped.map((it) => [it.partner.id, it.partner.name]));
+      const enriched = (data ?? []).map((a) => {
+        const row = a as ActionRow;
+        return {
+          ...row,
+          partner_name: nameMap.get(row.partner_id) ?? "—",
+        };
+      });
       setOpenActions(enriched);
-      setActionsLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-  }, [user, portfolio.items, portfolio.loading]);
-
-  const scoped = useMemo(() => {
-    if (!user || portfolio.loading || portfolio.error) return [] as PortfolioItem[];
-    return portfolio.items.filter(ownerScope.applyFilter);
-  }, [user, portfolio.items, portfolio.loading, portfolio.error, ownerScope]);
+  }, [user, portfolio.loading, scopedRosterKey]);
 
   const statusCounts = useMemo(
     () => ({
@@ -271,7 +264,92 @@ function PartnersPage() {
 
   const sortedOpenActions = useMemo(() => sortActions(openActions), [openActions]);
 
-  const todayQueueActions = useMemo(() => sortedOpenActions.slice(0, 5), [sortedOpenActions]);
+  const firstOpenActionByPartner = useMemo(() => {
+    const m = new Map<string, EnrichedAction>();
+    for (const action of sortedOpenActions) {
+      if (!m.has(action.partner_id)) m.set(action.partner_id, action);
+    }
+    return m;
+  }, [sortedOpenActions]);
+
+  const [moveBurstAt, setMoveBurstAt] = useState<number | null>(null);
+  const clearMoveBurst = useCallback(() => setMoveBurstAt(null), []);
+
+  const handlePortfolioCycleStatus = useCallback(
+    async (taskId: string) => {
+      const current = openActions.find((a) => a.id === taskId);
+      if (!current) return;
+      const next: ActionRow["status"] =
+        current.status === "todo" ? "doing" : current.status === "doing" ? "done" : "todo";
+      try {
+        const { error } = await supabase
+          .from("action_plans")
+          .update({
+            status: next,
+            completed_at: next === "done" ? new Date().toISOString() : null,
+          })
+          .eq("id", taskId);
+        if (error) throw error;
+        if (next === "done") setMoveBurstAt(Date.now());
+        setOpenActions((prev) => {
+          if (next === "done") return prev.filter((a) => a.id !== taskId);
+          return prev.map((a) =>
+            a.id === taskId
+              ? {
+                  ...a,
+                  status: next,
+                  completed_at: null,
+                }
+              : a,
+          );
+        });
+        void portfolio.refresh();
+      } catch (e) {
+        console.error("[PartnersPage - handlePortfolioCycleStatus]:", e);
+        toast.error((e as Error).message);
+      }
+    },
+    [openActions, portfolio],
+  );
+
+  const handlePortfolioDelete = useCallback(
+    async (taskId: string) => {
+      try {
+        const { error } = await supabase.from("action_plans").delete().eq("id", taskId);
+        if (error) throw error;
+        setOpenActions((prev) => prev.filter((a) => a.id !== taskId));
+        void portfolio.refresh();
+      } catch (e) {
+        console.error("[PartnersPage - handlePortfolioDelete]:", e);
+        toast.error((e as Error).message);
+      }
+    },
+    [portfolio],
+  );
+
+  const firstPortfolioTaskByPartner = useMemo(() => {
+    const m = new Map<string, AgentTask>();
+    for (const [partnerId, a] of firstOpenActionByPartner) {
+      const ownerId = ownerIdByPartner.get(partnerId);
+      m.set(partnerId, actionRowToAgentTask(a, { canMutate: ownerId === user?.id }));
+    }
+    return m;
+  }, [firstOpenActionByPartner, ownerIdByPartner, user?.id]);
+
+  const SIDEBAR_OPEN_TASKS_CAP = 25;
+  const sidebarPortfolioTasks = useMemo(() => {
+    const slice = sortedOpenActions.slice(0, SIDEBAR_OPEN_TASKS_CAP);
+    return slice.map((a) => {
+      const it = scoped.find((p) => p.partner.id === a.partner_id);
+      const ownerId = ownerIdByPartner.get(a.partner_id);
+      return actionRowToAgentTask(a, {
+        includePartnerContext: true,
+        partnerName: a.partner_name,
+        partnerCompany: it?.partner.company ?? null,
+        canMutate: ownerId === user?.id,
+      });
+    });
+  }, [sortedOpenActions, scoped, ownerIdByPartner, user?.id]);
 
   const nextActionByPartner = useMemo(() => {
     const map = new Map<string, string>();
@@ -301,7 +379,6 @@ function PartnersPage() {
     const arr = [...filtered];
     const touchMs = (it: PortfolioItem) =>
       new Date(it.latest?.created_at ?? it.partner.created_at).getTime();
-    const nextText = (it: PortfolioItem) => nextActionByPartner.get(it.partner.id) ?? "";
     const ownerLabel = (it: PortfolioItem) => ownerNames.get(it.partner.owner_id) ?? "";
 
     arr.sort((a, b) => {
@@ -323,9 +400,9 @@ function PartnersPage() {
         case "status_desc":
           return statusLabel(b.partner.status).localeCompare(statusLabel(a.partner.status));
         case "next_action_asc":
-          return nextText(a).localeCompare(nextText(b));
+          return comparePartnersByNextAction(a, b, firstOpenActionByPartner, nextActionByPartner, "asc");
         case "next_action_desc":
-          return nextText(b).localeCompare(nextText(a));
+          return comparePartnersByNextAction(a, b, firstOpenActionByPartner, nextActionByPartner, "desc");
         case "owner_asc":
           return ownerLabel(a).localeCompare(ownerLabel(b));
         case "owner_desc":
@@ -337,7 +414,7 @@ function PartnersPage() {
       }
     });
     return arr;
-  }, [filtered, sortKey, nextActionByPartner, ownerNames]);
+  }, [filtered, sortKey, nextActionByPartner, firstOpenActionByPartner, ownerNames]);
 
   useEffect(() => {
     setPageIndex(0);
@@ -414,44 +491,49 @@ function PartnersPage() {
 
   return (
     <div className="page-shell space-y-5">
-      <section className="sticky top-20 z-20 rounded-2xl border border-border/70 bg-card/95 px-4 py-4 backdrop-blur sm:px-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0">
-            <p className="page-eyebrow">
-              {scopeFilter === "all" ? COPY.portfolio.kickerAllPartners : COPY.portfolio.kickerPortfolioMine}
-            </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-              Your Partner Portfolio
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Start with the partners who need your attention most today.
-            </p>
-            <div className="mt-3">
-              <KeptWorkspaceRibbon variant="remindsGently" />
+      <section className="sticky top-20 z-20 rounded-2xl border border-border/70 bg-card/95 px-3 py-3 backdrop-blur sm:px-4 sm:py-3">
+        <div className="mx-auto w-full max-w-5xl space-y-2.5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+            <div className="min-w-0 flex-1">
+              {scopeFilter === "mine" && (
+                <p className="page-eyebrow">{COPY.portfolio.kickerPortfolioMine}</p>
+              )}
+              <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
+                {COPY.portfolio.stickyHeroTitle}
+              </h1>
+              <p className="mt-0.5 max-w-prose text-xs leading-snug text-muted-foreground sm:text-sm line-clamp-2 sm:line-clamp-none">
+                {COPY.portfolio.stickyHeroSubtitle}
+              </p>
             </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => {
-                const queue = document.getElementById("today-queue");
-                queue?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-              className="btn-candy min-h-11 px-5"
-            >
-              Start weekly review
-            </button>
-            <button onClick={() => setShowNew(true)} className="btn-candy-secondary min-h-11 px-5">
-              <Plus className="h-4 w-4" />
-              Add partner
-            </button>
+            <div className="flex shrink-0 flex-wrap gap-2 sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  const queue = document.getElementById("today-queue");
+                  queue?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
+                className="btn-candy min-h-10 px-4 text-sm sm:min-h-11 sm:px-5"
+              >
+                {COPY.portfolio.startWeeklyReviewCta}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowNew(true)}
+                className="btn-candy-secondary min-h-10 px-4 text-sm sm:min-h-11 sm:px-5"
+              >
+                <Plus className="h-4 w-4" />
+                {COPY.portfolio.stickyAddPartnerCta}
+              </button>
+            </div>
           </div>
         </div>
         {portfolio.isLeadership && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-surface/50 p-2">
+          <div className="mx-auto mt-2.5 flex w-full max-w-5xl flex-wrap items-center gap-2 rounded-xl border border-border/60 bg-surface/50 px-2 py-1.5">
             <div className="seg-candy">
               {(["mine", "all"] as const).map((f) => (
                 <button
                   key={f}
+                  type="button"
                   onClick={() => setScopeFilter(f)}
                   className="seg-candy-item"
                   data-active={scopeFilter === f}
@@ -482,7 +564,7 @@ function PartnersPage() {
                 })()}
               </select>
             )}
-            <span className="ml-auto px-2 text-xs text-muted-foreground">
+            <span className="w-full px-1 text-xs text-muted-foreground sm:ml-auto sm:w-auto sm:max-w-[min(24rem,100%)] sm:text-right">
               {scopeFilter === "mine"
                 ? "Showing your portfolio"
                 : ownerFilter === "all"
@@ -528,8 +610,7 @@ function PartnersPage() {
           <div className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="page-eyebrow">{COPY.portfolio.rosterEyebrow}</p>
-                <h2 className="mt-1 section-title">{COPY.portfolio.rosterTitle}</h2>
+                <h2 className="section-title">{COPY.portfolio.rosterTitle}</h2>
                 <p className="mt-1 text-xs text-muted-foreground">{briefing}</p>
               </div>
               {statusFilter !== "all" && (
@@ -661,6 +742,9 @@ function PartnersPage() {
                     item={it}
                     ownerName={ownerNames.get(it.partner.owner_id) ?? "—"}
                     nextAction={nextActionByPartner.get(it.partner.id) ?? "Open partner"}
+                    firstPortfolioTask={firstPortfolioTaskByPartner.get(it.partner.id) ?? null}
+                    onPortfolioCycle={(id) => void handlePortfolioCycleStatus(id)}
+                    onPortfolioDelete={(id) => void handlePortfolioDelete(id)}
                     isLeadership={portfolio.isLeadership}
                     onOpen={() => nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })}
                   />
@@ -670,6 +754,9 @@ function PartnersPage() {
                 <PartnerRosterTable
                   rows={pageRows}
                   nextActionByPartner={nextActionByPartner}
+                  firstPortfolioTaskByPartner={firstPortfolioTaskByPartner}
+                  onPortfolioCycle={(id) => void handlePortfolioCycleStatus(id)}
+                  onPortfolioDelete={(id) => void handlePortfolioDelete(id)}
                   isLeadership={portfolio.isLeadership}
                   ownerNames={ownerNames}
                   sortKey={sortKey}
@@ -742,56 +829,25 @@ function PartnersPage() {
               <span className="text-lg font-semibold tabular-nums text-foreground">{overdueActions.length}</span>
             </button>
 
-            <div className="space-y-2 border-t border-border/70 pt-4 text-center">
-              <p className="text-xs font-semibold text-foreground">Next moves</p>
-              {actionsLoading ? (
-                <Skeleton className="h-10 w-full rounded-lg" />
-              ) : todayQueueActions.length === 0 ? (
-                <p className="text-balance text-xs text-muted-foreground">
-                  No open moves for now. Create one from a partner workspace.
-                </p>
+            <div className="border-t border-border/60 pt-4">
+              <p className="text-center page-eyebrow">{COPY.portfolio.openTasksEyebrow}</p>
+              {sidebarPortfolioTasks.length === 0 ? (
+                <p className="mt-2 text-center text-xs text-muted-foreground">{COPY.portfolio.openTasksEmpty}</p>
               ) : (
-                <ul className="space-y-2">
-                  {todayQueueActions.map((a) => (
-                    <li key={a.id}>
-                      <button
-                        onClick={() => setSelectedAction(a)}
-                        className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-center hover:bg-surface-2"
-                      >
-                        <p className="truncate text-sm font-medium text-foreground">{a.title}</p>
-                        <p className="truncate text-xs text-muted-foreground">{a.partner_name}</p>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                <div className="mt-3 max-h-[min(28rem,55vh)] overflow-y-auto pr-0.5">
+                  <AgentPlan
+                    tasks={sidebarPortfolioTasks}
+                    isOwner={false}
+                    onCycleStatus={(id) => void handlePortfolioCycleStatus(id)}
+                    onDelete={(id) => void handlePortfolioDelete(id)}
+                  />
+                  {sortedOpenActions.length > SIDEBAR_OPEN_TASKS_CAP ? (
+                    <p className="mt-3 text-center text-[10px] text-muted-foreground">
+                      {COPY.portfolio.openTasksShowingCap({ n: SIDEBAR_OPEN_TASKS_CAP })}
+                    </p>
+                  ) : null}
+                </div>
               )}
-            </div>
-
-            <div className="flex gap-2 border-t border-border/70 pt-4">
-              <button
-                onClick={() =>
-                  copyWeeklyDigest("slack", {
-                    atRisk: statusCounts.at_risk,
-                    overdue: overdueActions.length,
-                    top: todayQueueActions,
-                  })
-                }
-                className="btn-candy-ghost flex-1 justify-center"
-              >
-                {COPY.portfolio.exportSlack}
-              </button>
-              <button
-                onClick={() =>
-                  copyWeeklyDigest("email", {
-                    atRisk: statusCounts.at_risk,
-                    overdue: overdueActions.length,
-                    top: todayQueueActions,
-                  })
-                }
-                className="btn-candy-ghost flex-1 justify-center"
-              >
-                {COPY.portfolio.exportEmail}
-              </button>
             </div>
           </div>
         </aside>
@@ -819,15 +875,6 @@ function PartnersPage() {
         />
       )}
 
-      {selectedAction && (
-        <ActionDetailSheet
-          action={selectedAction}
-          onClose={() => setSelectedAction(null)}
-          onComplete={() => void completeAction(selectedAction)}
-          completing={completing === selectedAction.id}
-        />
-      )}
-
       <BulkReassignDialog
         open={reassignOpen}
         items={selectedForReassign
@@ -848,6 +895,7 @@ function PartnersPage() {
         }}
         onConfirm={bulkReassign}
       />
+      <MoveCompleteCelebration burstAt={moveBurstAt} onConsumed={clearMoveBurst} />
     </div>
   );
 }
@@ -860,17 +908,6 @@ function isOverdue(d: string | null): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return due < today;
-}
-
-function formatDue(d: Date, overdue: boolean): string {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const diff = Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-  if (overdue) return `${Math.abs(diff)}d late`;
-  if (diff === 0) return "today";
-  if (diff === 1) return "tomorrow";
-  if (diff < 7) return `in ${diff}d`;
-  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 function sortActions<T extends { priority: ActionRow["priority"]; due_date: string | null }>(
@@ -889,6 +926,36 @@ function sortActions<T extends { priority: ActionRow["priority"]; due_date: stri
   });
 }
 
+function compareTwoOpenActions(a: EnrichedAction, b: EnrichedAction): number {
+  const prio = { high: 0, medium: 1, low: 2 } as const;
+  const ao = isOverdue(a.due_date) ? 0 : 1;
+  const bo = isOverdue(b.due_date) ? 0 : 1;
+  if (ao !== bo) return ao - bo;
+  if (prio[a.priority] !== prio[b.priority]) return prio[a.priority] - prio[b.priority];
+  if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
+  if (a.due_date) return -1;
+  if (b.due_date) return 1;
+  return 0;
+}
+
+function comparePartnersByNextAction(
+  a: PortfolioItem,
+  b: PortfolioItem,
+  firstByPartner: Map<string, EnrichedAction>,
+  fallbackLabel: Map<string, string>,
+  direction: "asc" | "desc",
+): number {
+  const dir = direction === "asc" ? 1 : -1;
+  const fa = firstByPartner.get(a.partner.id);
+  const fb = firstByPartner.get(b.partner.id);
+  if (fa && fb) return dir * compareTwoOpenActions(fa, fb);
+  if (fa && !fb) return -1 * dir;
+  if (!fa && fb) return 1 * dir;
+  const ta = fallbackLabel.get(a.partner.id) ?? "";
+  const tb = fallbackLabel.get(b.partner.id) ?? "";
+  return dir * ta.localeCompare(tb);
+}
+
 function prettyStatus(s: StatusFilter): string {
   if (s === "active") return "Scaling";
   if (s === "nurturing") return "Developing";
@@ -902,23 +969,6 @@ function daysAgo(iso: string) {
   then.setHours(0, 0, 0, 0);
   now.setHours(0, 0, 0, 0);
   return Math.max(0, Math.round((now.getTime() - then.getTime()) / 86400_000));
-}
-
-function copyWeeklyDigest(
-  mode: "slack" | "email",
-  input: { atRisk: number; overdue: number; top: EnrichedAction[] },
-) {
-  const topLines = input.top.slice(0, 3).map((a, i) => `${i + 1}. ${a.title} (${a.partner_name})`);
-  const body = [
-    COPY.portfolio.weeklyDigestHeading({ date: new Date().toLocaleDateString() }),
-    `${COPY.status.at_risk}: ${input.atRisk}`,
-    `Behind schedule ${COPY.jbp.itemPlural.toLowerCase()}: ${input.overdue}`,
-    "",
-    "Committed next moves:",
-    ...(topLines.length ? topLines : ["No Moves scheduled yet"]),
-  ].join("\n");
-  void navigator.clipboard.writeText(body);
-  toast.success(mode === "slack" ? COPY.toast.digestSlack : COPY.toast.digestEmail);
 }
 
 /* ─────────────────── presentational ─────────────────── */
@@ -1063,12 +1113,18 @@ function MobilePartnerCard({
   item,
   ownerName,
   nextAction,
+  firstPortfolioTask,
+  onPortfolioCycle,
+  onPortfolioDelete,
   isLeadership,
   onOpen,
 }: {
   item: PortfolioItem;
   ownerName: string;
   nextAction: string;
+  firstPortfolioTask: AgentTask | null;
+  onPortfolioCycle: (taskId: string) => void;
+  onPortfolioDelete: (taskId: string) => void;
   isLeadership: boolean;
   onOpen: () => void;
 }) {
@@ -1082,11 +1138,18 @@ function MobilePartnerCard({
     archived: "muted",
   };
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
       aria-label={COPY.portfolio.rowOpenAria({ name: item.partner.name })}
-      className="group flex w-full flex-col gap-3 rounded-xl border border-border/70 bg-card p-4 text-left transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset"
+      className="group flex w-full flex-col gap-3 rounded-xl border border-border/70 bg-card p-4 text-left transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-inset cursor-pointer"
     >
       <div className="flex items-center gap-3">
         <CandyAvatar name={item.partner.name} size={34} />
@@ -1096,11 +1159,27 @@ function MobilePartnerCard({
         </div>
         <StatusPill tone={toneMap[item.partner.status]}>{statusLabel(item.partner.status)}</StatusPill>
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <span className="inline-flex max-w-full items-center rounded-md border border-border bg-surface px-2 py-1 text-xs text-foreground">
-          {nextAction}
-        </span>
-        <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+      <div className="flex items-start justify-between gap-2">
+        {firstPortfolioTask ? (
+          <div
+            className="min-w-0 flex-1"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <AgentTaskCard
+              task={firstPortfolioTask}
+              isOwner={false}
+              compact
+              onCycleStatus={onPortfolioCycle}
+              onDelete={onPortfolioDelete}
+            />
+          </div>
+        ) : (
+          <span className="inline-flex max-w-full items-center rounded-md border border-border bg-surface px-2 py-1 text-xs text-foreground">
+            {nextAction}
+          </span>
+        )}
+        <span className="inline-flex shrink-0 items-center gap-1 self-center text-[11px] text-muted-foreground">
           <span>{touchedDays === 0 ? "today" : `${touchedDays}d ago`}</span>
           <ChevronRight
             className="h-4 w-4 text-muted-foreground/60 transition-colors group-hover:text-primary group-focus-visible:text-primary"
@@ -1113,22 +1192,7 @@ function MobilePartnerCard({
           {COPY.partnerWorkspace.ownerLabel}: {ownerName}
         </p>
       )}
-    </button>
-  );
-}
-
-function PriorityPill({ p }: { p: ActionRow["priority"] }) {
-  const map = {
-    high: "bg-destructive text-destructive-foreground border-destructive font-bold",
-    medium: "bg-warning/10 text-warning border-warning/40",
-    low: "bg-surface text-muted-foreground border-border",
-  } as const;
-  return (
-    <span
-      className={`text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border ${map[p]}`}
-    >
-      {p}
-    </span>
+    </div>
   );
 }
 
@@ -1137,6 +1201,9 @@ function PriorityPill({ p }: { p: ActionRow["priority"] }) {
 function PartnerRosterTable({
   rows,
   nextActionByPartner,
+  firstPortfolioTaskByPartner,
+  onPortfolioCycle,
+  onPortfolioDelete,
   isLeadership,
   ownerNames,
   sortKey,
@@ -1146,6 +1213,9 @@ function PartnerRosterTable({
 }: {
   rows: PortfolioItem[];
   nextActionByPartner: Map<string, string>;
+  firstPortfolioTaskByPartner: Map<string, AgentTask>;
+  onPortfolioCycle: (taskId: string) => void;
+  onPortfolioDelete: (taskId: string) => void;
   isLeadership: boolean;
   ownerNames: Map<string, string>;
   sortKey: SortKey;
@@ -1224,13 +1294,33 @@ function PartnerRosterTable({
           onSort={() => onSortKey(nextRosterSort("next", sortKey))}
         />
       ),
-      width: "200px",
+      width: "minmax(240px,1.35fr)",
       align: "center",
-      cell: (it) => (
-        <span className="inline-flex max-w-full items-center justify-center rounded-lg border border-border bg-surface px-2.5 py-1 text-center text-xs text-foreground">
-          {nextActionByPartner.get(it.partner.id) ?? "Open partner"}
-        </span>
-      ),
+      cell: (it) => {
+        const task = firstPortfolioTaskByPartner.get(it.partner.id);
+        if (task) {
+          return (
+            <div
+              className="flex w-full min-w-0 max-w-[20rem] justify-center mx-auto"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+            >
+              <AgentTaskCard
+                task={task}
+                isOwner={false}
+                compact
+                onCycleStatus={onPortfolioCycle}
+                onDelete={onPortfolioDelete}
+              />
+            </div>
+          );
+        }
+        return (
+          <span className="inline-flex max-w-full items-center justify-center rounded-lg border border-border bg-surface px-2.5 py-1 text-center text-xs text-foreground">
+            {nextActionByPartner.get(it.partner.id) ?? "Open partner"}
+          </span>
+        );
+      },
     },
     ...(isLeadership
       ? [
@@ -1470,215 +1560,5 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       </span>
       <div className="mt-1">{children}</div>
     </label>
-  );
-}
-
-/* ─────────────────── Action Detail Sheet ─────────────────── */
-
-function ActionDetailSheet({
-  action,
-  onClose,
-  onComplete,
-  completing,
-}: {
-  action: EnrichedAction;
-  onClose: () => void;
-  onComplete: () => void;
-  completing: boolean;
-}) {
-  const axis: Axis | undefined = AXES.find((x) => x.key === action.axis_key);
-  const due = action.due_date ? new Date(action.due_date) : null;
-  const overdue = isOverdue(action.due_date);
-  const isHigh = action.priority === "high";
-
-  // Build a practical checklist from the axis levers + lesson exercises
-  const checklist = axis
-    ? [
-        ...axis.levers.slice(0, 3).map((l) => ({ kind: "lever" as const, text: l })),
-        ...axis.lessons.slice(0, 3).map((l) => ({ kind: "exercise" as const, text: l.exercise })),
-      ]
-    : [];
-  const targetLevel = action.target_level
-    ? axis?.levels.find((l) => l.level === action.target_level)
-    : undefined;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="h-full w-full max-w-xl overflow-y-auto bg-card border-l border-border shadow-2xl"
-      >
-        {/* Header */}
-        <div
-          className={`relative px-6 pt-6 pb-5 border-b border-border ${isHigh ? "bg-gradient-to-b from-destructive/10 to-transparent" : ""}`}
-        >
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 h-8 w-8 rounded-md border border-border bg-surface text-muted-foreground hover:text-foreground hover:bg-surface-2 flex items-center justify-center transition"
-            aria-label="Close"
-          >
-            <XIcon className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-2 flex-wrap">
-            {axis && (
-              <span
-                className="text-[10px] font-mono uppercase tracking-widest px-2 py-1 rounded"
-                style={{
-                  background: `color-mix(in oklab, var(--${axis.color}) 22%, transparent)`,
-                  color: `var(--${axis.color})`,
-                }}
-              >
-                {axis.letter} · {axis.name}
-              </span>
-            )}
-            <PriorityPill p={action.priority} />
-            {overdue && (
-              <span className="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded border border-destructive/40 bg-destructive/10 text-destructive">
-                overdue
-              </span>
-            )}
-          </div>
-          <h2 className={`mt-3 text-xl font-semibold ${isHigh ? "text-foreground" : ""}`}>
-            {action.title}
-          </h2>
-          <p className="mt-1.5 text-sm text-muted-foreground">
-            {action.partner_name}
-            {due && <> · due {formatDue(due, overdue)}</>}
-            {action.status === "doing" && <> · in motion</>}
-          </p>
-          {action.description && (
-            <p className="mt-3 text-sm text-foreground/90 leading-relaxed">{action.description}</p>
-          )}
-        </div>
-
-        {/* Body */}
-        <div className="px-6 py-5 space-y-6">
-          {/* Axis context */}
-          {axis && (
-            <Section title="Axis context" subtitle="Why this work matters">
-              <p className="text-sm text-foreground/85 leading-relaxed">{axis.mentalModel}</p>
-              {targetLevel && (
-                <div
-                  className="mt-3 rounded-lg border p-3"
-                  style={{
-                    borderColor: `color-mix(in oklab, var(--${axis.color}) 35%, transparent)`,
-                    background: `color-mix(in oklab, var(--${axis.color}) 8%, transparent)`,
-                  }}
-                >
-                  <p
-                    className="text-[10px] font-mono uppercase tracking-widest"
-                    style={{ color: `var(--${axis.color})` }}
-                  >
-                    Target · Level {targetLevel.level} · {targetLevel.name}
-                  </p>
-                  <p className="mt-1 text-sm text-foreground/90">{targetLevel.summary}</p>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    <strong className="text-foreground/80">Next step:</strong>{" "}
-                    {targetLevel.nextStep}
-                  </p>
-                </div>
-              )}
-            </Section>
-          )}
-
-          {/* Metrics */}
-          {axis && axis.metrics.length > 0 && (
-            <Section title="Metrics to move" subtitle="What to measure as you progress">
-              <ul className="space-y-1.5">
-                {axis.metrics.map((m, i) => (
-                  <li key={i} className="flex gap-2 text-sm">
-                    <span className="text-primary mt-0.5">▸</span>
-                    <span className="text-foreground/85">{m}</span>
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          )}
-
-          {/* Common mistakes */}
-          {axis && axis.commonMistakes.length > 0 && (
-            <Section title="Common mistakes" subtitle="Don't fall into these traps">
-              <ul className="space-y-1.5">
-                {axis.commonMistakes.map((m, i) => (
-                  <li key={i} className="flex gap-2 text-sm">
-                    <span className="text-destructive mt-0.5">✕</span>
-                    <span className="text-foreground/85">{m}</span>
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          )}
-
-          {/* Practical checklist */}
-          {checklist.length > 0 && (
-            <Section
-              title="Practical checklist"
-              subtitle="Concrete moves to execute this initiative"
-            >
-              <ul className="space-y-2">
-                {checklist.map((c, i) => (
-                  <li
-                    key={i}
-                    className="flex items-start gap-3 rounded-lg border border-border bg-surface p-3"
-                  >
-                    <span className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border border-border bg-surface text-[10px] font-mono text-muted-foreground">
-                      {i + 1}
-                    </span>
-                    <div className="min-w-0">
-                      <p className="text-sm text-foreground/90">{c.text}</p>
-                      <p className="mt-0.5 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-                        {c.kind === "lever" ? "Lever" : "Exercise"}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          )}
-        </div>
-
-        {/* Footer actions */}
-        <div className="sticky bottom-0 border-t border-border bg-card/95 backdrop-blur px-6 py-4 flex items-center justify-between gap-3">
-          <Link
-            to="/partner/$partnerId/plan"
-            params={{ partnerId: action.partner_id }}
-            className="text-xs text-muted-foreground hover:text-foreground underline underline-offset-4"
-          >
-            Open Joint Business Plan →
-          </Link>
-          <button
-            onClick={onComplete}
-            disabled={completing}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary hover:bg-primary/90 px-4 py-2 text-sm font-semibold text-primary-foreground transition shadow-[0_8px_20px_-6px_oklch(0.52_0.16_160_/_0.4)] disabled:opacity-50"
-          >
-            <Check className="h-4 w-4" />
-            {completing ? "Saving…" : "Mark complete"}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Section({
-  title,
-  subtitle,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-        {title}
-      </p>
-      {subtitle && <p className="mt-0.5 text-xs text-muted-foreground/70">{subtitle}</p>}
-      <div className="mt-2.5">{children}</div>
-    </div>
   );
 }

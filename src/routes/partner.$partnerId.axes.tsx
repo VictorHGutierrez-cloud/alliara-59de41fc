@@ -3,6 +3,7 @@ import { useState } from "react";
 import { usePartner, levelFromAvg } from "../lib/partners-store";
 import { AXES, type Axis } from "../content/octa";
 import { Skeleton } from "@/components/ui/skeleton";
+import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/partner/$partnerId/axes")({
   head: () => ({ meta: [{ title: "Axes · Alliara" }] }),
@@ -134,9 +135,9 @@ function AxisDetail({ axis, myLevel, actions, partnerId }: { axis: Axis; myLevel
           params={{ partnerId }}
           className="block rounded-xl border border-border/60 bg-surface/60 p-4 hover:bg-surface-2 transition"
         >
-          <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Joint Business Plan</div>
+          <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">{COPY.jbp.full}</div>
           <div className="mt-1 text-sm font-medium">{actions} item{actions !== 1 ? "s" : ""} on this axis</div>
-          <div className="mt-1 text-xs text-muted-foreground">Open the JBP to add or update growth initiatives →</div>
+          <div className="mt-1 text-xs text-muted-foreground">Open Tasks to add or update items on this dimension →</div>
         </Link>
         <Link
           to="/axis/$axisKey"
@@ -144,8 +145,8 @@ function AxisDetail({ axis, myLevel, actions, partnerId }: { axis: Axis; myLevel
           className="block rounded-xl border border-border/60 bg-surface/60 p-4 hover:bg-surface-2 transition"
         >
           <div className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Methodology lessons</div>
-          <div className="mt-1 text-sm font-medium">Open axis {axis.letter} in Methodology</div>
-          <div className="mt-1 text-xs text-muted-foreground">Open drills and lessons for this axis in Methodology →</div>
+          <div className="mt-1 text-sm font-medium">Open dimension {axis.letter} in Methodology</div>
+          <div className="mt-1 text-xs text-muted-foreground">Open drills and lessons for this dimension in Methodology →</div>
         </Link>
       </div>
     </div>

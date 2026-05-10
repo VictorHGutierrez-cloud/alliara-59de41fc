@@ -158,11 +158,6 @@ function PartnerLayout() {
       label: `${COPY.jbp.short}${data.openActions.length ? ` (${data.openActions.length})` : ""}`,
       to: `/partner/${partnerId}/plan`,
     },
-    {
-      key: "diagnostic",
-      label: data.latest ? COPY.diagnostic.rerun : COPY.diagnostic.noun,
-      to: `/partner/${partnerId}/diagnostic`,
-    },
     { key: "axes", label: Tb.axes, to: `/partner/${partnerId}/axes` },
     { key: "stakeholders", label: Tb.stakeholders, to: `/partner/${partnerId}/stakeholders` },
     { key: "metrics", label: Tb.metrics, to: `/partner/${partnerId}/metrics` },
@@ -220,6 +215,15 @@ function PartnerLayout() {
                 {data.partner.company ?? "—"}
                 {data.partner.segment ? ` · ${data.partner.segment}` : ""}
               </p>
+              <div className="mt-3">
+                <Link
+                  to="/partner/$partnerId/diagnostic"
+                  params={{ partnerId }}
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-border/70 bg-surface px-4 text-sm font-semibold text-foreground transition hover:bg-surface-2"
+                >
+                  {data.latest ? COPY.diagnostic.updateCta : COPY.diagnostic.cta}
+                </Link>
+              </div>
               <OwnerRow
                 ownerName={resolvedOwnerName}
                 loading={ownerLoading}

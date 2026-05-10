@@ -46,8 +46,8 @@ serve(async (req) => {
       ? body.axes.find((a) => a.key === body.focusAxisKey)
       : null;
 
-    const system = `You are a senior B2B partnership operating coach inside the OCTA OS platform.
-You advise Partner Development Managers (PDMs) on how to evolve the maturity of a specific partner across the 8 OCTA axes (Strategy, Offer, Recruitment, Enablement, Co-sell, Tech & Operations, Trust & Brand, Analytics).
+    const system = `You are a senior B2B partnership operating coach inside the Alliara platform.
+You advise Partner Development Managers (PDMs) on how to develop channel maturity with a specific partner across 8 dimensions (keys: strategy, offer, recruit, enable, cosell, operate, growth, success — see product methodology for what each covers).
 You write directly to the PDM. Be concrete, specific to this partner, and prescriptive. No fluff. No generic advice.`;
 
     const userPrompt = focus
@@ -73,7 +73,7 @@ You write directly to the PDM. Be concrete, specific to this partner, and prescr
               items: {
                 type: "object",
                 properties: {
-                  axis_key: { type: "string", description: "OCTA axis key the recommendation addresses." },
+                  axis_key: { type: "string", description: "Dimension key the recommendation addresses (strategy, offer, recruit, enable, cosell, operate, growth, success)." },
                   title: { type: "string", description: "Sharp, action-oriented headline." },
                   why: { type: "string", description: "Why this matters specifically for this partner given their score and context." },
                   how: { type: "string", description: "Concrete step-by-step the PDM takes in the next 2-4 weeks." },
@@ -174,9 +174,9 @@ function buildOverallPrompt(body: CoachRequest): string {
   if (body.partner.status) lines.push(`- Status: ${body.partner.status}`);
   if (body.partner.notes) lines.push(`- PDM notes: ${body.partner.notes}`);
   lines.push(``);
-  lines.push(`OVERALL OCTA MATURITY: ${body.overall.toFixed(1)} / 5.0`);
+  lines.push(`OVERALL CHANNEL MATURITY: ${body.overall.toFixed(1)} / 5.0`);
   lines.push(``);
-  lines.push(`AXIS SCORES (1=reactive, 5=compounding):`);
+  lines.push(`DIMENSION SCORES (1=reactive, 5=compounding):`);
   for (const a of body.axes) {
     lines.push(`- ${a.name} (${a.key}): ${a.score.toFixed(1)} → level ${a.level}`);
     lines.push(`  · mental model: ${a.mentalModel}`);
@@ -184,7 +184,7 @@ function buildOverallPrompt(body: CoachRequest): string {
   }
   lines.push(``);
   lines.push(`TASK:`);
-  lines.push(`Identify the 3-5 highest-leverage moves this PDM should make in the next 30-60 days to move this specific partner up the OCTA ladder. Prioritize the lowest-scoring axes that unlock the most pipeline. Each recommendation must be concrete to this partner — never generic.`);
+  lines.push(`Identify the 3-5 highest-leverage moves this PDM should make in the next 30-60 days to strengthen this channel relationship. Prioritize the lowest-scoring dimensions that unlock the most pipeline. Each recommendation must be concrete to this partner — never generic.`);
   return lines.join("\n");
 }
 
@@ -194,19 +194,19 @@ function buildFocusPrompt(body: CoachRequest, focus: AxisInput): string {
   if (body.partner.tier) lines.push(`Tier: ${body.partner.tier} · Status: ${body.partner.status ?? "n/a"}`);
   if (body.partner.notes) lines.push(`PDM notes: ${body.partner.notes}`);
   lines.push(``);
-  lines.push(`FOCUS AXIS: ${focus.name} (${focus.key})`);
+  lines.push(`FOCUS DIMENSION: ${focus.name} (${focus.key})`);
   lines.push(`Current score: ${focus.score.toFixed(1)} → level ${focus.level} / 5`);
   lines.push(`Mental model: ${focus.mentalModel}`);
   lines.push(`Common mistakes to avoid: ${focus.commonMistakes.join("; ")}`);
   lines.push(`Available levers: ${focus.levers.join("; ")}`);
   if (focus.nextLevelStep) lines.push(`Canonical next step: ${focus.nextLevelStep}`);
   lines.push(``);
-  lines.push(`OTHER AXES (for context):`);
+  lines.push(`OTHER DIMENSIONS (for context):`);
   for (const a of body.axes.filter((x) => x.key !== focus.key)) {
     lines.push(`- ${a.name}: ${a.score.toFixed(1)}`);
   }
   lines.push(``);
   lines.push(`TASK:`);
-  lines.push(`Generate 3-5 prescriptive recommendations focused on the ${focus.name} axis specifically for this partner. Translate every recommendation into ready-to-use action items the PDM can paste straight into the partner action plan.`);
+  lines.push(`Generate 3-5 prescriptive recommendations focused on the ${focus.name} dimension specifically for this partner. Translate every recommendation into ready-to-use action items the PDM can paste straight into the partner action plan.`);
   return lines.join("\n");
 }

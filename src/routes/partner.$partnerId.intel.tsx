@@ -11,7 +11,7 @@ import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
 
 export const Route = createFileRoute("/partner/$partnerId/intel")({
-  head: () => ({ meta: [{ title: "Intel · Alliara" }] }),
+  head: () => ({ meta: [{ title: COPY.partnerWorkspace.intelPageMetaTitle }] }),
   component: PartnerIntel,
 });
 
@@ -208,6 +208,7 @@ function PartnerIntel() {
 
   return (
     <div className="grid lg:grid-cols-3 gap-4">
+      <p className="lg:col-span-3 text-sm text-muted-foreground">{COPY.partnerWorkspace.intelPageIntro}</p>
       <div className="lg:col-span-2 space-y-4">
         <DocumentsCard
           partnerId={partnerId}
