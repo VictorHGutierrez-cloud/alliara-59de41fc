@@ -48,6 +48,7 @@ export const Route = createFileRoute("/partners")({
 
 type StatusFilter = "all" | "active" | "nurturing" | "at_risk";
 type EnrichedAction = ActionRow & { partner_name: string };
+type PortfolioTaskFilter = "open" | "done" | "all";
 
 function PartnersPage() {
   const { user, loading } = useAuth();
@@ -59,7 +60,10 @@ function PartnersPage() {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
   const [sortKey, setSortKey] = useState<SortKey>("name_asc");
-  const [openActions, setOpenActions] = useState<(ActionRow & { partner_name: string })[]>([]);
+  const [portfolioActionRows, setPortfolioActionRows] = useState<EnrichedAction[]>([]);
+  const [openActionsIncomplete, setOpenActionsIncomplete] = useState<EnrichedAction[]>([]);
+  const [portfolioTaskFilter, setPortfolioTaskFilter] = useState<PortfolioTaskFilter>("open");
+  const [portfolioActionsFetchTick, setPortfolioActionsFetchTick] = useState(0);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [selectedForReassign, setSelectedForReassign] = useState<string[]>([]);
@@ -214,7 +218,7 @@ function PartnersPage() {
     [scoped],
   );
 
-  // Aggregate open tasks for partners in the current roster scope (same as scoped grid)
+  // Partner tasks for the list (filtered) + incomplete-only for roster “next action” and briefing counts
   useEffect(() => {
     let cancelled = false;
     void (async () => {
@@ -222,31 +226,49 @@ function PartnersPage() {
       const ids = scoped.map((it) => it.partner.id);
       if (ids.length === 0) {
         if (!cancelled) {
-          setOpenActions([]);
+          setPortfolioActionRows([]);
+          setOpenActionsIncomplete([]);
         }
         return;
       }
-      const { data } = await supabase
+      const nameMap = new Map(scoped.map((it) => [it.partner.id, it.partner.name]));
+      const enrich = (rows: ActionRow[] | null | undefined): EnrichedAction[] =>
+        (rows ?? []).map((row) => ({
+          ...row,
+          partner_name: nameMap.get(row.partner_id) ?? "—",
+        }));
+
+      let listQ = supabase.from("action_plans").select("*").in("partner_id", ids);
+      if (portfolioTaskFilter === "open") {
+        listQ = listQ
+          .neq("status", "done")
+          .order("due_date", { ascending: true, nullsFirst: false });
+      } else if (portfolioTaskFilter === "done") {
+        listQ = listQ
+          .eq("status", "done")
+          .order("completed_at", { ascending: false, nullsFirst: false });
+      } else {
+        listQ = listQ
+          .order("completed_at", { ascending: true, nullsFirst: true })
+          .order("due_date", { ascending: true, nullsFirst: false });
+      }
+
+      const incompleteQ = supabase
         .from("action_plans")
         .select("*")
         .in("partner_id", ids)
         .neq("status", "done")
         .order("due_date", { ascending: true, nullsFirst: false });
+
+      const [{ data: listData }, { data: incData }] = await Promise.all([listQ, incompleteQ]);
       if (cancelled) return;
-      const nameMap = new Map(scoped.map((it) => [it.partner.id, it.partner.name]));
-      const enriched = (data ?? []).map((a) => {
-        const row = a as ActionRow;
-        return {
-          ...row,
-          partner_name: nameMap.get(row.partner_id) ?? "—",
-        };
-      });
-      setOpenActions(enriched);
+      setPortfolioActionRows(enrich(listData as ActionRow[] | null));
+      setOpenActionsIncomplete(enrich(incData as ActionRow[] | null));
     })();
     return () => {
       cancelled = true;
     };
-  }, [user, portfolio.loading, scopedRosterKey]);
+  }, [user, portfolio.loading, scoped, portfolioTaskFilter, portfolioActionsFetchTick]);
 
   const statusCounts = useMemo(
     () => ({
@@ -275,22 +297,31 @@ function PartnersPage() {
     });
   }, [scoped, statusFilter, typeFilter, query]);
 
-  const sortedOpenActions = useMemo(() => sortActions(openActions), [openActions]);
+  const sortedIncompleteActions = useMemo(
+    () => sortActions(openActionsIncomplete),
+    [openActionsIncomplete],
+  );
+  const sortedPortfolioActions = useMemo(
+    () => sortActions(portfolioActionRows),
+    [portfolioActionRows],
+  );
 
   const firstOpenActionByPartner = useMemo(() => {
     const m = new Map<string, EnrichedAction>();
-    for (const action of sortedOpenActions) {
+    for (const action of sortedIncompleteActions) {
       if (!m.has(action.partner_id)) m.set(action.partner_id, action);
     }
     return m;
-  }, [sortedOpenActions]);
+  }, [sortedIncompleteActions]);
 
   const [moveBurstAt, setMoveBurstAt] = useState<number | null>(null);
   const clearMoveBurst = useCallback(() => setMoveBurstAt(null), []);
 
   const handlePortfolioCycleStatus = useCallback(
     async (taskId: string) => {
-      const current = openActions.find((a) => a.id === taskId);
+      const current =
+        portfolioActionRows.find((a) => a.id === taskId) ??
+        openActionsIncomplete.find((a) => a.id === taskId);
       if (!current) return;
       const next: ActionRow["status"] =
         current.status === "todo" ? "doing" : current.status === "doing" ? "done" : "todo";
@@ -304,25 +335,14 @@ function PartnersPage() {
           .eq("id", taskId);
         if (error) throw error;
         if (next === "done") setMoveBurstAt(Date.now());
-        setOpenActions((prev) => {
-          if (next === "done") return prev.filter((a) => a.id !== taskId);
-          return prev.map((a) =>
-            a.id === taskId
-              ? {
-                  ...a,
-                  status: next,
-                  completed_at: null,
-                }
-              : a,
-          );
-        });
+        setPortfolioActionsFetchTick((n) => n + 1);
         void portfolio.refresh();
       } catch (e) {
         console.error("[PartnersPage - handlePortfolioCycleStatus]:", e);
         toast.error((e as Error).message);
       }
     },
-    [openActions, portfolio],
+    [portfolioActionRows, openActionsIncomplete, portfolio],
   );
 
   const handlePortfolioDelete = useCallback(
@@ -330,7 +350,7 @@ function PartnersPage() {
       try {
         const { error } = await supabase.from("action_plans").delete().eq("id", taskId);
         if (error) throw error;
-        setOpenActions((prev) => prev.filter((a) => a.id !== taskId));
+        setPortfolioActionsFetchTick((n) => n + 1);
         void portfolio.refresh();
       } catch (e) {
         console.error("[PartnersPage - handlePortfolioDelete]:", e);
@@ -360,7 +380,7 @@ function PartnersPage() {
 
   const portfolioOpenTasksForPlan = useMemo(
     () =>
-      sortedOpenActions.map((a) => {
+      sortedPortfolioActions.map((a) => {
         const meta = partnerMetaById.get(a.partner_id);
         return actionRowToAgentTask(a, {
           canMutate: ownerIdByPartner.get(a.partner_id) === user?.id,
@@ -369,13 +389,13 @@ function PartnersPage() {
           partnerCompany: meta?.company ?? null,
         });
       }),
-    [sortedOpenActions, ownerIdByPartner, partnerMetaById, user?.id],
+    [sortedPortfolioActions, ownerIdByPartner, partnerMetaById, user?.id],
   );
 
   const nextActionByPartner = useMemo(() => {
     const map = new Map<string, string>();
     const actionByPartner = new Map<string, EnrichedAction[]>();
-    for (const action of sortedOpenActions) {
+    for (const action of sortedIncompleteActions) {
       const list = actionByPartner.get(action.partner_id) ?? [];
       list.push(action);
       actionByPartner.set(action.partner_id, list);
@@ -394,7 +414,7 @@ function PartnersPage() {
       }
     }
     return map;
-  }, [scoped, sortedOpenActions]);
+  }, [scoped, sortedIncompleteActions]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -421,9 +441,21 @@ function PartnersPage() {
         case "status_desc":
           return statusLabel(b.partner.status).localeCompare(statusLabel(a.partner.status));
         case "next_action_asc":
-          return comparePartnersByNextAction(a, b, firstOpenActionByPartner, nextActionByPartner, "asc");
+          return comparePartnersByNextAction(
+            a,
+            b,
+            firstOpenActionByPartner,
+            nextActionByPartner,
+            "asc",
+          );
         case "next_action_desc":
-          return comparePartnersByNextAction(a, b, firstOpenActionByPartner, nextActionByPartner, "desc");
+          return comparePartnersByNextAction(
+            a,
+            b,
+            firstOpenActionByPartner,
+            nextActionByPartner,
+            "desc",
+          );
         case "owner_asc":
           return ownerLabel(a).localeCompare(ownerLabel(b));
         case "owner_desc":
@@ -457,8 +489,8 @@ function PartnersPage() {
   const rangeEnd = Math.min((safePageIndex + 1) * pageSize, rosterTotal);
 
   const pendingLeads = leads.leads.filter((l) => l.status === "new" || l.status === "in_review");
-  const overdueActions = openActions.filter((a) => isOverdue(a.due_date));
-  const highPriorityOpen = openActions.filter((a) => a.priority === "high");
+  const overdueActions = openActionsIncomplete.filter((a) => isOverdue(a.due_date));
+  const highPriorityOpen = openActionsIncomplete.filter((a) => a.priority === "high");
 
   const briefing = buildPortfolioBriefingText({
     atRisk: statusCounts.at_risk,
@@ -517,7 +549,9 @@ function PartnersPage() {
               <button
                 type="button"
                 onClick={() => {
-                  document.getElementById("portfolio-roster")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  document
+                    .getElementById("portfolio-roster")
+                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
                 className="btn-candy min-h-10 px-4 text-sm sm:min-h-11 sm:px-5"
               >
@@ -557,7 +591,8 @@ function PartnersPage() {
                 title="Filter by owner"
               >
                 {(() => {
-                  const roster: PdmEntry[] = pdmRoster.pdms.length > 0 ? pdmRoster.pdms : ownersInScope;
+                  const roster: PdmEntry[] =
+                    pdmRoster.pdms.length > 0 ? pdmRoster.pdms : ownersInScope;
                   return (
                     <>
                       <option value="all">Owner: All ({roster.length})</option>
@@ -587,9 +622,43 @@ function PartnersPage() {
         aria-label={COPY.portfolio.openTasksEyebrow}
         className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5"
       >
-        <p className="page-eyebrow">{COPY.portfolio.openTasksEyebrow}</p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="min-w-0">
+            <p className="page-eyebrow">{COPY.portfolio.openTasksEyebrow}</p>
+            <p className="mt-1 max-w-prose text-xs text-muted-foreground">
+              {COPY.portfolio.openTasksSubtitle}
+            </p>
+          </div>
+          <div
+            className="seg-candy shrink-0 self-start"
+            role="group"
+            aria-label="Filter partner tasks by completion"
+          >
+            {(["open", "done", "all"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setPortfolioTaskFilter(f)}
+                className="seg-candy-item min-h-11 px-3"
+                data-active={portfolioTaskFilter === f}
+              >
+                {f === "open"
+                  ? COPY.portfolio.partnerTaskFilterOpen
+                  : f === "done"
+                    ? COPY.portfolio.partnerTaskFilterDone
+                    : COPY.portfolio.partnerTaskFilterAll}
+              </button>
+            ))}
+          </div>
+        </div>
         {portfolioOpenTasksForPlan.length === 0 ? (
-          <p className="mt-2 text-sm text-muted-foreground">{COPY.portfolio.openTasksEmpty}</p>
+          <p className="mt-3 text-sm text-muted-foreground">
+            {portfolioTaskFilter === "done"
+              ? COPY.portfolio.openTasksEmptyDone
+              : portfolioTaskFilter === "all"
+                ? COPY.portfolio.openTasksEmptyAll
+                : COPY.portfolio.openTasksEmpty}
+          </p>
         ) : (
           <>
             <div className="mt-3 min-w-0">
@@ -600,7 +669,7 @@ function PartnersPage() {
                 onDelete={(id) => void handlePortfolioDelete(id)}
               />
             </div>
-            {sortedOpenActions.length > PORTFOLIO_OPEN_TASKS_LIST_CAP ? (
+            {sortedPortfolioActions.length > PORTFOLIO_OPEN_TASKS_LIST_CAP ? (
               <p className="mt-3 text-xs text-muted-foreground">
                 {COPY.portfolio.openTasksShowingCap({ n: PORTFOLIO_OPEN_TASKS_LIST_CAP })}
               </p>
@@ -610,192 +679,194 @@ function PartnersPage() {
       </section>
 
       <section id="portfolio-roster" className="min-w-0 space-y-4">
-          <div className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2 className="section-title">{COPY.portfolio.rosterTitle}</h2>
-                <p className="mt-1 text-xs text-muted-foreground">{briefing}</p>
-              </div>
-              {statusFilter !== "all" && (
-                <button
-                  onClick={() => setStatusFilter("all")}
-                  className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
-                >
-                  Clear status filter ({prettyStatus(statusFilter)})
-                </button>
-              )}
+        <div className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 className="section-title">{COPY.portfolio.rosterTitle}</h2>
+              <p className="mt-1 text-xs text-muted-foreground">{briefing}</p>
             </div>
-
-            <div
-              className="mt-4 flex flex-wrap gap-2"
-              role="group"
-              aria-label={COPY.portfolio.statusFilterLegend}
-            >
-              <StatusChip
-                active={statusFilter === "all"}
-                tone="neutral"
+            {statusFilter !== "all" && (
+              <button
                 onClick={() => setStatusFilter("all")}
-                label={COPY.portfolio.statusFilterAll}
-              />
-              <StatusChip
-                active={statusFilter === "active"}
-                tone="primary"
-                onClick={() => setStatusFilter("active")}
-                label={COPY.portfolio.statusFilterScaling}
-              />
-              <StatusChip
-                active={statusFilter === "nurturing"}
-                tone="warning"
-                onClick={() => setStatusFilter("nurturing")}
-                label={COPY.portfolio.statusFilterDeveloping}
-              />
-              <StatusChip
-                active={statusFilter === "at_risk"}
-                tone="danger"
-                onClick={() => setStatusFilter("at_risk")}
-                label={COPY.portfolio.statusFilterAtRisk}
-              />
-            </div>
-
-            <div className="mt-4">
-              <PartnerFilterBar
-                query={query}
-                onQuery={setQuery}
-                type={typeFilter}
-                onType={setTypeFilter}
-                sort={sortKey}
-                onSort={setSortKey}
-              />
-            </div>
+                className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+              >
+                Clear status filter ({prettyStatus(statusFilter)})
+              </button>
+            )}
           </div>
 
-          {!portfolio.loading && sorted.length > 0 && (
-            <nav
-              aria-label={COPY.portfolio.paginationLabel}
-              className="flex min-h-11 flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card px-3 py-2.5 sm:px-4"
-            >
-              <p className="text-xs tabular-nums text-muted-foreground">
-                {COPY.portfolio.paginationRange({
-                  start: rangeStart,
-                  end: rangeEnd,
-                  total: rosterTotal,
-                })}
-              </p>
-              <div className="flex flex-wrap items-center gap-3">
-                <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="whitespace-nowrap">{COPY.portfolio.paginationRowsLabel}</span>
-                  <select
-                    className="select-candy min-h-11 py-2"
-                    value={pageSize}
-                    aria-label={COPY.portfolio.paginationRowsLabel}
-                    onChange={(e) =>
-                      setPageSize(Number(e.target.value) as (typeof PAGE_SIZES)[number])
-                    }
-                  >
-                    {PAGE_SIZES.map((n) => (
-                      <option key={n} value={n}>
-                        {n}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <div className="flex items-center gap-1">
-                  <button
-                    type="button"
-                    className="btn-candy-ghost min-h-11 px-3"
-                    disabled={safePageIndex <= 0}
-                    onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-                    aria-label={COPY.portfolio.paginationPrev}
-                  >
-                    Prev
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-candy-ghost min-h-11 px-3"
-                    disabled={safePageIndex >= pageCount - 1}
-                    onClick={() =>
-                      setPageIndex((p) => {
-                        const pc = Math.max(1, Math.ceil(rosterTotal / pageSize));
-                        return Math.min(pc - 1, p + 1);
-                      })
-                    }
-                    aria-label={COPY.portfolio.paginationNext}
-                  >
-                    Next
-                  </button>
-                </div>
-              </div>
-            </nav>
-          )}
+          <div
+            className="mt-4 flex flex-wrap gap-2"
+            role="group"
+            aria-label={COPY.portfolio.statusFilterLegend}
+          >
+            <StatusChip
+              active={statusFilter === "all"}
+              tone="neutral"
+              onClick={() => setStatusFilter("all")}
+              label={COPY.portfolio.statusFilterAll}
+            />
+            <StatusChip
+              active={statusFilter === "active"}
+              tone="primary"
+              onClick={() => setStatusFilter("active")}
+              label={COPY.portfolio.statusFilterScaling}
+            />
+            <StatusChip
+              active={statusFilter === "nurturing"}
+              tone="warning"
+              onClick={() => setStatusFilter("nurturing")}
+              label={COPY.portfolio.statusFilterDeveloping}
+            />
+            <StatusChip
+              active={statusFilter === "at_risk"}
+              tone="danger"
+              onClick={() => setStatusFilter("at_risk")}
+              label={COPY.portfolio.statusFilterAtRisk}
+            />
+          </div>
 
-          {portfolio.loading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-14 w-full rounded-xl" />
-              <Skeleton className="h-14 w-full rounded-xl" />
-              <Skeleton className="h-14 w-full rounded-xl" />
-            </div>
-          ) : sorted.length === 0 ? (
-            <EmptyPortfolioOnboarding onAdd={() => setShowNew(true)} />
-          ) : (
-            <>
-              <div className="space-y-3 md:hidden">
-                {pageRows.map((it) => (
-                  <MobilePartnerCard
-                    key={it.partner.id}
-                    item={it}
-                    ownerName={ownerNames.get(it.partner.owner_id) ?? "—"}
-                    nextAction={nextActionByPartner.get(it.partner.id) ?? "Open partner"}
-                    firstPortfolioTask={firstPortfolioTaskByPartner.get(it.partner.id) ?? null}
-                    onPortfolioCycle={(id) => void handlePortfolioCycleStatus(id)}
-                    onPortfolioDelete={(id) => void handlePortfolioDelete(id)}
-                    isLeadership={portfolio.isLeadership}
-                    onOpen={() => nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })}
-                  />
-                ))}
+          <div className="mt-4">
+            <PartnerFilterBar
+              query={query}
+              onQuery={setQuery}
+              type={typeFilter}
+              onType={setTypeFilter}
+              sort={sortKey}
+              onSort={setSortKey}
+            />
+          </div>
+        </div>
+
+        {!portfolio.loading && sorted.length > 0 && (
+          <nav
+            aria-label={COPY.portfolio.paginationLabel}
+            className="flex min-h-11 flex-wrap items-center justify-between gap-3 rounded-xl border border-border/60 bg-card px-3 py-2.5 sm:px-4"
+          >
+            <p className="text-xs tabular-nums text-muted-foreground">
+              {COPY.portfolio.paginationRange({
+                start: rangeStart,
+                end: rangeEnd,
+                total: rosterTotal,
+              })}
+            </p>
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="whitespace-nowrap">{COPY.portfolio.paginationRowsLabel}</span>
+                <select
+                  className="select-candy min-h-11 py-2"
+                  value={pageSize}
+                  aria-label={COPY.portfolio.paginationRowsLabel}
+                  onChange={(e) =>
+                    setPageSize(Number(e.target.value) as (typeof PAGE_SIZES)[number])
+                  }
+                >
+                  {PAGE_SIZES.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  className="btn-candy-ghost min-h-11 px-3"
+                  disabled={safePageIndex <= 0}
+                  onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+                  aria-label={COPY.portfolio.paginationPrev}
+                >
+                  Prev
+                </button>
+                <button
+                  type="button"
+                  className="btn-candy-ghost min-h-11 px-3"
+                  disabled={safePageIndex >= pageCount - 1}
+                  onClick={() =>
+                    setPageIndex((p) => {
+                      const pc = Math.max(1, Math.ceil(rosterTotal / pageSize));
+                      return Math.min(pc - 1, p + 1);
+                    })
+                  }
+                  aria-label={COPY.portfolio.paginationNext}
+                >
+                  Next
+                </button>
               </div>
-              <div className="hidden md:block">
-                <PartnerRosterTable
-                  rows={pageRows}
-                  nextActionByPartner={nextActionByPartner}
-                  firstPortfolioTaskByPartner={firstPortfolioTaskByPartner}
+            </div>
+          </nav>
+        )}
+
+        {portfolio.loading ? (
+          <div className="space-y-3">
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+            <Skeleton className="h-14 w-full rounded-xl" />
+          </div>
+        ) : sorted.length === 0 ? (
+          <EmptyPortfolioOnboarding onAdd={() => setShowNew(true)} />
+        ) : (
+          <>
+            <div className="space-y-3 md:hidden">
+              {pageRows.map((it) => (
+                <MobilePartnerCard
+                  key={it.partner.id}
+                  item={it}
+                  ownerName={ownerNames.get(it.partner.owner_id) ?? "—"}
+                  nextAction={nextActionByPartner.get(it.partner.id) ?? "Open partner"}
+                  firstPortfolioTask={firstPortfolioTaskByPartner.get(it.partner.id) ?? null}
                   onPortfolioCycle={(id) => void handlePortfolioCycleStatus(id)}
                   onPortfolioDelete={(id) => void handlePortfolioDelete(id)}
                   isLeadership={portfolio.isLeadership}
-                  ownerNames={ownerNames}
-                  sortKey={sortKey}
-                  onSortKey={setSortKey}
-                  onRowClick={(it) =>
+                  onOpen={() =>
                     nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })
                   }
-                  bulkActions={[
-                    {
-                      label: "Mark Scaling",
-                      onClick: (ids) => void bulkUpdate(ids, { status: "active" }, "Scaling"),
-                      variant: "default",
-                    },
-                    {
-                      label: "Mark At Risk",
-                      onClick: (ids) => void bulkUpdate(ids, { status: "at_risk" }, "Churn Risk"),
-                      variant: "default",
-                    },
-                    ...(pdmRoster.pdms.length > 0
-                      ? [
-                          {
-                            label: "Reassign…",
-                            onClick: (ids: string[]) => {
-                              setSelectedForReassign(ids);
-                              setReassignOpen(true);
-                            },
-                            variant: "primary" as const,
-                          },
-                        ]
-                      : []),
-                    { label: "Delete", onClick: (ids) => void bulkDelete(ids), variant: "danger" },
-                  ]}
                 />
-              </div>
-            </>
-          )}
+              ))}
+            </div>
+            <div className="hidden md:block">
+              <PartnerRosterTable
+                rows={pageRows}
+                nextActionByPartner={nextActionByPartner}
+                firstPortfolioTaskByPartner={firstPortfolioTaskByPartner}
+                onPortfolioCycle={(id) => void handlePortfolioCycleStatus(id)}
+                onPortfolioDelete={(id) => void handlePortfolioDelete(id)}
+                isLeadership={portfolio.isLeadership}
+                ownerNames={ownerNames}
+                sortKey={sortKey}
+                onSortKey={setSortKey}
+                onRowClick={(it) =>
+                  nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })
+                }
+                bulkActions={[
+                  {
+                    label: "Mark Scaling",
+                    onClick: (ids) => void bulkUpdate(ids, { status: "active" }, "Scaling"),
+                    variant: "default",
+                  },
+                  {
+                    label: "Mark At Risk",
+                    onClick: (ids) => void bulkUpdate(ids, { status: "at_risk" }, "Churn Risk"),
+                    variant: "default",
+                  },
+                  ...(pdmRoster.pdms.length > 0
+                    ? [
+                        {
+                          label: "Reassign…",
+                          onClick: (ids: string[]) => {
+                            setSelectedForReassign(ids);
+                            setReassignOpen(true);
+                          },
+                          variant: "primary" as const,
+                        },
+                      ]
+                    : []),
+                  { label: "Delete", onClick: (ids) => void bulkDelete(ids), variant: "danger" },
+                ]}
+              />
+            </div>
+          </>
+        )}
       </section>
 
       {portfolio.isLeadership && scopeFilter === "all" && (
@@ -1003,9 +1074,7 @@ function StatusChip({
       aria-pressed={active}
       className={cn(
         "min-h-9 rounded-lg border px-3 py-1.5 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        active
-          ? toneClass
-          : "border-border bg-surface text-muted-foreground hover:text-foreground",
+        active ? toneClass : "border-border bg-surface text-muted-foreground hover:text-foreground",
       )}
     >
       {label}
@@ -1061,7 +1130,9 @@ function MobilePartnerCard({
           <p className="truncate text-sm font-semibold text-foreground">{item.partner.name}</p>
           <p className="truncate text-xs text-muted-foreground">{item.partner.company ?? "—"}</p>
         </div>
-        <StatusPill tone={toneMap[item.partner.status]}>{statusLabel(item.partner.status)}</StatusPill>
+        <StatusPill tone={toneMap[item.partner.status]}>
+          {statusLabel(item.partner.status)}
+        </StatusPill>
       </div>
       <div className="flex items-start justify-between gap-2">
         {firstPortfolioTask ? (

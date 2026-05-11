@@ -16,6 +16,7 @@ import {
   LEAD_SOURCES,
   LEAD_ACTIVITY_KINDS,
   useAllLeadTasks,
+  type LeadTaskListFilter,
   SCORECARD_MAX_TOTAL,
   type LeadRow,
   type LeadStatus,
@@ -61,7 +62,8 @@ function QualificationPage() {
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<PartnerType | "all">("all");
   const [sortKey, setSortKey] = useState<LeadSortKey>("created_desc");
-  const leadTasks = useAllLeadTasks(user?.id, leadsStore.leads);
+  const [leadTaskFilter, setLeadTaskFilter] = useState<LeadTaskListFilter>("open");
+  const leadTasks = useAllLeadTasks(user?.id, leadsStore.leads, leadTaskFilter);
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [kanbanSelectedIds, setKanbanSelectedIds] = useState<Set<string>>(() => new Set());
   const [kanbanBulkSelectKey, setKanbanBulkSelectKey] = useState(0);
@@ -251,10 +253,16 @@ function QualificationPage() {
       <LeadTasksSection
         tasks={leadTasks.tasks}
         loading={leadTasks.loading}
-        onComplete={async (id) => {
+        filter={leadTaskFilter}
+        onFilterChange={setLeadTaskFilter}
+        onSetTaskDone={async (id, done) => {
           try {
-            await leadTasks.completeTask(id);
-            toast.success("Task done");
+            await leadTasks.setTaskDone(id, done);
+            toast.success(
+              done
+                ? COPY.qualification.leadTaskDoneToast
+                : COPY.qualification.leadTaskReopenedToast,
+            );
           } catch (e) {
             toast.error((e as Error).message);
           }
@@ -1301,8 +1309,8 @@ function LeadDetailPanel({
                 </select>
               </Field>
               <p className="mt-1.5 text-[11px] text-muted-foreground">
-                Choosing Approved opens promote to partner when this lead is not in the portfolio yet.
-                Choosing Rejected asks for a reason next.
+                Choosing Approved opens promote to partner when this lead is not in the portfolio
+                yet. Choosing Rejected asks for a reason next.
               </p>
             </div>
 
@@ -1413,14 +1421,18 @@ function LeadDetailPanel({
           ) : (
             <>
               <div className="mt-6">
-                <h3 className="text-sm font-semibold text-foreground">Alliara 5-dimension scorecard</h3>
+                <h3 className="text-sm font-semibold text-foreground">
+                  Alliara 5-dimension scorecard
+                </h3>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Rate each dimension from 1 (weakest) to 5 (strongest). Total ranges from 5 to{" "}
                   {SCORECARD_MAX_TOTAL}.
                 </p>
                 {isLocked && (
                   <div className="mt-3 rounded-lg border border-border/60 bg-surface/40 px-3 py-2 text-xs text-muted-foreground">
-                    This lead has been approved and promoted. The scorecard is locked. Move the pipeline status back to <span className="font-medium text-foreground">In review</span> to edit.
+                    This lead has been approved and promoted. The scorecard is locked. Move the
+                    pipeline status back to{" "}
+                    <span className="font-medium text-foreground">In review</span> to edit.
                   </div>
                 )}
 
@@ -1429,7 +1441,10 @@ function LeadDetailPanel({
                     const value = getDimensionValue(lead, d.key);
                     const selectedHelp = d.options.find((o) => o.v === value)?.help ?? null;
                     return (
-                      <div key={d.key} className="rounded-xl border border-border/50 bg-surface/20 p-3 sm:p-4">
+                      <div
+                        key={d.key}
+                        className="rounded-xl border border-border/50 bg-surface/20 p-3 sm:p-4"
+                      >
                         <div className="text-sm font-medium text-foreground">
                           <span className="mr-2 font-mono text-muted-foreground">{idx + 1}.</span>
                           {d.label}
@@ -1448,7 +1463,8 @@ function LeadDetailPanel({
                                 value === opt.v
                                   ? "border-primary bg-primary/15 text-foreground ring-2 ring-primary/35"
                                   : "border-border/60 bg-background/80 text-muted-foreground hover:border-border hover:bg-surface hover:text-foreground",
-                                isLocked && "cursor-not-allowed opacity-60 hover:bg-background/80 hover:text-muted-foreground",
+                                isLocked &&
+                                  "cursor-not-allowed opacity-60 hover:bg-background/80 hover:text-muted-foreground",
                               )}
                               style={{ WebkitTapHighlightColor: "transparent" }}
                             >
@@ -1470,8 +1486,12 @@ function LeadDetailPanel({
               <div className="mt-6">
                 {verdict && total !== null ? (
                   <div className={`rounded-xl border p-4 ${bannerClass(verdict.tone)}`}>
-                    <div className="text-sm font-semibold leading-snug">{verdict.label} · Score {total}/{SCORECARD_MAX_TOTAL}</div>
-                    <div className="verdict-sub mt-2 text-xs leading-relaxed">{verdict.message}</div>
+                    <div className="text-sm font-semibold leading-snug">
+                      {verdict.label} · Score {total}/{SCORECARD_MAX_TOTAL}
+                    </div>
+                    <div className="verdict-sub mt-2 text-xs leading-relaxed">
+                      {verdict.message}
+                    </div>
                   </div>
                 ) : (
                   <div className="rounded-xl border border-border/60 bg-surface/40 p-4 text-xs text-muted-foreground">
@@ -1986,81 +2006,139 @@ function ActivityRow({
 function LeadTasksSection({
   tasks,
   loading,
-  onComplete,
+  filter,
+  onFilterChange,
+  onSetTaskDone,
   onOpenLead,
 }: {
   tasks: LeadTaskRow[];
   loading: boolean;
-  onComplete: (id: string) => void | Promise<void>;
+  filter: LeadTaskListFilter;
+  onFilterChange: (next: LeadTaskListFilter) => void;
+  onSetTaskDone: (id: string, done: boolean) => void | Promise<void>;
   onOpenLead: (leadId: string) => void;
 }) {
   const today = new Date().toISOString().slice(0, 10);
-  const overdue = tasks.filter((t) => t.due_date && t.due_date < today).length;
-  const top = tasks.slice(0, 6);
+  const overdue = tasks.filter((t) => !t.done && t.due_date && t.due_date < today).length;
+  const limit = 12;
+  const top = tasks.slice(0, limit);
+
+  const emptyCopy =
+    filter === "done"
+      ? COPY.qualification.leadTasksEmptyDone
+      : filter === "all"
+        ? COPY.qualification.leadTasksEmptyAll
+        : COPY.qualification.leadTasksEmptyOpen;
+
+  const countLabel =
+    filter === "open"
+      ? `${tasks.length} open`
+      : filter === "done"
+        ? `${tasks.length} done`
+        : `${tasks.length} tasks`;
 
   return (
     <section
       id="lead-tasks"
       className="mt-6 rounded-2xl border border-border/60 bg-card p-5 card-elev"
     >
-      <div className="flex items-baseline justify-between gap-2 flex-wrap">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0">
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-            Lead Tasks · Next moves
+            {COPY.qualification.leadTasksEyebrow}
           </p>
           <h2 className="mt-1 text-lg font-semibold">
-            {tasks.length} open
-            {overdue > 0 && (
+            {countLabel}
+            {overdue > 0 && filter !== "done" && (
               <span className="ml-2 text-sm font-mono text-red-400">· {overdue} overdue</span>
             )}
           </h2>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Tasks attached to leads in the qualification pipeline. Sorted by due date.
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {COPY.qualification.leadTasksIntro}
           </p>
+        </div>
+        <div
+          className="inline-flex shrink-0 flex-wrap gap-1 rounded-lg border border-border/60 bg-surface/60 p-1 text-sm"
+          role="group"
+          aria-label="Filter lead tasks"
+        >
+          {(["open", "done", "all"] as const).map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => onFilterChange(f)}
+              className={`min-h-11 rounded-md px-3 py-2 transition ${
+                filter === f
+                  ? "bg-surface-2 text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {f === "open"
+                ? COPY.qualification.leadTaskFilterOpen
+                : f === "done"
+                  ? COPY.qualification.leadTaskFilterDone
+                  : COPY.qualification.leadTaskFilterAll}
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="mt-4">
         {loading ? (
-          <div className="text-sm text-muted-foreground py-4 text-center">Loading tasks…</div>
+          <div className="py-4 text-center text-sm text-muted-foreground">Loading tasks…</div>
         ) : top.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border/60 bg-surface/40 p-6 text-center text-sm text-muted-foreground">
-            No open tasks on any lead. Add one inside a lead's CRM tab to keep things moving.
+            {emptyCopy}
           </div>
         ) : (
           <ul className="space-y-2">
             {top.map((t) => {
-              const isOverdue = !!(t.due_date && t.due_date < today);
+              const isOverdue = !!(t.due_date && !t.done && t.due_date < today);
               return (
                 <li
                   key={t.id}
-                  className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 transition cursor-pointer hover:bg-surface-2 ${
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 transition hover:bg-surface-2 ${
                     isOverdue ? "border-red-500/30 bg-red-500/5" : "border-border bg-surface"
                   }`}
                   onClick={() => onOpenLead(t.lead_id)}
                 >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void onComplete(t.id);
-                    }}
-                    title="Mark complete"
-                    className="shrink-0 h-5 w-5 rounded border border-border bg-card hover:bg-primary hover:border-primary transition"
-                  />
+                  <label
+                    className="flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center justify-center"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={t.done}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        void onSetTaskDone(t.id, e.target.checked);
+                      }}
+                      className="h-5 w-5 accent-primary"
+                      aria-label={t.done ? "Mark task not done" : "Mark task done"}
+                    />
+                  </label>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium truncate">{t.title}</div>
-                    <div className="text-xs text-muted-foreground truncate">
+                    <div
+                      className={`truncate text-sm font-medium ${t.done ? "text-muted-foreground line-through" : ""}`}
+                    >
+                      {t.title}
+                    </div>
+                    <div className="truncate text-xs text-muted-foreground">
                       {t.lead_company}
                       {t.lead_status === "rejected" || t.lead_status === "approved"
                         ? ` · ${t.lead_status}`
                         : ""}
+                      {t.done && t.done_at ? (
+                        <span className="ml-1 font-mono text-[10px]">
+                          · done {t.done_at.slice(0, 10)}
+                        </span>
+                      ) : null}
                     </div>
                   </div>
                   <span
-                    className={`text-xs font-mono ${isOverdue ? "text-red-400 font-semibold" : "text-muted-foreground"}`}
+                    className={`shrink-0 text-xs font-mono ${isOverdue ? "font-semibold text-red-400" : "text-muted-foreground"}`}
                   >
-                    {t.due_date ?? "no date"}
+                    {t.due_date ?? "—"}
                   </span>
                 </li>
               );
@@ -2068,8 +2146,8 @@ function LeadTasksSection({
           </ul>
         )}
         {tasks.length > top.length && (
-          <p className="mt-3 text-[11px] text-center font-mono text-muted-foreground">
-            +{tasks.length - top.length} more · open a lead to see all its tasks
+          <p className="mt-3 text-center font-mono text-[11px] text-muted-foreground">
+            {COPY.qualification.leadTasksMoreHint({ n: tasks.length - top.length })}
           </p>
         )}
       </div>

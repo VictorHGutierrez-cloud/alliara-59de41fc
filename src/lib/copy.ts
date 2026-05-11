@@ -41,6 +41,11 @@ export const COPY = {
     newMoveTitle: "New task",
     addMoveCta: "+ Add a task",
     planPageMetaTitle: "Tasks · Alliara",
+    planStatusFilterLabel: "Show",
+    planStatusFilterAll: "All tasks",
+    planStatusFilterOpen: "Open only",
+    planStatusFilterDone: "Delivered only",
+    planFilterEmpty: "No tasks match these filters. Try another axis or set Show to All tasks.",
   },
 
   kept: {
@@ -53,8 +58,7 @@ export const COPY = {
       "Kept reads your diagnostics and notes, drafts suggestions quickly, and leaves the final call on what ships with you.",
     needDiagnosticFirst:
       "Run a diagnostic first so suggestions match what you logged for this partnership.",
-    ribbonBlurb:
-      "Same context as diagnostics and plans. Tap when you want the two minute intro.",
+    ribbonBlurb: "Same context as diagnostics and plans. Tap when you want the two minute intro.",
     ambientTitle: "Meet Kept · intro tour",
     goToDiagnosticLink: "Open diagnostic",
     emptyTitleOwner: "Your first Kept draft lands here",
@@ -240,50 +244,42 @@ export const COPY = {
       {
         variant: "bringsCalm",
         title: "Meet Kept",
-        body:
-          "Kept is not a mascot or a bossy bot. It is a steady presence that watches partner momentum and protects the story you already wrote down.",
+        body: "Kept is not a mascot or a bossy bot. It is a steady presence that watches partner momentum and protects the story you already wrote down.",
       },
       {
         variant: "remindsGently",
         title: "Curiosity without noise",
-        body:
-          "Kept surfaces gentle prompts from diagnostics and plans so you remember what mattered on last week’s call, without blowing up your inbox.",
+        body: "Kept surfaces gentle prompts from diagnostics and plans so you remember what mattered on last week’s call, without blowing up your inbox.",
       },
       {
         variant: "keepsContext",
         title: "Plans that survive the recap",
-        body:
-          "Joint Business Plans stay readable: statuses, owners, and commitments stay tied to dimension scores so decks stop rewriting themselves every Monday.",
+        body: "Joint Business Plans stay readable: statuses, owners, and commitments stay tied to dimension scores so decks stop rewriting themselves every Monday.",
       },
       {
         variant: "noticesDrift",
         title: "Spot drift early",
-        body:
-          "Eight axes give you a shared language with partners. Diagnostics highlight where coaching time pays off before pipeline stories go sideways.",
+        body: "Eight axes give you a shared language with partners. Diagnostics highlight where coaching time pays off before pipeline stories go sideways.",
       },
       {
         variant: "notifySomethingToCheck",
         title: "Small nudges, big leverage",
-        body:
-          "When something needs a glance, Kept flags it in context: fewer surprises in leadership syncs and fewer “I thought they were fine” moments.",
+        body: "When something needs a glance, Kept flags it in context: fewer surprises in leadership syncs and fewer “I thought they were fine” moments.",
       },
       {
         variant: "atRisk",
         title: "Honest when momentum slips",
-        body:
-          "Churn risk and stalled moves rise to the top without shame. You decide what to do next; Kept keeps the facts visible for the conversation.",
+        body: "Churn risk and stalled moves rise to the top without shame. You decide what to do next; Kept keeps the facts visible for the conversation.",
       },
       {
         variant: "contextBeforeCall",
         title: "Walk in prepared",
-        body:
-          "Intel and summaries stay beside the partner record so you reopen the thread with receipts, not improvisation, when finance or execs lean in.",
+        body: "Intel and summaries stay beside the partner record so you reopen the thread with receipts, not improvisation, when finance or execs lean in.",
       },
       {
         variant: "everythingOnTrack",
         title: "Ready when you are",
-        body:
-          "When portfolios calm down, Kept rests too. Create a workspace, run a diagnostic, and let the weekly rhythm compound.",
+        body: "When portfolios calm down, Kept rests too. Create a workspace, run a diagnostic, and let the weekly rhythm compound.",
       },
     ] as const,
   },
@@ -298,8 +294,7 @@ export const COPY = {
       "Across {scope} things look steady. Take a breath, then maybe deepen two key allies.",
     kickerPortfolioMine: "Your portfolio",
     stickyHeroTitle: "Your Partner Portfolio",
-    stickyHeroSubtitle:
-      "Start with the partners who need your attention most today.",
+    stickyHeroSubtitle: "Start with the partners who need your attention most today.",
     startWeeklyReviewCta: "Start weekly review",
     stickyAddPartnerCta: "Add partner",
     reportsCardEyebrow: "Reporting lives here",
@@ -314,30 +309,33 @@ export const COPY = {
     churnAlert: ({ n }: { n: number }) =>
       `Check in with ${n} churn risk ${n === 1 ? "partner" : "partners"}`,
     qualifyLeadsChip: ({ n }: { n: number }) => `Qualify ${n} inbound lead${n === 1 ? "" : "s"} →`,
-    overdueNudge: ({ n }: { n: number }) =>
-      `${n} task${n === 1 ? "" : "s"} behind schedule →`,
-    openTasksEyebrow: "Open tasks",
+    overdueNudge: ({ n }: { n: number }) => `${n} task${n === 1 ? "" : "s"} behind schedule →`,
+    openTasksEyebrow: "Partner tasks",
+    openTasksSubtitle:
+      "Open shows what is in motion. Done lists finished moves so you can reopen them. All shows every task in this roster.",
+    partnerTaskFilterOpen: "Open",
+    partnerTaskFilterDone: "Done",
+    partnerTaskFilterAll: "All",
     openTasksEmpty: "No open tasks in this roster view.",
-    openTasksShowingCap: ({ n }: { n: number }) => `Showing first ${n} tasks. Open a partner for the full list.`,
+    openTasksEmptyDone: "No completed tasks in this roster view.",
+    openTasksEmptyAll: "No tasks on any partner in this roster view yet.",
+    openTasksShowingCap: ({ n }: { n: number }) =>
+      `Showing first ${n} tasks. Open a partner for the full list.`,
     initiativesEyebrow: "Partner tasks",
     initiativesTitleIdle: "Open partner tasks",
     initiativesTitleFocus: "Focus mode, top three tasks",
-    initiativesBodyIdle:
-      "Pulled from what teammates own. Overdue partners float up first.",
+    initiativesBodyIdle: "Pulled from what teammates own. Overdue partners float up first.",
     initiativesBodyFocus:
       "Finish these before new fires land. Partners notice when you protect what you already promised.",
     focusModeEnter: "Enter focus mode",
     focusModeExit: "Leave focus mode",
-    initiativesEmptyWide:
-      "Nothing here yet. Open any partner workspace and add a few clear tasks.",
-    initiativesEmptyAxis:
-      "This filter is quiet today. Broaden filters to see other commitments.",
+    initiativesEmptyWide: "Nothing here yet. Open any partner workspace and add a few clear tasks.",
+    initiativesEmptyAxis: "This filter is quiet today. Broaden filters to see other commitments.",
     loadingInitiatives: "Loading your tasks…",
     rosterTitle: "Partners you support day to day",
     addPartnerCta: "+ Invite partner workspace",
     filterEmptyTitle: "No partners match these filters",
-    filterEmptyBody:
-      "Widen filters or add a workspace so diagnostics and moves stay easy to find.",
+    filterEmptyBody: "Widen filters or add a workspace so diagnostics and moves stay easy to find.",
     rowOpenCue: "Open",
     rowOpenAria: ({ name }: { name: string }) => `Open ${name} workspace`,
     statusFilterLegend: "Filter by health",
@@ -407,6 +405,21 @@ export const COPY = {
       "Add a simple fit score before you open a full partner record. That keeps first steps thoughtful and trustworthy. When someone graduates here, Kept keeps the same steady rhythm in their workspace.",
     addLeadCta: "Add Partner Opportunity",
     loadingFallback: "Loading…",
+    leadTasksEyebrow: "Lead tasks · Next moves",
+    leadTasksIntro:
+      "Tasks attached to leads in the qualification pipeline. Use Open for what is due next, Done to review finished work and reopen if needed.",
+    leadTaskFilterOpen: "Open",
+    leadTaskFilterDone: "Done",
+    leadTaskFilterAll: "All",
+    leadTasksEmptyOpen:
+      "No open tasks on any lead. Add one inside a lead's CRM tab to keep things moving.",
+    leadTasksEmptyDone:
+      "No completed tasks in this view. When you finish a task, it appears here so you can reopen it if something changed.",
+    leadTasksEmptyAll: "No tasks on any lead yet.",
+    leadTasksMoreHint: ({ n }: { n: number }) =>
+      `+${n} more · open a lead to see every task on that record`,
+    leadTaskReopenedToast: "Task reopened",
+    leadTaskDoneToast: "Task done",
   },
 
   methodology: {
@@ -414,8 +427,7 @@ export const COPY = {
     pageMetaDescription:
       "Guides for all eight dimensions of channel maturity: what good looks like, what to watch for, and small drills before your next collaborator call.",
     ogTitle: "Channel dimension guides",
-    ogDescription:
-      "Readable guides so diagnostics and plans stay clear and kind.",
+    ogDescription: "Readable guides so diagnostics and plans stay clear and kind.",
     eyebrowSuffix: "Channel dimensions",
     pageTitle: "Guides for each maturity dimension",
     intro:
@@ -667,7 +679,8 @@ export const COPY = {
     bodyLead:
       "Diagnostics, plans, and small follow ups belong in one place. Kept drafts ideas in your tone. You still decide what ships.",
     stepAddTitle: "Create a workspace",
-    stepAddBody: "Name the partner and what's actually going on. Honest notes keep suggestions useful.",
+    stepAddBody:
+      "Name the partner and what's actually going on. Honest notes keep suggestions useful.",
     stepDiagTitleRuns: ({ noun }: { noun: string }) => `Run the ${noun.toLowerCase()}`,
     stepDiagBody:
       "Walk the eight axes together until the picture matches what your partner would say.",

@@ -68,7 +68,13 @@ export const FACTORIAL_DIMENSIONS: {
   key: DimensionKey;
   label: string;
   description: string;
-  options: readonly [DimensionOption, DimensionOption, DimensionOption, DimensionOption, DimensionOption];
+  options: readonly [
+    DimensionOption,
+    DimensionOption,
+    DimensionOption,
+    DimensionOption,
+    DimensionOption,
+  ];
 }[] = [
   {
     key: "icp_overlap",
@@ -88,16 +94,25 @@ export const FACTORIAL_DIMENSIONS: {
     description: "How many people are dedicated to selling (and closing) deals like yours?",
     options: [
       { v: 1, label: "1", help: "No one dedicated; only ad-hoc mentions or passive inbound." },
-      { v: 2, label: "2", help: "One person spends part-time on your category (< half their time)." },
+      {
+        v: 2,
+        label: "2",
+        help: "One person spends part-time on your category (< half their time).",
+      },
       { v: 3, label: "3", help: "At least one seller largely focused on your offer." },
       { v: 4, label: "4", help: "Small team (about 2–4) actively prospecting and closing." },
-      { v: 5, label: "5", help: "Larger pod (5+) or mature machine with quota on your product line." },
+      {
+        v: 5,
+        label: "5",
+        help: "Larger pod (5+) or mature machine with quota on your product line.",
+      },
     ],
   },
   {
     key: "delivery_muscle",
     label: "Delivery muscle",
-    description: "Can the partner implement and support customers without you carrying every rollout?",
+    description:
+      "Can the partner implement and support customers without you carrying every rollout?",
     options: [
       { v: 1, label: "1", help: "Expects you to own delivery end-to-end." },
       { v: 2, label: "2", help: "Light assist only; still leans on you for most rollouts." },
@@ -115,7 +130,11 @@ export const FACTORIAL_DIMENSIONS: {
       { v: 2, label: "2", help: "Friendly but informal; no shared plan or metrics." },
       { v: 3, label: "3", help: "Active pipeline conversations and lightweight goals." },
       { v: 4, label: "4", help: "Named targets, regular QBRs, and sponsor on their side." },
-      { v: 5, label: "5", help: "Executive-backed joint plan with clear revenue and milestone commitments." },
+      {
+        v: 5,
+        label: "5",
+        help: "Executive-backed joint plan with clear revenue and milestone commitments.",
+      },
     ],
   },
   {
@@ -127,7 +146,11 @@ export const FACTORIAL_DIMENSIONS: {
       { v: 2, label: "2", help: "Neutral; unclear how you fit their narrative." },
       { v: 3, label: "3", help: "Compatible; they can attach your offer without friction." },
       { v: 4, label: "4", help: "Strong fit; your product is a natural upsell or bundle." },
-      { v: 5, label: "5", help: "Strategic lane: ideal partners (e.g. MSP, HR advisory, vertical integrator)." },
+      {
+        v: 5,
+        label: "5",
+        help: "Strategic lane: ideal partners (e.g. MSP, HR advisory, vertical integrator).",
+      },
     ],
   },
 ];
@@ -154,7 +177,10 @@ export type ScorecardMeta = {
 
 const SCORECARD_RE = /^<!--FACTORIAL_SCORECARD:(\{[^}]*\})-->\n?/;
 
-export function parseScorecard(notes: string | null | undefined): { meta: ScorecardMeta; freeText: string } {
+export function parseScorecard(notes: string | null | undefined): {
+  meta: ScorecardMeta;
+  freeText: string;
+} {
   const empty: ScorecardMeta = { commitment: null, alignment: null, rejection_reason: null };
   if (!notes) return { meta: empty, freeText: "" };
   const m = notes.match(SCORECARD_RE);
@@ -204,20 +230,24 @@ export function computeFactorialTotal(lead: LeadRow): number | null {
 
 export function factorialVerdict(total: number | null) {
   if (total === null || total < 5) return null;
-  if (total <= 12) return {
-    tone: "red" as const,
-    label: "Low fit",
-    message: "Signals are weak across ICP, capacity, or commitment. Recommendation: reject or keep in nurture.",
-  };
-  if (total <= 19) return {
-    tone: "yellow" as const,
-    label: "Moderate fit",
-    message: "Worth a closer look. Clarify delivery, commitment, and alignment before promoting.",
-  };
+  if (total <= 12)
+    return {
+      tone: "red" as const,
+      label: "Low fit",
+      message:
+        "Signals are weak across ICP, capacity, or commitment. Recommendation: reject or keep in nurture.",
+    };
+  if (total <= 19)
+    return {
+      tone: "yellow" as const,
+      label: "Moderate fit",
+      message: "Worth a closer look. Clarify delivery, commitment, and alignment before promoting.",
+    };
   return {
     tone: "green" as const,
     label: "Strong fit",
-    message: "Strong match for Alliara. Good candidate to promote when the deal story is confirmed.",
+    message:
+      "Strong match for Alliara. Good candidate to promote when the deal story is confirmed.",
   };
 }
 
@@ -230,178 +260,230 @@ export function useLeads(userId: string | undefined) {
   const leadsRef = useRef<LeadRow[]>([]);
   leadsRef.current = leads;
 
-  const refresh = useCallback(async (opts?: LeadsRefreshOpts) => {
-    if (!userId) return;
-    const silent = opts?.silent ?? false;
-    if (!silent) setLoading(true);
-    try {
-      const [{ data: roles }, { data }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", userId),
-        supabase.from("partner_leads").select("*").order("created_at", { ascending: false }),
-      ]);
-      setIsLeadership((roles ?? []).some((r) => r.role === "leadership" || r.role === "admin"));
-      let leadRows = (data ?? []) as LeadRow[];
-      // Defensive: if any approved lead points to a partner that no longer exists,
-      // the FK should NULL it out automatically — but we double-check on the
-      // client to surface "Re-promote" UI instantly without waiting for a refresh.
-      const promotedIds = leadRows
-        .map((l) => l.promoted_partner_id)
-        .filter((id): id is string => Boolean(id));
-      if (promotedIds.length > 0) {
-        const { data: existing } = await supabase
-          .from("partners")
-          .select("id")
-          .in("id", promotedIds);
-        const alive = new Set((existing ?? []).map((p) => (p as { id: string }).id));
-        leadRows = leadRows.map((l) =>
-          l.promoted_partner_id && !alive.has(l.promoted_partner_id)
-            ? { ...l, promoted_partner_id: null, status: l.status === "approved" ? "in_review" : l.status }
-            : l
-        );
+  const refresh = useCallback(
+    async (opts?: LeadsRefreshOpts) => {
+      if (!userId) return;
+      const silent = opts?.silent ?? false;
+      if (!silent) setLoading(true);
+      try {
+        const [{ data: roles }, { data }] = await Promise.all([
+          supabase.from("user_roles").select("role").eq("user_id", userId),
+          supabase.from("partner_leads").select("*").order("created_at", { ascending: false }),
+        ]);
+        setIsLeadership((roles ?? []).some((r) => r.role === "leadership" || r.role === "admin"));
+        let leadRows = (data ?? []) as LeadRow[];
+        // Defensive: if any approved lead points to a partner that no longer exists,
+        // the FK should NULL it out automatically — but we double-check on the
+        // client to surface "Re-promote" UI instantly without waiting for a refresh.
+        const promotedIds = leadRows
+          .map((l) => l.promoted_partner_id)
+          .filter((id): id is string => Boolean(id));
+        if (promotedIds.length > 0) {
+          const { data: existing } = await supabase
+            .from("partners")
+            .select("id")
+            .in("id", promotedIds);
+          const alive = new Set((existing ?? []).map((p) => (p as { id: string }).id));
+          leadRows = leadRows.map((l) =>
+            l.promoted_partner_id && !alive.has(l.promoted_partner_id)
+              ? {
+                  ...l,
+                  promoted_partner_id: null,
+                  status: l.status === "approved" ? "in_review" : l.status,
+                }
+              : l,
+          );
+        }
+        setLeads(leadRows);
+      } finally {
+        if (!silent) setLoading(false);
       }
-      setLeads(leadRows);
-    } finally {
-      if (!silent) setLoading(false);
-    }
-  }, [userId]);
+    },
+    [userId],
+  );
 
-  useEffect(() => { void refresh(); }, [refresh]);
-
-  const createLead = useCallback(async (input: {
-    company_name: string; contact_person?: string; website?: string;
-    partner_type?: PartnerType | null;
-    firstTask?: { title: string; due_date?: string | null } | null;
-  }) => {
-    if (!userId) throw new Error("Not signed in");
-    const { data, error } = await supabase.from("partner_leads").insert({
-      owner_id: userId,
-      company_name: input.company_name,
-      contact_person: input.contact_person ?? null,
-      website: input.website ?? null,
-      partner_type: input.partner_type ?? null,
-    }).select("*").single();
-    if (error) throw error;
-    // Optional: attach a first task in one go so something is always queued
-    if (input.firstTask && input.firstTask.title.trim() && data) {
-      await supabase.from("partner_lead_activities" as never).insert({
-        lead_id: (data as LeadRow).id,
-        owner_id: userId,
-        kind: "task",
-        title: input.firstTask.title.trim(),
-        due_date: input.firstTask.due_date ?? null,
-      } as never);
-    }
-    await refresh({ silent: true });
-    return data as LeadRow;
-  }, [userId, refresh]);
-
-  const updateLead = useCallback(async (id: string, patch: Partial<LeadRow>) => {
-    const { error } = await supabase.from("partner_leads").update(patch).eq("id", id);
-    if (error) throw error;
-    await refresh({ silent: true });
+  useEffect(() => {
+    void refresh();
   }, [refresh]);
 
-  const deleteLead = useCallback(async (id: string) => {
-    const { error } = await supabase.from("partner_leads").delete().eq("id", id);
-    if (error) throw error;
-    await refresh({ silent: true });
-  }, [refresh]);
+  const createLead = useCallback(
+    async (input: {
+      company_name: string;
+      contact_person?: string;
+      website?: string;
+      partner_type?: PartnerType | null;
+      firstTask?: { title: string; due_date?: string | null } | null;
+    }) => {
+      if (!userId) throw new Error("Not signed in");
+      const { data, error } = await supabase
+        .from("partner_leads")
+        .insert({
+          owner_id: userId,
+          company_name: input.company_name,
+          contact_person: input.contact_person ?? null,
+          website: input.website ?? null,
+          partner_type: input.partner_type ?? null,
+        })
+        .select("*")
+        .single();
+      if (error) throw error;
+      // Optional: attach a first task in one go so something is always queued
+      if (input.firstTask && input.firstTask.title.trim() && data) {
+        await supabase.from("partner_lead_activities" as never).insert({
+          lead_id: (data as LeadRow).id,
+          owner_id: userId,
+          kind: "task",
+          title: input.firstTask.title.trim(),
+          due_date: input.firstTask.due_date ?? null,
+        } as never);
+      }
+      await refresh({ silent: true });
+      return data as LeadRow;
+    },
+    [userId, refresh],
+  );
 
-  const setDimension = useCallback(async (lead: LeadRow, key: DimensionKey, value: ScoreLevel) => {
-    const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
-    const { meta, freeText } = parseScorecard(latest.notes);
-    const next: LeadRow = { ...latest };
-    const patch: Partial<LeadRow> = {};
-    if (key === "icp_overlap") { next.sales_score = value; patch.sales_score = value; }
-    else if (key === "sales_capacity") { next.expertise_score = value; patch.expertise_score = value; }
-    else if (key === "delivery_muscle") { next.fit_score = value; patch.fit_score = value; }
-    else {
-      const nextMeta: ScorecardMeta = { ...meta };
-      if (key === "business_commitment") nextMeta.commitment = value;
-      else nextMeta.alignment = value;
+  const updateLead = useCallback(
+    async (id: string, patch: Partial<LeadRow>) => {
+      const { error } = await supabase.from("partner_leads").update(patch).eq("id", id);
+      if (error) throw error;
+      await refresh({ silent: true });
+    },
+    [refresh],
+  );
+
+  const deleteLead = useCallback(
+    async (id: string) => {
+      const { error } = await supabase.from("partner_leads").delete().eq("id", id);
+      if (error) throw error;
+      await refresh({ silent: true });
+    },
+    [refresh],
+  );
+
+  const setDimension = useCallback(
+    async (lead: LeadRow, key: DimensionKey, value: ScoreLevel) => {
+      const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
+      const { meta, freeText } = parseScorecard(latest.notes);
+      const next: LeadRow = { ...latest };
+      const patch: Partial<LeadRow> = {};
+      if (key === "icp_overlap") {
+        next.sales_score = value;
+        patch.sales_score = value;
+      } else if (key === "sales_capacity") {
+        next.expertise_score = value;
+        patch.expertise_score = value;
+      } else if (key === "delivery_muscle") {
+        next.fit_score = value;
+        patch.fit_score = value;
+      } else {
+        const nextMeta: ScorecardMeta = { ...meta };
+        if (key === "business_commitment") nextMeta.commitment = value;
+        else nextMeta.alignment = value;
+        const newNotes = serializeScorecard(nextMeta, freeText);
+        next.notes = newNotes;
+        patch.notes = newNotes;
+      }
+      const total = computeFactorialTotal(next);
+      patch.total_score = total;
+      const { error } = await supabase.from("partner_leads").update(patch).eq("id", latest.id);
+      if (error) throw error;
+      await refresh({ silent: true });
+    },
+    [refresh],
+  );
+
+  const updateFreeNotes = useCallback(
+    async (lead: LeadRow, freeText: string) => {
+      const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
+      const { meta } = parseScorecard(latest.notes);
+      const newNotes = serializeScorecard(meta, freeText);
+      const { error } = await supabase
+        .from("partner_leads")
+        .update({ notes: newNotes })
+        .eq("id", latest.id);
+      if (error) throw error;
+      await refresh({ silent: true });
+    },
+    [refresh],
+  );
+
+  const rejectLead = useCallback(
+    async (lead: LeadRow, reason: string) => {
+      const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
+      const { meta, freeText } = parseScorecard(latest.notes);
+      const nextMeta: ScorecardMeta = { ...meta, rejection_reason: reason };
       const newNotes = serializeScorecard(nextMeta, freeText);
-      next.notes = newNotes;
-      patch.notes = newNotes;
-    }
-    const total = computeFactorialTotal(next);
-    patch.total_score = total;
-    const { error } = await supabase.from("partner_leads").update(patch).eq("id", latest.id);
-    if (error) throw error;
-    await refresh({ silent: true });
-  }, [refresh]);
+      const { error } = await supabase
+        .from("partner_leads")
+        .update({ status: "rejected", notes: newNotes })
+        .eq("id", latest.id);
+      if (error) throw error;
+      await refresh({ silent: true });
+    },
+    [refresh],
+  );
 
-  const updateFreeNotes = useCallback(async (lead: LeadRow, freeText: string) => {
-    const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
-    const { meta } = parseScorecard(latest.notes);
-    const newNotes = serializeScorecard(meta, freeText);
-    const { error } = await supabase.from("partner_leads").update({ notes: newNotes }).eq("id", latest.id);
-    if (error) throw error;
-    await refresh({ silent: true });
-  }, [refresh]);
+  const promoteLead = useCallback(
+    async (lead: LeadRow, overrides?: { partner_type?: PartnerType }): Promise<string> => {
+      if (!userId) throw new Error("Not signed in");
+      const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
+      const { freeText } = parseScorecard(latest.notes);
+      const total = computeFactorialTotal(latest);
+      const lines = FACTORIAL_DIMENSIONS.map((d) => {
+        const v = getDimensionValue(latest, d.key);
+        const hint = v !== null ? dimensionHelpForValue(d.key, v) : "";
+        return `  • ${d.label}: ${v ?? "-"}${hint ? ` — ${hint}` : ""}`;
+      });
+      const promotedByLine =
+        latest.owner_id !== userId ? `\n  • Promoted by leadership on behalf of lead owner` : "";
+      const notesPrefix =
+        `Promoted from qualification — Alliara 5-dimension scorecard (total ${total ?? "-"}/${SCORECARD_MAX_TOTAL}):\n` +
+        lines.join("\n") +
+        promotedByLine;
+      const combinedNotes = freeText ? `${notesPrefix}\n\n${freeText}` : notesPrefix;
 
-  const rejectLead = useCallback(async (lead: LeadRow, reason: string) => {
-    const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
-    const { meta, freeText } = parseScorecard(latest.notes);
-    const nextMeta: ScorecardMeta = { ...meta, rejection_reason: reason };
-    const newNotes = serializeScorecard(nextMeta, freeText);
-    const { error } = await supabase.from("partner_leads")
-      .update({ status: "rejected", notes: newNotes })
-      .eq("id", latest.id);
-    if (error) throw error;
-    await refresh({ silent: true });
-  }, [refresh]);
+      const { data: partner, error: insErr } = await supabase
+        .from("partners")
+        .insert({
+          // The partner lands in the lead owner's portfolio, not the promoter's.
+          // RLS allows leadership/admin to insert with another owner_id.
+          owner_id: latest.owner_id,
+          name: latest.company_name,
+          company: latest.company_name,
+          tier: "emerging",
+          status: "active",
+          notes: combinedNotes,
+          partner_type: overrides?.partner_type ?? latest.partner_type ?? "referral",
+        })
+        .select("*")
+        .single();
+      if (insErr) throw insErr;
 
-  const promoteLead = useCallback(async (
-    lead: LeadRow,
-    overrides?: { partner_type?: PartnerType }
-  ): Promise<string> => {
-    if (!userId) throw new Error("Not signed in");
-    const latest = leadsRef.current.find((l) => l.id === lead.id) ?? lead;
-    const { freeText } = parseScorecard(latest.notes);
-    const total = computeFactorialTotal(latest);
-    const lines = FACTORIAL_DIMENSIONS.map((d) => {
-      const v = getDimensionValue(latest, d.key);
-      const hint = v !== null ? dimensionHelpForValue(d.key, v) : "";
-      return `  • ${d.label}: ${v ?? "-"}${hint ? ` — ${hint}` : ""}`;
-    });
-    const promotedByLine =
-      latest.owner_id !== userId ? `\n  • Promoted by leadership on behalf of lead owner` : "";
-    const notesPrefix =
-      `Promoted from qualification — Alliara 5-dimension scorecard (total ${total ?? "-"}/${SCORECARD_MAX_TOTAL}):\n` +
-      lines.join("\n") + promotedByLine;
-    const combinedNotes = freeText ? `${notesPrefix}\n\n${freeText}` : notesPrefix;
+      const { error: updErr } = await supabase
+        .from("partner_leads")
+        .update({ status: "approved", promoted_partner_id: partner.id })
+        .eq("id", latest.id);
+      if (updErr) throw updErr;
 
-    const { data: partner, error: insErr } = await supabase
-      .from("partners")
-      .insert({
-        // The partner lands in the lead owner's portfolio, not the promoter's.
-        // RLS allows leadership/admin to insert with another owner_id.
-        owner_id: latest.owner_id,
-        name: latest.company_name,
-        company: latest.company_name,
-        tier: "emerging",
-        status: "active",
-        notes: combinedNotes,
-        partner_type: overrides?.partner_type ?? latest.partner_type ?? "referral",
-      })
-      .select("*")
-      .single();
-    if (insErr) throw insErr;
-
-    const { error: updErr } = await supabase
-      .from("partner_leads")
-      .update({ status: "approved", promoted_partner_id: partner.id })
-      .eq("id", latest.id);
-    if (updErr) throw updErr;
-
-    await refresh({ silent: true });
-    return partner.id as string;
-  }, [userId, refresh]);
+      await refresh({ silent: true });
+      return partner.id as string;
+    },
+    [userId, refresh],
+  );
 
   return {
-    leads, loading, isLeadership, refresh,
-    createLead, updateLead, deleteLead,
-    setDimension, updateFreeNotes, rejectLead, promoteLead,
+    leads,
+    loading,
+    isLeadership,
+    refresh,
+    createLead,
+    updateLead,
+    deleteLead,
+    setDimension,
+    updateFreeNotes,
+    rejectLead,
+    promoteLead,
   };
 }
 
@@ -412,29 +494,34 @@ export function useLeadActivities(leadId: string | undefined, userId: string | u
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    if (!leadId) { setActivities([]); setLoading(false); return; }
+    if (!leadId) {
+      setActivities([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const { data } = await supabase
       .from("partner_lead_activities" as never)
       .select("*")
       .eq("lead_id", leadId)
       .order("created_at", { ascending: false });
-    setActivities(((data as unknown) as LeadActivityRow[]) ?? []);
+    setActivities((data as unknown as LeadActivityRow[]) ?? []);
     setLoading(false);
   }, [leadId]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
-  const create = useCallback(async (input: {
-    kind: LeadActivityKind;
-    title: string;
-    description?: string;
-    due_date?: string | null;
-  }) => {
-    if (!userId || !leadId) throw new Error("Not signed in");
-    const { error } = await supabase
-      .from("partner_lead_activities" as never)
-      .insert({
+  const create = useCallback(
+    async (input: {
+      kind: LeadActivityKind;
+      title: string;
+      description?: string;
+      due_date?: string | null;
+    }) => {
+      if (!userId || !leadId) throw new Error("Not signed in");
+      const { error } = await supabase.from("partner_lead_activities" as never).insert({
         lead_id: leadId,
         owner_id: userId,
         kind: input.kind,
@@ -442,28 +529,36 @@ export function useLeadActivities(leadId: string | undefined, userId: string | u
         description: input.description ?? null,
         due_date: input.due_date ?? null,
       } as never);
-    if (error) throw error;
-    await refresh();
-  }, [leadId, userId, refresh]);
+      if (error) throw error;
+      await refresh();
+    },
+    [leadId, userId, refresh],
+  );
 
-  const toggleDone = useCallback(async (a: LeadActivityRow) => {
-    const next = !a.done;
-    const { error } = await supabase
-      .from("partner_lead_activities" as never)
-      .update({ done: next, done_at: next ? new Date().toISOString() : null } as never)
-      .eq("id", a.id);
-    if (error) throw error;
-    await refresh();
-  }, [refresh]);
+  const toggleDone = useCallback(
+    async (a: LeadActivityRow) => {
+      const next = !a.done;
+      const { error } = await supabase
+        .from("partner_lead_activities" as never)
+        .update({ done: next, done_at: next ? new Date().toISOString() : null } as never)
+        .eq("id", a.id);
+      if (error) throw error;
+      await refresh();
+    },
+    [refresh],
+  );
 
-  const remove = useCallback(async (id: string) => {
-    const { error } = await supabase
-      .from("partner_lead_activities" as never)
-      .delete()
-      .eq("id", id);
-    if (error) throw error;
-    await refresh();
-  }, [refresh]);
+  const remove = useCallback(
+    async (id: string) => {
+      const { error } = await supabase
+        .from("partner_lead_activities" as never)
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+      await refresh();
+    },
+    [refresh],
+  );
 
   return { activities, loading, refresh, create, toggleDone, remove };
 }
@@ -488,14 +583,24 @@ export function activitySummary(activities: LeadActivityRow[]): {
   return { openTasks, overdue, nextDue };
 }
 
-/* ───────────── Aggregated open lead tasks across the whole pipe ───────────── */
+/* ───────────── Aggregated lead tasks across the qualification pipe ───────────── */
 
 export type LeadTaskRow = LeadActivityRow & { lead_company: string; lead_status: LeadStatus };
 
-export function useAllLeadTasks(userId: string | undefined, leads: LeadRow[]) {
+/** Which lead tasks to load in the qualification “Next moves” list. */
+export type LeadTaskListFilter = "open" | "done" | "all";
+
+export function useAllLeadTasks(
+  userId: string | undefined,
+  leads: LeadRow[],
+  filter: LeadTaskListFilter = "open",
+) {
   const [tasks, setTasks] = useState<LeadTaskRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const leadKey = leads.map((l) => l.id).sort().join(",");
+  const leadKey = leads
+    .map((l) => l.id)
+    .sort()
+    .join(",");
 
   const refresh = useCallback(async () => {
     if (!userId || leads.length === 0) {
@@ -505,15 +610,32 @@ export function useAllLeadTasks(userId: string | undefined, leads: LeadRow[]) {
     }
     setLoading(true);
     const ids = leads.map((l) => l.id);
-    const { data } = await supabase
+    let q = supabase
       .from("partner_lead_activities" as never)
       .select("*")
       .in("lead_id", ids)
-      .eq("kind", "task")
-      .eq("done", false)
-      .order("due_date", { ascending: true, nullsFirst: false });
+      .eq("kind", "task");
+    if (filter === "open") {
+      q = q.eq("done", false);
+    } else if (filter === "done") {
+      q = q.eq("done", true);
+    }
+    if (filter === "done") {
+      q = q.order("done_at", { ascending: false, nullsFirst: false });
+    } else {
+      q = q
+        .order("done", { ascending: true })
+        .order("due_date", { ascending: true, nullsFirst: false });
+    }
+    const { data, error } = await q;
+    if (error) {
+      console.error("[useAllLeadTasks - refresh]:", error);
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
     const meta = new Map(leads.map((l) => [l.id, { name: l.company_name, status: l.status }]));
-    const enriched = ((data as unknown) as LeadActivityRow[] | null ?? []).map((a) => ({
+    const enriched = ((data as unknown as LeadActivityRow[] | null) ?? []).map((a) => ({
       ...a,
       lead_company: meta.get(a.lead_id)?.name ?? "—",
       lead_status: meta.get(a.lead_id)?.status ?? ("new" as LeadStatus),
@@ -521,21 +643,31 @@ export function useAllLeadTasks(userId: string | undefined, leads: LeadRow[]) {
     setTasks(enriched);
     setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, leadKey]);
+  }, [userId, leadKey, filter]);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
-  const completeTask = useCallback(async (taskId: string) => {
-    const { error } = await supabase
-      .from("partner_lead_activities" as never)
-      .update({ done: true, done_at: new Date().toISOString() } as never)
-      .eq("id", taskId);
-    if (error) throw error;
-    setTasks((prev) => prev.filter((t) => t.id !== taskId));
-  }, []);
+  const setTaskDone = useCallback(
+    async (taskId: string, done: boolean) => {
+      const { error } = await supabase
+        .from("partner_lead_activities" as never)
+        .update({ done, done_at: done ? new Date().toISOString() : null } as never)
+        .eq("id", taskId);
+      if (error) throw error;
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const completeTask = useCallback(
+    async (taskId: string) => setTaskDone(taskId, true),
+    [setTaskDone],
+  );
 
   const today = new Date().toISOString().slice(0, 10);
-  const overdue = tasks.filter((t) => t.due_date && t.due_date < today);
+  const overdue = tasks.filter((t) => !t.done && t.due_date && t.due_date < today);
 
-  return { tasks, loading, overdue, refresh, completeTask };
+  return { tasks, loading, overdue, refresh, completeTask, setTaskDone };
 }

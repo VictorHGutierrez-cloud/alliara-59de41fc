@@ -21,6 +21,7 @@ function PartnerPlan() {
   const { user } = useAuth();
   const data = usePartner(partnerId);
   const [filterAxis, setFilterAxis] = useState<string>("all");
+  const [taskStatusFilter, setTaskStatusFilter] = useState<"all" | "open" | "done">("all");
   const [showNew, setShowNew] = useState(false);
   const [moveBurstAt, setMoveBurstAt] = useState<number | null>(null);
   const clearMoveBurst = useCallback(() => setMoveBurstAt(null), []);
@@ -28,8 +29,13 @@ function PartnerPlan() {
   const agentTasks = useMemo(() => {
     return data.actions
       .filter((a) => filterAxis === "all" || a.axis_key === filterAxis)
+      .filter((a) => {
+        if (taskStatusFilter === "open") return a.status !== "done";
+        if (taskStatusFilter === "done") return a.status === "done";
+        return true;
+      })
       .map((a) => actionRowToAgentTask(a));
-  }, [data.actions, filterAxis]);
+  }, [data.actions, filterAxis, taskStatusFilter]);
 
   if (data.loading || !user) {
     return (
@@ -45,82 +51,112 @@ function PartnerPlan() {
   return (
     <>
       <div>
-      <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 flex-wrap">
-          <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
-            Filter
-          </label>
-          <select
-            value={filterAxis}
-            onChange={(e) => setFilterAxis(e.target.value)}
-            className="input w-auto"
-          >
-            <option value="all">All axes</option>
-            {AXES.map((a) => (
-              <option key={a.key} value={a.key}>
-                {a.letter} · {a.name}
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:flex-wrap sm:gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                Axis
+              </label>
+              <select
+                value={filterAxis}
+                onChange={(e) => setFilterAxis(e.target.value)}
+                className="input w-auto min-h-11"
+              >
+                <option value="all">All axes</option>
+                {AXES.map((a) => (
+                  <option key={a.key} value={a.key}>
+                    {a.letter} · {a.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <label className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+                {COPY.jbp.planStatusFilterLabel}
+              </label>
+              <select
+                value={taskStatusFilter}
+                onChange={(e) => setTaskStatusFilter(e.target.value as "all" | "open" | "done")}
+                className="input w-auto min-h-11"
+              >
+                <option value="all">{COPY.jbp.planStatusFilterAll}</option>
+                <option value="open">{COPY.jbp.planStatusFilterOpen}</option>
+                <option value="done">{COPY.jbp.planStatusFilterDone}</option>
+              </select>
+            </div>
+          </div>
+          {isOwner && (
+            <button
+              type="button"
+              onClick={() => setShowNew(true)}
+              className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground glow-ring min-h-11"
+            >
+              {COPY.jbp.addMoveCta}
+            </button>
+          )}
         </div>
-        {isOwner && (
-          <button
-            type="button"
-            onClick={() => setShowNew(true)}
-            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground glow-ring min-h-11"
-          >
-            {COPY.jbp.addMoveCta}
-          </button>
-        )}
-      </div>
 
-      {data.actions.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
-          <KeptIllustration variant="jbpStanding" className="mx-auto h-28 w-auto object-contain opacity-95" decorative />
-          <h2 className="mt-4 text-lg font-semibold">{COPY.jbp.emptyPlanTitle}</h2>
-          <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
-            {COPY.jbp.emptyPlanBody}
-          </p>
-        </div>
-      ) : (
-        <div className="mt-6">
-          <AgentPlan
-            tasks={agentTasks}
-            isOwner={isOwner}
-            onCycleStatus={async (id) => {
-              const current = data.actions.find((a) => a.id === id);
-              if (!current) return;
-              const next: ActionRow["status"] =
-                current.status === "todo" ? "doing" : current.status === "doing" ? "done" : "todo";
+        {data.actions.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-10 text-center">
+            <KeptIllustration
+              variant="jbpStanding"
+              className="mx-auto h-28 w-auto object-contain opacity-95"
+              decorative
+            />
+            <h2 className="mt-4 text-lg font-semibold">{COPY.jbp.emptyPlanTitle}</h2>
+            <p className="mt-2 text-sm text-muted-foreground max-w-md mx-auto">
+              {COPY.jbp.emptyPlanBody}
+            </p>
+          </div>
+        ) : agentTasks.length === 0 ? (
+          <div className="mt-6 rounded-2xl border border-dashed border-border/60 bg-surface/40 p-8 text-center text-sm text-muted-foreground">
+            {COPY.jbp.planFilterEmpty}
+          </div>
+        ) : (
+          <div className="mt-6">
+            <AgentPlan
+              tasks={agentTasks}
+              isOwner={isOwner}
+              onCycleStatus={async (id) => {
+                const current = data.actions.find((a) => a.id === id);
+                if (!current) return;
+                const next: ActionRow["status"] =
+                  current.status === "todo"
+                    ? "doing"
+                    : current.status === "doing"
+                      ? "done"
+                      : "todo";
+                try {
+                  await data.updateAction(id, {
+                    status: next,
+                    completed_at: next === "done" ? new Date().toISOString() : null,
+                  });
+                  if (next === "done") setMoveBurstAt(Date.now());
+                } catch (e) {
+                  toast.error((e as Error).message);
+                }
+              }}
+              onDelete={(id) =>
+                data.deleteAction(id).catch((e) => toast.error((e as Error).message))
+              }
+            />
+          </div>
+        )}
+
+        {showNew && isOwner && (
+          <NewActionDialog
+            onClose={() => setShowNew(false)}
+            onCreate={async (input) => {
               try {
-                await data.updateAction(id, {
-                  status: next,
-                  completed_at: next === "done" ? new Date().toISOString() : null,
-                });
-                if (next === "done") setMoveBurstAt(Date.now());
+                await data.addAction({ ...input, userId: user.id });
+                toast.success(COPY.toast.moveAdded);
+                setShowNew(false);
               } catch (e) {
                 toast.error((e as Error).message);
               }
             }}
-            onDelete={(id) => data.deleteAction(id).catch((e) => toast.error((e as Error).message))}
           />
-        </div>
-      )}
-
-      {showNew && isOwner && (
-        <NewActionDialog
-          onClose={() => setShowNew(false)}
-          onCreate={async (input) => {
-            try {
-              await data.addAction({ ...input, userId: user.id });
-              toast.success(COPY.toast.moveAdded);
-              setShowNew(false);
-            } catch (e) {
-              toast.error((e as Error).message);
-            }
-          }}
-        />
-      )}
+        )}
       </div>
       <MoveCompleteCelebration burstAt={moveBurstAt} onConsumed={clearMoveBurst} />
     </>
