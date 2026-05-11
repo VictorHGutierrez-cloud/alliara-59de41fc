@@ -267,13 +267,13 @@ function PartnerCoach() {
     <div>
       <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="flex min-w-0 flex-1 gap-4">
+          <div className="flex min-w-0 flex-1 flex-col items-center gap-3 text-center sm:items-start sm:text-left">
             <KeptIllustration
               variant={hasDiagnostic ? "contextBeforeCall" : "notifySomethingToCheck"}
-              className="mx-auto h-[104px] w-auto shrink-0 object-contain sm:mx-0 sm:h-24"
+              className="h-[104px] w-auto shrink-0 object-contain sm:h-24"
               decorative
             />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <h2 className="font-semibold">{COPY.kept.label}</h2>
               <p className="text-sm text-muted-foreground mt-1">{COPY.kept.subtitleForPartner}</p>
             </div>
