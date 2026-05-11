@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.partner-intel]
 verify_jwt = true
+
+[functions.kept-ask]
+verify_jwt = true
