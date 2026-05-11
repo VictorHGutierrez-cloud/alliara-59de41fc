@@ -39,8 +39,50 @@ function KeptAskPage() {
     setMessages(next);
     setBusy(true);
     try {
+      // Pull a compact portfolio snapshot so Kept can answer about specific partners.
+      let context: Record<string, unknown> = {};
+      if (user) {
+        const [{ data: partners }, { data: profile }] = await Promise.all([
+          supabase
+            .from("partners")
+            .select("id, name, company, segment, tier, status, partner_type, notes")
+            .eq("owner_id", user.id)
+            .order("updated_at", { ascending: false })
+            .limit(80),
+          supabase.from("profiles").select("display_name").eq("id", user.id).maybeSingle(),
+        ]);
+        const ids = (partners ?? []).map((p) => p.id);
+        const [{ data: ass }, { data: acts }] = ids.length
+          ? await Promise.all([
+              supabase.from("assessments").select("partner_id, overall, created_at").in("partner_id", ids).order("created_at", { ascending: false }),
+              supabase.from("action_plans").select("partner_id, status").in("partner_id", ids).neq("status", "done"),
+            ])
+          : [{ data: [] as Array<{ partner_id: string; overall: number; created_at: string }> }, { data: [] as Array<{ partner_id: string; status: string }> }];
+        const latestByPartner = new Map<string, number>();
+        for (const a of (ass ?? []) as Array<{ partner_id: string; overall: number }>) {
+          if (!latestByPartner.has(a.partner_id)) latestByPartner.set(a.partner_id, Number(a.overall));
+        }
+        const openByPartner = new Map<string, number>();
+        for (const a of (acts ?? []) as Array<{ partner_id: string }>) {
+          openByPartner.set(a.partner_id, (openByPartner.get(a.partner_id) ?? 0) + 1);
+        }
+        context = {
+          pdmName: profile?.display_name ?? null,
+          partners: (partners ?? []).map((p) => ({
+            name: p.name,
+            company: p.company,
+            segment: p.segment,
+            tier: p.tier,
+            status: p.status,
+            partner_type: p.partner_type,
+            notes: p.notes,
+            health: latestByPartner.get(p.id) ?? null,
+            open_actions: openByPartner.get(p.id) ?? 0,
+          })),
+        };
+      }
       const { data, error: err } = await supabase.functions.invoke("kept-ask", {
-        body: { question: q, history: messages.slice(-12) },
+        body: { question: q, history: messages.slice(-12), context },
       });
       if (err) throw err;
       const content = (data as { content?: string })?.content ?? "";
