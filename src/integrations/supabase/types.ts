@@ -644,7 +644,7 @@ export type Database = {
       partner_status: "active" | "nurturing" | "at_risk" | "paused" | "archived"
       partner_tier: "strategic" | "core" | "emerging" | "long_tail"
       partner_type: "referral" | "reseller" | "expert"
-      stakeholder_role: "ceo" | "it" | "ae" | "marketing" | "other"
+      stakeholder_role: "ceo" | "it" | "pae" | "pmm" | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -781,7 +781,7 @@ export const Constants = {
       partner_status: ["active", "nurturing", "at_risk", "paused", "archived"],
       partner_tier: ["strategic", "core", "emerging", "long_tail"],
       partner_type: ["referral", "reseller", "expert"],
-      stakeholder_role: ["ceo", "it", "ae", "marketing", "other"],
+      stakeholder_role: ["ceo", "it", "pae", "pmm", "other"],
     },
   },
 } as const
