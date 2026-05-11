@@ -17,9 +17,9 @@ import { keptVariantForAppPath } from "@/lib/kept-route-variant";
 import { COPY } from "@/lib/copy";
 
 const SUGGESTIONS = [
-  "Como está o meu portfólio agora?",
-  "Quais parceiros estão sem ações abertas?",
-  "Me dê uma ideia de próximo passo para um parceiro tier 2.",
+  "How is my portfolio right now?",
+  "Which partners have no open actions?",
+  "Give me a next-step idea for a tier 2 partner.",
 ];
 
 /**
@@ -110,22 +110,22 @@ export function KeptChatDock() {
             <KeptIllustration variant={variant} className="h-9 w-auto shrink-0 object-contain" decorative />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-foreground">Kept</p>
-              <p className="truncate text-[11px] text-muted-foreground">Pergunte qualquer coisa</p>
+              <p className="truncate text-[11px] text-muted-foreground">Ask anything</p>
             </div>
             <button
               type="button"
               onClick={startNew}
               disabled={busy || messages.length === 0}
-              title="Nova conversa"
-              aria-label="Nova conversa"
+              title="New conversation"
+              aria-label="New conversation"
               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface hover:text-foreground disabled:opacity-40"
             >
               <Plus className="h-4 w-4" />
             </button>
             <Link
               to="/kept/ask"
-              title="Abrir em tela cheia"
-              aria-label="Abrir em tela cheia"
+              title="Open full screen"
+              aria-label="Open full screen"
               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface hover:text-foreground"
             >
               <Maximize2 className="h-4 w-4" />
@@ -133,8 +133,8 @@ export function KeptChatDock() {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              title="Fechar"
-              aria-label="Fechar"
+              title="Close"
+              aria-label="Close"
               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground hover:bg-surface hover:text-foreground"
             >
               <X className="h-4 w-4" />
@@ -146,7 +146,7 @@ export function KeptChatDock() {
             {messages.length === 0 && !busy ? (
               <div className="space-y-2">
                 <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <Sparkles className="h-3.5 w-3.5 text-primary" /> Sugestões:
+                  <Sparkles className="h-3.5 w-3.5 text-primary" /> Suggestions:
                 </p>
                 <div className="flex flex-wrap gap-1.5">
                   {SUGGESTIONS.map((s) => (
@@ -179,7 +179,7 @@ export function KeptChatDock() {
 
             {busy ? (
               <div className="inline-flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" /> Kept está pensando…
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" /> Kept is thinking…
               </div>
             ) : null}
 
@@ -201,14 +201,14 @@ export function KeptChatDock() {
                 }}
                 rows={1}
                 disabled={busy}
-                placeholder="Pergunte ao Kept…"
+                placeholder="Ask Kept…"
                 className="min-h-[40px] flex-1 resize-none rounded-lg text-sm"
               />
               <button
                 type="button"
                 onClick={() => void send()}
                 disabled={busy || !input.trim()}
-                aria-label="Enviar"
+                aria-label="Send"
                 className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground glow-ring disabled:opacity-40"
               >
                 <Send className="h-4 w-4" />
