@@ -106,6 +106,7 @@ function KeptHubPage() {
                 <Link
                   to="/partner/$partnerId/coach"
                   params={{ partnerId: pid }}
+                  search={{ autorun: undefined }}
                   className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-border/70 bg-card px-4 py-3 transition hover:bg-surface/80"
                 >
                   <span className="min-w-0 font-medium text-foreground truncate">{it.partner.name}</span>

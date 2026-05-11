@@ -124,7 +124,8 @@ function PartnerLayout() {
   const tColor = tierColor(data.partner.tier);
   const isOwner = data.partner.owner_id === user.id;
   const canReassign = (isOwner || isLeadership) && pdmRoster.pdms.length > 0;
-  const resolvedOwnerName = ownerName ?? (ownerLoading ? null : COPY.partnerWorkspace.ownerUnassigned);
+  const resolvedOwnerName =
+    ownerName ?? (ownerLoading ? null : COPY.partnerWorkspace.ownerUnassigned);
 
   const handleReassign = async (assignments: ReassignAssignment[]) => {
     const next = assignments[0];
@@ -159,6 +160,7 @@ function PartnerLayout() {
       to: `/partner/${partnerId}/plan`,
     },
     { key: "axes", label: Tb.axes, to: `/partner/${partnerId}/axes` },
+    { key: "maturity", label: Tb.maturity, to: `/partner/${partnerId}/maturity` },
     { key: "stakeholders", label: Tb.stakeholders, to: `/partner/${partnerId}/stakeholders` },
     { key: "metrics", label: Tb.metrics, to: `/partner/${partnerId}/metrics` },
     { key: "intel", label: Tb.intel, to: `/partner/${partnerId}/intel` },
@@ -322,8 +324,7 @@ function PartnerLayout() {
               id: data.partner.id,
               name: data.partner.name,
               currentOwnerId: data.partner.owner_id,
-              currentOwnerName:
-                resolvedOwnerName ?? COPY.partnerWorkspace.ownerUnassigned,
+              currentOwnerName: resolvedOwnerName ?? COPY.partnerWorkspace.ownerUnassigned,
             } satisfies ReassignItem,
           ]}
           pdms={pdmRoster.pdms}
@@ -576,6 +577,7 @@ function Overview({ partnerId, data }: { partnerId: string; data: ReturnType<typ
             <Link
               to="/partner/$partnerId/coach"
               params={{ partnerId }}
+              search={{ autorun: undefined }}
               className="text-xs font-mono text-muted-foreground hover:text-foreground"
             >
               {COPY.partnerWorkspace.growthLeversLink}

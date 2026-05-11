@@ -131,24 +131,24 @@ function ReportsPage() {
         set={(k, v) => {
           set(k, v);
           void navigate({
-            search: (prev: Record<string, unknown>) => ({
-              ...prev,
+            search: {
+              ...search,
               [k === "pdmId" ? "pdm" : k]: v,
-            }),
+            },
           });
         }}
         reset={() => {
           reset();
           void navigate({
-            search: (prev: Record<string, unknown>) => ({
-              ...prev,
+            search: {
+              ...search,
               scope: portfolio.isLeadership ? "all" : "mine",
               pdm: "all",
               type: "all",
               status: "all",
               tier: "all",
               period: "all",
-            }),
+            },
           });
         }}
         pdms={pdmRoster.pdms}
@@ -166,7 +166,7 @@ function ReportsPage() {
             onClick={() => {
               setTabFallback(t.key);
               void navigate({
-                search: (prev: Record<string, unknown>) => ({ ...prev, tab: t.key }),
+                search: { ...search, tab: t.key },
               });
             }}
           >

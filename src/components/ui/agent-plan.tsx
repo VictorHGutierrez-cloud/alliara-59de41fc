@@ -6,9 +6,12 @@ import {
   CircleAlert,
   CircleDotDashed,
   CircleX,
+  Mail,
+  Pencil,
 } from "lucide-react";
 import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { AXES } from "@/content/octa";
+import { COPY } from "@/lib/copy";
 
 export type AgentStatus = "todo" | "doing" | "done" | "need-help" | "failed";
 export type AgentPriority = "low" | "medium" | "high";
@@ -44,32 +47,58 @@ interface AgentPlanProps {
   onCycleStatus?: (taskId: string) => void;
   onDelete?: (taskId: string) => void;
   onEdit?: (taskId: string) => void;
+  onComposeEmail?: (task: AgentTask) => void;
 }
 
-export function StatusIcon({ status, className = "h-4.5 w-4.5" }: { status: AgentStatus; className?: string }) {
+export function StatusIcon({
+  status,
+  className = "h-4.5 w-4.5",
+}: {
+  status: AgentStatus;
+  className?: string;
+}) {
   if (status === "done") return <CheckCircle2 className={`${className} text-emerald-400`} />;
-  if (status === "doing") return <CircleDotDashed className={`${className} text-sky-400 animate-spin-slow`} />;
+  if (status === "doing")
+    return <CircleDotDashed className={`${className} text-sky-400 animate-spin-slow`} />;
   if (status === "need-help") return <CircleAlert className={`${className} text-amber-400`} />;
   if (status === "failed") return <CircleX className={`${className} text-destructive`} />;
   return <Circle className={`${className} text-muted-foreground`} />;
 }
 
 function statusLabel(s: AgentStatus): string {
-  return ({ todo: "Planned", doing: "In Motion", done: "Delivered", "need-help": "Needs Help", failed: "Blocked" } as const)[s];
+  return (
+    {
+      todo: "Planned",
+      doing: "In Motion",
+      done: "Delivered",
+      "need-help": "Needs Help",
+      failed: "Blocked",
+    } as const
+  )[s];
 }
 
 function PriorityChip({ p }: { p: AgentPriority }) {
-  const cls = p === "high" ? "text-warning" : p === "medium" ? "text-foreground" : "text-muted-foreground";
+  const cls =
+    p === "high" ? "text-warning" : p === "medium" ? "text-foreground" : "text-muted-foreground";
   return <span className={`text-[10px] font-mono uppercase tracking-widest ${cls}`}>{p}</span>;
 }
 
-const prefersReducedMotion = typeof window !== "undefined"
-  ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  : false;
+const prefersReducedMotion =
+  typeof window !== "undefined"
+    ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    : false;
 
 const taskVariants = {
   hidden: { opacity: 0, y: prefersReducedMotion ? 0 : -5 },
-  visible: { opacity: 1, y: 0, transition: { type: prefersReducedMotion ? "tween" as const : "spring" as const, stiffness: 500, damping: 30 } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      type: prefersReducedMotion ? ("tween" as const) : ("spring" as const),
+      stiffness: 500,
+      damping: 30,
+    },
+  },
   exit: { opacity: 0, y: prefersReducedMotion ? 0 : -5, transition: { duration: 0.15 } },
 };
 
@@ -78,20 +107,41 @@ const subtaskListVariants = {
   visible: {
     height: "auto" as const,
     opacity: 1,
-    transition: { duration: 0.25, staggerChildren: prefersReducedMotion ? 0 : 0.05, when: "beforeChildren" as const, ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number] },
+    transition: {
+      duration: 0.25,
+      staggerChildren: prefersReducedMotion ? 0 : 0.05,
+      when: "beforeChildren" as const,
+      ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number],
+    },
   },
-  exit: { height: 0, opacity: 0, transition: { duration: 0.2, ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number] } },
+  exit: {
+    height: 0,
+    opacity: 0,
+    transition: { duration: 0.2, ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number] },
+  },
 };
 
 const subtaskVariants = {
   hidden: { opacity: 0, x: prefersReducedMotion ? 0 : -10 },
-  visible: { opacity: 1, x: 0, transition: { type: prefersReducedMotion ? "tween" as const : "spring" as const, stiffness: 500, damping: 25 } },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      type: prefersReducedMotion ? ("tween" as const) : ("spring" as const),
+      stiffness: 500,
+      damping: 25,
+    },
+  },
   exit: { opacity: 0, x: prefersReducedMotion ? 0 : -10, transition: { duration: 0.15 } },
 };
 
 const detailsVariants = {
   hidden: { opacity: 0, height: 0 },
-  visible: { opacity: 1, height: "auto" as const, transition: { duration: 0.25, ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number] } },
+  visible: {
+    opacity: 1,
+    height: "auto" as const,
+    transition: { duration: 0.25, ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number] },
+  },
 };
 
 function taskCanEdit(task: AgentTask, isOwner: boolean): boolean {
@@ -106,6 +156,7 @@ export interface AgentTaskCardProps {
   onCycleStatus?: (taskId: string) => void;
   onDelete?: (taskId: string) => void;
   onEdit?: (taskId: string) => void;
+  onComposeEmail?: (task: AgentTask) => void;
   /** When set, card is a Kept-style suggestion: static todo icon and primary CTA instead of status cycle and plan chrome. */
   suggestionAction?: { label: string; onClick: () => void };
   /** Tighter layout for table cells and mobile cards */
@@ -120,6 +171,7 @@ export function AgentTaskCard({
   onCycleStatus,
   onDelete,
   onEdit,
+  onComposeEmail,
   suggestionAction,
   compact = false,
   className = "",
@@ -155,7 +207,7 @@ export function AgentTaskCard({
         )}
 
         <div className="flex-1 min-w-0">
-          {(task.partnerName && task.partnerId) && (
+          {task.partnerName && task.partnerId && (
             <div className="mb-1.5">
               <Link
                 to="/partner/$partnerId/plan"
@@ -165,7 +217,9 @@ export function AgentTaskCard({
               >
                 {task.partnerName}
                 {task.partnerCompany ? (
-                  <span className="ml-1 text-xs font-normal text-muted-foreground">· {task.partnerCompany}</span>
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">
+                    · {task.partnerCompany}
+                  </span>
                 ) : null}
               </Link>
             </div>
@@ -191,15 +245,26 @@ export function AgentTaskCard({
                 </span>
               )}
               {task.source === "ai" && (
-                <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-surface-2 text-muted-foreground">AI</span>
+                <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-surface-2 text-muted-foreground">
+                  AI
+                </span>
               )}
               <PriorityChip p={task.priority} />
+              {task.targetLevel ? (
+                <span className="text-[10px] font-mono text-muted-foreground">
+                  → L{task.targetLevel}
+                </span>
+              ) : null}
             </div>
-            <div className={`mt-1 ${titleCls} ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
+            <div
+              className={`mt-1 ${titleCls} ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}
+            >
               {task.title}
             </div>
             {task.dueDate && (
-              <div className="text-[10px] font-mono text-muted-foreground mt-0.5">due {task.dueDate}</div>
+              <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
+                due {task.dueDate}
+              </div>
             )}
           </button>
         </div>
@@ -221,30 +286,48 @@ export function AgentTaskCard({
               <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground rounded-full border border-border/60 px-2 py-0.5">
                 {statusLabel(task.status)}
               </span>
-              {canEdit && onEdit && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(task.id);
-                  }}
-                  className="text-[11px] text-primary hover:underline"
-                >
-                  Edit
-                </button>
-              )}
-              {canEdit && onDelete && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(task.id);
-                  }}
-                  className="text-[11px] text-destructive hover:underline"
-                >
-                  Delete
-                </button>
-              )}
+              <div className="flex flex-col items-end gap-1">
+                {task.partnerId && onComposeEmail && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onComposeEmail(task);
+                    }}
+                    className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+                    aria-label={COPY.jbp.emailStakeholderAria}
+                    title={COPY.jbp.emailStakeholderAria}
+                  >
+                    <Mail className="h-4 w-4" />
+                  </button>
+                )}
+                {canEdit && onEdit && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(task.id);
+                    }}
+                    className="inline-flex min-h-9 min-w-9 items-center justify-center rounded-md border border-border/60 text-muted-foreground hover:bg-surface-2 hover:text-foreground"
+                    aria-label={COPY.jbp.editTaskAria}
+                    title={COPY.jbp.editTaskAria}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                )}
+                {canEdit && onDelete && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(task.id);
+                    }}
+                    className="min-h-9 px-1 text-[11px] text-destructive hover:underline"
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
             </>
           )}
         </div>
@@ -280,9 +363,15 @@ export function AgentTaskCard({
                     >
                       <StatusIcon status={sub.status} className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <div className={`text-xs ${sub.status === "done" ? "line-through text-muted-foreground" : ""}`}>{sub.title}</div>
+                        <div
+                          className={`text-xs ${sub.status === "done" ? "line-through text-muted-foreground" : ""}`}
+                        >
+                          {sub.title}
+                        </div>
                         {sub.description && (
-                          <div className="text-[11px] text-muted-foreground mt-0.5">{sub.description}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">
+                            {sub.description}
+                          </div>
                         )}
                       </div>
                     </motion.li>
@@ -297,7 +386,14 @@ export function AgentTaskCard({
   );
 }
 
-export function AgentPlan({ tasks, isOwner = false, onCycleStatus, onDelete, onEdit }: AgentPlanProps) {
+export function AgentPlan({
+  tasks,
+  isOwner = false,
+  onCycleStatus,
+  onDelete,
+  onEdit,
+  onComposeEmail,
+}: AgentPlanProps) {
   return (
     <LayoutGroup>
       <ul className="space-y-2">
@@ -317,6 +413,7 @@ export function AgentPlan({ tasks, isOwner = false, onCycleStatus, onDelete, onE
                 onCycleStatus={onCycleStatus}
                 onDelete={onDelete}
                 onEdit={onEdit}
+                onComposeEmail={onComposeEmail}
               />
             </motion.li>
           ))}

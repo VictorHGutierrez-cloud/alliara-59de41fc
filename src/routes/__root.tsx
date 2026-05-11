@@ -189,7 +189,19 @@ function AppFrame() {
               icon: BarChart3,
               label: COPY.appShell.dockReports,
               active: path.startsWith("/reports"),
-              onClick: () => navigate({ to: "/reports" }),
+              onClick: () =>
+                navigate({
+                  to: "/reports",
+                  search: {
+                    tab: undefined,
+                    scope: undefined,
+                    pdm: undefined,
+                    status: undefined,
+                    tier: undefined,
+                    period: undefined,
+                    type: undefined,
+                  },
+                }),
             },
             {
               key: "methodology",

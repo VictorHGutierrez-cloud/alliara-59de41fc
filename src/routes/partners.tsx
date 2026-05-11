@@ -33,7 +33,10 @@ import { EmptyPortfolioOnboarding } from "@/components/onboarding/EmptyPortfolio
 import { TeamPulse } from "@/components/leadership/TeamPulse";
 import { useConfirmDialog } from "@/components/ui/confirm-provider";
 import { cn } from "@/lib/utils";
+import { AXES } from "@/content/octa";
 import { AgentPlan, AgentTaskCard, type AgentTask } from "@/components/ui/agent-plan";
+import { PartnerTaskEditDialog } from "@/components/PartnerTaskEditDialog";
+import { EmailStakeholderComposer } from "@/components/EmailStakeholderComposer";
 import { MoveCompleteCelebration } from "@/components/ui/move-complete-celebration";
 import { actionRowToAgentTask } from "@/lib/agent-task-mapper";
 
@@ -64,6 +67,21 @@ function PartnersPage() {
   const [openActionsIncomplete, setOpenActionsIncomplete] = useState<EnrichedAction[]>([]);
   const [portfolioTaskFilter, setPortfolioTaskFilter] = useState<PortfolioTaskFilter>("open");
   const [portfolioActionsFetchTick, setPortfolioActionsFetchTick] = useState(0);
+  const [taskPartnerFilterId, setTaskPartnerFilterId] = useState<string>("all");
+  const [taskAxisFilterKey, setTaskAxisFilterKey] = useState<string>("all");
+  const [taskWorkflowStatusFilter, setTaskWorkflowStatusFilter] = useState<
+    "all" | ActionRow["status"]
+  >("all");
+  const [taskPriorityFilter, setTaskPriorityFilter] = useState<"all" | ActionRow["priority"]>(
+    "all",
+  );
+  const [taskSearchQuery, setTaskSearchQuery] = useState("");
+  const [editingPortfolioAction, setEditingPortfolioAction] = useState<EnrichedAction | null>(null);
+  const [emailPortfolioCtx, setEmailPortfolioCtx] = useState<{
+    partnerId: string;
+    defaultSubject: string;
+    defaultBody: string;
+  } | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [reassignOpen, setReassignOpen] = useState(false);
   const [selectedForReassign, setSelectedForReassign] = useState<string[]>([]);
@@ -360,6 +378,49 @@ function PartnersPage() {
     [portfolio],
   );
 
+  const handlePortfolioUpdateFields = useCallback(
+    async (
+      taskId: string,
+      patch: {
+        axis_key: string;
+        title: string;
+        description: string | null;
+        priority: ActionRow["priority"];
+        target_level: number | null;
+        due_date: string | null;
+      },
+    ) => {
+      try {
+        const { error } = await supabase
+          .from("action_plans")
+          .update(patch as never)
+          .eq("id", taskId);
+        if (error) throw error;
+        toast.success(COPY.toast.moveUpdated);
+        setPortfolioActionsFetchTick((n) => n + 1);
+        void portfolio.refresh();
+      } catch (e) {
+        console.error("[PartnersPage - handlePortfolioUpdateFields]:", e);
+        toast.error((e as Error).message);
+        throw e;
+      }
+    },
+    [portfolio],
+  );
+
+  const enrichedActionById = useMemo(() => {
+    const m = new Map<string, EnrichedAction>();
+    for (const row of portfolioActionRows) {
+      m.set(row.id, row);
+    }
+    for (const row of openActionsIncomplete) {
+      if (!m.has(row.id)) {
+        m.set(row.id, row);
+      }
+    }
+    return m;
+  }, [portfolioActionRows, openActionsIncomplete]);
+
   const firstPortfolioTaskByPartner = useMemo(() => {
     const m = new Map<string, AgentTask>();
     for (const [partnerId, a] of firstOpenActionByPartner) {
@@ -378,9 +439,53 @@ function PartnersPage() {
     return m;
   }, [firstOpenActionByPartner, ownerIdByPartner, partnerMetaById, user?.id]);
 
+  const portfolioTaskRowsFiltered = useMemo(() => {
+    let rows = sortedPortfolioActions;
+    if (taskPartnerFilterId !== "all") {
+      rows = rows.filter((r) => r.partner_id === taskPartnerFilterId);
+    }
+    if (taskAxisFilterKey !== "all") {
+      rows = rows.filter((r) => r.axis_key === taskAxisFilterKey);
+    }
+    if (taskWorkflowStatusFilter !== "all") {
+      rows = rows.filter((r) => r.status === taskWorkflowStatusFilter);
+    }
+    if (taskPriorityFilter !== "all") {
+      rows = rows.filter((r) => r.priority === taskPriorityFilter);
+    }
+    const qq = taskSearchQuery.trim().toLowerCase();
+    if (qq) {
+      rows = rows.filter((r) => {
+        const desc = r.description ?? "";
+        return (
+          r.title.toLowerCase().includes(qq) ||
+          desc.toLowerCase().includes(qq) ||
+          (r.partner_name ?? "").toLowerCase().includes(qq)
+        );
+      });
+    }
+    return rows;
+  }, [
+    sortedPortfolioActions,
+    taskPartnerFilterId,
+    taskAxisFilterKey,
+    taskWorkflowStatusFilter,
+    taskPriorityFilter,
+    taskSearchQuery,
+  ]);
+
+  const hasActiveTaskFineFilters =
+    taskPartnerFilterId !== "all" ||
+    taskAxisFilterKey !== "all" ||
+    taskWorkflowStatusFilter !== "all" ||
+    taskPriorityFilter !== "all" ||
+    taskSearchQuery.trim() !== "";
+
+  const portfolioTaskDisplayCap = hasActiveTaskFineFilters ? 50 : PORTFOLIO_OPEN_TASKS_LIST_CAP;
+
   const portfolioOpenTasksForPlan = useMemo(
     () =>
-      sortedPortfolioActions.map((a) => {
+      portfolioTaskRowsFiltered.map((a) => {
         const meta = partnerMetaById.get(a.partner_id);
         return actionRowToAgentTask(a, {
           canMutate: ownerIdByPartner.get(a.partner_id) === user?.id,
@@ -389,7 +494,7 @@ function PartnersPage() {
           partnerCompany: meta?.company ?? null,
         });
       }),
-    [sortedPortfolioActions, ownerIdByPartner, partnerMetaById, user?.id],
+    [portfolioTaskRowsFiltered, ownerIdByPartner, partnerMetaById, user?.id],
   );
 
   const nextActionByPartner = useMemo(() => {
@@ -651,7 +756,73 @@ function PartnersPage() {
             ))}
           </div>
         </div>
-        {portfolioOpenTasksForPlan.length === 0 ? (
+        <div className="mt-4 flex flex-col gap-3">
+          <input
+            type="search"
+            value={taskSearchQuery}
+            onChange={(e) => setTaskSearchQuery(e.target.value)}
+            placeholder={COPY.portfolio.taskSearchPlaceholder}
+            className="input min-h-11 w-full max-w-md"
+            aria-label={COPY.portfolio.taskSearchPlaceholder}
+          />
+          <div className="flex flex-wrap gap-2">
+            <select
+              value={taskPartnerFilterId}
+              onChange={(e) => setTaskPartnerFilterId(e.target.value)}
+              className="select-candy min-h-11 shrink-0"
+              aria-label={COPY.portfolio.taskFilterPartnerAria}
+            >
+              <option value="all">{COPY.portfolio.taskFilterPartnerAll}</option>
+              {[...scoped]
+                .sort((a, b) => a.partner.name.localeCompare(b.partner.name))
+                .map((it) => (
+                  <option key={it.partner.id} value={it.partner.id}>
+                    {it.partner.name}
+                  </option>
+                ))}
+            </select>
+            <select
+              value={taskAxisFilterKey}
+              onChange={(e) => setTaskAxisFilterKey(e.target.value)}
+              className="select-candy min-h-11 shrink-0"
+              aria-label={COPY.portfolio.taskFilterAxisAria}
+            >
+              <option value="all">{COPY.portfolio.taskFilterAxisAll}</option>
+              {AXES.map((ax) => (
+                <option key={ax.key} value={ax.key}>
+                  {ax.letter} · {ax.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={taskWorkflowStatusFilter}
+              onChange={(e) =>
+                setTaskWorkflowStatusFilter(e.target.value as "all" | ActionRow["status"])
+              }
+              className="select-candy min-h-11 shrink-0"
+              aria-label={COPY.portfolio.taskFilterStatusAria}
+            >
+              <option value="all">{COPY.portfolio.taskFilterStatusAll}</option>
+              <option value="todo">{COPY.portfolio.taskFilterStatusTodo}</option>
+              <option value="doing">{COPY.portfolio.taskFilterStatusDoing}</option>
+              <option value="done">{COPY.portfolio.taskFilterStatusDone}</option>
+            </select>
+            <select
+              value={taskPriorityFilter}
+              onChange={(e) =>
+                setTaskPriorityFilter(e.target.value as "all" | ActionRow["priority"])
+              }
+              className="select-candy min-h-11 shrink-0"
+              aria-label={COPY.portfolio.taskFilterPriorityAria}
+            >
+              <option value="all">{COPY.portfolio.taskFilterPriorityAll}</option>
+              <option value="low">{COPY.jbp.priorityLow}</option>
+              <option value="medium">{COPY.jbp.priorityMedium}</option>
+              <option value="high">{COPY.jbp.priorityHigh}</option>
+            </select>
+          </div>
+        </div>
+        {sortedPortfolioActions.length === 0 ? (
           <p className="mt-3 text-sm text-muted-foreground">
             {portfolioTaskFilter === "done"
               ? COPY.portfolio.openTasksEmptyDone
@@ -659,19 +830,36 @@ function PartnersPage() {
                 ? COPY.portfolio.openTasksEmptyAll
                 : COPY.portfolio.openTasksEmpty}
           </p>
+        ) : portfolioOpenTasksForPlan.length === 0 ? (
+          <p className="mt-3 text-sm text-muted-foreground">{COPY.portfolio.tasksNoMatchFilters}</p>
         ) : (
           <>
             <div className="mt-3 min-w-0">
               <AgentPlan
-                tasks={portfolioOpenTasksForPlan.slice(0, PORTFOLIO_OPEN_TASKS_LIST_CAP)}
+                tasks={portfolioOpenTasksForPlan.slice(0, portfolioTaskDisplayCap)}
                 isOwner={false}
                 onCycleStatus={(id) => void handlePortfolioCycleStatus(id)}
                 onDelete={(id) => void handlePortfolioDelete(id)}
+                onEdit={(id) => {
+                  const row = enrichedActionById.get(id);
+                  if (!row || ownerIdByPartner.get(row.partner_id) !== user?.id) return;
+                  setEditingPortfolioAction(row);
+                }}
+                onComposeEmail={(task) => {
+                  if (!task.partnerId) return;
+                  setEmailPortfolioCtx({
+                    partnerId: task.partnerId,
+                    defaultSubject: task.title,
+                    defaultBody: task.description
+                      ? `${task.description}\n\n`
+                      : `Hi,\n\nFollowing up regarding: ${task.title}\n\n`,
+                  });
+                }}
               />
             </div>
-            {sortedPortfolioActions.length > PORTFOLIO_OPEN_TASKS_LIST_CAP ? (
+            {portfolioTaskRowsFiltered.length > portfolioTaskDisplayCap ? (
               <p className="mt-3 text-xs text-muted-foreground">
-                {COPY.portfolio.openTasksShowingCap({ n: PORTFOLIO_OPEN_TASKS_LIST_CAP })}
+                {COPY.portfolio.openTasksShowingCap({ n: portfolioTaskDisplayCap })}
               </p>
             ) : null}
           </>
@@ -817,6 +1005,21 @@ function PartnersPage() {
                   firstPortfolioTask={firstPortfolioTaskByPartner.get(it.partner.id) ?? null}
                   onPortfolioCycle={(id) => void handlePortfolioCycleStatus(id)}
                   onPortfolioDelete={(id) => void handlePortfolioDelete(id)}
+                  onPortfolioEditTask={(id) => {
+                    const row = enrichedActionById.get(id);
+                    if (!row || ownerIdByPartner.get(row.partner_id) !== user?.id) return;
+                    setEditingPortfolioAction(row);
+                  }}
+                  onPortfolioComposeEmail={(task) => {
+                    if (!task.partnerId) return;
+                    setEmailPortfolioCtx({
+                      partnerId: task.partnerId,
+                      defaultSubject: task.title,
+                      defaultBody: task.description
+                        ? `${task.description}\n\n`
+                        : `Hi,\n\nFollowing up regarding: ${task.title}\n\n`,
+                    });
+                  }}
                   isLeadership={portfolio.isLeadership}
                   onOpen={() =>
                     nav({ to: "/partner/$partnerId", params: { partnerId: it.partner.id } })
@@ -831,6 +1034,21 @@ function PartnersPage() {
                 firstPortfolioTaskByPartner={firstPortfolioTaskByPartner}
                 onPortfolioCycle={(id) => void handlePortfolioCycleStatus(id)}
                 onPortfolioDelete={(id) => void handlePortfolioDelete(id)}
+                onPortfolioEditTask={(id) => {
+                  const row = enrichedActionById.get(id);
+                  if (!row || ownerIdByPartner.get(row.partner_id) !== user?.id) return;
+                  setEditingPortfolioAction(row);
+                }}
+                onPortfolioComposeEmail={(task) => {
+                  if (!task.partnerId) return;
+                  setEmailPortfolioCtx({
+                    partnerId: task.partnerId,
+                    defaultSubject: task.title,
+                    defaultBody: task.description
+                      ? `${task.description}\n\n`
+                      : `Hi,\n\nFollowing up regarding: ${task.title}\n\n`,
+                  });
+                }}
                 isLeadership={portfolio.isLeadership}
                 ownerNames={ownerNames}
                 sortKey={sortKey}
@@ -911,6 +1129,21 @@ function PartnersPage() {
         }}
         onConfirm={bulkReassign}
       />
+      {editingPortfolioAction && (
+        <PartnerTaskEditDialog
+          action={editingPortfolioAction}
+          onClose={() => setEditingPortfolioAction(null)}
+          onSave={(id, patch) => handlePortfolioUpdateFields(id, patch)}
+        />
+      )}
+      {emailPortfolioCtx && (
+        <EmailStakeholderComposer
+          partnerId={emailPortfolioCtx.partnerId}
+          defaultSubject={emailPortfolioCtx.defaultSubject}
+          defaultBody={emailPortfolioCtx.defaultBody}
+          onClose={() => setEmailPortfolioCtx(null)}
+        />
+      )}
       <MoveCompleteCelebration burstAt={moveBurstAt} onConsumed={clearMoveBurst} />
     </div>
   );
@@ -1089,6 +1322,8 @@ function MobilePartnerCard({
   firstPortfolioTask,
   onPortfolioCycle,
   onPortfolioDelete,
+  onPortfolioEditTask,
+  onPortfolioComposeEmail,
   isLeadership,
   onOpen,
 }: {
@@ -1098,6 +1333,8 @@ function MobilePartnerCard({
   firstPortfolioTask: AgentTask | null;
   onPortfolioCycle: (taskId: string) => void;
   onPortfolioDelete: (taskId: string) => void;
+  onPortfolioEditTask: (taskId: string) => void;
+  onPortfolioComposeEmail: (task: AgentTask) => void;
   isLeadership: boolean;
   onOpen: () => void;
 }) {
@@ -1147,6 +1384,8 @@ function MobilePartnerCard({
               compact
               onCycleStatus={onPortfolioCycle}
               onDelete={onPortfolioDelete}
+              onEdit={onPortfolioEditTask}
+              onComposeEmail={onPortfolioComposeEmail}
             />
           </div>
         ) : (
@@ -1179,6 +1418,8 @@ function PartnerRosterTable({
   firstPortfolioTaskByPartner,
   onPortfolioCycle,
   onPortfolioDelete,
+  onPortfolioEditTask,
+  onPortfolioComposeEmail,
   isLeadership,
   ownerNames,
   sortKey,
@@ -1191,6 +1432,8 @@ function PartnerRosterTable({
   firstPortfolioTaskByPartner: Map<string, AgentTask>;
   onPortfolioCycle: (taskId: string) => void;
   onPortfolioDelete: (taskId: string) => void;
+  onPortfolioEditTask: (taskId: string) => void;
+  onPortfolioComposeEmail: (task: AgentTask) => void;
   isLeadership: boolean;
   ownerNames: Map<string, string>;
   sortKey: SortKey;
@@ -1290,6 +1533,8 @@ function PartnerRosterTable({
                 className="w-full max-w-md"
                 onCycleStatus={onPortfolioCycle}
                 onDelete={onPortfolioDelete}
+                onEdit={onPortfolioEditTask}
+                onComposeEmail={onPortfolioComposeEmail}
               />
             </div>
           );

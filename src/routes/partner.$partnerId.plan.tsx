@@ -4,8 +4,9 @@ import { useAuth } from "@/lib/auth";
 import { usePartner, type ActionRow } from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
-import { AgentPlan } from "@/components/ui/agent-plan";
+import { AgentPlan, type AgentTask } from "@/components/ui/agent-plan";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmailStakeholderComposer } from "@/components/EmailStakeholderComposer";
 import { COPY } from "@/lib/copy";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { MoveCompleteCelebration } from "@/components/ui/move-complete-celebration";
@@ -24,6 +25,10 @@ function PartnerPlan() {
   const [taskStatusFilter, setTaskStatusFilter] = useState<"all" | "open" | "done">("all");
   const [showNew, setShowNew] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [emailCtx, setEmailCtx] = useState<Pick<
+    AgentTask,
+    "partnerId" | "title" | "description"
+  > | null>(null);
   const [moveBurstAt, setMoveBurstAt] = useState<number | null>(null);
   const clearMoveBurst = useCallback(() => setMoveBurstAt(null), []);
 
@@ -35,8 +40,8 @@ function PartnerPlan() {
         if (taskStatusFilter === "done") return a.status === "done";
         return true;
       })
-      .map((a) => actionRowToAgentTask(a));
-  }, [data.actions, filterAxis, taskStatusFilter]);
+      .map((a) => actionRowToAgentTask(a, { partnerId }));
+  }, [data.actions, filterAxis, taskStatusFilter, partnerId]);
 
   if (data.loading || !user) {
     return (
@@ -118,6 +123,13 @@ function PartnerPlan() {
             <AgentPlan
               tasks={agentTasks}
               isOwner={isOwner}
+              onComposeEmail={(t) =>
+                setEmailCtx({
+                  partnerId: t.partnerId ?? partnerId,
+                  title: t.title,
+                  description: t.description,
+                })
+              }
               onCycleStatus={async (id) => {
                 const current = data.actions.find((a) => a.id === id);
                 if (!current) return;
@@ -160,25 +172,39 @@ function PartnerPlan() {
           />
         )}
 
-        {editingId && isOwner && (() => {
-          const action = data.actions.find((a) => a.id === editingId);
-          if (!action) return null;
-          return (
-            <EditActionDialog
-              action={action}
-              onClose={() => setEditingId(null)}
-              onSave={async (patch) => {
-                try {
-                  await data.updateAction(editingId, patch);
-                  toast.success("Task updated");
-                  setEditingId(null);
-                } catch (e) {
-                  toast.error((e as Error).message);
-                }
-              }}
-            />
-          );
-        })()}
+        {editingId && isOwner &&
+          (() => {
+            const action = data.actions.find((a) => a.id === editingId);
+            if (!action) return null;
+            return (
+              <EditActionDialog
+                action={action}
+                onClose={() => setEditingId(null)}
+                onSave={async (patch) => {
+                  try {
+                    await data.updateAction(editingId, patch);
+                    toast.success(COPY.toast.moveUpdated);
+                    setEditingId(null);
+                  } catch (e) {
+                    toast.error((e as Error).message);
+                  }
+                }}
+              />
+            );
+          })()}
+
+        {emailCtx?.partnerId && (
+          <EmailStakeholderComposer
+            partnerId={emailCtx.partnerId}
+            defaultSubject={emailCtx.title}
+            defaultBody={
+              emailCtx.description
+                ? `${emailCtx.description}\n\n`
+                : `Hi,\n\nFollowing up regarding: ${emailCtx.title}\n\n`
+            }
+            onClose={() => setEmailCtx(null)}
+          />
+        )}
       </div>
       <MoveCompleteCelebration burstAt={moveBurstAt} onConsumed={clearMoveBurst} />
     </>
