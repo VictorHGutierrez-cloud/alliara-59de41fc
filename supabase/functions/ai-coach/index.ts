@@ -152,6 +152,83 @@ function buildDeliverRecommendationsTool(narrowSession: boolean) {
   };
 }
 
+function buildAnswerQuestionTool() {
+  return {
+    type: "function" as const,
+    function: {
+      name: "answer_pdm_question",
+      description:
+        "Answer the PDM's specific question directly. Stay inside ONE dimension. Do not propose work in other dimensions. Use scores and metrics only as supporting evidence.",
+      parameters: {
+        type: "object",
+        properties: {
+          mode: { type: "string", enum: ["qa"] },
+          question_restated: {
+            type: "string",
+            description:
+              "English. One short line restating the PDM question so they see Kept understood it. Max ~20 words.",
+          },
+          axis_key: {
+            type: "string",
+            description:
+              "The single dimension this question lives in: strategy, offer, recruit, enable, cosell, operate, growth, or success.",
+          },
+          short_answer: {
+            type: "string",
+            description:
+              "English. 1 to 2 sentences, max ~40 words. Direct, concrete answer to the question.",
+          },
+          why_it_works: {
+            type: "string",
+            description:
+              "English. One short sentence. Ground in the partner's scores or metrics lines (cite numbers if available).",
+          },
+          next_moves: {
+            type: "array",
+            minItems: 2,
+            maxItems: 2,
+            description:
+              "Exactly 2 small concrete moves, both inside axis_key. Each is a tiny, owned step the PDM can take this week.",
+            items: {
+              type: "object",
+              properties: {
+                title: { type: "string", description: "English. One line, under ~12 words." },
+                owner_hint: {
+                  type: "string",
+                  description:
+                    "Who on the partner side does this (role, e.g. 'Partner CRO', 'their AE lead'). Short.",
+                },
+                when: {
+                  type: "string",
+                  description: "Cadence or timing. Short, e.g. 'this week', 'next weekly'.",
+                },
+                axis_key: { type: "string" },
+              },
+              required: ["title", "owner_hint", "when", "axis_key"],
+              additionalProperties: false,
+            },
+          },
+          if_they_say_no: {
+            type: "string",
+            description:
+              "English. One short sentence. Async fallback if the partner refuses or no-shows.",
+          },
+        },
+        required: [
+          "mode",
+          "question_restated",
+          "axis_key",
+          "short_answer",
+          "why_it_works",
+          "next_moves",
+          "if_they_say_no",
+        ],
+        additionalProperties: false,
+      },
+    },
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -164,14 +241,21 @@ serve(async (req) => {
       ? body.axes.find((a) => a.key === body.focusAxisKey)
       : null;
 
-    const userPrompt = focus
-      ? buildFocusPrompt(body, focus)
-      : buildOverallPrompt(body);
+    const isQuestionMode = Boolean(body.sessionContext?.trim());
 
-    const narrowSession = Boolean(body.sessionContext?.trim());
-    const tool = buildDeliverRecommendationsTool(narrowSession);
+    const userPrompt = isQuestionMode
+      ? buildQuestionPrompt(body, focus)
+      : focus
+        ? buildFocusPrompt(body, focus)
+        : buildOverallPrompt(body);
 
-    const model = body.model ?? "google/gemini-2.5-flash";
+    const tool = isQuestionMode
+      ? buildAnswerQuestionTool()
+      : buildDeliverRecommendationsTool(false);
+
+    const model =
+      body.model ?? (isQuestionMode ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash");
+    const toolName = isQuestionMode ? "answer_pdm_question" : "deliver_recommendations";
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -181,12 +265,13 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model,
+        temperature: isQuestionMode ? 0.3 : undefined,
         messages: [
           { role: "system", content: COACH_SYSTEM },
           { role: "user", content: userPrompt },
         ],
         tools: [tool],
-        tool_choice: { type: "function", function: { name: "deliver_recommendations" } },
+        tool_choice: { type: "function", function: { name: toolName } },
       }),
     });
 
@@ -243,6 +328,44 @@ function appendNarrowSessionPriority(lines: string[]) {
     "Do not propose parallel mega-initiatives (hiring waves, MDF programs, full JBP rewrites, certification roadmaps) unless the PDM instructions explicitly ask for them.",
   );
   lines.push("Ground statements in diagnostic scores and metrics lines only.");
+}
+
+function buildQuestionPrompt(body: CoachRequest, focus: AxisInput | null): string {
+  const lines: string[] = [];
+  lines.push("CONTEXT (for reading only; your tool output is entirely in English):");
+  lines.push("");
+  lines.push(
+    `Partner: ${body.partner.name}${body.partner.company ? `, ${body.partner.company}` : ""}`,
+  );
+  if (body.partner.tier) lines.push(`Tier: ${body.partner.tier}, status: ${body.partner.status ?? "n/a"}`);
+  if (body.partner.notes) lines.push(`PDM partner notes (background): ${body.partner.notes}`);
+  appendMetricsSummary(lines, body);
+  lines.push("");
+  lines.push("Dimension scores (1 reactive, 5 compounding):");
+  for (const a of body.axes) {
+    lines.push(`${a.key} (${a.name}): score ${a.score.toFixed(1)}, level ${a.level}`);
+  }
+  if (focus) {
+    lines.push("");
+    lines.push(`The PDM picked focus dimension: ${focus.key} (${focus.name}). Default to this axis_key unless the question clearly belongs elsewhere.`);
+  }
+  lines.push("");
+  lines.push("PDM QUESTION FOR THIS RUN (this is the deliverable; may be in any language; answer in English):");
+  lines.push(body.sessionContext!.trim());
+  lines.push("");
+  lines.push("TASK:");
+  lines.push(
+    "Answer this specific question. Do not generate a generic plan. Do not spread suggestions across multiple dimensions. Pick the single dimension this question lives in and stay there. Use the partner's scores and metrics only as evidence inside why_it_works (cite a number if you have one). Both next_moves must be tiny, owned, time-boxed steps the PDM can take this week or in the next meeting. Provide an async fallback in if_they_say_no. Be extremely brief; respect the length limits in each field description. axis_key stays English and lowercase.",
+  );
+  lines.push("");
+  lines.push("STYLE EXAMPLES (do not copy verbatim; show the level of specificity expected):");
+  lines.push(
+    "- Question 'How do I get them to my weeklys?' → axis_key 'operate', short_answer about replacing optional invite with a 25-min co-sell standup tied to their open pipeline, why_it_works cites their open deals number, next_moves: (1) send Mon recurring with a 3-bullet agenda owned by their AE lead, (2) bring one shared deal to the first call so attendance has a payoff. if_they_say_no: ship a 5-line async update + 1 question every Monday.",
+  );
+  lines.push(
+    "- Question 'They never push deals on their side' → axis_key 'cosell', short_answer about a shared deal review on 2-3 named opps, next_moves owned by their AE manager, fallback is async deal-desk note in Slack.",
+  );
+  return lines.join("\n");
 }
 
 function buildOverallPrompt(body: CoachRequest): string {
