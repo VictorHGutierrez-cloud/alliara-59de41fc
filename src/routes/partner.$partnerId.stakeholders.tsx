@@ -18,14 +18,14 @@ type Role = Database["public"]["Enums"]["stakeholder_role"];
 const ROLE_OPTIONS: { value: Role; label: string }[] = [
   { value: "ceo", label: "CEO / Founder" },
   { value: "it", label: "IT / Technical" },
-  { value: "ae", label: "AE / Sales" },
-  { value: "marketing", label: "Marketing" },
+  { value: "pae", label: "PAE (Partner Account Executive)" },
+  { value: "pmm", label: "PMM (Partner Marketing Manager)" },
   { value: "other", label: "Other" },
 ];
 
 const roleLabel = (r: Role) => ROLE_OPTIONS.find((o) => o.value === r)?.label ?? r;
 const roleColor = (r: Role): string => ({
-  ceo: "octa-1", it: "octa-4", ae: "octa-5", marketing: "octa-7", other: "octa-3",
+  ceo: "octa-1", it: "octa-4", pae: "octa-5", pmm: "octa-7", other: "octa-3",
 }[r] ?? "octa-3");
 
 function StakeholdersPage() {
