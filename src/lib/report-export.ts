@@ -64,8 +64,8 @@ export async function downloadPdfFromNode(
   ]);
   const dataUrl = await toPng(node, {
     pixelRatio: 2,
-    backgroundColor: "#ffffff",
     cacheBust: true,
+    backgroundColor: "#ffffff",
     style: { fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif" },
   });
 
@@ -80,18 +80,32 @@ export async function downloadPdfFromNode(
     img.onerror = () => reject(new Error("image_load_failed"));
   });
 
-  const imgRatio = img.width / img.height;
+  const imgRatio = img.height > 0 ? img.width / img.height : pageW / pageH;
   const pageRatio = pageW / pageH;
-  let drawW = pageW;
-  let drawH = pageH;
-  if (imgRatio > pageRatio) {
+  /** When captured ratio ~= A4 landscape, rounding can leave a lone letterbox stripe after print preview. */
+  const aspectSlack = Math.abs(imgRatio / pageRatio - 1) <= 0.012;
+
+  let drawW: number;
+  let drawH: number;
+  if (aspectSlack) {
+    drawW = pageW;
+    drawH = pageH;
+  } else if (imgRatio > pageRatio) {
+    drawW = pageW;
     drawH = pageW / imgRatio;
   } else {
+    drawH = pageH;
     drawW = pageH * imgRatio;
   }
-  const x = (pageW - drawW) / 2;
-  const y = (pageH - drawH) / 2;
-  pdf.addImage(dataUrl, "PNG", x, y, drawW, drawH, undefined, "FAST");
+
+  /** Cover fit: enlarge slightly past the page rect so fractional-mm gaps disappear in viewers / printers. */
+  const bleedMm = aspectSlack ? 0 : 0.35;
+  drawW += bleedMm * 2;
+  drawH += bleedMm * 2;
+  const x = Math.round(((pageW - drawW) / 2) * 1000) / 1000;
+  const y = Math.round(((pageH - drawH) / 2) * 1000) / 1000;
+
+  pdf.addImage(dataUrl, "PNG", x, y, drawW, drawH, undefined, "SLOW");
   pdf.save(filename);
 }
 
