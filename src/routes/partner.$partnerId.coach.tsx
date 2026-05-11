@@ -1,11 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/lib/auth";
-import { usePartner, levelFromAvg, type AiRecRow } from "../lib/partners-store";
+import {
+  usePartner,
+  levelFromAvg,
+  type AiRecRow,
+  type PartnerMetricRow,
+} from "../lib/partners-store";
 import { AXES } from "../content/octa";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirmDialog } from "@/components/ui/confirm-provider";
 import { COPY } from "@/lib/copy";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { KeptPromptBar, resolveKeptPromptVariant } from "@/components/kept/KeptPromptBar";
@@ -84,17 +90,85 @@ function normalizeCoachContent(raw: unknown): CoachContent {
   };
 }
 
+/** Compact lines for ai-coach (self-reported partner_metrics only). */
+function formatMetricsForCoach(rows: PartnerMetricRow[]): string | null {
+  if (rows.length === 0) return null;
+  return rows
+    .map((m, i) => {
+      const bits: string[] = [`Snapshot ${i + 1}`];
+      if (m.period) bits.push(`period ${m.period}`);
+      bits.push(`recorded ${String(m.created_at).slice(0, 10)}`);
+      const nums: string[] = [];
+      if (m.mrr != null) nums.push(`MRR ${m.mrr}`);
+      if (m.revenue != null) nums.push(`revenue ${m.revenue}`);
+      if (m.deals_open != null) nums.push(`open deals ${m.deals_open}`);
+      if (m.deals_open_value != null) nums.push(`open value ${m.deals_open_value}`);
+      if (m.deals_won != null) nums.push(`won deals ${m.deals_won}`);
+      if (m.deals_won_value != null) nums.push(`won value ${m.deals_won_value}`);
+      if (m.trained_people != null) nums.push(`trained ${m.trained_people}`);
+      if (nums.length) bits.push(nums.join(", "));
+      if (m.notes?.trim()) bits.push(`notes: ${m.notes.trim()}`);
+      return bits.join(" · ");
+    })
+    .join("\n");
+}
+
 function PartnerCoach() {
   const { partnerId } = Route.useParams();
   const search = Route.useSearch();
   const { user } = useAuth();
   const data = usePartner(partnerId);
+  const confirmDialog = useConfirmDialog();
   const [focus, setFocus] = useState<string>("");
   const [sessionContext, setSessionContext] = useState("");
   const [busy, setBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const isOwner = !!user && data.partner?.owner_id === user.id;
   const hasDiagnostic = !!data.latest;
+
+  const addSuggestedCoachAction = useCallback(
+    async (item: CoachContent["action_items"][number]) => {
+      if (!user) return;
+      try {
+        await data.addAction({
+          userId: user.id,
+          axisKey: item.axis_key,
+          title: item.title,
+          description: item.description,
+          priority: item.priority,
+          targetLevel: item.target_level,
+          source: "ai",
+        });
+        toast.success(COPY.toast.addedToJbp);
+      } catch (e) {
+        toast.error((e as Error).message);
+      }
+    },
+    [user, data],
+  );
+
+  const deleteGuidanceRun = useCallback(
+    async (recId: string) => {
+      const ok = await confirmDialog({
+        title: COPY.kept.deleteGuidanceConfirmTitle,
+        description: COPY.kept.deleteGuidanceConfirmDescription,
+        actionLabel: COPY.kept.deleteGuidanceConfirmAction,
+      });
+      if (!ok) return;
+      setDeletingId(recId);
+      try {
+        await data.deleteRecommendation(recId);
+        toast.success(COPY.kept.guidanceDeletedToast);
+      } catch (e) {
+        console.error("[PartnerCoach - deleteGuidanceRun]:", e);
+        toast.error((e as Error).message);
+      } finally {
+        setDeletingId(null);
+      }
+    },
+    [confirmDialog, data],
+  );
 
   const generate = async () => {
     if (!user || !data.partner || !data.latest) {
@@ -120,6 +194,8 @@ function PartnerCoach() {
         };
       });
 
+      const metricsSummary = formatMetricsForCoach(data.metricSnapshots);
+
       const { data: resp, error } = await supabase.functions.invoke("ai-coach", {
         body: {
           partner: {
@@ -134,6 +210,7 @@ function PartnerCoach() {
           axes: axesPayload,
           focusAxisKey: focus || null,
           sessionContext: sessionContext.trim() || null,
+          metricsSummary: metricsSummary || null,
         },
       });
       if (error) throw error;
@@ -233,29 +310,37 @@ function PartnerCoach() {
         )
       ) : (
         <div className="mt-6 space-y-4">
-          {data.recs.map((r) => (
-            <RecommendationCard
-              key={r.id}
-              rec={r}
-              isOwner={isOwner}
-              onAddAction={async (item) => {
-                try {
-                  await data.addAction({
-                    userId: user.id,
-                    axisKey: item.axis_key,
-                    title: item.title,
-                    description: item.description,
-                    priority: item.priority,
-                    targetLevel: item.target_level,
-                    source: "ai",
-                  });
-                  toast.success(COPY.toast.addedToJbp);
-                } catch (e) {
-                  toast.error((e as Error).message);
-                }
-              }}
-            />
-          ))}
+          <RecommendationCard
+            key={data.recs[0]!.id}
+            rec={data.recs[0]!}
+            isOwner={isOwner}
+            variant="default"
+            onAddAction={addSuggestedCoachAction}
+            onDelete={isOwner ? () => void deleteGuidanceRun(data.recs[0]!.id) : undefined}
+            deleteBusy={deletingId === data.recs[0]!.id}
+          />
+          {data.recs.length > 1 ? (
+            <details className="group rounded-2xl border border-border/60 bg-surface/30">
+              <summary className="cursor-pointer list-none px-4 py-3 text-sm font-medium text-foreground marker:content-none [&::-webkit-details-marker]:hidden">
+                <span className="underline-offset-2 group-open:underline">
+                  {COPY.kept.earlierKeptRunsSummary({ n: data.recs.length - 1 })}
+                </span>
+              </summary>
+              <div className="space-y-4 border-t border-border/50 px-3 pb-4 pt-3 sm:px-4">
+                {data.recs.slice(1).map((r) => (
+                  <RecommendationCard
+                    key={r.id}
+                    rec={r}
+                    isOwner={isOwner}
+                    variant="archive"
+                    onAddAction={addSuggestedCoachAction}
+                    onDelete={isOwner ? () => void deleteGuidanceRun(r.id) : undefined}
+                    deleteBusy={deletingId === r.id}
+                  />
+                ))}
+              </div>
+            </details>
+          ) : null}
         </div>
       )}
     </div>
@@ -265,38 +350,73 @@ function PartnerCoach() {
 function RecommendationCard({
   rec,
   isOwner,
+  variant = "default",
   onAddAction,
+  onDelete,
+  deleteBusy,
 }: {
   rec: AiRecRow;
   isOwner: boolean;
+  variant?: "default" | "archive";
   onAddAction: (item: CoachContent["action_items"][number]) => void;
+  onDelete?: () => void;
+  deleteBusy?: boolean;
 }) {
   const c = normalizeCoachContent(rec.content);
   const focusAxis = rec.axis_key ? AXES.find((a) => a.key === rec.axis_key) : null;
   const [summaryExpanded, setSummaryExpanded] = useState(false);
   const [recDetailOpen, setRecDetailOpen] = useState<Record<number, boolean>>({});
-  const summaryLong = c.summary.length > 200;
+  const summaryLong = variant === "archive" ? c.summary.length > 100 : c.summary.length > 200;
+  const summaryClamp =
+    variant === "archive"
+      ? !summaryExpanded && c.summary.length > 0
+      : !summaryExpanded && summaryLong;
   const toggleRecDetail = (i: number) => {
     setRecDetailOpen((prev) => ({ ...prev, [i]: !prev[i] }));
   };
 
   return (
-    <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <div className="font-mono uppercase tracking-widest">
+    <div
+      className={cn(
+        "rounded-2xl bg-card border border-border/60 card-elev",
+        variant === "archive" ? "p-4" : "p-6",
+      )}
+    >
+      <div
+        className={cn(
+          "flex flex-wrap items-start justify-between gap-2 text-muted-foreground",
+          variant === "archive" ? "text-[10px]" : "text-xs",
+        )}
+      >
+        <div className="min-w-0 font-mono uppercase tracking-widest">
           {focusAxis
             ? `${COPY.kept.coachFocusOptionPrefix} ${focusAxis.name}`
             : COPY.kept.coachOverallPlanOption}{" "}
           ·{" "}
           {new Date(rec.created_at).toLocaleString()}
         </div>
-        {rec.model && <div className="font-mono">{rec.model}</div>}
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {rec.model ? <div className="font-mono">{rec.model}</div> : null}
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={deleteBusy}
+              aria-busy={deleteBusy}
+              aria-label={COPY.kept.deleteGuidanceCta}
+              className="min-h-9 rounded-md border border-destructive/40 bg-destructive/10 px-2.5 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/15 disabled:opacity-50"
+            >
+              {deleteBusy ? COPY.kept.deleteGuidanceBusyLabel : COPY.kept.deleteGuidanceCta}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <p
         className={cn(
-          "mt-3 text-base font-medium",
-          !summaryExpanded && summaryLong && "line-clamp-3",
+          "mt-3 font-medium",
+          variant === "archive" ? "text-sm" : "text-base",
+          summaryClamp && (variant === "archive" ? "line-clamp-2" : "line-clamp-3"),
         )}
       >
         {c.summary}

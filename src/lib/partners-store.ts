@@ -8,6 +8,7 @@ export type PartnerRow = Database["public"]["Tables"]["partners"]["Row"];
 export type ActionRow = Database["public"]["Tables"]["action_plans"]["Row"];
 export type AssessmentRow = Database["public"]["Tables"]["assessments"]["Row"];
 export type AiRecRow = Database["public"]["Tables"]["ai_recommendations"]["Row"];
+export type PartnerMetricRow = Database["public"]["Tables"]["partner_metrics"]["Row"];
 export type ScoreMap = Record<string, number>;
 
 export function levelFromAvg(avg: number): Level {
@@ -132,16 +133,23 @@ export function usePartner(partnerId: string | undefined) {
   const [history, setHistory] = useState<AssessmentRow[]>([]);
   const [actions, setActions] = useState<ActionRow[]>([]);
   const [recs, setRecs] = useState<AiRecRow[]>([]);
+  const [metricSnapshots, setMetricSnapshots] = useState<PartnerMetricRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async (opts?: { silent?: boolean }) => {
     if (!partnerId) return;
     if (!opts?.silent) setLoading(true);
-    const [{ data: p }, { data: ass }, { data: acts }, { data: r }] = await Promise.all([
+    const [{ data: p }, { data: ass }, { data: acts }, { data: r }, { data: met }] = await Promise.all([
       supabase.from("partners").select("*").eq("id", partnerId).maybeSingle(),
       supabase.from("assessments").select("*").eq("partner_id", partnerId).order("created_at", { ascending: false }),
       supabase.from("action_plans").select("*").eq("partner_id", partnerId).order("created_at", { ascending: false }),
       supabase.from("ai_recommendations").select("*").eq("partner_id", partnerId).order("created_at", { ascending: false }),
+      supabase
+        .from("partner_metrics")
+        .select("*")
+        .eq("partner_id", partnerId)
+        .order("created_at", { ascending: false })
+        .limit(5),
     ]);
     setPartner((p as PartnerRow | null) ?? null);
     const arows = (ass ?? []) as AssessmentRow[];
@@ -149,6 +157,7 @@ export function usePartner(partnerId: string | undefined) {
     setLatest(arows[0] ?? null);
     setActions((acts ?? []) as ActionRow[]);
     setRecs((r ?? []) as AiRecRow[]);
+    setMetricSnapshots((met ?? []) as PartnerMetricRow[]);
     setLoading(false);
   }, [partnerId]);
 
@@ -233,6 +242,16 @@ export function usePartner(partnerId: string | undefined) {
     await refresh();
   }, [partnerId, latest, refresh]);
 
+  const deleteRecommendation = useCallback(
+    async (recId: string) => {
+      if (!partnerId) throw new Error("Missing partner");
+      const { error } = await supabase.from("ai_recommendations").delete().eq("id", recId);
+      if (error) throw error;
+      await refresh();
+    },
+    [partnerId, refresh],
+  );
+
   const axisScore = (axisKey: string): number => (latest?.scores as ScoreMap | null)?.[axisKey] ?? 0;
 
   const actionsByAxis = (axisKey: string) => actions.filter((a) => a.axis_key === axisKey);
@@ -243,9 +262,9 @@ export function usePartner(partnerId: string | undefined) {
   const totalDiagnosticQs = AXES.reduce((s, a) => s + a.diagnostic.length, 0);
 
   return {
-    partner, latest, history, actions, recs, loading,
+    partner, latest, history, actions, recs, metricSnapshots, loading,
     refresh, saveAssessment, addAction, updateAction, deleteAction,
-    updatePartner, deletePartner, deleteAssessment, saveRecommendation,
+    updatePartner, deletePartner, deleteAssessment, saveRecommendation, deleteRecommendation,
     axisScore, actionsByAxis, openActions, doneActions, totalDiagnosticQs,
   };
 }

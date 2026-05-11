@@ -10,11 +10,11 @@ const corsHeaders = {
 
 const INTEL_SYSTEM = `You are a B2B partnership intelligence analyst inside the Alliara product.
 
-LANGUAGE: Every string you output in the tool JSON MUST be in European Portuguese (PT-PT).
+LANGUAGE: Every string you output in the tool JSON MUST be in English.
 
 TONE: Friendly, clear, efficient. You help a Partner Development Manager see what matters without fluff.
 
-BRANDING: Never write OCTA, OCTO, OCTA OS, or similar. Say Alliara, portal, programa de parceiros, or maturidade do canal when needed.
+BRANDING: Never write OCTA, OCTO, OCTA OS, or similar. Say Alliara, portal, partner program, or channel maturity when needed.
 
 FORMATTING IN PROSE FIELDS: Do not use the em dash character. Do not use markdown. Do not start lines with a hyphen as a bullet in user-facing text. If you need steps, use "1. 2. 3." on one line or short sentences.
 
@@ -75,14 +75,14 @@ serve(async (req) => {
       function: {
         name: "deliver_partner_intel",
         description:
-          "Return structured partner intelligence. All prose strings in European Portuguese, brief and friendly per system rules.",
+          "Return structured partner intelligence. All prose strings in English, brief and friendly per system rules.",
         parameters: {
           type: "object",
           properties: {
             executive_summary: {
               type: "string",
               description:
-                "European Portuguese. Total of 2 to 4 short sentences on partnership state from the inputs only.",
+                "English. Total of 2 to 4 short sentences on partnership state from the inputs only.",
             },
             red_flags: {
               type: "array",
@@ -91,12 +91,12 @@ serve(async (req) => {
                 properties: {
                   title: {
                     type: "string",
-                    description: "European Portuguese. One short line naming the risk.",
+                    description: "English. One short line naming the risk.",
                   },
                   evidence: {
                     type: "string",
                     description:
-                      "European Portuguese. One concise sentence stating what in the inputs triggered this (cite source name: file, metrics, notes).",
+                      "English. One concise sentence stating what in the inputs triggered this (cite source name: file, metrics, notes).",
                   },
                   severity: { type: "string", enum: ["low", "medium", "high"] },
                 },
@@ -117,7 +117,7 @@ serve(async (req) => {
                   observations: {
                     type: "string",
                     description:
-                      "European Portuguese. 1 to 2 short sentences. If no evidence, say so and keep confidence low.",
+                      "English. 1 to 2 short sentences. If no evidence, say so and keep confidence low.",
                   },
                   suggested_level: { type: "integer", minimum: 1, maximum: 5, description: "Best guess 1 to 5 from inputs." },
                   confidence: { type: "string", enum: ["low", "medium", "high"] },
@@ -131,13 +131,13 @@ serve(async (req) => {
               minItems: 3,
               maxItems: 6,
               description:
-                "European Portuguese tasks grounded in the inputs. Same style as coach action items.",
+                "English tasks grounded in the inputs. Same style as coach action items.",
               items: {
                 type: "object",
                 properties: {
                   axis_key: { type: "string", enum: ["strategy", "offer", "recruit", "enable", "cosell", "operate", "growth", "success"] },
-                  title: { type: "string", description: "European Portuguese. One line." },
-                  description: { type: "string", description: "European Portuguese. Max 2 short sentences." },
+                  title: { type: "string", description: "English. One line." },
+                  description: { type: "string", description: "English. Max 2 short sentences." },
                   priority: { type: "string", enum: ["low", "medium", "high"] },
                   target_level: { type: "integer", minimum: 1, maximum: 5 },
                 },
@@ -201,7 +201,7 @@ function json(body: unknown, status: number) {
 
 function buildPrompt(body: IntelRequest): string {
   const lines: string[] = [];
-  lines.push("CONTEXT (read only; your tool output is entirely in European Portuguese):");
+  lines.push("CONTEXT (read only; your tool output is entirely in English):");
   lines.push("");
   lines.push("PARTNER:");
   lines.push(`Name: ${body.partner.name}`);
@@ -252,7 +252,7 @@ function buildPrompt(body: IntelRequest): string {
 
   lines.push("TASK:");
   lines.push(
-    "Produce via the tool: (1) executive_summary 2 to 4 short sentences; (2) red_flags with tight evidence citing filename, metrics, or notes; (3) signals_by_axis with all eight keys, low confidence and honest text when there is no proof; (4) three to six suggested_actions. Stay specific to this partner. All user-facing strings in the JSON must be European Portuguese, warm and brief. No OCTA branding. No em dash. No prose lines starting with hyphen bullets. Keep source citations short.",
+    "Produce via the tool: (1) executive_summary 2 to 4 short sentences; (2) red_flags with tight evidence citing filename, metrics, or notes; (3) signals_by_axis with all eight keys, low confidence and honest text when there is no proof; (4) three to six suggested_actions. Stay specific to this partner. All user-facing strings in the JSON must be English, warm and brief. No OCTA branding. No em dash. No prose lines starting with hyphen bullets. Keep source citations short.",
   );
   return lines.join("\n");
 }

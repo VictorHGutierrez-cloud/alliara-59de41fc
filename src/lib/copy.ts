@@ -76,7 +76,7 @@ export const COPY = {
     deliveredToast: "Kept briefing is ready",
     coachPageMetaTitle: "Kept · Alliara",
     sectionRecommendationsEyebrow: "Recommendations",
-    /** Card field labels (AI body may be localized via edge prompts). */
+    /** Card field labels (Kept AI output is English). */
     recommendationWhyLabel: "Why",
     recommendationHowLabel: "How",
     recommendationOutcomeLabel: "Outcome",
@@ -89,10 +89,20 @@ export const COPY = {
     coachFocusOptionPrefix: "Focus:",
     promptContextLabel: "Notes for this run (optional)",
     promptContextPlaceholder:
-      "Just for this run: next conversation, weekly priority, risks…",
+      "E.g. how do I get them to join my weekly sync, or what to cover next Tuesday…",
     promptToggleContextShow: "Add notes for this run",
     promptToggleContextHide: "Hide notes",
     addSuggestedTaskCta: "+ Add",
+    /** Collapsible history under the latest Kept run on the partner coach page. */
+    earlierKeptRunsSummary: ({ n }: { n: number }) =>
+      n === 1 ? "1 earlier Kept run — expand to view" : `${n} earlier Kept runs — expand to view`,
+    deleteGuidanceCta: "Delete guidance",
+    deleteGuidanceBusyLabel: "Deleting...",
+    deleteGuidanceConfirmTitle: "Delete this Kept run?",
+    deleteGuidanceConfirmDescription:
+      "This removes the saved guidance from this partner workspace. You cannot undo it.",
+    deleteGuidanceConfirmAction: "Delete",
+    guidanceDeletedToast: "Guidance removed",
   },
 
   ipp: {
