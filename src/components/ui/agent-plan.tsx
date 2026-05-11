@@ -43,6 +43,7 @@ interface AgentPlanProps {
   isOwner?: boolean;
   onCycleStatus?: (taskId: string) => void;
   onDelete?: (taskId: string) => void;
+  onEdit?: (taskId: string) => void;
 }
 
 export function StatusIcon({ status, className = "h-4.5 w-4.5" }: { status: AgentStatus; className?: string }) {
@@ -104,6 +105,7 @@ export interface AgentTaskCardProps {
   isOwner: boolean;
   onCycleStatus?: (taskId: string) => void;
   onDelete?: (taskId: string) => void;
+  onEdit?: (taskId: string) => void;
   /** When set, card is a Kept-style suggestion: static todo icon and primary CTA instead of status cycle and plan chrome. */
   suggestionAction?: { label: string; onClick: () => void };
   /** Tighter layout for table cells and mobile cards */
@@ -117,6 +119,7 @@ export function AgentTaskCard({
   isOwner,
   onCycleStatus,
   onDelete,
+  onEdit,
   suggestionAction,
   compact = false,
   className = "",
@@ -191,9 +194,6 @@ export function AgentTaskCard({
                 <span className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded bg-surface-2 text-muted-foreground">AI</span>
               )}
               <PriorityChip p={task.priority} />
-              {task.targetLevel ? (
-                <span className="text-[10px] font-mono text-muted-foreground">→ L{task.targetLevel}</span>
-              ) : null}
             </div>
             <div className={`mt-1 ${titleCls} ${task.status === "done" ? "line-through text-muted-foreground" : ""}`}>
               {task.title}
@@ -221,6 +221,18 @@ export function AgentTaskCard({
               <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground rounded-full border border-border/60 px-2 py-0.5">
                 {statusLabel(task.status)}
               </span>
+              {canEdit && onEdit && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit(task.id);
+                  }}
+                  className="text-[11px] text-primary hover:underline"
+                >
+                  Edit
+                </button>
+              )}
               {canEdit && onDelete && (
                 <button
                   type="button"
@@ -285,7 +297,7 @@ export function AgentTaskCard({
   );
 }
 
-export function AgentPlan({ tasks, isOwner = false, onCycleStatus, onDelete }: AgentPlanProps) {
+export function AgentPlan({ tasks, isOwner = false, onCycleStatus, onDelete, onEdit }: AgentPlanProps) {
   return (
     <LayoutGroup>
       <ul className="space-y-2">
@@ -304,6 +316,7 @@ export function AgentPlan({ tasks, isOwner = false, onCycleStatus, onDelete }: A
                 isOwner={isOwner}
                 onCycleStatus={onCycleStatus}
                 onDelete={onDelete}
+                onEdit={onEdit}
               />
             </motion.li>
           ))}
