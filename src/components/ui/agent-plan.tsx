@@ -153,15 +153,17 @@ export function AgentTaskCard({
 
         <div className="flex-1 min-w-0">
           {(task.partnerName && task.partnerId) && (
-            <div className="mb-1">
+            <div className="mb-1.5">
               <Link
                 to="/partner/$partnerId/plan"
                 params={{ partnerId: task.partnerId }}
                 onClick={(e) => e.stopPropagation()}
-                className="text-[10px] font-mono uppercase tracking-widest text-primary hover:underline"
+                className="text-sm font-semibold text-primary hover:underline"
               >
                 {task.partnerName}
-                {task.partnerCompany ? ` · ${task.partnerCompany}` : ""}
+                {task.partnerCompany ? (
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">· {task.partnerCompany}</span>
+                ) : null}
               </Link>
             </div>
           )}

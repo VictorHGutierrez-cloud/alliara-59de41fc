@@ -203,6 +203,17 @@ function PartnersPage() {
     [scoped],
   );
 
+  const partnerMetaById = useMemo(
+    () =>
+      new Map(
+        scoped.map((it) => [
+          it.partner.id,
+          { name: it.partner.name, company: it.partner.company ?? null },
+        ]),
+      ),
+    [scoped],
+  );
+
   // Aggregate open tasks for partners in the current roster scope (same as scoped grid)
   useEffect(() => {
     let cancelled = false;
@@ -333,19 +344,32 @@ function PartnersPage() {
     const m = new Map<string, AgentTask>();
     for (const [partnerId, a] of firstOpenActionByPartner) {
       const ownerId = ownerIdByPartner.get(partnerId);
-      m.set(partnerId, actionRowToAgentTask(a, { canMutate: ownerId === user?.id }));
+      const meta = partnerMetaById.get(partnerId);
+      m.set(
+        partnerId,
+        actionRowToAgentTask(a, {
+          canMutate: ownerId === user?.id,
+          includePartnerContext: true,
+          partnerName: meta?.name ?? "",
+          partnerCompany: meta?.company ?? null,
+        }),
+      );
     }
     return m;
-  }, [firstOpenActionByPartner, ownerIdByPartner, user?.id]);
+  }, [firstOpenActionByPartner, ownerIdByPartner, partnerMetaById, user?.id]);
 
   const portfolioOpenTasksForPlan = useMemo(
     () =>
-      sortedOpenActions.map((a) =>
-        actionRowToAgentTask(a, {
+      sortedOpenActions.map((a) => {
+        const meta = partnerMetaById.get(a.partner_id);
+        return actionRowToAgentTask(a, {
           canMutate: ownerIdByPartner.get(a.partner_id) === user?.id,
-        }),
-      ),
-    [sortedOpenActions, ownerIdByPartner, user?.id],
+          includePartnerContext: true,
+          partnerName: meta?.name ?? "",
+          partnerCompany: meta?.company ?? null,
+        });
+      }),
+    [sortedOpenActions, ownerIdByPartner, partnerMetaById, user?.id],
   );
 
   const nextActionByPartner = useMemo(() => {

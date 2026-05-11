@@ -18,14 +18,14 @@ type Role = Database["public"]["Enums"]["stakeholder_role"];
 const ROLE_OPTIONS: { value: Role; label: string }[] = [
   { value: "ceo", label: "CEO / Founder" },
   { value: "it", label: "IT / Technical" },
-  { value: "ae", label: "AE / Sales" },
-  { value: "marketing", label: "Marketing" },
+  { value: "pae", label: "PAE (Partner Account Executive)" },
+  { value: "pmm", label: "PMM (Partner Marketing Manager)" },
   { value: "other", label: "Other" },
 ];
 
 const roleLabel = (r: Role) => ROLE_OPTIONS.find((o) => o.value === r)?.label ?? r;
 const roleColor = (r: Role): string => ({
-  ceo: "octa-1", it: "octa-4", ae: "octa-5", marketing: "octa-7", other: "octa-3",
+  ceo: "octa-1", it: "octa-4", pae: "octa-5", pmm: "octa-7", other: "octa-3",
 }[r] ?? "octa-3");
 
 function StakeholdersPage() {
@@ -104,9 +104,17 @@ function StakeholdersPage() {
                   </span>
                 </div>
                 {s.email && (
-                  <a href={`mailto:${s.email}`} className="mt-3 block text-xs text-primary hover:underline truncate">
-                    {s.email}
-                  </a>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <a href={`mailto:${s.email}`} className="text-xs text-primary hover:underline truncate">
+                      {s.email}
+                    </a>
+                    <a
+                      href={`mailto:${s.email}?subject=${encodeURIComponent(`Partnership update`)}`}
+                      className="shrink-0 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground glow-ring"
+                    >
+                      Email
+                    </a>
+                  </div>
                 )}
                 {s.notes && <p className="mt-2 text-xs text-muted-foreground line-clamp-3">{s.notes}</p>}
                 {isOwner && (
