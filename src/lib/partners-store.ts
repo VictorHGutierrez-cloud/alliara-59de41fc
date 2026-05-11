@@ -249,10 +249,21 @@ export function usePartner(partnerId: string | undefined) {
         .from("ai_recommendations")
         .delete()
         .eq("id", recId)
+        .eq("partner_id", partnerId)
         .select("id");
+      console.log("[deleteRecommendation] direct delete result", { recId, partnerId, data, error });
       if (error) throw error;
       if (!data || data.length === 0) {
-        throw new Error("You don't have permission to delete this guidance run.");
+        // Fallback: server-side delete via edge function (handles any RLS edge case).
+        console.warn("[deleteRecommendation] direct delete returned 0 rows, falling back to edge function");
+        const { data: fnData, error: fnErr } = await supabase.functions.invoke("delete-guidance", {
+          body: { recId },
+        });
+        console.log("[deleteRecommendation] edge fallback result", { fnData, fnErr });
+        if (fnErr) throw new Error(fnErr.message ?? "Could not delete this guidance.");
+        if (!(fnData as { ok?: boolean })?.ok) {
+          throw new Error((fnData as { error?: string })?.error ?? "Could not delete this guidance.");
+        }
       }
       await refresh();
     },
