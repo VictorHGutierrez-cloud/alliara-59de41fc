@@ -245,8 +245,15 @@ export function usePartner(partnerId: string | undefined) {
   const deleteRecommendation = useCallback(
     async (recId: string) => {
       if (!partnerId) throw new Error("Missing partner");
-      const { error } = await supabase.from("ai_recommendations").delete().eq("id", recId);
+      const { data, error } = await supabase
+        .from("ai_recommendations")
+        .delete()
+        .eq("id", recId)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("You don't have permission to delete this guidance run.");
+      }
       await refresh();
     },
     [partnerId, refresh],
