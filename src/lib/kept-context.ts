@@ -30,8 +30,8 @@ export async function buildKeptContext(userId: string): Promise<KeptContext> {
   ]);
 
   const ids = (partners ?? []).map((p) => p.id);
-  let latestByPartner = new Map<string, number>();
-  let openByPartner = new Map<string, number>();
+  const latestByPartner = new Map<string, number>();
+  const openByPartner = new Map<string, number>();
 
   if (ids.length) {
     const [{ data: ass }, { data: acts }] = await Promise.all([
