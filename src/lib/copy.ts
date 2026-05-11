@@ -76,7 +76,23 @@ export const COPY = {
     deliveredToast: "Kept briefing is ready",
     coachPageMetaTitle: "Kept · Alliara",
     sectionRecommendationsEyebrow: "Recommendations",
+    /** Card field labels (AI body may be localized via edge prompts). */
+    recommendationWhyLabel: "Why",
+    recommendationHowLabel: "How",
+    recommendationOutcomeLabel: "Outcome",
+    recommendationDetailExpandCta: "Show details",
+    recommendationDetailCollapseCta: "Hide details",
+    summaryExpandCta: "Show full summary",
+    summaryCollapseCta: "Show less",
     sectionMovesEyebrow: "Tasks worth committing",
+    coachOverallPlanOption: "Overall plan",
+    coachFocusOptionPrefix: "Focus:",
+    promptContextLabel: "Notes for this run (optional)",
+    promptContextPlaceholder:
+      "Just for this run: next conversation, weekly priority, risks…",
+    promptToggleContextShow: "Add notes for this run",
+    promptToggleContextHide: "Hide notes",
+    addSuggestedTaskCta: "+ Add",
   },
 
   ipp: {

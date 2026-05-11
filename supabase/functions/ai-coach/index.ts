@@ -8,6 +8,26 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const COACH_SYSTEM = `You are an experienced B2B channel coach inside the Alliara product.
+
+LANGUAGE: Every string you output in the tool JSON (summary, title, why, how, expected_outcome, action item titles and descriptions) MUST be in European Portuguese (PT-PT).
+
+TONE: Friendly, clear, human. Write like a trusted colleague talking to a Partner Development Manager. Short sentences. Plain words. No empty corporate jargon.
+
+BRANDING: Never write OCTA, OCTO, OCTA OS, or similar. Say programa de parceiros, portal Alliara, ou maturidade do canal / dimensões when needed.
+
+FORMATTING IN PROSE FIELDS: Do not use the em dash character. Do not use markdown. Do not start lines with a hyphen as a bullet. For how only: at most two numbered steps on one line "1. ... 2. ..." OR two very short sentences. No third step.
+
+TECHNICAL KEYS: The field axis_key must stay exactly one of: strategy, offer, recruit, enable, cosell, operate, growth, success. Only these keys, in English, lowercase.
+
+VOLUME: Return 3 to 4 recommendations (never 5). Return 3 to 5 action items (cap 5), prefer fewer words over more.
+
+LENGTH (strict): summary exactly one short sentence, max about 25 words. Each why: one short sentence only. Each how: max two short sentences OR one line with steps 1. and 2. only. Each expected_outcome: one short sentence, max about 15 words. Recommendation titles: one line under 12 words, punchy. Action item titles: one line under 12 words. Action item description: omit when possible; if needed max one short sentence.
+
+Be extremely brief. Every word must earn its place.
+
+Stick to what the context shows. Do not invent facts about the partner.`;
+
 interface AxisInput {
   key: string;
   name: string;
@@ -31,6 +51,8 @@ interface CoachRequest {
   overall: number;
   axes: AxisInput[];
   focusAxisKey?: string | null; // if set, focus on a specific axis
+  /** PDM free-text instructions for this run only; may be any language; does not replace diagnostics. */
+  sessionContext?: string | null;
   model?: string;
 }
 
@@ -46,10 +68,6 @@ serve(async (req) => {
       ? body.axes.find((a) => a.key === body.focusAxisKey)
       : null;
 
-    const system = `You are a senior B2B partnership operating coach inside the Alliara platform.
-You advise Partner Development Managers (PDMs) on how to develop channel maturity with a specific partner across 8 dimensions (keys: strategy, offer, recruit, enable, cosell, operate, growth, success — see product methodology for what each covers).
-You write directly to the PDM. Be concrete, specific to this partner, and prescriptive. No fluff. No generic advice.`;
-
     const userPrompt = focus
       ? buildFocusPrompt(body, focus)
       : buildOverallPrompt(body);
@@ -58,26 +76,45 @@ You write directly to the PDM. Be concrete, specific to this partner, and prescr
       type: "function",
       function: {
         name: "deliver_recommendations",
-        description: "Return prescriptive recommendations and ready-to-use action items for the PDM.",
+        description:
+          "Return recommendations and action items for the PDM. European Portuguese only. Extremely brief strings per property descriptions.",
         parameters: {
           type: "object",
           properties: {
             summary: {
               type: "string",
-              description: "2-3 sentences naming the single most important shift this PDM should drive with this partner right now.",
+              description:
+                "European Portuguese. One sentence only, max ~25 words. Main shift for this partner now.",
             },
             recommendations: {
               type: "array",
               minItems: 3,
-              maxItems: 5,
+              maxItems: 4,
               items: {
                 type: "object",
                 properties: {
-                  axis_key: { type: "string", description: "Dimension key the recommendation addresses (strategy, offer, recruit, enable, cosell, operate, growth, success)." },
-                  title: { type: "string", description: "Sharp, action-oriented headline." },
-                  why: { type: "string", description: "Why this matters specifically for this partner given their score and context." },
-                  how: { type: "string", description: "Concrete step-by-step the PDM takes in the next 2-4 weeks." },
-                  expected_outcome: { type: "string", description: "What changes if this is executed well." },
+                  axis_key: {
+                    type: "string",
+                    description:
+                      "One of: strategy, offer, recruit, enable, cosell, operate, growth, success. English key only.",
+                  },
+                  title: {
+                    type: "string",
+                    description: "European Portuguese. One line, under ~12 words, action-oriented.",
+                  },
+                  why: {
+                    type: "string",
+                    description: "European Portuguese. One short sentence only. Grounded in scores/context.",
+                  },
+                  how: {
+                    type: "string",
+                    description:
+                      "European Portuguese. Max two short sentences OR one line with 1. and 2. only. Next weeks.",
+                  },
+                  expected_outcome: {
+                    type: "string",
+                    description: "European Portuguese. One short sentence, max ~15 words.",
+                  },
                   priority: { type: "string", enum: ["low", "medium", "high"] },
                   target_level: { type: "integer", minimum: 1, maximum: 5 },
                 },
@@ -88,14 +125,18 @@ You write directly to the PDM. Be concrete, specific to this partner, and prescr
             action_items: {
               type: "array",
               minItems: 3,
-              maxItems: 8,
-              description: "Ready-to-add tasks for the partner action plan.",
+              maxItems: 5,
+              description:
+                "European Portuguese. Three to five short tasks; prefer 3 or 4. Very tight wording.",
               items: {
                 type: "object",
                 properties: {
-                  axis_key: { type: "string" },
-                  title: { type: "string" },
-                  description: { type: "string" },
+                  axis_key: { type: "string", description: "strategy, offer, recruit, enable, cosell, operate, growth, or success." },
+                  title: { type: "string", description: "European Portuguese. One line, under ~12 words." },
+                  description: {
+                    type: "string",
+                    description: "European Portuguese. Omit if title suffices; else one short sentence only.",
+                  },
                   priority: { type: "string", enum: ["low", "medium", "high"] },
                   target_level: { type: "integer", minimum: 1, maximum: 5 },
                 },
@@ -121,7 +162,7 @@ You write directly to the PDM. Be concrete, specific to this partner, and prescr
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: COACH_SYSTEM },
           { role: "user", content: userPrompt },
         ],
         tools: [tool],
@@ -166,47 +207,71 @@ function json(body: unknown, status: number) {
 
 function buildOverallPrompt(body: CoachRequest): string {
   const lines: string[] = [];
-  lines.push(`PARTNER:`);
-  lines.push(`- Name: ${body.partner.name}`);
-  if (body.partner.company) lines.push(`- Company: ${body.partner.company}`);
-  if (body.partner.segment) lines.push(`- Segment: ${body.partner.segment}`);
-  if (body.partner.tier) lines.push(`- Tier: ${body.partner.tier}`);
-  if (body.partner.status) lines.push(`- Status: ${body.partner.status}`);
-  if (body.partner.notes) lines.push(`- PDM notes: ${body.partner.notes}`);
-  lines.push(``);
-  lines.push(`OVERALL CHANNEL MATURITY: ${body.overall.toFixed(1)} / 5.0`);
-  lines.push(``);
-  lines.push(`DIMENSION SCORES (1=reactive, 5=compounding):`);
+  lines.push("CONTEXT (for reading only; your tool output is entirely in European Portuguese):");
+  lines.push("");
+  lines.push("PARTNER:");
+  lines.push(`Name: ${body.partner.name}`);
+  if (body.partner.company) lines.push(`Company: ${body.partner.company}`);
+  if (body.partner.segment) lines.push(`Segment: ${body.partner.segment}`);
+  if (body.partner.tier) lines.push(`Tier: ${body.partner.tier}`);
+  if (body.partner.status) lines.push(`Status: ${body.partner.status}`);
+  if (body.partner.notes) lines.push(`PDM notes: ${body.partner.notes}`);
+  lines.push("");
+  lines.push(`Overall channel maturity score: ${body.overall.toFixed(1)} / 5.0`);
+  lines.push("");
+  lines.push("Dimension scores (1 reactive, 5 compounding). Keys stay English:");
   for (const a of body.axes) {
-    lines.push(`- ${a.name} (${a.key}): ${a.score.toFixed(1)} → level ${a.level}`);
-    lines.push(`  · mental model: ${a.mentalModel}`);
-    if (a.nextLevelStep) lines.push(`  · canonical next step at this level: ${a.nextLevelStep}`);
+    lines.push(`${a.key}: ${a.name} score ${a.score.toFixed(1)}, level ${a.level}`);
+    lines.push(`  Mental model: ${a.mentalModel}`);
+    if (a.nextLevelStep) lines.push(`  Suggested next step at this level: ${a.nextLevelStep}`);
   }
-  lines.push(``);
-  lines.push(`TASK:`);
-  lines.push(`Identify the 3-5 highest-leverage moves this PDM should make in the next 30-60 days to strengthen this channel relationship. Prioritize the lowest-scoring dimensions that unlock the most pipeline. Each recommendation must be concrete to this partner — never generic.`);
+  const extra = body.sessionContext?.trim();
+  if (extra) {
+    lines.push("");
+    lines.push("PDM instructions for this run only (may be in any language; use to tune emphasis, never to invent facts):");
+    lines.push(extra);
+  }
+  lines.push("");
+  lines.push("TASK:");
+  lines.push(
+    extra
+      ? "Be extremely brief. Suggest 3 to 4 high impact recommendations only, plus 3 to 5 very short action items (cap 5). One sentence summary max ~25 words. Each recommendation: tight why, how with at most two steps, short outcome. Prioritise lower scores that unlock pipeline or trust. Reflect PDM run instructions when they do not conflict with data. Output JSON entirely in European Portuguese, friendly, no OCTA, no em dash, no hyphen bullets in prose. axis_key stays English as listed."
+      : "Be extremely brief. Suggest 3 to 4 high impact recommendations only, plus 3 to 5 very short action items (cap 5). One sentence summary max ~25 words. Each recommendation: tight why, how with at most two steps, short outcome. Prioritise lower scores that unlock pipeline or trust. Output JSON entirely in European Portuguese, friendly, no OCTA, no em dash, no hyphen bullets in prose. axis_key stays English as listed.",
+  );
   return lines.join("\n");
 }
 
 function buildFocusPrompt(body: CoachRequest, focus: AxisInput): string {
   const lines: string[] = [];
-  lines.push(`PARTNER: ${body.partner.name}${body.partner.company ? ` (${body.partner.company})` : ""}`);
-  if (body.partner.tier) lines.push(`Tier: ${body.partner.tier} · Status: ${body.partner.status ?? "n/a"}`);
+  lines.push("CONTEXT (for reading only; your tool output is entirely in European Portuguese):");
+  lines.push("");
+  lines.push(`Partner: ${body.partner.name}${body.partner.company ? `, ${body.partner.company}` : ""}`);
+  if (body.partner.tier) lines.push(`Tier: ${body.partner.tier}, status: ${body.partner.status ?? "n/a"}`);
   if (body.partner.notes) lines.push(`PDM notes: ${body.partner.notes}`);
-  lines.push(``);
-  lines.push(`FOCUS DIMENSION: ${focus.name} (${focus.key})`);
-  lines.push(`Current score: ${focus.score.toFixed(1)} → level ${focus.level} / 5`);
+  lines.push("");
+  lines.push(`Focus dimension key: ${focus.key} (${focus.name})`);
+  lines.push(`Score ${focus.score.toFixed(1)}, level ${focus.level} / 5`);
   lines.push(`Mental model: ${focus.mentalModel}`);
   lines.push(`Common mistakes to avoid: ${focus.commonMistakes.join("; ")}`);
-  lines.push(`Available levers: ${focus.levers.join("; ")}`);
-  if (focus.nextLevelStep) lines.push(`Canonical next step: ${focus.nextLevelStep}`);
-  lines.push(``);
-  lines.push(`OTHER DIMENSIONS (for context):`);
+  lines.push(`Levers: ${focus.levers.join("; ")}`);
+  if (focus.nextLevelStep) lines.push(`Suggested next step: ${focus.nextLevelStep}`);
+  lines.push("");
+  lines.push("Other dimensions (context only):");
   for (const a of body.axes.filter((x) => x.key !== focus.key)) {
-    lines.push(`- ${a.name}: ${a.score.toFixed(1)}`);
+    lines.push(`${a.key} ${a.name}: ${a.score.toFixed(1)}`);
   }
-  lines.push(``);
-  lines.push(`TASK:`);
-  lines.push(`Generate 3-5 prescriptive recommendations focused on the ${focus.name} dimension specifically for this partner. Translate every recommendation into ready-to-use action items the PDM can paste straight into the partner action plan.`);
+  const extraFocus = body.sessionContext?.trim();
+  if (extraFocus) {
+    lines.push("");
+    lines.push("PDM instructions for this run only (may be in any language; use to tune emphasis, never to invent facts):");
+    lines.push(extraFocus);
+  }
+  lines.push("");
+  lines.push("TASK:");
+  lines.push(
+    extraFocus
+      ? `Be extremely brief. Give 3 to 4 concrete recommendations centred on dimension ${focus.key} only, plus 3 to 5 very short action items (cap 5). One sentence summary max ~25 words. Tight fields per system LENGTH. Reflect PDM run instructions when they do not conflict with data. All tool output in European Portuguese, friendly, no OCTA, no em dash, no hyphen bullets in prose. axis_key values remain English.`
+      : `Be extremely brief. Give 3 to 4 concrete recommendations centred on dimension ${focus.key} only, plus 3 to 5 very short action items (cap 5). One sentence summary max ~25 words. Tight fields per system LENGTH. All tool output in European Portuguese, friendly, no OCTA, no em dash, no hyphen bullets in prose. axis_key values remain English.`,
+  );
   return lines.join("\n");
 }

@@ -8,6 +8,22 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
+const INTEL_SYSTEM = `You are a B2B partnership intelligence analyst inside the Alliara product.
+
+LANGUAGE: Every string you output in the tool JSON MUST be in European Portuguese (PT-PT).
+
+TONE: Friendly, clear, efficient. You help a Partner Development Manager see what matters without fluff.
+
+BRANDING: Never write OCTA, OCTO, OCTA OS, or similar. Say Alliara, portal, programa de parceiros, or maturidade do canal when needed.
+
+FORMATTING IN PROSE FIELDS: Do not use the em dash character. Do not use markdown. Do not start lines with a hyphen as a bullet in user-facing text. If you need steps, use "1. 2. 3." on one line or short sentences.
+
+TECHNICAL KEYS: axis_key values must stay exactly: strategy, offer, recruit, enable, cosell, operate, growth, success. Lowercase English only.
+
+EVIDENCE: Be specific to THIS partner. Name the source briefly (filename, metrics, notes). If something is not in the inputs, say so plainly in observations and lower confidence. Do not invent numbers or commitments.
+
+LENGTH: executive_summary 2 to 4 short sentences total. Each observations field: 1 to 2 short sentences, or one line stating no signal. red_flags evidence: one tight sentence tied to the source. Action titles: one line. Action descriptions: max 2 short sentences.`;
+
 interface DocInput {
   filename: string;
   kind: string;
@@ -54,30 +70,34 @@ serve(async (req) => {
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const system = `You are a senior B2B partnership intelligence analyst inside the Alliara platform.
-You read raw inputs about ONE specific partner — uploaded documents (business plans, sales data, decks, notes), quick metrics, and free-form notes — and turn them into structured intelligence for the Partner Development Manager (PDM).
-You map every signal to one of the 8 channel-maturity dimensions (stable keys: strategy, offer, recruit, enable, cosell, operate, growth, success).
-Be specific to THIS relationship. Cite the source of each signal (filename or "metrics" or "notes"). Never invent data — if something isn't in the inputs, say so.`;
-
     const tool = {
       type: "function",
       function: {
         name: "deliver_partner_intel",
-        description: "Return structured intelligence about this partner.",
+        description:
+          "Return structured partner intelligence. All prose strings in European Portuguese, brief and friendly per system rules.",
         parameters: {
           type: "object",
           properties: {
             executive_summary: {
               type: "string",
-              description: "3–5 sentences summarizing the state of this partnership based on the inputs.",
+              description:
+                "European Portuguese. Total of 2 to 4 short sentences on partnership state from the inputs only.",
             },
             red_flags: {
               type: "array",
               items: {
                 type: "object",
                 properties: {
-                  title: { type: "string" },
-                  evidence: { type: "string", description: "What in the inputs triggered this red flag." },
+                  title: {
+                    type: "string",
+                    description: "European Portuguese. One short line naming the risk.",
+                  },
+                  evidence: {
+                    type: "string",
+                    description:
+                      "European Portuguese. One concise sentence stating what in the inputs triggered this (cite source name: file, metrics, notes).",
+                  },
                   severity: { type: "string", enum: ["low", "medium", "high"] },
                 },
                 required: ["title", "evidence", "severity"],
@@ -88,13 +108,18 @@ Be specific to THIS relationship. Cite the source of each signal (filename or "m
               type: "array",
               minItems: 8,
               maxItems: 8,
-              description: "One entry per dimension. Use these axis keys exactly: strategy, offer, recruit, enable, cosell, operate, growth, success.",
+              description:
+                "Exactly one row per dimension. Keys: strategy, offer, recruit, enable, cosell, operate, growth, success.",
               items: {
                 type: "object",
                 properties: {
                   axis_key: { type: "string", enum: ["strategy", "offer", "recruit", "enable", "cosell", "operate", "growth", "success"] },
-                  observations: { type: "string", description: "Plain-English summary of what the inputs reveal about this axis for this partner." },
-                  suggested_level: { type: "integer", minimum: 1, maximum: 5, description: "Best-guess maturity level 1..5 based on inputs." },
+                  observations: {
+                    type: "string",
+                    description:
+                      "European Portuguese. 1 to 2 short sentences. If no evidence, say so and keep confidence low.",
+                  },
+                  suggested_level: { type: "integer", minimum: 1, maximum: 5, description: "Best guess 1 to 5 from inputs." },
                   confidence: { type: "string", enum: ["low", "medium", "high"] },
                 },
                 required: ["axis_key", "observations", "suggested_level", "confidence"],
@@ -105,13 +130,14 @@ Be specific to THIS relationship. Cite the source of each signal (filename or "m
               type: "array",
               minItems: 3,
               maxItems: 6,
-              description: "Ready-to-add tasks for the partner action plan, derived from the inputs.",
+              description:
+                "European Portuguese tasks grounded in the inputs. Same style as coach action items.",
               items: {
                 type: "object",
                 properties: {
                   axis_key: { type: "string", enum: ["strategy", "offer", "recruit", "enable", "cosell", "operate", "growth", "success"] },
-                  title: { type: "string" },
-                  description: { type: "string" },
+                  title: { type: "string", description: "European Portuguese. One line." },
+                  description: { type: "string", description: "European Portuguese. Max 2 short sentences." },
                   priority: { type: "string", enum: ["low", "medium", "high"] },
                   target_level: { type: "integer", minimum: 1, maximum: 5 },
                 },
@@ -135,7 +161,7 @@ Be specific to THIS relationship. Cite the source of each signal (filename or "m
       body: JSON.stringify({
         model,
         messages: [
-          { role: "system", content: system },
+          { role: "system", content: INTEL_SYSTEM },
           { role: "user", content: userPrompt },
         ],
         tools: [tool],
@@ -175,20 +201,22 @@ function json(body: unknown, status: number) {
 
 function buildPrompt(body: IntelRequest): string {
   const lines: string[] = [];
-  lines.push("PARTNER:");
-  lines.push(`- Name: ${body.partner.name}`);
-  if (body.partner.company) lines.push(`- Company: ${body.partner.company}`);
-  if (body.partner.segment) lines.push(`- Segment: ${body.partner.segment}`);
-  if (body.partner.tier) lines.push(`- Tier: ${body.partner.tier}`);
-  if (body.partner.status) lines.push(`- Status: ${body.partner.status}`);
-  if (body.partner.notes) lines.push(`- PDM notes on file: ${body.partner.notes}`);
+  lines.push("CONTEXT (read only; your tool output is entirely in European Portuguese):");
   lines.push("");
-  lines.push("CURRENT DIMENSION SCORES (0 = not assessed):");
-  for (const a of body.axes) lines.push(`- ${a.name} (${a.key}): ${a.current_score.toFixed(1)} / 5`);
+  lines.push("PARTNER:");
+  lines.push(`Name: ${body.partner.name}`);
+  if (body.partner.company) lines.push(`Company: ${body.partner.company}`);
+  if (body.partner.segment) lines.push(`Segment: ${body.partner.segment}`);
+  if (body.partner.tier) lines.push(`Tier: ${body.partner.tier}`);
+  if (body.partner.status) lines.push(`Status: ${body.partner.status}`);
+  if (body.partner.notes) lines.push(`PDM notes on file: ${body.partner.notes}`);
+  lines.push("");
+  lines.push("Current dimension scores (0 means not assessed). Keys in English:");
+  for (const a of body.axes) lines.push(`${a.key} ${a.name}: ${a.current_score.toFixed(1)} / 5`);
   lines.push("");
 
   if (body.metrics.length) {
-    lines.push("QUICK METRICS PROVIDED BY PDM:");
+    lines.push("Quick metrics from PDM:");
     for (const m of body.metrics) {
       const parts: string[] = [];
       if (m.period) parts.push(`period=${m.period}`);
@@ -197,15 +225,15 @@ function buildPrompt(body: IntelRequest): string {
       if (m.deals_won != null) parts.push(`deals_won=${m.deals_won}`);
       if (m.trained_people != null) parts.push(`trained_people=${m.trained_people}`);
       if (m.notes) parts.push(`notes="${m.notes}"`);
-      lines.push(`- ${parts.join(" · ")}`);
+      lines.push(parts.join(" · "));
     }
     lines.push("");
   }
 
   if (body.documents.length) {
-    lines.push("DOCUMENTS UPLOADED FOR THIS PARTNER:");
+    lines.push("Documents uploaded for this partner:");
     for (const d of body.documents) {
-      lines.push(`- [${d.kind}] ${d.filename}${d.description ? ` — ${d.description}` : ""}`);
+      lines.push(`[${d.kind}] ${d.filename}${d.description ? ` | ${d.description}` : ""}`);
       if (d.excerpt) {
         const trimmed = d.excerpt.length > 6000 ? d.excerpt.slice(0, 6000) + "…[truncated]" : d.excerpt;
         lines.push(`  Content excerpt:\n  """\n  ${trimmed.replace(/\n/g, "\n  ")}\n  """`);
@@ -217,12 +245,14 @@ function buildPrompt(body: IntelRequest): string {
   }
 
   if (body.freeText) {
-    lines.push("ADDITIONAL FREE-TEXT CONTEXT FROM PDM:");
+    lines.push("Additional free-text from PDM:");
     lines.push(body.freeText);
     lines.push("");
   }
 
   lines.push("TASK:");
-  lines.push("Analyze the inputs and return: (1) an executive summary, (2) red flags with evidence, (3) signals + suggested maturity level for each of the 8 dimensions (always include all 8 — if there is no evidence, set confidence to 'low' and say so in observations), (4) 3–6 ready-to-paste action items for the partner plan. Be ruthlessly specific to this partner. Cite which document or metric supports each signal.");
+  lines.push(
+    "Produce via the tool: (1) executive_summary 2 to 4 short sentences; (2) red_flags with tight evidence citing filename, metrics, or notes; (3) signals_by_axis with all eight keys, low confidence and honest text when there is no proof; (4) three to six suggested_actions. Stay specific to this partner. All user-facing strings in the JSON must be European Portuguese, warm and brief. No OCTA branding. No em dash. No prose lines starting with hyphen bullets. Keep source citations short.",
+  );
   return lines.join("\n");
 }

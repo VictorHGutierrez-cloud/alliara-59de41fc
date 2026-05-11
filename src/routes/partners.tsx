@@ -10,7 +10,7 @@ import {
 } from "../lib/partners-store";
 import { useLeads } from "../lib/leads-store";
 import { toast } from "sonner";
-import { AlertTriangle, CalendarClock, ChevronDown, ChevronRight, ChevronUp, HeartHandshake, Plus } from "lucide-react";
+import { ChevronDown, ChevronRight, ChevronUp, Plus } from "lucide-react";
 import { PARTNER_TYPES, type PartnerType, type SortKey } from "@/lib/partner-types";
 import { PartnerFilterBar } from "@/components/PartnerFilterBar";
 import { useOwnerScope } from "@/lib/use-owner-scope";
@@ -38,6 +38,8 @@ import { MoveCompleteCelebration } from "@/components/ui/move-complete-celebrati
 import { actionRowToAgentTask } from "@/lib/agent-task-mapper";
 
 const PAGE_SIZES = [10, 20, 50, 100, 200] as const;
+/** Cap for the portfolio “Open tasks” list at the top (same roster scope as the grid). */
+const PORTFOLIO_OPEN_TASKS_LIST_CAP = 14;
 
 export const Route = createFileRoute("/partners")({
   head: () => ({ meta: [{ title: COPY.portfolio.pageMetaTitle }] }),
@@ -336,20 +338,15 @@ function PartnersPage() {
     return m;
   }, [firstOpenActionByPartner, ownerIdByPartner, user?.id]);
 
-  const SIDEBAR_OPEN_TASKS_CAP = 25;
-  const sidebarPortfolioTasks = useMemo(() => {
-    const slice = sortedOpenActions.slice(0, SIDEBAR_OPEN_TASKS_CAP);
-    return slice.map((a) => {
-      const it = scoped.find((p) => p.partner.id === a.partner_id);
-      const ownerId = ownerIdByPartner.get(a.partner_id);
-      return actionRowToAgentTask(a, {
-        includePartnerContext: true,
-        partnerName: a.partner_name,
-        partnerCompany: it?.partner.company ?? null,
-        canMutate: ownerId === user?.id,
-      });
-    });
-  }, [sortedOpenActions, scoped, ownerIdByPartner, user?.id]);
+  const portfolioOpenTasksForPlan = useMemo(
+    () =>
+      sortedOpenActions.map((a) =>
+        actionRowToAgentTask(a, {
+          canMutate: ownerIdByPartner.get(a.partner_id) === user?.id,
+        }),
+      ),
+    [sortedOpenActions, ownerIdByPartner, user?.id],
+  );
 
   const nextActionByPartner = useMemo(() => {
     const map = new Map<string, string>();
@@ -439,19 +436,6 @@ function PartnersPage() {
   const overdueActions = openActions.filter((a) => isOverdue(a.due_date));
   const highPriorityOpen = openActions.filter((a) => a.priority === "high");
 
-  const stalePartnersCount = useMemo(
-    () =>
-      scoped.filter((it) => {
-        const lastTouched = it.latest?.created_at ?? it.partner.created_at;
-        return daysAgo(lastTouched) >= 14;
-      }).length,
-    [scoped],
-  );
-  const undiagnosedCount = useMemo(
-    () => scoped.filter((it) => !it.latest || Number(it.latest.overall) <= 0).length,
-    [scoped],
-  );
-
   const briefing = buildPortfolioBriefingText({
     atRisk: statusCounts.at_risk,
     overdue: overdueActions.length,
@@ -509,8 +493,7 @@ function PartnersPage() {
               <button
                 type="button"
                 onClick={() => {
-                  const queue = document.getElementById("today-queue");
-                  queue?.scrollIntoView({ behavior: "smooth", block: "start" });
+                  document.getElementById("portfolio-roster")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
                 className="btn-candy min-h-10 px-4 text-sm sm:min-h-11 sm:px-5"
               >
@@ -575,38 +558,34 @@ function PartnersPage() {
         )}
       </section>
 
-      <section className="grid gap-3 sm:grid-cols-3">
-        <FocusCard
-          title="At risk"
-          value={statusCounts.at_risk}
-          hint="Partners that need direct follow-up this week."
-          icon={AlertTriangle}
-          tone="danger"
-          onClick={() => setStatusFilter("at_risk")}
-        />
-        <FocusCard
-          title="Overdue moves"
-          value={overdueActions.length}
-          hint="Commitments that slipped past due date."
-          icon={CalendarClock}
-          tone="warning"
-          onClick={() => {
-            const queue = document.getElementById("today-queue");
-            queue?.scrollIntoView({ behavior: "smooth", block: "start" });
-          }}
-        />
-        <FocusCard
-          title="No update in 14 days"
-          value={stalePartnersCount}
-          hint="Relationships with stale signals or no recent diagnostic."
-          icon={HeartHandshake}
-          tone="info"
-          onClick={() => setStatusFilter("all")}
-        />
+      <section
+        id="portfolio-open-tasks"
+        aria-label={COPY.portfolio.openTasksEyebrow}
+        className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5"
+      >
+        <p className="page-eyebrow">{COPY.portfolio.openTasksEyebrow}</p>
+        {portfolioOpenTasksForPlan.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">{COPY.portfolio.openTasksEmpty}</p>
+        ) : (
+          <>
+            <div className="mt-3 min-w-0">
+              <AgentPlan
+                tasks={portfolioOpenTasksForPlan.slice(0, PORTFOLIO_OPEN_TASKS_LIST_CAP)}
+                isOwner={false}
+                onCycleStatus={(id) => void handlePortfolioCycleStatus(id)}
+                onDelete={(id) => void handlePortfolioDelete(id)}
+              />
+            </div>
+            {sortedOpenActions.length > PORTFOLIO_OPEN_TASKS_LIST_CAP ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                {COPY.portfolio.openTasksShowingCap({ n: PORTFOLIO_OPEN_TASKS_LIST_CAP })}
+              </p>
+            ) : null}
+          </>
+        )}
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[minmax(0,7fr)_minmax(0,3fr)]">
-        <div className="min-w-0 space-y-4">
+      <section id="portfolio-roster" className="min-w-0 space-y-4">
           <div className="rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
@@ -793,64 +772,6 @@ function PartnersPage() {
               </div>
             </>
           )}
-        </div>
-
-        <aside id="today-queue" className="min-w-0">
-          <div className="sticky top-24 space-y-4 rounded-2xl border border-border/60 bg-card p-4 sm:p-5">
-            <div className="text-center">
-              <p className="page-eyebrow">Today&apos;s queue</p>
-              <h2 className="mt-1 section-title">What should happen next?</h2>
-            </div>
-
-            <button
-              onClick={() => setStatusFilter("at_risk")}
-              className="flex w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-3 text-center min-h-11"
-            >
-              <span className="text-sm text-foreground">Partners needing attention</span>
-              <span className="text-lg font-semibold tabular-nums text-destructive">{statusCounts.at_risk}</span>
-            </button>
-
-            <button
-              onClick={() => setStatusFilter("all")}
-              className="flex w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-warning/30 bg-warning/10 px-3 py-3 text-center min-h-11"
-            >
-              <span className="text-sm text-foreground">Missing diagnostics</span>
-              <span className="text-lg font-semibold tabular-nums text-warning">{undiagnosedCount}</span>
-            </button>
-
-            <button
-              onClick={() => {
-                const queue = document.getElementById("today-queue");
-                queue?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-              className="flex w-full flex-col items-center justify-center gap-0.5 rounded-xl border border-border bg-surface px-3 py-3 text-center min-h-11"
-            >
-              <span className="text-sm text-foreground">Overdue moves</span>
-              <span className="text-lg font-semibold tabular-nums text-foreground">{overdueActions.length}</span>
-            </button>
-
-            <div className="border-t border-border/60 pt-4">
-              <p className="text-center page-eyebrow">{COPY.portfolio.openTasksEyebrow}</p>
-              {sidebarPortfolioTasks.length === 0 ? (
-                <p className="mt-2 text-center text-xs text-muted-foreground">{COPY.portfolio.openTasksEmpty}</p>
-              ) : (
-                <div className="mt-3 max-h-[min(28rem,55vh)] overflow-y-auto pr-0.5">
-                  <AgentPlan
-                    tasks={sidebarPortfolioTasks}
-                    isOwner={false}
-                    onCycleStatus={(id) => void handlePortfolioCycleStatus(id)}
-                    onDelete={(id) => void handlePortfolioDelete(id)}
-                  />
-                  {sortedOpenActions.length > SIDEBAR_OPEN_TASKS_CAP ? (
-                    <p className="mt-3 text-center text-[10px] text-muted-foreground">
-                      {COPY.portfolio.openTasksShowingCap({ n: SIDEBAR_OPEN_TASKS_CAP })}
-                    </p>
-                  ) : null}
-                </div>
-              )}
-            </div>
-          </div>
-        </aside>
       </section>
 
       {portfolio.isLeadership && scopeFilter === "all" && (
@@ -1068,47 +989,6 @@ function StatusChip({
   );
 }
 
-function FocusCard({
-  title,
-  value,
-  hint,
-  icon: Icon,
-  tone,
-  onClick,
-}: {
-  title: string;
-  value: number;
-  hint: string;
-  icon: React.ComponentType<{ className?: string }>;
-  tone: "danger" | "warning" | "info";
-  onClick: () => void;
-}) {
-  const toneClass =
-    tone === "danger"
-      ? "border-destructive/35 bg-destructive/10"
-      : tone === "warning"
-        ? "border-warning/35 bg-warning/10"
-        : "border-primary/30 bg-primary/10";
-  const iconClass =
-    tone === "danger"
-      ? "text-destructive"
-      : tone === "warning"
-        ? "text-warning"
-        : "text-primary";
-
-  return (
-    <button
-      onClick={onClick}
-      className={`flex w-full flex-col items-center rounded-xl border p-5 text-center transition hover:bg-surface-2 ${toneClass}`}
-    >
-      <Icon className={`h-5 w-5 shrink-0 ${iconClass}`} />
-      <p className="mt-3 text-[11px] font-medium text-foreground">{title}</p>
-      <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground tabular-nums">{value}</p>
-      <p className="mt-2 max-w-[16rem] text-xs leading-snug text-muted-foreground">{hint}</p>
-    </button>
-  );
-}
-
 function MobilePartnerCard({
   item,
   ownerName,
@@ -1296,12 +1176,15 @@ function PartnerRosterTable({
       ),
       width: "minmax(240px,1.35fr)",
       align: "center",
+      /** Top-align so expanding a task card does not vertically center a tall cell awkwardly */
+      className:
+        "items-start self-stretch py-3 !overflow-visible [&>div]:!overflow-visible [&>div]:!whitespace-normal [&>div]:w-full [&>div]:max-w-full",
       cell: (it) => {
         const task = firstPortfolioTaskByPartner.get(it.partner.id);
         if (task) {
           return (
             <div
-              className="flex w-full min-w-0 max-w-[20rem] justify-center mx-auto"
+              className="flex w-full min-w-0 justify-center sm:justify-start"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             >
@@ -1309,6 +1192,7 @@ function PartnerRosterTable({
                 task={task}
                 isOwner={false}
                 compact
+                className="w-full max-w-md"
                 onCycleStatus={onPortfolioCycle}
                 onDelete={onPortfolioDelete}
               />

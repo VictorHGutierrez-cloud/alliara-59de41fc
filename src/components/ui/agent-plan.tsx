@@ -104,6 +104,8 @@ export interface AgentTaskCardProps {
   isOwner: boolean;
   onCycleStatus?: (taskId: string) => void;
   onDelete?: (taskId: string) => void;
+  /** When set, card is a Kept-style suggestion: static todo icon and primary CTA instead of status cycle and plan chrome. */
+  suggestionAction?: { label: string; onClick: () => void };
   /** Tighter layout for table cells and mobile cards */
   compact?: boolean;
   className?: string;
@@ -115,6 +117,7 @@ export function AgentTaskCard({
   isOwner,
   onCycleStatus,
   onDelete,
+  suggestionAction,
   compact = false,
   className = "",
 }: AgentTaskCardProps) {
@@ -125,21 +128,28 @@ export function AgentTaskCard({
   const pad = compact ? "p-2" : "p-3";
   const titleCls = compact ? "text-xs font-medium" : "text-sm font-medium";
   const iconSz = compact ? "h-4 w-4" : "h-5 w-5";
+  const isSuggestion = !!suggestionAction;
 
   return (
     <div className={`rounded-xl bg-card border border-border/60 ${className}`}>
       <div className={`flex items-start gap-2 ${pad}`}>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (canEdit) onCycleStatus?.(task.id);
-          }}
-          className={`mt-0.5 shrink-0 ${!canEdit ? "cursor-default opacity-60" : ""}`}
-          aria-label="Cycle status"
-        >
-          <StatusIcon status={task.status} className={iconSz} />
-        </button>
+        {isSuggestion ? (
+          <span className="mt-0.5 shrink-0" aria-hidden>
+            <StatusIcon status={task.status} className={iconSz} />
+          </span>
+        ) : (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (canEdit) onCycleStatus?.(task.id);
+            }}
+            className={`mt-0.5 shrink-0 ${!canEdit ? "cursor-default opacity-60" : ""}`}
+            aria-label="Cycle status"
+          >
+            <StatusIcon status={task.status} className={iconSz} />
+          </button>
+        )}
 
         <div className="flex-1 min-w-0">
           {(task.partnerName && task.partnerId) && (
@@ -157,7 +167,10 @@ export function AgentTaskCard({
           )}
           <button
             type="button"
-            onClick={() => hasDetails && setIsOpen((o) => !o)}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (hasDetails) setIsOpen((o) => !o);
+            }}
             className="w-full text-left"
           >
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -190,20 +203,35 @@ export function AgentTaskCard({
         </div>
 
         <div className="flex flex-col items-end gap-1 shrink-0">
-          <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground rounded-full border border-border/60 px-2 py-0.5">
-            {statusLabel(task.status)}
-          </span>
-          {canEdit && onDelete && (
+          {suggestionAction ? (
             <button
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                onDelete(task.id);
+                suggestionAction.onClick();
               }}
-              className="text-[11px] text-destructive hover:underline"
+              className="shrink-0 text-xs rounded-md bg-primary px-2.5 py-1 font-semibold text-primary-foreground hover:opacity-90"
             >
-              Delete
+              {suggestionAction.label}
             </button>
+          ) : (
+            <>
+              <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground rounded-full border border-border/60 px-2 py-0.5">
+                {statusLabel(task.status)}
+              </span>
+              {canEdit && onDelete && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(task.id);
+                  }}
+                  className="text-[11px] text-destructive hover:underline"
+                >
+                  Delete
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

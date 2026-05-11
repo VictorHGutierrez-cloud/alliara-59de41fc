@@ -8,6 +8,9 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { KeptPromptBar, resolveKeptPromptVariant } from "@/components/kept/KeptPromptBar";
+import { AgentTaskCard, type AgentTask } from "@/components/ui/agent-plan";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/partner/$partnerId/coach")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -87,6 +90,7 @@ function PartnerCoach() {
   const { user } = useAuth();
   const data = usePartner(partnerId);
   const [focus, setFocus] = useState<string>("");
+  const [sessionContext, setSessionContext] = useState("");
   const [busy, setBusy] = useState(false);
 
   const isOwner = !!user && data.partner?.owner_id === user.id;
@@ -129,6 +133,7 @@ function PartnerCoach() {
           overall: Number(data.latest!.overall),
           axes: axesPayload,
           focusAxisKey: focus || null,
+          sessionContext: sessionContext.trim() || null,
         },
       });
       if (error) throw error;
@@ -176,31 +181,30 @@ function PartnerCoach() {
             </div>
           </div>
           {isOwner && (
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
-              <select
-                value={focus}
-                onChange={(e) => setFocus(e.target.value)}
-                className="input w-auto"
-              >
-                <option value="">Overall plan</option>
-                {AXES.map((a) => (
-                  <option key={a.key} value={a.key}>
-                    Focus: {a.name}
-                  </option>
-                ))}
-              </select>
-              <button
-                onClick={generate}
-                disabled={busy || !hasDiagnostic}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
-              >
-                {busy
-                  ? COPY.kept.busyLabel
-                  : data.recs.length
-                    ? COPY.kept.regenerateLabel
-                    : COPY.kept.generateLabel}
-              </button>
-            </div>
+            <KeptPromptBar
+              variant={resolveKeptPromptVariant()}
+              focus={focus}
+              onFocusChange={setFocus}
+              context={sessionContext}
+              onContextChange={setSessionContext}
+              onGenerate={() => void generate()}
+              busy={busy}
+              hasDiagnostic={hasDiagnostic}
+              isOwner={isOwner}
+              axes={AXES}
+              hasExistingRecs={data.recs.length > 0}
+              labels={{
+                overallOption: COPY.kept.coachOverallPlanOption,
+                focusPrefix: COPY.kept.coachFocusOptionPrefix,
+                contextLabel: COPY.kept.promptContextLabel,
+                contextPlaceholder: COPY.kept.promptContextPlaceholder,
+                toggleContextShow: COPY.kept.promptToggleContextShow,
+                toggleContextHide: COPY.kept.promptToggleContextHide,
+                generate: COPY.kept.generateLabel,
+                regenerate: COPY.kept.regenerateLabel,
+                busy: COPY.kept.busyLabel,
+              }}
+            />
           )}
         </div>
         {!hasDiagnostic && (
@@ -269,18 +273,43 @@ function RecommendationCard({
 }) {
   const c = normalizeCoachContent(rec.content);
   const focusAxis = rec.axis_key ? AXES.find((a) => a.key === rec.axis_key) : null;
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const [recDetailOpen, setRecDetailOpen] = useState<Record<number, boolean>>({});
+  const summaryLong = c.summary.length > 200;
+  const toggleRecDetail = (i: number) => {
+    setRecDetailOpen((prev) => ({ ...prev, [i]: !prev[i] }));
+  };
 
   return (
     <div className="rounded-2xl bg-card border border-border/60 p-6 card-elev">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <div className="font-mono uppercase tracking-widest">
-          {focusAxis ? `Focus: ${focusAxis.name}` : "Overall plan"} ·{" "}
+          {focusAxis
+            ? `${COPY.kept.coachFocusOptionPrefix} ${focusAxis.name}`
+            : COPY.kept.coachOverallPlanOption}{" "}
+          ·{" "}
           {new Date(rec.created_at).toLocaleString()}
         </div>
         {rec.model && <div className="font-mono">{rec.model}</div>}
       </div>
 
-      <p className="mt-3 text-base font-medium">{c.summary}</p>
+      <p
+        className={cn(
+          "mt-3 text-base font-medium",
+          !summaryExpanded && summaryLong && "line-clamp-3",
+        )}
+      >
+        {c.summary}
+      </p>
+      {summaryLong ? (
+        <button
+          type="button"
+          onClick={() => setSummaryExpanded((e) => !e)}
+          className="mt-1.5 text-sm font-medium text-primary hover:underline"
+        >
+          {summaryExpanded ? COPY.kept.summaryCollapseCta : COPY.kept.summaryExpandCta}
+        </button>
+      ) : null}
 
       <div className="mt-5">
         <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
@@ -289,6 +318,7 @@ function RecommendationCard({
         <div className="mt-2 space-y-3">
           {c.recommendations.map((r, i) => {
             const ax = AXES.find((a) => a.key === r.axis_key);
+            const detailsOpen = !!recDetailOpen[i];
             return (
               <div key={i} className="rounded-xl bg-surface/60 border border-border/60 p-4">
                 <div className="flex items-center justify-between flex-wrap gap-2">
@@ -315,16 +345,31 @@ function RecommendationCard({
                   </div>
                 </div>
                 <div className="mt-2 font-semibold text-sm">{r.title}</div>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  <span className="text-foreground/70 font-medium">Why:</span> {r.why}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  <span className="text-foreground/70 font-medium">How:</span> {r.how}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  <span className="text-foreground/70 font-medium">Outcome:</span>{" "}
-                  {r.expected_outcome}
-                </p>
+                <button
+                  type="button"
+                  onClick={() => toggleRecDetail(i)}
+                  className="mt-2 text-xs font-medium text-primary hover:underline"
+                >
+                  {detailsOpen
+                    ? COPY.kept.recommendationDetailCollapseCta
+                    : COPY.kept.recommendationDetailExpandCta}
+                </button>
+                {detailsOpen ? (
+                  <>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      <span className="text-foreground/70 font-medium">{COPY.kept.recommendationWhyLabel}:</span>{" "}
+                      {r.why}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      <span className="text-foreground/70 font-medium">{COPY.kept.recommendationHowLabel}:</span>{" "}
+                      {r.how}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      <span className="text-foreground/70 font-medium">{COPY.kept.recommendationOutcomeLabel}:</span>{" "}
+                      {r.expected_outcome}
+                    </p>
+                  </>
+                ) : null}
               </div>
             );
           })}
@@ -335,50 +380,37 @@ function RecommendationCard({
         <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
           {COPY.kept.sectionMovesEyebrow}
         </h4>
-        <div className="mt-2 grid sm:grid-cols-2 gap-2">
+        <ul className="mt-2 space-y-2 list-none p-0 m-0">
           {c.action_items.map((it, i) => {
-            const ax = AXES.find((a) => a.key === it.axis_key);
+            const task: AgentTask = {
+              id: `kept-suggest-${rec.id}-${i}`,
+              title: it.title,
+              description: it.description,
+              status: "todo",
+              priority: it.priority,
+              axisKey: it.axis_key,
+              targetLevel: it.target_level || null,
+              source: "ai",
+            };
             return (
-              <div
-                key={i}
-                className="rounded-xl border border-border/60 bg-surface/40 p-3 flex items-start justify-between gap-2"
-              >
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    {ax && (
-                      <span
-                        className="text-[10px] font-mono uppercase tracking-widest px-1.5 py-0.5 rounded"
-                        style={{
-                          background: `color-mix(in oklab, var(--${ax.color}) 22%, transparent)`,
-                          color: `var(--${ax.color})`,
-                        }}
-                      >
-                        {ax.letter}
-                      </span>
-                    )}
-                    <span className="text-[10px] font-mono text-muted-foreground">
-                      {it.priority} · L{it.target_level}
-                    </span>
-                  </div>
-                  <div className="mt-1 text-sm font-medium">{it.title}</div>
-                  {it.description && (
-                    <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {it.description}
-                    </div>
-                  )}
-                </div>
-                {isOwner && (
-                  <button
-                    onClick={() => onAddAction(it)}
-                    className="shrink-0 text-xs rounded-md bg-primary px-2.5 py-1 font-semibold text-primary-foreground hover:opacity-90"
-                  >
-                    + Add
-                  </button>
-                )}
-              </div>
+              <li key={task.id}>
+                <AgentTaskCard
+                  task={task}
+                  isOwner={isOwner}
+                  compact
+                  suggestionAction={
+                    isOwner
+                      ? {
+                          label: COPY.kept.addSuggestedTaskCta,
+                          onClick: () => onAddAction(it),
+                        }
+                      : undefined
+                  }
+                />
+              </li>
             );
           })}
-        </div>
+        </ul>
       </div>
     </div>
   );
