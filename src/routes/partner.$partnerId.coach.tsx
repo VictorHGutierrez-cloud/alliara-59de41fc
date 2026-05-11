@@ -46,6 +46,27 @@ interface CoachContent {
   }[];
 }
 
+interface QaContent {
+  mode: "qa";
+  question_restated: string;
+  axis_key: string;
+  short_answer: string;
+  why_it_works: string;
+  next_moves: {
+    title: string;
+    owner_hint: string;
+    when: string;
+    axis_key: string;
+  }[];
+  if_they_say_no: string;
+}
+
+function isQaContent(raw: unknown): raw is QaContent {
+  if (!raw || typeof raw !== "object") return false;
+  const o = raw as Record<string, unknown>;
+  return o.mode === "qa" && typeof o.short_answer === "string" && Array.isArray(o.next_moves);
+}
+
 function normalizeCoachContent(raw: unknown): CoachContent {
   const obj = raw && typeof raw === "object" ? (raw as Record<string, unknown>) : {};
 
@@ -362,6 +383,19 @@ function RecommendationCard({
   onDelete?: () => void;
   deleteBusy?: boolean;
 }) {
+  if (isQaContent(rec.content)) {
+    return (
+      <QaCard
+        rec={rec}
+        content={rec.content}
+        isOwner={isOwner}
+        variant={variant}
+        onAddAction={onAddAction}
+        onDelete={onDelete}
+        deleteBusy={deleteBusy}
+      />
+    );
+  }
   const c = normalizeCoachContent(rec.content);
   const focusAxis = rec.axis_key ? AXES.find((a) => a.key === rec.axis_key) : null;
   const [summaryExpanded, setSummaryExpanded] = useState(false);
