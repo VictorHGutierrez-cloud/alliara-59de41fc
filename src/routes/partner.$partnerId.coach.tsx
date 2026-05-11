@@ -569,3 +569,120 @@ function RecommendationCard({
     </div>
   );
 }
+
+function QaCard({
+  rec,
+  content,
+  isOwner,
+  variant = "default",
+  onAddAction,
+  onDelete,
+  deleteBusy,
+}: {
+  rec: AiRecRow;
+  content: QaContent;
+  isOwner: boolean;
+  variant?: "default" | "archive";
+  onAddAction: (item: CoachContent["action_items"][number]) => void;
+  onDelete?: () => void;
+  deleteBusy?: boolean;
+}) {
+  const ax = AXES.find((a) => a.key === content.axis_key);
+  return (
+    <div
+      className={cn(
+        "rounded-2xl bg-card border border-border/60 card-elev",
+        variant === "archive" ? "p-4" : "p-6",
+      )}
+    >
+      <div
+        className={cn(
+          "flex flex-wrap items-start justify-between gap-2 text-muted-foreground",
+          variant === "archive" ? "text-[10px]" : "text-xs",
+        )}
+      >
+        <div className="min-w-0 font-mono uppercase tracking-widest">
+          {ax ? `${ax.letter} · ${ax.name}` : "Q&A"} · {new Date(rec.created_at).toLocaleString()}
+        </div>
+        <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+          {rec.model ? <div className="font-mono">{rec.model}</div> : null}
+          {onDelete ? (
+            <button
+              type="button"
+              onClick={onDelete}
+              disabled={deleteBusy}
+              aria-busy={deleteBusy}
+              aria-label={COPY.kept.deleteGuidanceCta}
+              className="min-h-9 rounded-md border border-destructive/40 bg-destructive/10 px-2.5 py-1 text-[11px] font-semibold text-destructive hover:bg-destructive/15 disabled:opacity-50"
+            >
+              {deleteBusy ? COPY.kept.deleteGuidanceBusyLabel : COPY.kept.deleteGuidanceCta}
+            </button>
+          ) : null}
+        </div>
+      </div>
+
+      <p className="mt-3 text-sm italic text-muted-foreground">
+        “{content.question_restated}”
+      </p>
+
+      <p className={cn("mt-3 font-medium", variant === "archive" ? "text-sm" : "text-base")}>
+        {content.short_answer}
+      </p>
+
+      <p className="mt-2 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground/70">Why: </span>
+        {content.why_it_works}
+      </p>
+
+      <div className="mt-4">
+        <h4 className="text-xs font-mono uppercase tracking-widest text-muted-foreground">
+          Next moves
+        </h4>
+        <ul className="mt-2 space-y-2 list-none p-0 m-0">
+          {content.next_moves.map((m, i) => {
+            const moveAx = AXES.find((a) => a.key === m.axis_key);
+            const task: AgentTask = {
+              id: `kept-qa-${rec.id}-${i}`,
+              title: m.title,
+              description: `${m.owner_hint} · ${m.when}`,
+              status: "todo",
+              priority: "medium",
+              axisKey: m.axis_key,
+              targetLevel: null,
+              source: "ai",
+            };
+            return (
+              <li key={task.id}>
+                <AgentTaskCard
+                  task={task}
+                  isOwner={isOwner}
+                  compact
+                  suggestionAction={
+                    isOwner
+                      ? {
+                          label: COPY.kept.addSuggestedTaskCta,
+                          onClick: () =>
+                            onAddAction({
+                              axis_key: moveAx?.key ?? m.axis_key,
+                              title: m.title,
+                              description: `${m.owner_hint} · ${m.when}`,
+                              priority: "medium",
+                              target_level: 0,
+                            }),
+                        }
+                      : undefined
+                  }
+                />
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <p className="mt-4 text-xs text-muted-foreground">
+        <span className="font-medium text-foreground/70">If they say no / no-show: </span>
+        {content.if_they_say_no}
+      </p>
+    </div>
+  );
+}
