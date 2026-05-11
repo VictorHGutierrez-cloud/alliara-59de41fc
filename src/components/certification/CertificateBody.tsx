@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import { COPY } from "@/lib/copy";
 import { formatCertificateDate } from "@/lib/certification-eligibility";
+import factorialLogo from "@/assets/factorial-logo.png";
 
 export interface CertificateBodyState {
   partnerName: string;
@@ -42,21 +43,23 @@ export function CertificateBody({
       />
 
       <div className="flex items-center justify-between gap-4">
-        <div className="min-h-10 flex min-w-0 flex-1 items-center">
-          {state.companyLogoDataUrl ? (
-            <img
-              src={state.companyLogoDataUrl}
-              alt={COPY.certification.certPartnerLogoAlt}
-              className="max-h-10 w-auto max-w-[min(220px,100%)] object-contain object-left"
-              crossOrigin="anonymous"
-            />
-          ) : (
-            <span
-              className="font-display text-xl font-bold tracking-tight text-foreground"
-              style={{ color: "var(--primary)" }}
-            >
-              {COPY.certification.certLogoFallbackWordmark}
-            </span>
+        <div className="min-h-10 flex min-w-0 flex-1 items-center gap-4">
+          <img
+            src={factorialLogo}
+            alt="Factorial"
+            className="max-h-12 w-auto object-contain object-left"
+            crossOrigin="anonymous"
+          />
+          {state.companyLogoDataUrl && (
+            <>
+              <span className="h-8 w-px bg-border/60" aria-hidden />
+              <img
+                src={state.companyLogoDataUrl}
+                alt={COPY.certification.certPartnerLogoAlt}
+                className="max-h-10 w-auto max-w-[min(180px,100%)] object-contain object-left"
+                crossOrigin="anonymous"
+              />
+            </>
           )}
         </div>
         <p className="shrink-0 text-right text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">
@@ -99,7 +102,7 @@ export function CertificateBody({
         {COPY.certification.certBodyLine}
       </p>
 
-      <div className="mt-10 grid grid-cols-1 gap-4 text-xs sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-1 gap-4 text-xs sm:grid-cols-2 lg:grid-cols-4">
         <Field label={COPY.certification.certProgramLabel} value={state.programLabel} />
         <Field
           label={COPY.certification.certDateLabel}
@@ -109,7 +112,7 @@ export function CertificateBody({
         <Field label={COPY.certification.certIssuerLabel} value={state.issuerName} />
       </div>
 
-      <p className="mt-8 text-center text-[10px] leading-relaxed text-muted-foreground">
+      <p className="mt-6 text-center text-[10px] leading-relaxed text-muted-foreground">
         {COPY.certification.certFooterFactorial}
       </p>
     </div>
