@@ -25,6 +25,7 @@ import {
   Settings as SettingsIcon,
   LogOut,
   ShieldCheck,
+  GraduationCap,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -223,6 +224,13 @@ function AppFrame() {
               label: COPY.kept.label,
               active: path.startsWith("/kept"),
               onClick: () => navigate({ to: "/kept" }),
+            },
+            {
+              key: "onboarding",
+              icon: GraduationCap,
+              label: "Onboarding",
+              active: path.startsWith("/onboarding"),
+              onClick: () => navigate({ to: "/onboarding" }),
             },
             {
               key: "pulse",
