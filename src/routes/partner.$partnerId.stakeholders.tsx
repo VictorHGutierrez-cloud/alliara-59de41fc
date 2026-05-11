@@ -104,9 +104,17 @@ function StakeholdersPage() {
                   </span>
                 </div>
                 {s.email && (
-                  <a href={`mailto:${s.email}`} className="mt-3 block text-xs text-primary hover:underline truncate">
-                    {s.email}
-                  </a>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <a href={`mailto:${s.email}`} className="text-xs text-primary hover:underline truncate">
+                      {s.email}
+                    </a>
+                    <a
+                      href={`mailto:${s.email}?subject=${encodeURIComponent(`Partnership update`)}`}
+                      className="shrink-0 rounded-md bg-primary px-2.5 py-1 text-[11px] font-semibold text-primary-foreground glow-ring"
+                    >
+                      Email
+                    </a>
+                  </div>
                 )}
                 {s.notes && <p className="mt-2 text-xs text-muted-foreground line-clamp-3">{s.notes}</p>}
                 {isOwner && (
