@@ -16,6 +16,7 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as QualificationRouteImport } from './routes/qualification'
 import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
 import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as MeetKeptRouteImport } from './routes/meet-kept'
 import { Route as LoginRouteImport } from './routes/login'
@@ -27,6 +28,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CertificationRouteImport } from './routes/certification'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartnerPartnerIdRouteImport } from './routes/partner.$partnerId'
+import { Route as OnboardingStepIdRouteImport } from './routes/onboarding.$stepId'
 import { Route as KeptAskRouteImport } from './routes/kept.ask'
 import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
@@ -73,6 +75,11 @@ const PendingApprovalRoute = PendingApprovalRouteImport.update({
 const PartnersRoute = PartnersRouteImport.update({
   id: '/partners',
   path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MethodologyRoute = MethodologyRouteImport.update({
@@ -129,6 +136,11 @@ const PartnerPartnerIdRoute = PartnerPartnerIdRouteImport.update({
   id: '/partner/$partnerId',
   path: '/partner/$partnerId',
   getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingStepIdRoute = OnboardingStepIdRouteImport.update({
+  id: '/$stepId',
+  path: '/$stepId',
+  getParentRoute: () => OnboardingRoute,
 } as any)
 const KeptAskRoute = KeptAskRouteImport.update({
   id: '/ask',
@@ -206,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
+  '/onboarding': typeof OnboardingRouteWithChildren
   '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/qualification': typeof QualificationRoute
@@ -216,6 +229,7 @@ export interface FileRoutesByFullPath {
   '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/kept/ask': typeof KeptAskRoute
+  '/onboarding/$stepId': typeof OnboardingStepIdRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
   '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
@@ -238,6 +252,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
+  '/onboarding': typeof OnboardingRouteWithChildren
   '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/qualification': typeof QualificationRoute
@@ -248,6 +263,7 @@ export interface FileRoutesByTo {
   '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/kept/ask': typeof KeptAskRoute
+  '/onboarding/$stepId': typeof OnboardingStepIdRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
   '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
@@ -271,6 +287,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
+  '/onboarding': typeof OnboardingRouteWithChildren
   '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/qualification': typeof QualificationRoute
@@ -281,6 +298,7 @@ export interface FileRoutesById {
   '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
   '/kept/ask': typeof KeptAskRoute
+  '/onboarding/$stepId': typeof OnboardingStepIdRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
   '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
@@ -305,6 +323,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meet-kept'
     | '/methodology'
+    | '/onboarding'
     | '/partners'
     | '/pending-approval'
     | '/qualification'
@@ -315,6 +334,7 @@ export interface FileRouteTypes {
     | '/admin/approvals'
     | '/axis/$axisKey'
     | '/kept/ask'
+    | '/onboarding/$stepId'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
     | '/partner/$partnerId/certification'
@@ -337,6 +357,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meet-kept'
     | '/methodology'
+    | '/onboarding'
     | '/partners'
     | '/pending-approval'
     | '/qualification'
@@ -347,6 +368,7 @@ export interface FileRouteTypes {
     | '/admin/approvals'
     | '/axis/$axisKey'
     | '/kept/ask'
+    | '/onboarding/$stepId'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
     | '/partner/$partnerId/certification'
@@ -369,6 +391,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/meet-kept'
     | '/methodology'
+    | '/onboarding'
     | '/partners'
     | '/pending-approval'
     | '/qualification'
@@ -379,6 +402,7 @@ export interface FileRouteTypes {
     | '/admin/approvals'
     | '/axis/$axisKey'
     | '/kept/ask'
+    | '/onboarding/$stepId'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
     | '/partner/$partnerId/certification'
@@ -402,6 +426,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MeetKeptRoute: typeof MeetKeptRoute
   MethodologyRoute: typeof MethodologyRoute
+  OnboardingRoute: typeof OnboardingRouteWithChildren
   PartnersRoute: typeof PartnersRoute
   PendingApprovalRoute: typeof PendingApprovalRoute
   QualificationRoute: typeof QualificationRoute
@@ -463,6 +488,13 @@ declare module '@tanstack/react-router' {
       path: '/partners'
       fullPath: '/partners'
       preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/methodology': {
@@ -541,6 +573,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/partner/$partnerId'
       preLoaderRoute: typeof PartnerPartnerIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/onboarding/$stepId': {
+      id: '/onboarding/$stepId'
+      path: '/$stepId'
+      fullPath: '/onboarding/$stepId'
+      preLoaderRoute: typeof OnboardingStepIdRouteImport
+      parentRoute: typeof OnboardingRoute
     }
     '/kept/ask': {
       id: '/kept/ask'
@@ -639,6 +678,18 @@ const KeptRouteChildren: KeptRouteChildren = {
 
 const KeptRouteWithChildren = KeptRoute._addFileChildren(KeptRouteChildren)
 
+interface OnboardingRouteChildren {
+  OnboardingStepIdRoute: typeof OnboardingStepIdRoute
+}
+
+const OnboardingRouteChildren: OnboardingRouteChildren = {
+  OnboardingStepIdRoute: OnboardingStepIdRoute,
+}
+
+const OnboardingRouteWithChildren = OnboardingRoute._addFileChildren(
+  OnboardingRouteChildren,
+)
+
 interface PartnerPartnerIdRouteChildren {
   PartnerPartnerIdAxesRoute: typeof PartnerPartnerIdAxesRoute
   PartnerPartnerIdCertificationRoute: typeof PartnerPartnerIdCertificationRoute
@@ -677,6 +728,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MeetKeptRoute: MeetKeptRoute,
   MethodologyRoute: MethodologyRoute,
+  OnboardingRoute: OnboardingRouteWithChildren,
   PartnersRoute: PartnersRoute,
   PendingApprovalRoute: PendingApprovalRoute,
   QualificationRoute: QualificationRoute,
@@ -691,3 +743,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
