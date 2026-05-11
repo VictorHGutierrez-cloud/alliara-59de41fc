@@ -158,7 +158,7 @@ function PartnerCoach() {
           title: item.title,
           description: item.description,
           priority: item.priority,
-          targetLevel: item.target_level,
+          targetLevel: item.target_level && item.target_level >= 1 && item.target_level <= 5 ? item.target_level : undefined,
           source: "ai",
         });
         toast.success(COPY.toast.addedToJbp);
