@@ -493,9 +493,6 @@ function RecommendationCard({
                     >
                       {r.priority}
                     </span>
-                    <span className="text-[10px] font-mono text-muted-foreground">
-                      → L{r.target_level}
-                    </span>
                   </div>
                 </div>
                 <div className="mt-2 font-semibold text-sm">{r.title}</div>
