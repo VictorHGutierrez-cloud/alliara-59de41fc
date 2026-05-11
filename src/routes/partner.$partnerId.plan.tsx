@@ -23,6 +23,7 @@ function PartnerPlan() {
   const [filterAxis, setFilterAxis] = useState<string>("all");
   const [taskStatusFilter, setTaskStatusFilter] = useState<"all" | "open" | "done">("all");
   const [showNew, setShowNew] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [moveBurstAt, setMoveBurstAt] = useState<number | null>(null);
   const clearMoveBurst = useCallback(() => setMoveBurstAt(null), []);
 
@@ -139,6 +140,7 @@ function PartnerPlan() {
               onDelete={(id) =>
                 data.deleteAction(id).catch((e) => toast.error((e as Error).message))
               }
+              onEdit={(id) => setEditingId(id)}
             />
           </div>
         )}
@@ -157,6 +159,26 @@ function PartnerPlan() {
             }}
           />
         )}
+
+        {editingId && isOwner && (() => {
+          const action = data.actions.find((a) => a.id === editingId);
+          if (!action) return null;
+          return (
+            <EditActionDialog
+              action={action}
+              onClose={() => setEditingId(null)}
+              onSave={async (patch) => {
+                try {
+                  await data.updateAction(editingId, patch);
+                  toast.success("Task updated");
+                  setEditingId(null);
+                } catch (e) {
+                  toast.error((e as Error).message);
+                }
+              }}
+            />
+          );
+        })()}
       </div>
       <MoveCompleteCelebration burstAt={moveBurstAt} onConsumed={clearMoveBurst} />
     </>
@@ -173,7 +195,6 @@ function NewActionDialog({
     title: string;
     description?: string;
     priority?: ActionRow["priority"];
-    targetLevel?: number;
     dueDate?: string;
   }) => Promise<void>;
 }) {
@@ -181,7 +202,6 @@ function NewActionDialog({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState<ActionRow["priority"]>("medium");
-  const [targetLevel, setTargetLevel] = useState<number | "">("");
   const [dueDate, setDueDate] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -221,7 +241,7 @@ function NewActionDialog({
               className="input min-h-[80px]"
             />
           </Field>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Field label="Priority">
               <select
                 value={priority}
@@ -231,20 +251,6 @@ function NewActionDialog({
                 <option value="low">Low</option>
                 <option value="medium">Medium</option>
                 <option value="high">High</option>
-              </select>
-            </Field>
-            <Field label="Target level">
-              <select
-                value={targetLevel}
-                onChange={(e) => setTargetLevel(e.target.value ? Number(e.target.value) : "")}
-                className="input"
-              >
-                <option value="">—</option>
-                {[1, 2, 3, 4, 5].map((n) => (
-                  <option key={n} value={n}>
-                    L{n}
-                  </option>
-                ))}
               </select>
             </Field>
             <Field label="Due date">
@@ -274,7 +280,6 @@ function NewActionDialog({
                   title: title.trim(),
                   description: description.trim() || undefined,
                   priority,
-                  targetLevel: targetLevel || undefined,
                   dueDate: dueDate || undefined,
                 });
               } finally {
@@ -284,6 +289,129 @@ function NewActionDialog({
             className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
           >
             Add Initiative
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EditActionDialog({
+  action,
+  onClose,
+  onSave,
+}: {
+  action: ActionRow;
+  onClose: () => void;
+  onSave: (patch: Partial<ActionRow>) => Promise<void>;
+}) {
+  const [axisKey, setAxisKey] = useState(action.axis_key);
+  const [title, setTitle] = useState(action.title);
+  const [description, setDescription] = useState(action.description ?? "");
+  const [priority, setPriority] = useState<ActionRow["priority"]>(action.priority);
+  const [status, setStatus] = useState<ActionRow["status"]>(action.status);
+  const [dueDate, setDueDate] = useState(action.due_date ?? "");
+  const [busy, setBusy] = useState(false);
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-lg rounded-2xl bg-card border border-border/60 p-6 card-elev"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 className="text-xl font-semibold">Edit task</h2>
+        <div className="mt-5 space-y-3">
+          <Field label="Axis">
+            <select value={axisKey} onChange={(e) => setAxisKey(e.target.value)} className="input">
+              {AXES.map((a) => (
+                <option key={a.key} value={a.key}>
+                  {a.letter} · {a.name}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Title *">
+            <input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input"
+              autoFocus
+            />
+          </Field>
+          <Field label="Description">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="input min-h-[80px]"
+            />
+          </Field>
+          <div className="grid grid-cols-3 gap-3">
+            <Field label="Status">
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ActionRow["status"])}
+                className="input"
+              >
+                <option value="todo">Planned</option>
+                <option value="doing">In Motion</option>
+                <option value="done">Delivered</option>
+              </select>
+            </Field>
+            <Field label="Priority">
+              <select
+                value={priority}
+                onChange={(e) => setPriority(e.target.value as ActionRow["priority"])}
+                className="input"
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </Field>
+            <Field label="Due date">
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                className="input"
+              />
+            </Field>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            onClick={onClose}
+            className="rounded-lg border border-border bg-surface px-4 py-2 text-sm hover:bg-surface-2"
+          >
+            Cancel
+          </button>
+          <button
+            disabled={!title.trim() || busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await onSave({
+                  axis_key: axisKey,
+                  title: title.trim(),
+                  description: description.trim() || null,
+                  priority,
+                  status,
+                  due_date: dueDate || null,
+                  completed_at:
+                    status === "done"
+                      ? action.completed_at ?? new Date().toISOString()
+                      : null,
+                });
+              } finally {
+                setBusy(false);
+              }
+            }}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground glow-ring disabled:opacity-40"
+          >
+            Save changes
           </button>
         </div>
       </div>
