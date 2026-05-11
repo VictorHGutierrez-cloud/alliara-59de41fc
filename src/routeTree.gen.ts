@@ -27,6 +27,7 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CertificationRouteImport } from './routes/certification'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PartnerPartnerIdRouteImport } from './routes/partner.$partnerId'
+import { Route as KeptAskRouteImport } from './routes/kept.ask'
 import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as PartnerPartnerIdStakeholdersRouteImport } from './routes/partner.$partnerId.stakeholders'
@@ -129,6 +130,11 @@ const PartnerPartnerIdRoute = PartnerPartnerIdRouteImport.update({
   path: '/partner/$partnerId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const KeptAskRoute = KeptAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => KeptRoute,
+} as any)
 const AxisAxisKeyRoute = AxisAxisKeyRouteImport.update({
   id: '/axis/$axisKey',
   path: '/axis/$axisKey',
@@ -196,7 +202,7 @@ export interface FileRoutesByFullPath {
   '/diagnostic': typeof DiagnosticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
-  '/kept': typeof KeptRoute
+  '/kept': typeof KeptRouteWithChildren
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
@@ -209,6 +215,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
+  '/kept/ask': typeof KeptAskRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
   '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
@@ -227,7 +234,7 @@ export interface FileRoutesByTo {
   '/diagnostic': typeof DiagnosticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
-  '/kept': typeof KeptRoute
+  '/kept': typeof KeptRouteWithChildren
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
@@ -240,6 +247,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
+  '/kept/ask': typeof KeptAskRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
   '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
@@ -259,7 +267,7 @@ export interface FileRoutesById {
   '/diagnostic': typeof DiagnosticRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
-  '/kept': typeof KeptRoute
+  '/kept': typeof KeptRouteWithChildren
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/methodology': typeof MethodologyRoute
@@ -272,6 +280,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/axis/$axisKey': typeof AxisAxisKeyRoute
+  '/kept/ask': typeof KeptAskRoute
   '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
   '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
   '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
@@ -305,6 +314,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/approvals'
     | '/axis/$axisKey'
+    | '/kept/ask'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
     | '/partner/$partnerId/certification'
@@ -336,6 +346,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/approvals'
     | '/axis/$axisKey'
+    | '/kept/ask'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
     | '/partner/$partnerId/certification'
@@ -367,6 +378,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/admin/approvals'
     | '/axis/$axisKey'
+    | '/kept/ask'
     | '/partner/$partnerId'
     | '/partner/$partnerId/axes'
     | '/partner/$partnerId/certification'
@@ -386,7 +398,7 @@ export interface RootRouteChildren {
   DiagnosticRoute: typeof DiagnosticRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IntroRoute: typeof IntroRoute
-  KeptRoute: typeof KeptRoute
+  KeptRoute: typeof KeptRouteWithChildren
   LoginRoute: typeof LoginRoute
   MeetKeptRoute: typeof MeetKeptRoute
   MethodologyRoute: typeof MethodologyRoute
@@ -530,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PartnerPartnerIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/kept/ask': {
+      id: '/kept/ask'
+      path: '/ask'
+      fullPath: '/kept/ask'
+      preLoaderRoute: typeof KeptAskRouteImport
+      parentRoute: typeof KeptRoute
+    }
     '/axis/$axisKey': {
       id: '/axis/$axisKey'
       path: '/axis/$axisKey'
@@ -610,6 +629,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface KeptRouteChildren {
+  KeptAskRoute: typeof KeptAskRoute
+}
+
+const KeptRouteChildren: KeptRouteChildren = {
+  KeptAskRoute: KeptAskRoute,
+}
+
+const KeptRouteWithChildren = KeptRoute._addFileChildren(KeptRouteChildren)
+
 interface PartnerPartnerIdRouteChildren {
   PartnerPartnerIdAxesRoute: typeof PartnerPartnerIdAxesRoute
   PartnerPartnerIdCertificationRoute: typeof PartnerPartnerIdCertificationRoute
@@ -644,7 +673,7 @@ const rootRouteChildren: RootRouteChildren = {
   DiagnosticRoute: DiagnosticRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IntroRoute: IntroRoute,
-  KeptRoute: KeptRoute,
+  KeptRoute: KeptRouteWithChildren,
   LoginRoute: LoginRoute,
   MeetKeptRoute: MeetKeptRoute,
   MethodologyRoute: MethodologyRoute,
