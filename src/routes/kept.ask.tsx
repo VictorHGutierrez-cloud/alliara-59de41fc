@@ -73,9 +73,9 @@ function KeptAskPage() {
   }
 
   const suggestions = [
-    "Como faço para um parceiro entrar nas minhas weeklies?",
-    "O que é um bom JBP para um parceiro tier 2?",
-    "Como acelerar co-sell sem queimar a relação?",
+    "How do I get a partner into my weeklies?",
+    "What does a good JBP look like for a tier 2 partner?",
+    "How can I accelerate co-sell without burning the relationship?",
   ];
 
   return (
@@ -87,8 +87,8 @@ function KeptAskPage() {
         <div className="flex items-center gap-3 min-w-0">
           <KeptIllustration variant="keepsContext" className="h-12 w-auto" decorative />
           <div className="min-w-0">
-            <h1 className="page-title">Pergunte ao Kept</h1>
-            <p className="page-subtitle">Qualquer dúvida sobre parceiros, co-sell, enablement ou estratégia.</p>
+            <h1 className="page-title">Ask Kept</h1>
+            <p className="page-subtitle">Anything about partners, co-sell, enablement, or strategy.</p>
           </div>
         </div>
         <button
@@ -97,7 +97,7 @@ function KeptAskPage() {
           disabled={busy || messages.length === 0}
           className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border/70 bg-surface/60 px-3 text-xs text-foreground hover:border-primary/40 hover:bg-surface disabled:opacity-40"
         >
-          <Plus className="h-3.5 w-3.5" /> Nova conversa
+          <Plus className="h-3.5 w-3.5" /> New conversation
         </button>
       </div>
 
@@ -108,7 +108,7 @@ function KeptAskPage() {
         {messages.length === 0 && !busy ? (
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground inline-flex items-center gap-2">
-              <Sparkles className="h-4 w-4 text-primary" /> Sugestões para começar:
+              <Sparkles className="h-4 w-4 text-primary" /> Suggestions to get started:
             </p>
             <div className="flex flex-wrap gap-2">
               {suggestions.map((s) => (
@@ -141,7 +141,7 @@ function KeptAskPage() {
 
         {busy ? (
           <div className="text-sm text-muted-foreground inline-flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" /> Kept está pensando…
+            <span className="h-2 w-2 rounded-full bg-primary animate-pulse" /> Kept is thinking…
           </div>
         ) : null}
 
@@ -160,7 +160,7 @@ function KeptAskPage() {
           }}
           rows={2}
           disabled={busy}
-          placeholder="Pergunte qualquer coisa para o Kept…"
+          placeholder="Ask Kept anything…"
           className="resize-none min-h-[56px] flex-1 rounded-xl"
         />
         <button
