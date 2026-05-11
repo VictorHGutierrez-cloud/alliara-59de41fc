@@ -10,7 +10,7 @@ export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
       { title: "Onboarding — Alliara" },
-      { name: "description", content: "Tour passo a passo do sistema Alliara." },
+      { name: "description", content: "Step-by-step tour of the Alliara system." },
     ],
   }),
   component: OnboardingLayout,
@@ -72,13 +72,13 @@ function OnboardingLayout() {
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground inline-flex items-center gap-2">
             <GraduationCap className="h-3.5 w-3.5" /> Onboarding
           </p>
-          <h1 className="page-title mt-2">Conheça a Alliara, no seu ritmo</h1>
+          <h1 className="page-title mt-2">Get to know Alliara, at your own pace</h1>
           <p className="page-subtitle mt-2 max-w-prose">
-            Um tour passo a passo. Você pode pular, voltar, ou abrir cada parte do app direto daqui.
+            A step-by-step tour. Skip, go back, or jump straight into any part of the app from here.
           </p>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Progresso</p>
+          <p className="text-xs text-muted-foreground">Progress</p>
           <p className="text-2xl font-semibold text-foreground">{completed}/{total}</p>
           {completed > 0 && (
             <button
@@ -86,7 +86,7 @@ function OnboardingLayout() {
               onClick={reset}
               className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
             >
-              <RotateCcw className="h-3 w-3" /> Recomeçar
+              <RotateCcw className="h-3 w-3" /> Restart
             </button>
           )}
         </div>
@@ -139,9 +139,9 @@ function OnboardingLayout() {
       <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-5 flex items-start gap-4">
         <KeptIllustration variant="bringsCalm" className="h-16 w-auto shrink-0 object-contain" decorative />
         <div className="min-w-0">
-          <p className="text-sm font-semibold">Travou em algum passo?</p>
+          <p className="text-sm font-semibold">Stuck on a step?</p>
           <p className="mt-1 text-sm text-muted-foreground">
-            O Kept está sempre no canto da tela. Clique nele e escolha “Faça uma pergunta”.
+            Kept is always in the corner of the screen. Click it and ask anything.
           </p>
         </div>
       </div>

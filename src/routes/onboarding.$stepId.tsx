@@ -10,16 +10,16 @@ export const Route = createFileRoute("/onboarding/$stepId")({
     return {
       meta: [
         { title: step ? `${step.title} — Onboarding Alliara` : "Onboarding — Alliara" },
-        { name: "description", content: step?.summary ?? "Tour da Alliara." },
+        { name: "description", content: step?.summary ?? "Alliara tour." },
       ],
     };
   },
   component: OnboardingStepPage,
   notFoundComponent: () => (
     <div className="page-shell">
-      <p className="text-sm text-muted-foreground">Passo não encontrado.</p>
+      <p className="text-sm text-muted-foreground">Step not found.</p>
       <Link to="/onboarding" className="mt-3 inline-block text-sm text-primary underline-offset-4 hover:underline">
-        Voltar ao tour
+        Back to tour
       </Link>
     </div>
   ),
@@ -76,7 +76,7 @@ function OnboardingStepPage() {
 
           <div className="mt-6 rounded-2xl border border-border/70 bg-card p-5">
             <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
-              O que isso significa pra você
+              What this means for you
             </p>
             <ul className="mt-3 space-y-2">
               {step.bullets.map((b) => (
@@ -129,14 +129,14 @@ function OnboardingStepPage() {
             onClick={() => void nav({ to: "/onboarding/$stepId", params: { stepId: next.id } })}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground glow-ring"
           >
-            Próximo: {next.title} <ArrowRight className="h-4 w-4" />
+            Next: {next.title} <ArrowRight className="h-4 w-4" />
           </button>
         ) : (
           <Link
             to="/onboarding"
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground glow-ring"
           >
-            Concluir tour <Check className="h-4 w-4" />
+            Finish tour <Check className="h-4 w-4" />
           </Link>
         )}
       </div>
