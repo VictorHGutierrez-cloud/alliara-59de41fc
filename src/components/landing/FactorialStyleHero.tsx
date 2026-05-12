@@ -3,8 +3,8 @@ import { useMemo, useRef, useState, type FormEvent } from "react";
 import { ChevronLeft, ChevronRight, Mail } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import imgProductRadar from "@/assets/landing/product-maturity-radar.png";
-import { CandyBarChart, CandyDonut } from "@/components/ui/candy-charts";
-import { DEMO_LANDING_MIX_SLICES, DEMO_LANDING_REVENUE } from "@/content/landing-chart-demos";
+import { CandyBarChart, CandyStackedArea } from "@/components/ui/candy-charts";
+import { DEMO_LANDING_GROWTH, DEMO_LANDING_REVENUE } from "@/content/landing-chart-demos";
 
 const MESH_STYLE: React.CSSProperties = {
   background: `
@@ -59,18 +59,20 @@ export function FactorialStyleHero() {
         </div>
       ),
       mix: (
-        <div className="flex h-[200px] w-full items-center justify-center overflow-hidden rounded-xl bg-white py-2">
-          <CandyDonut
-            slices={DEMO_LANDING_MIX_SLICES}
-            size={160}
-            thickness={22}
-            centerValue="73"
-            centerLabel={L.donutCenterPartners}
+        <div className="h-[200px] w-full overflow-hidden rounded-xl bg-white px-2 pt-2">
+          <CandyStackedArea
+            data={DEMO_LANDING_GROWTH}
+            series={[
+              { key: "active", label: "Scaling", color: "var(--success)" },
+              { key: "nurturing", label: "Developing", color: "var(--warning)" },
+              { key: "at_risk", label: "Churn Risk", color: "var(--destructive)" },
+            ]}
+            height={170}
           />
         </div>
       ),
     }),
-    [L.donutCenterPartners],
+    [],
   );
 
   return (
