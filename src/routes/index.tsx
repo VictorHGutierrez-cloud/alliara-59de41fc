@@ -7,7 +7,7 @@ import { FactorialStyleHero } from "@/components/landing/FactorialStyleHero";
 import { AgentPlan, type AgentTask, type AgentStatus } from "@/components/ui/agent-plan";
 import { Typewriter } from "@/components/ui/typewriter";
 import { AXES } from "@/content/octa";
-import { DEMO_LANDING_MIX_SLICES, DEMO_LANDING_REVENUE } from "@/content/landing-chart-demos";
+import { DEMO_LANDING_GROWTH, DEMO_LANDING_REVENUE } from "@/content/landing-chart-demos";
 import imgProductRadar from "@/assets/landing/product-maturity-radar.png";
 import {
   AnimatedCard,
@@ -16,7 +16,7 @@ import {
   CardTitle,
   CardVisual,
 } from "@/components/ui/animated-card";
-import { CandyBarChart, CandyDonut } from "@/components/ui/candy-charts";
+import { CandyBarChart, CandyStackedArea } from "@/components/ui/candy-charts";
 import { COPY } from "@/lib/copy";
 
 export const Route = createFileRoute("/")({
@@ -117,11 +117,11 @@ function ProductShowcase() {
                     </CardVisual>
                   </AnimatedCard>
                 ) : b.kind === "bars" ? (
-                  <AnimatedCard className="max-w-xl">
+                  <AnimatedCard className="max-w-3xl w-full">
                     <CardVisual className="rounded-t-2xl bg-white px-1.5 pt-3">
                       <CandyBarChart
                         data={DEMO_LANDING_REVENUE}
-                        height={236}
+                        height={300}
                         variant="palette"
                         valueFormatter={formatDemoEuro}
                         showLabels
@@ -134,16 +134,16 @@ function ProductShowcase() {
                   </AnimatedCard>
                 ) : (
                   <AnimatedCard className="max-w-xl">
-                    <CardVisual className="rounded-t-2xl bg-white px-2 pt-4">
-                      <div className="flex h-full min-h-0 items-center justify-center overflow-x-auto pb-2">
-                        <CandyDonut
-                          slices={DEMO_LANDING_MIX_SLICES}
-                          size={188}
-                          thickness={26}
-                          centerValue="73"
-                          centerLabel={COPY.landing.donutCenterPartners}
-                        />
-                      </div>
+                    <CardVisual className="rounded-t-2xl bg-white px-3 pt-4 pb-2">
+                      <CandyStackedArea
+                        data={DEMO_LANDING_GROWTH}
+                        series={[
+                          { key: "active", label: "Scaling", color: "var(--success)" },
+                          { key: "nurturing", label: "Developing", color: "var(--warning)" },
+                          { key: "at_risk", label: "Churn Risk", color: "var(--destructive)" },
+                        ]}
+                        height={240}
+                      />
                     </CardVisual>
                     <CardBody className="sr-only">
                       <CardTitle>{b.title}</CardTitle>

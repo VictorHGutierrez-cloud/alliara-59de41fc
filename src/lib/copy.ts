@@ -187,10 +187,10 @@ export const COPY = {
         imgAlt: "Demo bar chart of partner sourced MRR by partner",
       },
       {
-        title: "Tier mix",
-        subtitle: "Where the calendar quietly stole coaching time",
+        title: "Portfolio growth & health",
+        subtitle: "See how new partners stack up by status, month over month",
         visual: "mix" as const,
-        imgAlt: "Demo donut chart of partner tier mix",
+        imgAlt: "Demo stacked area chart of partners added per month, split by status",
       },
       {
         title: "Joint business rhythm",
@@ -218,9 +218,9 @@ export const COPY = {
       revenueTitle: "Numbers you don’t have to rebuild overnight",
       revenueBody:
         "Sort open MRR, draft short asks for execs, and keep the story anchored to what partners reported, not what you wish had happened.",
-      mixTitle: "Tier mix that tells you where time went",
+      mixTitle: "Portfolio growth & health, month over month",
       mixBody:
-        "Notice when a few logos eat the calendar while newer partners stall waiting for answers.",
+        "Watch new partners land each month and see at a glance how many are scaling, still developing, or sliding into churn risk — without rebuilding a spreadsheet.",
     },
     manifestoEyebrow: "What we believe",
     manifestoLeading: "We keep partnering ",

@@ -20,3 +20,18 @@ export const DEMO_LANDING_MIX_SLICES: DonutSlice[] = [
   { label: "Long tail", value: 19, color: "var(--octa-5)" },
   { label: "Strategic", value: 2, color: "var(--octa-1)" },
 ];
+
+/** Demo stacked-area data for landing "Portfolio growth & health" (illustrative). */
+export const DEMO_LANDING_GROWTH: Array<{
+  label: string;
+  active: number;
+  nurturing: number;
+  at_risk: number;
+}> = [
+  { label: "Dec", active: 0, nurturing: 0, at_risk: 0 },
+  { label: "Jan", active: 0, nurturing: 0, at_risk: 0 },
+  { label: "Feb", active: 0, nurturing: 0, at_risk: 0 },
+  { label: "Mar", active: 1, nurturing: 2, at_risk: 4 },
+  { label: "Apr", active: 6, nurturing: 18, at_risk: 54 },
+  { label: "May", active: 24, nurturing: 4, at_risk: 0 },
+];
