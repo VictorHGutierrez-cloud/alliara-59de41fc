@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/animated-card";
 import { CandyBarChart, CandyStackedArea } from "@/components/ui/candy-charts";
 import { COPY } from "@/lib/copy";
+import { AnimatedHikeCard, type Stat } from "@/components/ui/card-25";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -91,7 +92,9 @@ function ProductShowcase() {
       <div className="relative mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <p className="page-eyebrow">{intro.productEyebrow}</p>
-          <h2 className="mt-3 section-title text-3xl sm:text-4xl text-foreground">{intro.productTitle}</h2>
+          <h2 className="mt-3 section-title text-3xl sm:text-4xl text-foreground">
+            {intro.productTitle}
+          </h2>
           <p className="section-subtitle mt-3 max-w-xl">{intro.productIntro}</p>
         </div>
 
@@ -253,9 +256,7 @@ function Manifesto() {
   return (
     <section className="bg-[#F7F7F8] py-24 sm:py-28 px-6">
       <div className="mx-auto max-w-5xl text-center">
-        <p className="page-eyebrow text-neutral-500">
-          {L.manifestoEyebrow}
-        </p>
+        <p className="page-eyebrow text-neutral-500">{L.manifestoEyebrow}</p>
         <h2 className="mt-5 font-display font-semibold tracking-[-0.03em] text-neutral-900 text-4xl sm:text-6xl leading-[1.07]">
           <span className="block">{L.manifestoLeading}</span>
           <span className="block">
@@ -339,9 +340,7 @@ function PortfolioPreview() {
     <section className="bg-white py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="page-eyebrow text-neutral-500">
-            {L.portfolioEyebrow}
-          </p>
+          <p className="page-eyebrow text-neutral-500">{L.portfolioEyebrow}</p>
           <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
             {L.portfolioTitle}
           </h2>
@@ -371,7 +370,9 @@ function PortfolioPreview() {
               </p>
               <div className="mt-5 flex items-end justify-between">
                 <div>
-                  <p className="text-[11px] uppercase tracking-wide text-neutral-400">Axis average</p>
+                  <p className="text-[11px] uppercase tracking-wide text-neutral-400">
+                    Axis average
+                  </p>
                   <p className="text-2xl font-semibold text-neutral-900">{p.score.toFixed(1)}</p>
                 </div>
                 <div className="flex gap-0.5">
@@ -398,48 +399,52 @@ function AxesPreview() {
     <section className="bg-[#F7F7F8] py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
         <div className="max-w-2xl">
-          <p className="page-eyebrow text-neutral-500">
-            {L.axesEyebrow}
-          </p>
+          <p className="page-eyebrow text-neutral-500">{L.axesEyebrow}</p>
           <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
             {L.axesTitle}
           </h2>
           <p className="section-subtitle mt-3 max-w-xl text-neutral-600">{L.axesIntro}</p>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="mt-10 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-4">
           {AXES.map((axis, idx) => {
             const Icon =
               (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[
                 axis.icon
               ] ?? Icons.Circle;
             const colorVar = `var(--octa-${idx + 1})`;
-            return (
-              <div
-                key={axis.key}
-                className="group relative rounded-2xl border border-neutral-200 bg-white p-6 transition overflow-hidden shadow-[0_14px_40px_-30px_rgba(15,23,42,0.45)] hover:shadow-[0_20px_44px_-28px_rgba(15,23,42,0.5)]"
-              >
-                <div
-                  aria-hidden
-                  className="absolute -top-10 -right-10 h-32 w-32 rounded-full opacity-10 group-hover:opacity-20 transition"
-                  style={{ background: colorVar }}
-                />
-                <div className="relative flex items-start justify-between">
-                  <div
-                    className="h-11 w-11 rounded-xl flex items-center justify-center text-white font-display font-bold text-lg"
+            const stats: Stat[] = [
+              {
+                icon: (
+                  <span
+                    className="flex h-7 w-7 items-center justify-center rounded-lg font-display text-xs font-bold text-white"
                     style={{ background: colorVar }}
                   >
                     {axis.letter}
-                  </div>
-                  <Icon className="h-5 w-5 text-neutral-400" />
-                </div>
-                <h3 className="relative mt-5 font-semibold text-neutral-900 leading-tight">
-                  {axis.name}
-                </h3>
-                <p className="relative mt-2 text-xs text-neutral-600 leading-relaxed">
-                  {axis.tagline}
-                </p>
-              </div>
+                  </span>
+                ),
+                label: "of 8",
+              },
+              {
+                icon: <Icon className="h-4 w-4 text-neutral-600" aria-hidden />,
+                label: axis.icon,
+              },
+              {
+                icon: <Icons.BookOpen className="h-4 w-4 text-neutral-600" aria-hidden />,
+                label: "Playbook",
+              },
+            ];
+            return (
+              <AnimatedHikeCard
+                key={axis.key}
+                axisKey={axis.key}
+                title={axis.name}
+                description={axis.tagline}
+                accentCssVar={colorVar}
+                stats={stats}
+                compactTitle
+                className="h-full max-w-none border-neutral-200 bg-white text-neutral-900 shadow-[0_14px_40px_-30px_rgba(15,23,42,0.45)] hover:shadow-[0_20px_44px_-28px_rgba(15,23,42,0.5)]"
+              />
             );
           })}
         </div>
@@ -513,9 +518,7 @@ function PlanPreview() {
   return (
     <section className="bg-white py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-3xl">
-        <p className="page-eyebrow text-neutral-500">
-          {L.jbpEyebrow}
-        </p>
+        <p className="page-eyebrow text-neutral-500">{L.jbpEyebrow}</p>
         <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
           {L.jbpDemoTitle}
         </h2>
