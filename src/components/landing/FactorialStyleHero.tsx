@@ -3,6 +3,7 @@ import { useMemo, useRef, useState, type FormEvent } from "react";
 import { ChevronLeft, ChevronRight, Mail } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import imgProductRadar from "@/assets/landing/product-maturity-radar.png";
+import imgJbpTask from "@/assets/landing/jbp-new-task.png";
 import { CandyBarChart, CandyStackedArea } from "@/components/ui/candy-charts";
 import { DEMO_LANDING_GROWTH, DEMO_LANDING_REVENUE } from "@/content/landing-chart-demos";
 
@@ -167,11 +168,13 @@ export function FactorialStyleHero() {
                     ) : card.visual === "mix" ? (
                       chartBlock.mix
                     ) : (
-                      <div className="flex h-[200px] flex-col justify-center gap-2 bg-gradient-to-br from-neutral-50 to-white px-4">
-                        <span className="h-2 w-3/4 rounded-full bg-neutral-200" />
-                        <span className="h-2 w-full rounded-full bg-neutral-100" />
-                        <span className="h-2 w-5/6 rounded-full bg-neutral-100" />
-                      </div>
+                      <img
+                        src={imgJbpTask}
+                        alt={card.imgAlt}
+                        className="h-[200px] w-full object-contain bg-white"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     )}
                   </div>
                 </div>
