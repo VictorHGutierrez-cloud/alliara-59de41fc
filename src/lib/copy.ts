@@ -235,10 +235,10 @@ export const COPY = {
     portfolioTitle: "One roster you skim before you dial",
     portfolioIntro:
       "Statuses, tiers, and dimension notes land in one place. The first five minutes of a call are not archaeology.",
-    axesEyebrow: "Eight axes",
-    axesTitle: "A shared language for alliances",
+    axesEyebrow: "Eight areas",
+    axesTitle: "Eight lenses partners recognize",
     axesIntro:
-      "Each dimension is a prompt, not a verdict. Good diagnostics sound like planning together, not handing out grades.",
+      "Each item is something to talk through, not a score pinned to the wall. The best reviews feel like planning the next quarter together.",
     jbpEyebrow: "Joint Business Plans",
     jbpDemoTitle: "Moves that match how you steer the week",
     jbpDemoIntro:
@@ -285,7 +285,7 @@ export const COPY = {
       {
         variant: "noticesDrift",
         title: "Spot drift early",
-        body: "Eight axes give you a shared language with partners. Diagnostics highlight where coaching time pays off before pipeline stories go sideways.",
+        body: "Eight steady topics give you common ground with partners. Diagnostics show where coaching pays off before pipeline stories drift.",
       },
       {
         variant: "notifySomethingToCheck",
