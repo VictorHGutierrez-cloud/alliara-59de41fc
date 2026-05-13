@@ -15,17 +15,11 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import {
   Menu,
+  ScrollText,
   Users,
-  ClipboardCheck,
-  BarChart3,
-  Trophy,
-  Compass,
-  BadgeCheck,
-  Sparkles,
   Settings as SettingsIcon,
   LogOut,
   ShieldCheck,
-  GraduationCap,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -156,7 +150,16 @@ function AppFrame() {
   // SaaS approval gate: signed-in users without approved access can only
   // see public/auth pages and the pending screen.
   const PUBLIC_PATHS = useMemo(
-    () => ["/", "/login", "/signup", "/forgot-password", "/reset-password", "/pending-approval", "/intro", "/meet-kept"],
+    () => [
+      "/",
+      "/login",
+      "/signup",
+      "/forgot-password",
+      "/reset-password",
+      "/pending-approval",
+      "/intro",
+      "/meet-kept",
+    ],
     [],
   );
   useEffect(() => {
@@ -172,72 +175,18 @@ function AppFrame() {
       user
         ? [
             {
+              key: "digest",
+              icon: ScrollText,
+              label: COPY.appShell.dockDigest,
+              active: path.startsWith("/digest"),
+              onClick: () => navigate({ to: "/digest" }),
+            },
+            {
               key: "portfolio",
               icon: Users,
               label: COPY.appShell.dockPortfolio,
               active: path.startsWith("/partners") || path.startsWith("/partner"),
               onClick: () => navigate({ to: "/partners" }),
-            },
-            {
-              key: "qualification",
-              icon: ClipboardCheck,
-              label: COPY.appShell.dockQualification,
-              active: path.startsWith("/qualification"),
-              onClick: () => navigate({ to: "/qualification" }),
-            },
-            {
-              key: "reports",
-              icon: BarChart3,
-              label: COPY.appShell.dockReports,
-              active: path.startsWith("/reports"),
-              onClick: () =>
-                navigate({
-                  to: "/reports",
-                  search: {
-                    tab: undefined,
-                    scope: undefined,
-                    pdm: undefined,
-                    status: undefined,
-                    tier: undefined,
-                    period: undefined,
-                    type: undefined,
-                  },
-                }),
-            },
-            {
-              key: "methodology",
-              icon: Compass,
-              label: COPY.appShell.dockMethodology,
-              active: path.startsWith("/methodology") || path.startsWith("/axis"),
-              onClick: () => navigate({ to: "/methodology" }),
-            },
-            {
-              key: "certification",
-              icon: BadgeCheck,
-              label: COPY.appShell.dockCertification,
-              active: path.startsWith("/certification"),
-              onClick: () => navigate({ to: "/certification" }),
-            },
-            {
-              key: "meet-kept",
-              icon: Sparkles,
-              label: COPY.kept.label,
-              active: path.startsWith("/kept"),
-              onClick: () => navigate({ to: "/kept" }),
-            },
-            {
-              key: "onboarding",
-              icon: GraduationCap,
-              label: "Onboarding",
-              active: path.startsWith("/onboarding"),
-              onClick: () => navigate({ to: "/onboarding" }),
-            },
-            {
-              key: "pulse",
-              icon: Trophy,
-              label: COPY.appShell.dockPulse,
-              active: path.startsWith("/dashboard") || path.startsWith("/diagnostic"),
-              onClick: () => navigate({ to: "/dashboard" }),
             },
             {
               key: "settings",
@@ -247,13 +196,15 @@ function AppFrame() {
               onClick: () => navigate({ to: "/settings" }),
             },
             ...(isAdmin
-              ? [{
-                  key: "approvals",
-                  icon: ShieldCheck,
-                  label: COPY.appShell.dockApprovals,
-                  active: path.startsWith("/admin/approvals"),
-                  onClick: () => navigate({ to: "/admin/approvals" }),
-                }]
+              ? [
+                  {
+                    key: "approvals",
+                    icon: ShieldCheck,
+                    label: COPY.appShell.dockApprovals,
+                    active: path.startsWith("/admin/approvals"),
+                    onClick: () => navigate({ to: "/admin/approvals" }),
+                  },
+                ]
               : []),
           ]
         : [],
@@ -283,7 +234,9 @@ function AppFrame() {
 
   const inAppWorkspace = Boolean(user && !isLanding);
 
-  const sidebarColClass = sidebarCollapsed ? "lg:grid-cols-[4.5rem_1fr]" : "lg:grid-cols-[17rem_1fr]";
+  const sidebarColClass = sidebarCollapsed
+    ? "lg:grid-cols-[4.5rem_1fr]"
+    : "lg:grid-cols-[17rem_1fr]";
 
   return (
     <div
@@ -297,7 +250,9 @@ function AppFrame() {
         <aside
           className={cn(
             "hidden border-r border-sidebar-border/80 bg-sidebar/95 py-5 lg:flex lg:flex-col lg:shrink-0 lg:transition-[width] lg:duration-200 lg:ease-out",
-            sidebarCollapsed ? "lg:w-[4.5rem] lg:min-w-[4.5rem] lg:px-2" : "lg:w-[17rem] lg:min-w-[17rem] lg:px-4",
+            sidebarCollapsed
+              ? "lg:w-[4.5rem] lg:min-w-[4.5rem] lg:px-2"
+              : "lg:w-[17rem] lg:min-w-[17rem] lg:px-4",
           )}
         >
           <div
@@ -336,7 +291,11 @@ function AppFrame() {
                 sidebarCollapsed && "mt-1",
               )}
             >
-              {sidebarCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              {sidebarCollapsed ? (
+                <ChevronRight className="h-5 w-5" />
+              ) : (
+                <ChevronLeft className="h-5 w-5" />
+              )}
             </button>
           </div>
           <nav id="workspace-dock-nav" className="mt-1 space-y-1.5">
@@ -357,7 +316,9 @@ function AppFrame() {
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
-                  <span className={cn("truncate", sidebarCollapsed && "sr-only")}>{item.label}</span>
+                  <span className={cn("truncate", sidebarCollapsed && "sr-only")}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
@@ -479,7 +440,9 @@ function AppFrame() {
                   >
                     {COPY.auth.headerKeptCta}
                   </Link>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">{COPY.auth.signedInHint}</span>
+                  <span className="hidden text-xs text-muted-foreground sm:inline">
+                    {COPY.auth.signedInHint}
+                  </span>
                 </>
               ) : (
                 <>
@@ -524,7 +487,10 @@ function AppFrame() {
 
       {inAppWorkspace && (
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-          <SheetContent side="left" className="w-[18rem] border-r border-sidebar-border bg-sidebar p-0">
+          <SheetContent
+            side="left"
+            className="w-[18rem] border-r border-sidebar-border bg-sidebar p-0"
+          >
             <SheetTitle className="sr-only">App navigation</SheetTitle>
             <div className="flex h-full flex-col px-3 py-4">
               <Link
@@ -551,7 +517,9 @@ function AppFrame() {
                         item.onClick();
                       }}
                       className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition ${
-                        item.active ? "bg-primary/14 text-foreground" : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
+                        item.active
+                          ? "bg-primary/14 text-foreground"
+                          : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
                       }`}
                     >
                       <Icon className="h-4 w-4 shrink-0" />

@@ -153,18 +153,12 @@ function PartnerLayout() {
   const Tb = COPY.partnerWorkspace.tabs;
   const tabs: { key: string; label: string; to: string }[] = [
     { key: "overview", label: Tb.overview, to: `/partner/${partnerId}` },
-    { key: "coach", label: COPY.kept.label, to: `/partner/${partnerId}/coach` },
     {
       key: "plan",
       label: `${COPY.jbp.short}${data.openActions.length ? ` (${data.openActions.length})` : ""}`,
       to: `/partner/${partnerId}/plan`,
     },
-    { key: "axes", label: Tb.axes, to: `/partner/${partnerId}/axes` },
-    { key: "maturity", label: Tb.maturity, to: `/partner/${partnerId}/maturity` },
     { key: "stakeholders", label: Tb.stakeholders, to: `/partner/${partnerId}/stakeholders` },
-    { key: "metrics", label: Tb.metrics, to: `/partner/${partnerId}/metrics` },
-    { key: "intel", label: Tb.intel, to: `/partner/${partnerId}/intel` },
-    { key: "certification", label: Tb.certification, to: `/partner/${partnerId}/certification` },
   ];
 
   const isOverview = path === `/partner/${partnerId}` || path === `/partner/${partnerId}/`;
@@ -754,6 +748,9 @@ function EditPartnerDialog({
   const [status, setStatus] = useState(partner.status);
   const [partnerType, setPartnerType] = useState<PartnerType>(partner.partner_type ?? "referral");
   const [notes, setNotes] = useState(partner.notes ?? "");
+  const [hsCompanyId, setHsCompanyId] = useState(
+    partner.hubspot_company_id != null ? String(partner.hubspot_company_id) : "",
+  );
   const [busy, setBusy] = useState(false);
 
   return (
@@ -826,6 +823,16 @@ function EditPartnerDialog({
               </select>
             </Field>
           </div>
+          <Field label="HubSpot company ID (CRM)">
+            <input
+              type="text"
+              inputMode="numeric"
+              value={hsCompanyId}
+              onChange={(e) => setHsCompanyId(e.target.value.replace(/[^\d]/g, ""))}
+              className="input"
+              placeholder="Company record ID from HubSpot"
+            />
+          </Field>
           <Field label="PDM notes">
             <textarea
               value={notes}
@@ -861,6 +868,7 @@ function EditPartnerDialog({
               onClick={async () => {
                 setBusy(true);
                 try {
+                  const idNum = hsCompanyId.trim() ? parseInt(hsCompanyId.trim(), 10) : NaN;
                   await onSave({
                     name: name.trim(),
                     company: company.trim() || null,
@@ -869,6 +877,7 @@ function EditPartnerDialog({
                     status,
                     notes: notes.trim() || null,
                     partner_type: partnerType,
+                    hubspot_company_id: Number.isFinite(idNum) ? idNum : null,
                   });
                 } finally {
                   setBusy(false);

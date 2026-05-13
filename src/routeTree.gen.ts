@@ -23,6 +23,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as KeptRouteImport } from './routes/kept'
 import { Route as IntroRouteImport } from './routes/intro'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DigestRouteImport } from './routes/digest'
 import { Route as DiagnosticRouteImport } from './routes/diagnostic'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CertificationRouteImport } from './routes/certification'
@@ -110,6 +111,11 @@ const IntroRoute = IntroRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DigestRoute = DigestRouteImport.update({
+  id: '/digest',
+  path: '/digest',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiagnosticRoute = DiagnosticRouteImport.update({
@@ -212,6 +218,7 @@ export interface FileRoutesByFullPath {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/digest': typeof DigestRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/kept': typeof KeptRouteWithChildren
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/digest': typeof DigestRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/kept': typeof KeptRouteWithChildren
@@ -281,6 +289,7 @@ export interface FileRoutesById {
   '/certification': typeof CertificationRoute
   '/dashboard': typeof DashboardRoute
   '/diagnostic': typeof DiagnosticRoute
+  '/digest': typeof DigestRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/kept': typeof KeptRouteWithChildren
@@ -317,6 +326,7 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/digest'
     | '/forgot-password'
     | '/intro'
     | '/kept'
@@ -351,6 +361,7 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/digest'
     | '/forgot-password'
     | '/intro'
     | '/kept'
@@ -385,6 +396,7 @@ export interface FileRouteTypes {
     | '/certification'
     | '/dashboard'
     | '/diagnostic'
+    | '/digest'
     | '/forgot-password'
     | '/intro'
     | '/kept'
@@ -420,6 +432,7 @@ export interface RootRouteChildren {
   CertificationRoute: typeof CertificationRoute
   DashboardRoute: typeof DashboardRoute
   DiagnosticRoute: typeof DiagnosticRoute
+  DigestRoute: typeof DigestRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IntroRoute: typeof IntroRoute
   KeptRoute: typeof KeptRouteWithChildren
@@ -537,6 +550,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/digest': {
+      id: '/digest'
+      path: '/digest'
+      fullPath: '/digest'
+      preLoaderRoute: typeof DigestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/diagnostic': {
@@ -722,6 +742,7 @@ const rootRouteChildren: RootRouteChildren = {
   CertificationRoute: CertificationRoute,
   DashboardRoute: DashboardRoute,
   DiagnosticRoute: DiagnosticRoute,
+  DigestRoute: DigestRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IntroRoute: IntroRoute,
   KeptRoute: KeptRouteWithChildren,

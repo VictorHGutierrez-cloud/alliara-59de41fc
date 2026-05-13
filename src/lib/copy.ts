@@ -581,6 +581,7 @@ export const COPY = {
 
   appShell: {
     goToPortfolio: "Go to portfolio",
+    dockDigest: "Weekly digest",
     dockPortfolio: "Portfolio",
     dockQualification: "Qualify",
     dockReports: "Reports",

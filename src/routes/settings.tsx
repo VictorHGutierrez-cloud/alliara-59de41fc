@@ -1,5 +1,5 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
-import { Camera, Loader2, Lock, User as UserIcon } from "lucide-react";
+import { Camera, Link2, Loader2, Lock, RefreshCw, User as UserIcon } from "lucide-react";
+import { startHubSpotOAuth, syncHubSpot } from "@/lib/hubspot-client";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/settings")({
@@ -25,6 +26,15 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const searchStr = useRouterState({ select: (s) => s.location.searchStr ?? "" });
+
+  const [hubConnected, setHubConnected] = useState(false);
+  const [hubPortalId, setHubPortalId] = useState<number | null>(null);
+  const [hubSyncing, setHubSyncing] = useState(false);
+  const [hubConnectBusy, setHubConnectBusy] = useState(false);
+  const [lastCompaniesSync, setLastCompaniesSync] = useState<string | null>(null);
+  const [lastDealsSync, setLastDealsSync] = useState<string | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   const [displayName, setDisplayName] = useState("");
   const [position, setPosition] = useState("");
@@ -44,6 +54,51 @@ function SettingsPage() {
       navigate({ to: "/login" });
     }
   }, [loading, user, navigate]);
+
+  const loadHub = useCallback(async () => {
+    if (!user) return;
+    const { data: conn } = await supabase
+      .from("hubspot_connections")
+      .select("id, portal_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (conn) {
+      setHubConnected(true);
+      setHubPortalId(Number(conn.portal_id));
+      const { data: st } = await supabase
+        .from("hubspot_sync_state")
+        .select("last_companies_sync_at, last_deals_sync_at, last_error")
+        .eq("connection_id", conn.id)
+        .maybeSingle();
+      setLastCompaniesSync(st?.last_companies_sync_at ?? null);
+      setLastDealsSync(st?.last_deals_sync_at ?? null);
+      setSyncError(st?.last_error ?? null);
+    } else {
+      setHubConnected(false);
+      setHubPortalId(null);
+      setLastCompaniesSync(null);
+      setLastDealsSync(null);
+      setSyncError(null);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    void loadHub();
+  }, [loadHub]);
+
+  useEffect(() => {
+    const q = new URLSearchParams(searchStr.startsWith("?") ? searchStr.slice(1) : searchStr);
+    const hs = q.get("hubspot");
+    if (hs === "connected") {
+      toast.success("HubSpot connected. Run Sync, then link companies on each partner.");
+      void loadHub();
+      navigate({ to: "/settings", replace: true, search: () => ({}) });
+    }
+    if (hs === "error") {
+      toast.error("HubSpot connection failed. Check redirect URL and secrets.");
+      navigate({ to: "/settings", replace: true, search: () => ({}) });
+    }
+  }, [searchStr, navigate, loadHub]);
 
   useEffect(() => {
     if (!user) return;
@@ -165,22 +220,32 @@ function SettingsPage() {
         <div className="min-w-0">
           <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Manage your personal info. Your data and partner assignments stay linked to your account, even if you change your name or photo.
+            Manage your personal info. Your data and partner assignments stay linked to your
+            account, even if you change your name or photo.
           </p>
         </div>
-        <KeptIllustration variant="sidebarPeek" className="h-24 w-auto shrink-0 object-contain opacity-90 sm:mt-1" decorative />
+        <KeptIllustration
+          variant="sidebarPeek"
+          className="h-24 w-auto shrink-0 object-contain opacity-90 sm:mt-1"
+          decorative
+        />
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><UserIcon className="h-5 w-5" /> Profile</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <UserIcon className="h-5 w-5" /> Profile
+          </CardTitle>
           <CardDescription>How you appear across Alliara.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="mb-6 flex items-center gap-5">
             <div className="relative">
               <Avatar className="h-20 w-20">
-                <AvatarImage src={avatarUrl ?? undefined} alt={displayName || user.email || "Avatar"} />
+                <AvatarImage
+                  src={avatarUrl ?? undefined}
+                  alt={displayName || user.email || "Avatar"}
+                />
                 <AvatarFallback className="text-lg">{initials}</AvatarFallback>
               </Avatar>
               <button
@@ -190,7 +255,11 @@ function SettingsPage() {
                 className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full border border-border bg-background shadow-sm hover:bg-surface-2 disabled:opacity-60"
                 aria-label="Change photo"
               >
-                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Camera className="h-4 w-4" />}
+                {uploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Camera className="h-4 w-4" />
+                )}
               </button>
               <input
                 ref={fileInputRef}
@@ -250,7 +319,96 @@ function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2"><Lock className="h-5 w-5" /> Password</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Link2 className="h-5 w-5" /> HubSpot
+          </CardTitle>
+          <CardDescription>
+            HubSpot is the source of truth for accounts, pipeline, and activities. Connect once,
+            sync regularly, then link each Alliara partner to a HubSpot company ID (edit partner)
+            before running the weekly digest.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {hubConnected ? (
+            <>
+              <p className="text-sm text-muted-foreground">
+                Connected portal ID:{" "}
+                <span className="font-mono text-foreground">{hubPortalId ?? "—"}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Last companies sync:{" "}
+                {lastCompaniesSync ? new Date(lastCompaniesSync).toLocaleString() : "never"}
+                <br />
+                Last deals sync:{" "}
+                {lastDealsSync ? new Date(lastDealsSync).toLocaleString() : "never"}
+              </p>
+              {syncError && <p className="text-sm text-destructive">Last error: {syncError}</p>}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  disabled={hubSyncing}
+                  onClick={async () => {
+                    setHubSyncing(true);
+                    try {
+                      const r = await syncHubSpot();
+                      toast.success(`Synced ${r.companies} companies, ${r.deals} deals`);
+                      void loadHub();
+                    } catch (e) {
+                      toast.error((e as Error).message);
+                    } finally {
+                      setHubSyncing(false);
+                    }
+                  }}
+                >
+                  {hubSyncing ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                  )}
+                  Sync from HubSpot
+                </Button>
+                <Button type="button" variant="outline" asChild>
+                  <Link to="/digest">Open weekly digest</Link>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                disabled={hubConnectBusy}
+                onClick={async () => {
+                  setHubConnectBusy(true);
+                  try {
+                    const { authorizeUrl } = await startHubSpotOAuth();
+                    window.location.href = authorizeUrl;
+                  } catch (e) {
+                    toast.error((e as Error).message);
+                    setHubConnectBusy(false);
+                  }
+                }}
+              >
+                {hubConnectBusy ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Link2 className="mr-2 h-4 w-4" />
+                )}
+                Connect HubSpot
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="my-8">
+        <Separator />
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Lock className="h-5 w-5" /> Password
+          </CardTitle>
           <CardDescription>Use at least 8 characters.</CardDescription>
         </CardHeader>
         <CardContent>

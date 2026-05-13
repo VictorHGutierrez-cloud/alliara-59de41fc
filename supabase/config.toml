@@ -11,3 +11,18 @@ verify_jwt = true
 
 [functions.delete-guidance]
 verify_jwt = true
+
+[functions.hubspot-oauth-start]
+verify_jwt = true
+
+[functions.hubspot-oauth-callback]
+verify_jwt = false
+
+[functions.hubspot-sync]
+verify_jwt = true
+
+[functions.hubspot-synthesize]
+verify_jwt = true
+
+[functions.hubspot-write-note]
+verify_jwt = true
