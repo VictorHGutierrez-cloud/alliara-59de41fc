@@ -1,7 +1,6 @@
 // rev: landing-marketing-home-v1
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import * as Icons from "lucide-react";
+import { useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { FactorialStyleHero } from "@/components/landing/FactorialStyleHero";
 import { AgentPlan, type AgentTask, type AgentStatus } from "@/components/ui/agent-plan";
@@ -18,7 +17,10 @@ import {
 } from "@/components/ui/animated-card";
 import { CandyBarChart, CandyStackedArea } from "@/components/ui/candy-charts";
 import { COPY } from "@/lib/copy";
-import { AnimatedHikeCard, type Stat } from "@/components/ui/card-25";
+import {
+  InteractiveImageAccordion,
+  INTERACTIVE_IMAGE_ACCORDION_DEFAULT_IMAGES,
+} from "@/components/ui/interactive-image-accordion";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -395,59 +397,32 @@ function PortfolioPreview() {
 /* ---------------- 4. Eight-axis preview ---------------- */
 function AxesPreview() {
   const L = COPY.landing;
+  const accordionItems = useMemo(
+    () =>
+      AXES.map((axis, index) => ({
+        id: axis.key,
+        title: axis.name,
+        imageUrl:
+          INTERACTIVE_IMAGE_ACCORDION_DEFAULT_IMAGES[
+            index % INTERACTIVE_IMAGE_ACCORDION_DEFAULT_IMAGES.length
+          ]!,
+        description: axis.tagline,
+        axisKey: axis.key,
+      })),
+    [],
+  );
+
   return (
     <section className="bg-[#F7F7F8] py-22 sm:py-24 px-6">
       <div className="mx-auto max-w-6xl">
-        <div className="max-w-2xl">
-          <p className="page-eyebrow text-neutral-500">{L.axesEyebrow}</p>
-          <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">
-            {L.axesTitle}
-          </h2>
-          <p className="section-subtitle mt-3 max-w-xl text-neutral-600">{L.axesIntro}</p>
-        </div>
-
-        <div className="mt-10 grid grid-cols-1 items-stretch gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          {AXES.map((axis, idx) => {
-            const Icon =
-              (Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>)[
-                axis.icon
-              ] ?? Icons.Circle;
-            const colorVar = `var(--octa-${idx + 1})`;
-            const stats: Stat[] = [
-              {
-                icon: (
-                  <span
-                    className="flex h-7 w-7 items-center justify-center rounded-lg font-display text-xs font-bold text-white"
-                    style={{ background: colorVar }}
-                  >
-                    {axis.letter}
-                  </span>
-                ),
-                label: "of 8",
-              },
-              {
-                icon: <Icon className="h-4 w-4 text-neutral-600" aria-hidden />,
-                label: axis.icon,
-              },
-              {
-                icon: <Icons.BookOpen className="h-4 w-4 text-neutral-600" aria-hidden />,
-                label: "Playbook",
-              },
-            ];
-            return (
-              <AnimatedHikeCard
-                key={axis.key}
-                axisKey={axis.key}
-                title={axis.name}
-                description={axis.tagline}
-                accentCssVar={colorVar}
-                stats={stats}
-                compactTitle
-                className="h-full max-w-none border-neutral-200 bg-white text-neutral-900 shadow-[0_14px_40px_-30px_rgba(15,23,42,0.45)] hover:shadow-[0_20px_44px_-28px_rgba(15,23,42,0.5)]"
-              />
-            );
-          })}
-        </div>
+        <InteractiveImageAccordion
+          eyebrow={L.axesEyebrow}
+          title={L.axesTitle}
+          intro={L.axesIntro}
+          items={accordionItems}
+          defaultActiveIndex={0}
+          cta={{ label: COPY.onboarding.methodologyCta, to: "/methodology" }}
+        />
       </div>
     </section>
   );
