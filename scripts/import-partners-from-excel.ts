@@ -515,7 +515,11 @@ async function main(): Promise<void> {
         tier: existing.tier ?? row.tier,
         segment: row.segment ?? existing.segment,
         partner_type: existing.partner_type ?? row.partnerType,
-        notes: JSON.stringify(importNotes),
+        // Preserve existing notes; only fill when empty.
+        notes:
+          existing.notes != null && String(existing.notes).trim().length > 0
+            ? existing.notes
+            : JSON.stringify(importNotes),
       };
 
       if (!options.dryRun) {
