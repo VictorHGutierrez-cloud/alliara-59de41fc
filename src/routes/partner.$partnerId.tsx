@@ -28,6 +28,7 @@ import { useConfirmDialog } from "@/components/ui/confirm-provider";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { useLeadership } from "@/lib/use-leadership";
 import { usePdmRoster } from "@/lib/use-pdm-roster";
+import { useHubSpotConnection } from "@/lib/hubspot-connection";
 import {
   BulkReassignDialog,
   type ReassignAssignment,
@@ -752,6 +753,8 @@ function EditPartnerDialog({
     partner.hubspot_company_id != null ? String(partner.hubspot_company_id) : "",
   );
   const [busy, setBusy] = useState(false);
+  const { connected: hubConnected } = useHubSpotConnection();
+  const showHubField = hubConnected || hsCompanyId.trim() !== "";
 
   return (
     <div
@@ -823,16 +826,18 @@ function EditPartnerDialog({
               </select>
             </Field>
           </div>
-          <Field label="HubSpot company ID (CRM)">
-            <input
-              type="text"
-              inputMode="numeric"
-              value={hsCompanyId}
-              onChange={(e) => setHsCompanyId(e.target.value.replace(/[^\d]/g, ""))}
-              className="input"
-              placeholder="Company record ID from HubSpot"
-            />
-          </Field>
+          {showHubField && (
+            <Field label="HubSpot company ID (CRM)">
+              <input
+                type="text"
+                inputMode="numeric"
+                value={hsCompanyId}
+                onChange={(e) => setHsCompanyId(e.target.value.replace(/[^\d]/g, ""))}
+                className="input"
+                placeholder="Company record ID from HubSpot"
+              />
+            </Field>
+          )}
           <Field label="PDM notes">
             <textarea
               value={notes}

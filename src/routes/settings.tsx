@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Camera, Link2, Loader2, Lock, RefreshCw, User as UserIcon } from "lucide-react";
 import { syncHubSpot } from "@/lib/hubspot-client";
+import { isHubSpotOfflineError, invalidateHubSpotConnection } from "@/lib/hubspot-connection";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/settings")({
@@ -355,9 +356,14 @@ function SettingsPage() {
                     try {
                       const r = await syncHubSpot();
                       toast.success(`Synced ${r.companies} companies, ${r.deals} deals`);
+                      invalidateHubSpotConnection();
                       void loadHub();
                     } catch (e) {
-                      toast.error((e as Error).message);
+                      if (isHubSpotOfflineError(e)) {
+                        toast.message((e as Error).message);
+                      } else {
+                        toast.error((e as Error).message);
+                      }
                     } finally {
                       setHubSyncing(false);
                     }
@@ -376,7 +382,13 @@ function SettingsPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                A integração HubSpot é opcional. Score, diagnóstico, portfolio e leads funcionam
+                normalmente sem ela. Conecte quando o token Private App estiver disponível para
+                desbloquear o digest semanal e o sync de empresas/deals.
+              </p>
+              <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 disabled={hubConnectBusy}
@@ -385,9 +397,14 @@ function SettingsPage() {
                   try {
                     const r = await syncHubSpot();
                     toast.success(`Connected. Synced ${r.companies} companies, ${r.deals} deals.`);
+                    invalidateHubSpotConnection();
                     void loadHub();
                   } catch (e) {
-                    toast.error((e as Error).message);
+                    if (isHubSpotOfflineError(e)) {
+                      toast.message((e as Error).message);
+                    } else {
+                      toast.error((e as Error).message);
+                    }
                   } finally {
                     setHubConnectBusy(false);
                   }
@@ -400,6 +417,7 @@ function SettingsPage() {
                 )}
                 Connect HubSpot
               </Button>
+              </div>
             </div>
           )}
         </CardContent>

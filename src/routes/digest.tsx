@@ -7,6 +7,7 @@ import {
   writeHubSpotCompanyNote,
   type HubspotDigestJson,
 } from "@/lib/hubspot-client";
+import { isHubSpotOfflineError } from "@/lib/hubspot-connection";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -91,7 +92,11 @@ function DigestPage() {
       setHsCompanyId(res.hs_company_id);
       toast.success("Digest ready.");
     } catch (e) {
-      toast.error((e as Error).message);
+      if (isHubSpotOfflineError(e)) {
+        toast.message((e as Error).message);
+      } else {
+        toast.error((e as Error).message);
+      }
     } finally {
       setGenerating(false);
     }
@@ -115,7 +120,11 @@ function DigestPage() {
       await writeHubSpotCompanyNote({ hs_company_id: hsCompanyId, body });
       toast.success("Note added on the company in HubSpot.");
     } catch (e) {
-      toast.error((e as Error).message);
+      if (isHubSpotOfflineError(e)) {
+        toast.message((e as Error).message);
+      } else {
+        toast.error((e as Error).message);
+      }
     } finally {
       setWriting(false);
     }
