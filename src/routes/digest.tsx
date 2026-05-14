@@ -80,10 +80,6 @@ function DigestPage() {
       toast.error("Select a partner.");
       return;
     }
-    if (selectedPartner.hubspot_company_id == null) {
-      toast.error("Set HubSpot company ID in Edit partner first.");
-      return;
-    }
     setGenerating(true);
     setDigest(null);
     try {
@@ -163,29 +159,28 @@ function DigestPage() {
 
       {connLoading ? (
         <Skeleton className="h-24 w-full rounded-xl" />
-      ) : !hasConnection ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Connect HubSpot</CardTitle>
-            <CardDescription>
-              Open Settings and connect your HubSpot portal, then run a sync before generating a
-              digest.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild variant="secondary">
-              <Link to="/settings">Go to Settings</Link>
-            </Button>
-          </CardContent>
-        </Card>
       ) : (
         <>
+          {!hasConnection && (
+            <Card>
+              <CardHeader>
+                <CardTitle>HubSpot opcional</CardTitle>
+                <CardDescription>
+                  O digest funciona com os dados locais do partner (notes, métricas,
+                  stakeholders, plano). Conecte o HubSpot em{" "}
+                  <Link to="/settings" className="underline">
+                    Settings
+                  </Link>{" "}
+                  para enriquecer com deals e company do CRM.
+                </CardDescription>
+              </CardHeader>
+            </Card>
+          )}
           <Card>
             <CardHeader>
               <CardTitle>Choose partner</CardTitle>
               <CardDescription>
-                The partner must have a HubSpot company ID (set in Edit partner). Companies synced:{" "}
-                {companies.length}.
+                Selecione um partner. Companies HubSpot sincronizadas: {companies.length}.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -201,7 +196,7 @@ function DigestPage() {
                 {partners.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
-                    {p.hubspot_company_id ? ` · HS ${p.hubspot_company_id}` : " · no HS id"}
+                    {p.hubspot_company_id ? ` · HS ${p.hubspot_company_id}` : " · local"}
                   </option>
                 ))}
               </select>
@@ -246,11 +241,13 @@ function DigestPage() {
                 <Button
                   type="button"
                   variant="secondary"
-                  disabled={writing || hsCompanyId == null}
+                  disabled={writing || !hasConnection || !hsCompanyId}
                   onClick={() => void pushNote()}
                 >
                   {writing ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  Log to HubSpot as note
+                  {hasConnection && hsCompanyId
+                    ? "Log to HubSpot as note"
+                    : "Log to HubSpot (requer conexão + HS id)"}
                 </Button>
               </CardContent>
             </Card>
