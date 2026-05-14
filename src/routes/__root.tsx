@@ -29,6 +29,7 @@ import { COPY } from "@/lib/copy";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { KeptAmbientPresence } from "@/components/brand/KeptAmbientPresence";
 import { cn } from "@/lib/utils";
+import { HubSpotOfflineBanner } from "@/components/HubSpotOfflineBanner";
 
 const SIDEBAR_COLLAPSED_KEY = "alliara-sidebar-collapsed";
 
@@ -471,6 +472,7 @@ function AppFrame() {
         </header>
 
         <main className="relative min-w-0 flex-1">
+          {inAppWorkspace && <HubSpotOfflineBanner />}
           <Outlet />
           {inAppWorkspace && <KeptAmbientPresence />}
         </main>
