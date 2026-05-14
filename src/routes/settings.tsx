@@ -332,8 +332,11 @@ function SettingsPage() {
           {hubConnected ? (
             <>
               <p className="text-sm text-muted-foreground">
-                Connected portal ID:{" "}
-                <span className="font-mono text-foreground">{hubPortalId ?? "—"}</span>
+                {hubPortalId && hubPortalId > 0 ? (
+                  <>Connected portal ID: <span className="font-mono text-foreground">{hubPortalId}</span></>
+                ) : (
+                  <>Connected via Private App token.</>
+                )}
               </p>
               <p className="text-sm text-muted-foreground">
                 Last companies sync:{" "}
