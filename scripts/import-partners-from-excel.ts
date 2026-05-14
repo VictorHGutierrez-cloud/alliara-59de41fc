@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
-import * as xlsx from "xlsx";
+import xlsxPkg from "xlsx";
+const xlsx = (xlsxPkg as unknown as { default?: typeof xlsxPkg }).default ?? xlsxPkg;
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../src/integrations/supabase/types";
 
