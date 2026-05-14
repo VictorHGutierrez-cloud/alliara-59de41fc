@@ -22,6 +22,7 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
+  BarChart3,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
@@ -192,6 +193,13 @@ function AppFrame() {
               label: COPY.appShell.dockPortfolio,
               active: path.startsWith("/partners") || path.startsWith("/partner"),
               onClick: () => navigate({ to: "/partners" }),
+            },
+            {
+              key: "reports",
+              icon: BarChart3,
+              label: COPY.appShell.dockReports,
+              active: path.startsWith("/reports"),
+              onClick: () => navigate({ to: "/reports" }),
             },
             {
               key: "settings",
