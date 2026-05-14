@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Camera, Link2, Loader2, Lock, RefreshCw, User as UserIcon } from "lucide-react";
-import { startHubSpotOAuth, syncHubSpot } from "@/lib/hubspot-client";
+import { syncHubSpot } from "@/lib/hubspot-client";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/settings")({
@@ -380,10 +380,12 @@ function SettingsPage() {
                 onClick={async () => {
                   setHubConnectBusy(true);
                   try {
-                    const { authorizeUrl } = await startHubSpotOAuth();
-                    window.location.href = authorizeUrl;
+                    const r = await syncHubSpot();
+                    toast.success(`Connected. Synced ${r.companies} companies, ${r.deals} deals.`);
+                    void loadHub();
                   } catch (e) {
                     toast.error((e as Error).message);
+                  } finally {
                     setHubConnectBusy(false);
                   }
                 }}
