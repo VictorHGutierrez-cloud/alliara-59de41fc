@@ -382,7 +382,13 @@ function SettingsPage() {
               </div>
             </>
           ) : (
-            <div className="flex flex-wrap gap-2">
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                A integração HubSpot é opcional. Score, diagnóstico, portfolio e leads funcionam
+                normalmente sem ela. Conecte quando o token Private App estiver disponível para
+                desbloquear o digest semanal e o sync de empresas/deals.
+              </p>
+              <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
                 disabled={hubConnectBusy}
@@ -411,6 +417,7 @@ function SettingsPage() {
                 )}
                 Connect HubSpot
               </Button>
+              </div>
             </div>
           )}
         </CardContent>
