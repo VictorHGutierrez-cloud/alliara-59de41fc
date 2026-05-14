@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "import:partners:dry-run": "tsx scripts/import-partners-from-excel.ts --dry-run",
+    "import:partners": "tsx scripts/import-partners-from-excel.ts --execute"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
@@ -87,6 +89,7 @@
     "globals": "^15.15.0",
     "prettier": "^3.7.3",
     "sharp": "^0.34.5",
+    "tsx": "^4.21.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
     "vite": "^7.3.1"
