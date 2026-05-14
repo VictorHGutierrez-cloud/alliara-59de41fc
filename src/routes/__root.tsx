@@ -30,6 +30,7 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { KeptAmbientPresence } from "@/components/brand/KeptAmbientPresence";
 import { cn } from "@/lib/utils";
 import { HubSpotOfflineBanner } from "@/components/HubSpotOfflineBanner";
+import { useHubSpotConnection } from "@/lib/hubspot-connection";
 
 const SIDEBAR_COLLAPSED_KEY = "alliara-sidebar-collapsed";
 
@@ -123,6 +124,7 @@ function RootComponent() {
 
 function AppFrame() {
   const { user, loading, signOut, accessStatus, isAdmin } = useAuth();
+  const { connected: hubConnected } = useHubSpotConnection();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isLanding = path === "/";
   const navigate = useNavigate();
@@ -181,6 +183,8 @@ function AppFrame() {
               label: COPY.appShell.dockDigest,
               active: path.startsWith("/digest"),
               onClick: () => navigate({ to: "/digest" }),
+              disabled: !hubConnected,
+              disabledHint: "Disponível ao conectar o HubSpot",
             },
             {
               key: "portfolio",
@@ -209,7 +213,7 @@ function AppFrame() {
               : []),
           ]
         : [],
-    [navigate, path, user, isAdmin],
+    [navigate, path, user, isAdmin, hubConnected],
   );
 
   if (loading) {
@@ -302,18 +306,28 @@ function AppFrame() {
           <nav id="workspace-dock-nav" className="mt-1 space-y-1.5">
             {workspaceItems.map((item) => {
               const Icon = item.icon;
+              const disabled = "disabled" in item && item.disabled;
+              const tipText = disabled
+                ? ((item as { disabledHint?: string }).disabledHint ?? item.label)
+                : sidebarCollapsed
+                  ? item.label
+                  : undefined;
               return (
                 <button
                   key={item.key}
                   type="button"
-                  onClick={item.onClick}
-                  title={sidebarCollapsed ? item.label : undefined}
+                  onClick={disabled ? undefined : item.onClick}
+                  disabled={disabled}
+                  aria-disabled={disabled || undefined}
+                  title={tipText}
                   className={cn(
                     "flex min-h-11 w-full items-center gap-3 rounded-xl text-left text-sm transition",
                     sidebarCollapsed ? "justify-center px-0" : "px-3",
-                    item.active
-                      ? "bg-primary/14 text-foreground shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
-                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                    disabled
+                      ? "cursor-not-allowed text-muted-foreground/50"
+                      : item.active
+                        ? "bg-primary/14 text-foreground shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
+                        : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
