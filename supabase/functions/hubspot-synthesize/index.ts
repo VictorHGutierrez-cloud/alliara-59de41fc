@@ -106,6 +106,15 @@ serve(async (req) => {
       })),
     };
 
+    if (!companyRow && (dealRows ?? []).length === 0) {
+      return json(
+        {
+          error: `Partner is linked to HubSpot company ${companyId}, but no cached data was found for that id. Run Sync in Settings, or verify the hubspot_company_id on this partner is correct.`,
+        },
+        400,
+      );
+    }
+
     const tool = {
       type: "function",
       function: {
