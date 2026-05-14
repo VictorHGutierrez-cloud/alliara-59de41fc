@@ -524,19 +524,31 @@ function AppFrame() {
               <nav className="space-y-1.5">
                 {workspaceItems.map((item) => {
                   const Icon = item.icon;
+                  const disabled = "disabled" in item && item.disabled;
                   return (
                     <button
                       key={item.key}
                       type="button"
+                      disabled={disabled}
+                      aria-disabled={disabled || undefined}
+                      title={
+                        disabled
+                          ? ((item as { disabledHint?: string }).disabledHint ?? item.label)
+                          : undefined
+                      }
                       onClick={() => {
+                        if (disabled) return;
                         setMobileNavOpen(false);
                         item.onClick();
                       }}
-                      className={`flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition ${
-                        item.active
-                          ? "bg-primary/14 text-foreground"
-                          : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground"
-                      }`}
+                      className={cn(
+                        "flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition",
+                        disabled
+                          ? "cursor-not-allowed text-muted-foreground/50"
+                          : item.active
+                            ? "bg-primary/14 text-foreground"
+                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                      )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
                       <span className="truncate">{item.label}</span>
