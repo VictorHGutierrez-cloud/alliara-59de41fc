@@ -1,71 +1,62 @@
-## Diagnóstico
+## Problema
 
-**1. Davyn duplicada com `hs_company_id=4567` (fake)**
+O `/digest` hoje exige conexão ativa com HubSpot + cache sincronizado. Como a Davyn (e os outros 30 partners da planilha) só existem no banco local — sem `hubspot_connections` e sem linhas em `hubspot_company_cache` / `hubspot_deal_cache` — a chamada cai no guard "Connect HubSpot in Settings" e o cliente traduz para "Integração HubSpot pausada".
 
-Existem duas linhas em `partners`:
+A planilha já preencheu `partners.hubspot_company_id` (Partner ID), mas esse ID não existe no portal HubSpot conectado, então mesmo um sync não traria nada.
 
-| id | owner | hubspot_company_id | origem |
-|----|-------|---------------------|--------|
-| `f860fe4a…` | `df86a49b…` (outro PDM) | **4567** (fake, não existe no HubSpot) | seed antigo |
-| `76d676c1…` | `2dadd873…` (você, da planilha) | **20590565132** (real) | import da planilha |
+## Objetivo
 
-Quando você seleciona "Davyn" no `/digest`, o dropdown está caindo na linha antiga `4567`. O `hubspot-synthesize` busca em `hubspot_company_cache` / `hubspot_deal_cache` por `hs_object_id=4567`, não encontra nada, e a IA gera o texto "no deals or company data".
-
-**2. Aba "Reports" sumiu**
-
-A rota `/reports` continua existindo e funcional (`src/routes/reports.tsx`). O que sumiu é o link no dock de navegação (`src/routes/__root.tsx`, `workspaceItems`) — hoje só lista Digest, Portfolio, Settings (e Approvals para admin). Preciso re-adicionar a entrada "Reports".
-
----
+Fazer o digest funcionar **com os dados que já temos no Lovable Cloud** (partners + metrics + stakeholders + notes + action_plans), tratando HubSpot como enriquecimento opcional.
 
 ## Plano
 
-### Passo 1 — Limpar a Davyn duplicada (data fix, não migration)
+### 1. Backend: novo modo "local-first" no `hubspot-synthesize`
 
-Via tool `supabase--insert` (DELETE):
+Arquivo: `supabase/functions/hubspot-synthesize/index.ts`
 
-```sql
--- Apaga a linha antiga com hs_company_id fake (4567) e owner diferente
-DELETE FROM public.partners
-WHERE id = 'f860fe4a-4073-4574-b34e-b5659b7be0cf'
-  AND hubspot_company_id = 4567;
-```
+- Remover o early-return `"Connect HubSpot in Settings"`. Conexão HubSpot passa a ser **opcional**.
+- Sempre carregar o `partnerRow` completo (campos: name, company, segment, tier, partner_type, status, notes, hubspot_company_id).
+- Carregar dados auxiliares do banco local com o admin client:
+  - `partner_metrics` (últimos 6 períodos)
+  - `partner_stakeholders`
+  - `action_plans` abertos
+  - assessment mais recente (`assessments.scores`, `overall`)
+- Se houver `hubspot_connections` + cache para esse `hubspot_company_id`, anexar `company` + `deals` ao snapshot (como já faz hoje).
+- Remover o 400 "no cached data was found" — virou caminho normal: digest local sem CRM.
+- Ajustar o `SYSTEM` prompt para deixar claro que a fonte pode ser **local Alliara data** (notes, metrics, stakeholders, action plans) e que `hs_citation` é opcional quando não houver dados HubSpot. Risk label continua o mesmo enum.
+- Manter o salvamento em `hubspot_digest_snapshots` (campo `hs_company_id` fica nullable na prática — já é).
 
-Resultado: sobra só a Davyn real (`20590565132`, sua), e o dropdown do `/digest` aponta para a linha certa.
+### 2. Frontend: parar de bloquear quando não há HubSpot
 
-**Risco:** se houver `assessments`, `partner_metrics`, `action_plans` etc. ligados a esse `partner_id`, eles caem por cascade/RLS órfã. Antes de rodar o DELETE, faço um `read_query` para checar dependências e te confirmo no chat. Se houver dados que importam, faço um UPDATE para mover `partner_id` para a linha boa em vez de deletar.
+Arquivo: `src/routes/digest.tsx`
 
-### Passo 2 — Re-adicionar "Reports" no dock
+- Remover o card "Connect HubSpot" como bloqueio. Mostrar como **dica opcional** ("Conecte o HubSpot em Settings para enriquecer o digest com deals do CRM"), mas o seletor de partners e o botão "Generate digest" ficam disponíveis.
+- Lista de partners: continuar filtrando por `owner_id = user.id` e ordenando por nome — não exigir mais `hubspot_company_id`.
+- Texto do `<option>`: mostrar "HS · {id}" quando houver, ou "local data" quando não.
+- Esconder o botão "Log to HubSpot as note" quando não houver conexão (em vez de erro depois).
+- Tirar o toast "Set HubSpot company ID in Edit partner first" — não é mais obrigatório.
 
-Em `src/routes/__root.tsx`, dentro de `workspaceItems`, inserir entre Portfolio e Settings:
+Arquivo: `src/lib/hubspot-client.ts`
 
-```tsx
-{
-  key: "reports",
-  icon: BarChart3, // já disponível em lucide-react
-  label: COPY.appShell.dockReports ?? "Reports",
-  active: path.startsWith("/reports"),
-  onClick: () => navigate({ to: "/reports" }),
-},
-```
+- Sem mudança de assinatura. `hs_company_id` retornado pode ser `0` quando não houver, e o front trata.
 
-Adicionar `dockReports: "Reports"` em `src/lib/copy.ts` (`appShell`) e o import do ícone `BarChart3`.
+### 3. Validação
 
-### Passo 3 — Hardening do `/digest` (evitar repetir o problema)
+1. Ir em `/digest`
+2. Selecionar **Davyn** no dropdown (deve aparecer mesmo sem HubSpot conectado)
+3. Clicar em **Generate digest** → deve retornar brief com base em `notes` + `partner_type` + `tier` + métricas/stakeholders se existirem
+4. Botão "Log to HubSpot as note" some quando não há conexão
+5. Repetir para outros partners da planilha (Pietro Russo's, Oriol Pesa's, Marvin Molijn's accounts já importados)
 
-Quando o partner selecionado tem `hubspot_company_id` mas **zero linhas** em `hubspot_company_cache` para essa connection, em vez de chamar a IA e produzir o texto enganoso "no deals or company data", o endpoint `hubspot-synthesize` deve retornar um erro claro tipo:
+## Detalhes técnicos
 
-> "Partner vinculado ao HubSpot company `<id>`, mas o cache local está vazio. Rode **Sync** em Settings antes de gerar o digest."
+- A função continua autenticada (precisa do Bearer do usuário) e respeita ownership via `partners.owner_id = user.id`.
+- O `LOVABLE_API_KEY` (já configurado) faz a chamada do AI Gateway — sem custo extra de setup.
+- Não mexe em schema, não mexe em RLS, não mexe na importação da planilha.
+- O nome da função fica `hubspot-synthesize` por compatibilidade, mesmo que o conteúdo agora seja "partner-synthesize". Renomear seria churn desnecessário.
 
-Edição em `supabase/functions/hubspot-synthesize/index.ts`: depois de buscar `companyRow` e `dealRows`, se `companyRow == null && dealRows.length === 0`, retornar `400` com essa mensagem em vez de seguir pra IA.
+## Fora de escopo
 
-Isso protege contra: (a) IDs fake como `4567`, (b) IDs reais que ainda não foram syncados.
-
----
-
-## Como você valida depois
-
-1. Em `/digest`, abrir o dropdown — só uma "Davyn" deve aparecer, e deve ser a sua (owner = você).
-2. Gerar digest da Davyn → deve trazer dados reais do HubSpot company `20590565132` (ou o erro claro do Passo 3 pedindo Sync, se a sync ainda não rodou).
-3. No dock lateral esquerdo, clicar em "Reports" → carrega a `/reports` normalmente com Overview/Revenue/Health/etc.
-
-Posso seguir?
+- Não vou tentar buscar a Davyn no HubSpot real (o `hubspot_company_id` da planilha não existe lá).
+- Não vou criar um endpoint novo — só estender o atual.
+- Não toco no `/reports` nem no fluxo de import.
