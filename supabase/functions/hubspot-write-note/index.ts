@@ -23,8 +23,9 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const clientId = Deno.env.get("HUBSPOT_CLIENT_ID")!;
-    const clientSecret = Deno.env.get("HUBSPOT_CLIENT_SECRET")!;
+    const clientId = Deno.env.get("HUBSPOT_CLIENT_ID") ?? "";
+    const clientSecret = Deno.env.get("HUBSPOT_CLIENT_SECRET") ?? "";
+    const privateAppToken = Deno.env.get("HUBSPOT_ACCESS_TOKEN") ?? "";
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -46,12 +47,12 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!conn) return json({ error: "HubSpot not connected" }, 400);
+    if (!conn && !privateAppToken) return json({ error: "HubSpot not connected" }, 400);
 
-    let accessToken = conn.access_token as string;
-    let refreshToken = conn.refresh_token as string;
-    const expiresAt = new Date(conn.expires_at as string);
-    if (expiresAt < new Date(Date.now() + 90_000)) {
+    let accessToken = privateAppToken || (conn!.access_token as string);
+    let refreshToken = (conn?.refresh_token as string) ?? "";
+    const expiresAt = conn ? new Date(conn.expires_at as string) : new Date(Date.now() + 365 * 86400_000);
+    if (!privateAppToken && conn && expiresAt < new Date(Date.now() + 90_000)) {
       const tr = await fetch("https://api.hubapi.com/oauth/v1/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },

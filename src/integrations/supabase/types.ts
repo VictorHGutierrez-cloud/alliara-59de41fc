@@ -153,6 +153,212 @@ export type Database = {
           },
         ]
       }
+      hubspot_company_cache: {
+        Row: {
+          connection_id: string
+          hs_object_id: number
+          id: string
+          properties: Json
+          synced_at: string
+          updated_at_hs: string | null
+        }
+        Insert: {
+          connection_id: string
+          hs_object_id: number
+          id?: string
+          properties?: Json
+          synced_at?: string
+          updated_at_hs?: string | null
+        }
+        Update: {
+          connection_id?: string
+          hs_object_id?: number
+          id?: string
+          properties?: Json
+          synced_at?: string
+          updated_at_hs?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hubspot_company_cache_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hubspot_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hubspot_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          expires_at: string
+          hub_domain: string | null
+          id: string
+          portal_id: number
+          refresh_token: string
+          scopes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          expires_at?: string
+          hub_domain?: string | null
+          id?: string
+          portal_id?: number
+          refresh_token?: string
+          scopes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          expires_at?: string
+          hub_domain?: string | null
+          id?: string
+          portal_id?: number
+          refresh_token?: string
+          scopes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      hubspot_deal_cache: {
+        Row: {
+          company_hs_id: number | null
+          connection_id: string
+          hs_object_id: number
+          id: string
+          properties: Json
+          synced_at: string
+          updated_at_hs: string | null
+        }
+        Insert: {
+          company_hs_id?: number | null
+          connection_id: string
+          hs_object_id: number
+          id?: string
+          properties?: Json
+          synced_at?: string
+          updated_at_hs?: string | null
+        }
+        Update: {
+          company_hs_id?: number | null
+          connection_id?: string
+          hs_object_id?: number
+          id?: string
+          properties?: Json
+          synced_at?: string
+          updated_at_hs?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hubspot_deal_cache_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "hubspot_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hubspot_digest_snapshots: {
+        Row: {
+          created_at: string
+          hs_company_id: number | null
+          id: string
+          model: string | null
+          partner_id: string | null
+          summary: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hs_company_id?: number | null
+          id?: string
+          model?: string | null
+          partner_id?: string | null
+          summary?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hs_company_id?: number | null
+          id?: string
+          model?: string | null
+          partner_id?: string | null
+          summary?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hubspot_digest_snapshots_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hubspot_oauth_states: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          state_token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at: string
+          id?: string
+          state_token: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          state_token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      hubspot_sync_state: {
+        Row: {
+          connection_id: string
+          last_companies_sync_at: string | null
+          last_deals_sync_at: string | null
+          last_error: string | null
+          updated_at: string
+        }
+        Insert: {
+          connection_id: string
+          last_companies_sync_at?: string | null
+          last_deals_sync_at?: string | null
+          last_error?: string | null
+          updated_at?: string
+        }
+        Update: {
+          connection_id?: string
+          last_companies_sync_at?: string | null
+          last_deals_sync_at?: string | null
+          last_error?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hubspot_sync_state_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: true
+            referencedRelation: "hubspot_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_completions: {
         Row: {
           axis_key: string
@@ -518,6 +724,7 @@ export type Database = {
         Row: {
           company: string | null
           created_at: string
+          hubspot_company_id: number | null
           id: string
           name: string
           notes: string | null
@@ -531,6 +738,7 @@ export type Database = {
         Insert: {
           company?: string | null
           created_at?: string
+          hubspot_company_id?: number | null
           id?: string
           name: string
           notes?: string | null
@@ -544,6 +752,7 @@ export type Database = {
         Update: {
           company?: string | null
           created_at?: string
+          hubspot_company_id?: number | null
           id?: string
           name?: string
           notes?: string | null

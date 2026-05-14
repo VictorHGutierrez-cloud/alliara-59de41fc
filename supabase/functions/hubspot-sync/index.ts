@@ -42,8 +42,9 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const clientId = Deno.env.get("HUBSPOT_CLIENT_ID")!;
-    const clientSecret = Deno.env.get("HUBSPOT_CLIENT_SECRET")!;
+    const clientId = Deno.env.get("HUBSPOT_CLIENT_ID") ?? "";
+    const clientSecret = Deno.env.get("HUBSPOT_CLIENT_SECRET") ?? "";
+    const privateAppToken = Deno.env.get("HUBSPOT_ACCESS_TOKEN") ?? "";
 
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
@@ -55,18 +56,46 @@ serve(async (req) => {
 
     const admin = createClient(supabaseUrl, serviceKey);
 
-    const { data: conn, error: cErr } = await admin
+    let { data: conn, error: cErr } = await admin
       .from("hubspot_connections")
       .select("*")
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (cErr || !conn) return json({ error: "HubSpot not connected. Connect under Settings." }, 400);
+    if (cErr) return json({ error: "Database error" }, 500);
 
-    let accessToken = conn.access_token as string;
+    // Private App mode: auto-provision a connection row using the workspace token
+    if (!conn && privateAppToken) {
+      const farFuture = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: created, error: createErr } = await admin
+        .from("hubspot_connections")
+        .upsert(
+          {
+            user_id: user.id,
+            portal_id: 0,
+            hub_domain: "private-app",
+            access_token: privateAppToken,
+            refresh_token: "private-app",
+            expires_at: farFuture,
+            scopes: "private-app",
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        )
+        .select("*")
+        .maybeSingle();
+      if (createErr || !created) return json({ error: "Could not initialize connection" }, 500);
+      conn = created;
+      await admin.from("hubspot_sync_state").upsert({ connection_id: created.id }, { onConflict: "connection_id" });
+    }
+
+    if (!conn) return json({ error: "HubSpot not connected. Connect under Settings." }, 400);
+
+    // Always prefer the Private App token from env when available
+    let accessToken = privateAppToken || (conn.access_token as string);
     let refreshToken = conn.refresh_token as string;
     const expiresAt = new Date(conn.expires_at as string);
-    if (expiresAt < new Date(Date.now() + 90_000)) {
+    if (!privateAppToken && expiresAt < new Date(Date.now() + 90_000)) {
       const tr = await fetch("https://api.hubapi.com/oauth/v1/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
