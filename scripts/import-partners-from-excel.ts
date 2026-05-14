@@ -1,5 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
-import * as xlsx from "xlsx";
+import xlsxPkg from "xlsx";
+const xlsx = (xlsxPkg as unknown as { default?: typeof xlsxPkg }).default ?? xlsxPkg;
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../src/integrations/supabase/types";
 
@@ -515,7 +516,11 @@ async function main(): Promise<void> {
         tier: existing.tier ?? row.tier,
         segment: row.segment ?? existing.segment,
         partner_type: existing.partner_type ?? row.partnerType,
-        notes: JSON.stringify(importNotes),
+        // Preserve existing notes; only fill when empty.
+        notes:
+          existing.notes != null && String(existing.notes).trim().length > 0
+            ? existing.notes
+            : JSON.stringify(importNotes),
       };
 
       if (!options.dryRun) {
