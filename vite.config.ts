@@ -2,8 +2,12 @@ import tailwindcss from "@tailwindcss/vite";
 import { cloudflare } from "@cloudflare/vite-plugin";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
+import { nitro } from "nitro/vite";
 import { defineConfig, loadEnv } from "vite";
 import tsconfigPaths from "vite-tsconfig-paths";
+
+/** Vercel sets VERCEL=1 during CI builds; Cloudflare deploy uses wrangler locally/Actions. */
+const onVercel = Boolean(process.env.VERCEL);
 
 export default defineConfig(({ command, mode }) => {
   const envDefine: Record<string, string> = {};
@@ -12,16 +16,18 @@ export default defineConfig(({ command, mode }) => {
     envDefine[`import.meta.env.${key}`] = JSON.stringify(value);
   }
 
+  const deployPlugin =
+    command === "build"
+      ? onVercel
+        ? nitro()
+        : cloudflare({
+            viteEnvironment: { name: "ssr" },
+          })
+      : null;
+
   const plugins = [
     tailwindcss(),
     tsconfigPaths({ projects: ["./tsconfig.json"] }),
-    ...(command === "build"
-      ? [
-          cloudflare({
-            viteEnvironment: { name: "ssr" },
-          }),
-        ]
-      : []),
     tanstackStart({
       importProtection: {
         behavior: "error",
@@ -31,6 +37,7 @@ export default defineConfig(({ command, mode }) => {
         },
       },
     }),
+    ...(deployPlugin ? [deployPlugin] : []),
     react(),
   ];
 
