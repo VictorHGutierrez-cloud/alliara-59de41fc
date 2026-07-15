@@ -1,6 +1,7 @@
 // partner-intel edge function — turns uploaded documents + quick metrics
-// into structured insights for one specific partner using Lovable AI.
+// into structured insights for one specific partner using OpenAI.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { chatCompletion, mapAiHttpError } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,13 +9,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const INTEL_SYSTEM = `You are a B2B partnership intelligence analyst inside the Alliara product.
+const INTEL_SYSTEM = `You are a B2B partnership intelligence analyst inside the Kept product.
 
 LANGUAGE: Every string you output in the tool JSON MUST be in English.
 
 TONE: Friendly, clear, efficient. You help a Partner Development Manager see what matters without fluff.
 
-BRANDING: Never write OCTA, OCTO, OCTA OS, or similar. Say Alliara, portal, partner program, or channel maturity when needed.
+BRANDING: Never write OCTA, OCTO, OCTA OS, or similar. Say Kept, portal, partner program, or channel maturity when needed.
 
 FORMATTING IN PROSE FIELDS: Do not use the em dash character. Do not use markdown. Do not start lines with a hyphen as a bullet in user-facing text. If you need steps, use "1. 2. 3." on one line or short sentences.
 
@@ -67,8 +68,8 @@ serve(async (req) => {
 
   try {
     const body = (await req.json()) as IntelRequest;
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
 
     const tool = {
       type: "function",
@@ -155,26 +156,20 @@ serve(async (req) => {
     const userPrompt = buildPrompt(body);
     const model = body.model ?? "google/gemini-2.5-flash";
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: INTEL_SYSTEM },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: "deliver_partner_intel" } },
-      }),
+    const aiResp = await chatCompletion({
+      model,
+      messages: [
+        { role: "system", content: INTEL_SYSTEM },
+        { role: "user", content: userPrompt },
+      ],
+      tools: [tool],
+      tool_choice: { type: "function", function: { name: "deliver_partner_intel" } },
     });
 
-    if (!aiResp.ok) {
-      const t = await aiResp.text();
-      console.error("AI gateway error:", aiResp.status, t);
-      if (aiResp.status === 429) return json({ error: "Rate limit, try again shortly." }, 429);
-      if (aiResp.status === 402) return json({ error: "AI credits exhausted." }, 402);
-      return json({ error: "AI gateway error" }, 500);
+    const aiError = await mapAiHttpError(aiResp, "partner-intel");
+    if (aiError) {
+      const headers = { ...corsHeaders, "Content-Type": "application/json" };
+      return new Response(aiError.body, { status: aiError.status, headers });
     }
 
     const data = await aiResp.json();

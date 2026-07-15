@@ -27,7 +27,7 @@ function SignUp() {
   const [googleBusy, setGoogleBusy] = useState(false);
 
   useEffect(() => {
-    if (user) nav({ to: "/partners", replace: true });
+    if (user) nav({ to: "/academy", replace: true });
   }, [user, nav]);
 
   useEffect(() => {
@@ -50,7 +50,7 @@ function SignUp() {
       return;
     }
     toast.success("Account created");
-    nav({ to: "/partners" });
+    nav({ to: "/academy" });
   };
 
   if (sentTo) {

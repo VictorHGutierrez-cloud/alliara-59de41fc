@@ -40,18 +40,18 @@ const SRC: Record<KeptIllustrationVariant, string> = {
 };
 
 const DEFAULT_ALT: Record<KeptIllustrationVariant, string> = {
-  noticesDrift: "Kept noticing drift across partner work",
+  noticesDrift: "Kept noticing when study momentum slips",
   remindsGently: "Kept offering a gentle reminder",
-  keepsContext: "Kept keeping commitments and context visible",
-  bringsCalm: "Kept, a calm presence beside your partner rhythm",
+  keepsContext: "Kept keeping your curriculum and context visible",
+  bringsCalm: "Kept, a calm presence beside your study rhythm",
   notifySomethingToCheck: "Kept flagging something to review",
-  atRisk: "Kept surfacing a partner that needs attention",
-  contextBeforeCall: "Kept handing you context before a partner call",
-  everythingOnTrack: "Kept showing partnerships on track",
+  atRisk: "Kept surfacing a deal moment that needs attention",
+  contextBeforeCall: "Kept handing you context before a customer call",
+  everythingOnTrack: "Kept showing your learning path on track",
   sidebarPeek: "Kept peeking from the workspace sidebar",
-  jbpStanding: "Kept beside joint plan updates",
-  radarLooking: "Kept reading partner radar signals",
-  idleAllClear: "Kept resting while nothing is drifting",
+  jbpStanding: "Kept beside your next study step",
+  radarLooking: "Kept reading signals across your pipeline",
+  idleAllClear: "Kept resting while you are caught up",
 };
 
 export interface KeptIllustrationProps {

@@ -9,20 +9,22 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import appCss from "../styles.css?url";
-import alliaraMark from "@/assets/alliara-mark.svg?url";
-import alliaraLogo from "@/assets/alliara-logo.svg?url";
+import keptMark from "@/assets/kept-mark.svg?url";
+import keptLogo from "@/assets/kept-logo.svg?url";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import {
   Menu,
-  ScrollText,
-  Users,
   Settings as SettingsIcon,
   LogOut,
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  BarChart3,
+  GraduationCap,
+  BookOpen,
+  MessageCircleQuestion,
+  Route as RouteIcon,
+  Home,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
@@ -30,10 +32,8 @@ import { COPY } from "@/lib/copy";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { KeptAmbientPresence } from "@/components/brand/KeptAmbientPresence";
 import { cn } from "@/lib/utils";
-import { HubSpotOfflineBanner } from "@/components/HubSpotOfflineBanner";
-import { useHubSpotConnection } from "@/lib/hubspot-connection";
 
-const SIDEBAR_COLLAPSED_KEY = "alliara-sidebar-collapsed";
+const SIDEBAR_COLLAPSED_KEY = "kept-sidebar-collapsed";
 
 function NotFoundComponent() {
   return (
@@ -82,8 +82,8 @@ export const Route = createRootRoute({
       },
     ],
     links: [
-      { rel: "icon", href: alliaraMark, type: "image/svg+xml" },
-      { rel: "apple-touch-icon", href: alliaraMark },
+      { rel: "icon", href: keptMark, type: "image/svg+xml" },
+      { rel: "apple-touch-icon", href: keptMark },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
@@ -125,7 +125,6 @@ function RootComponent() {
 
 function AppFrame() {
   const { user, loading, signOut, accessStatus, isAdmin } = useAuth();
-  const { connected: hubConnected } = useHubSpotConnection();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isLanding = path === "/";
   const navigate = useNavigate();
@@ -151,8 +150,6 @@ function AppFrame() {
     });
   };
 
-  // SaaS approval gate: signed-in users without approved access can only
-  // see public/auth pages and the pending screen.
   const PUBLIC_PATHS = useMemo(
     () => [
       "/",
@@ -166,6 +163,7 @@ function AppFrame() {
     ],
     [],
   );
+
   useEffect(() => {
     if (!user || !accessStatus) return;
     if (accessStatus === "approved") return;
@@ -179,27 +177,32 @@ function AppFrame() {
       user
         ? [
             {
-              key: "digest",
-              icon: ScrollText,
-              label: COPY.appShell.dockDigest,
-              active: path.startsWith("/digest"),
-              onClick: () => navigate({ to: "/digest" }),
-              disabled: !hubConnected,
-              disabledHint: "Disponível ao conectar o HubSpot",
+              key: "home",
+              icon: Home,
+              label: COPY.appShell.dockHome,
+              active: path === "/academy" || path === "/academy/",
+              onClick: () => navigate({ to: "/academy" }),
             },
             {
-              key: "portfolio",
-              icon: Users,
-              label: COPY.appShell.dockPortfolio,
-              active: path.startsWith("/partners") || path.startsWith("/partner"),
-              onClick: () => navigate({ to: "/partners" }),
+              key: "library",
+              icon: BookOpen,
+              label: COPY.appShell.dockLibrary,
+              active: path.startsWith("/academy/library"),
+              onClick: () => navigate({ to: "/academy/library" }),
             },
             {
-              key: "reports",
-              icon: BarChart3,
-              label: COPY.appShell.dockReports,
-              active: path.startsWith("/reports"),
-              onClick: () => navigate({ to: "/reports" }),
+              key: "coach",
+              icon: MessageCircleQuestion,
+              label: COPY.appShell.dockCoach,
+              active: path.startsWith("/academy/ask"),
+              onClick: () => navigate({ to: "/academy/ask" }),
+            },
+            {
+              key: "tracks",
+              icon: RouteIcon,
+              label: COPY.appShell.dockTracks,
+              active: path.startsWith("/academy/learn"),
+              onClick: () => navigate({ to: "/academy/learn" }),
             },
             {
               key: "settings",
@@ -221,7 +224,7 @@ function AppFrame() {
               : []),
           ]
         : [],
-    [navigate, path, user, isAdmin, hubConnected],
+    [navigate, path, user, isAdmin],
   );
 
   if (loading) {
@@ -275,14 +278,14 @@ function AppFrame() {
             )}
           >
             <Link
-              to="/partners"
+              to="/academy"
               className={cn(
                 "flex min-w-0 rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring",
                 sidebarCollapsed ? "justify-center p-0.5" : "flex-1 pr-1",
               )}
             >
               <img
-                src={sidebarCollapsed ? alliaraMark : alliaraLogo}
+                src={sidebarCollapsed ? keptMark : keptLogo}
                 alt={COPY.auth.logoAltWordmark}
                 className={cn(
                   "object-contain",
@@ -314,28 +317,18 @@ function AppFrame() {
           <nav id="workspace-dock-nav" className="mt-1 space-y-1.5">
             {workspaceItems.map((item) => {
               const Icon = item.icon;
-              const disabled = "disabled" in item && item.disabled;
-              const tipText = disabled
-                ? ((item as { disabledHint?: string }).disabledHint ?? item.label)
-                : sidebarCollapsed
-                  ? item.label
-                  : undefined;
               return (
                 <button
                   key={item.key}
                   type="button"
-                  onClick={disabled ? undefined : item.onClick}
-                  disabled={disabled}
-                  aria-disabled={disabled || undefined}
-                  title={tipText}
+                  onClick={item.onClick}
+                  title={sidebarCollapsed ? item.label : undefined}
                   className={cn(
                     "flex min-h-11 w-full items-center gap-3 rounded-xl text-left text-sm transition",
                     sidebarCollapsed ? "justify-center px-0" : "px-3",
-                    disabled
-                      ? "cursor-not-allowed text-muted-foreground/50"
-                      : item.active
-                        ? "bg-primary/14 text-foreground shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
-                        : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                    item.active
+                      ? "bg-primary/14 text-foreground shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
+                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                   )}
                 >
                   <Icon className="h-4 w-4 shrink-0" />
@@ -383,12 +376,12 @@ function AppFrame() {
                     <Menu className="h-5 w-5" />
                   </button>
                   <Link
-                    to="/partners"
+                    to="/academy"
                     className="inline-flex min-h-11 min-w-[2.75rem] shrink-0 items-center justify-center rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
-                    aria-label={COPY.appShell.goToPortfolio}
+                    aria-label={COPY.appShell.goToAcademy}
                   >
                     <img
-                      src={alliaraMark}
+                      src={keptMark}
                       alt=""
                       className="size-9 object-contain"
                       decoding="async"
@@ -402,7 +395,7 @@ function AppFrame() {
                   className="flex min-w-0 items-center gap-2 font-display font-bold tracking-tight text-foreground"
                 >
                   <img
-                    src={alliaraLogo}
+                    src={keptLogo}
                     alt={COPY.auth.logoAltWordmark}
                     className={cn(
                       "w-auto object-contain object-left",
@@ -420,7 +413,7 @@ function AppFrame() {
                 user ? (
                   <>
                     <Link
-                      to="/partners"
+                      to="/academy"
                       className="min-h-11 inline-flex items-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-neutral-100"
                     >
                       {COPY.auth.openWorkspaceCta}
@@ -458,10 +451,11 @@ function AppFrame() {
               ) : user ? (
                 <>
                   <Link
-                    to="/kept"
-                    className="min-h-11 inline-flex items-center rounded-xl px-3 text-sm font-semibold text-foreground transition hover:bg-surface-2 sm:px-4"
+                    to="/academy"
+                    className="min-h-11 inline-flex items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-foreground transition hover:bg-surface-2 sm:px-4"
                   >
-                    {COPY.auth.headerKeptCta}
+                    <GraduationCap className="h-4 w-4 text-primary" />
+                    {COPY.auth.headerAcademyCta}
                   </Link>
                   <span className="hidden text-xs text-muted-foreground sm:inline">
                     {COPY.auth.signedInHint}
@@ -494,7 +488,6 @@ function AppFrame() {
         </header>
 
         <main className="relative min-w-0 flex-1">
-          {inAppWorkspace && <HubSpotOfflineBanner />}
           <Outlet />
           {inAppWorkspace && <KeptAmbientPresence />}
         </main>
@@ -518,12 +511,12 @@ function AppFrame() {
             <SheetTitle className="sr-only">App navigation</SheetTitle>
             <div className="flex h-full flex-col px-3 py-4">
               <Link
-                to="/partners"
+                to="/academy"
                 className="mb-4 flex px-2"
                 onClick={() => setMobileNavOpen(false)}
               >
                 <img
-                  src={alliaraLogo}
+                  src={keptLogo}
                   alt={COPY.auth.logoAltWordmark}
                   className="h-auto max-h-11 w-full max-w-[12.5rem] object-contain object-left"
                   decoding="async"
@@ -532,30 +525,19 @@ function AppFrame() {
               <nav className="space-y-1.5">
                 {workspaceItems.map((item) => {
                   const Icon = item.icon;
-                  const disabled = "disabled" in item && item.disabled;
                   return (
                     <button
                       key={item.key}
                       type="button"
-                      disabled={disabled}
-                      aria-disabled={disabled || undefined}
-                      title={
-                        disabled
-                          ? ((item as { disabledHint?: string }).disabledHint ?? item.label)
-                          : undefined
-                      }
                       onClick={() => {
-                        if (disabled) return;
                         setMobileNavOpen(false);
                         item.onClick();
                       }}
                       className={cn(
                         "flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition",
-                        disabled
-                          ? "cursor-not-allowed text-muted-foreground/50"
-                          : item.active
-                            ? "bg-primary/14 text-foreground"
-                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                        item.active
+                          ? "bg-primary/14 text-foreground"
+                          : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />

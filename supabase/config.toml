@@ -9,6 +9,9 @@ verify_jwt = true
 [functions.kept-ask]
 verify_jwt = true
 
+[functions.sales-ask]
+verify_jwt = true
+
 [functions.delete-guidance]
 verify_jwt = true
 

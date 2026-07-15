@@ -1,18 +1,19 @@
-// Single AI surface: synthesize partner state from local Alliara data
+// Single AI surface: synthesize partner state from local Kept data
 // (partners, metrics, stakeholders, action_plans, assessments) plus optional
 // HubSpot CRM enrichment when a connection + cache exist.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { chatCompletion, mapAiHttpError } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const SYSTEM = `You are Alliara partner digest. The input snapshot is the only source of truth.
+const SYSTEM = `You are the Kept partner digest assistant. The input snapshot is the only source of truth.
 
 The snapshot may include:
-- partner: local Alliara record (name, company, segment, tier, partner_type, status, notes)
+- partner: local Kept record (name, company, segment, tier, partner_type, status, notes)
 - metrics: recent partner_metrics rows
 - stakeholders: known contacts
 - action_plans: open initiatives
@@ -24,7 +25,7 @@ Output MUST be valid JSON for the tool only. English only.
 Rules:
 - Ground every claim in the snapshot. If a section is missing, say so plainly instead of inventing.
 - When HubSpot data is present, prefer it for pipeline/deal claims and cite hs_company_id or hs_deal_id in hs_citation.
-- When HubSpot data is absent, use local Alliara fields and leave hs_citation empty or write "local".
+- When HubSpot data is absent, use local Kept fields and leave hs_citation empty or write "local".
 - One primary next step for the partner motion; add up to two alternates.
 - Risk label: stall | ghosting | pipeline_gap | healthy | unknown
 - Do not invent revenue or dates not present in input snapshot.
@@ -44,7 +45,7 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) return json({ error: "Unauthorized" }, 401);
 
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
     if (!apiKey) return json({ error: "AI not configured" }, 500);
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -101,7 +102,7 @@ serve(async (req) => {
       return json({ error: "Provide partner_id or hs_company_id." }, 400);
     }
 
-    // Local Alliara context
+    // Local Kept context
     const partnerId = partnerRow?.id ?? null;
     let metrics: unknown[] = [];
     let stakeholders: unknown[] = [];
@@ -220,7 +221,7 @@ serve(async (req) => {
                   hs_citation: {
                     type: "string",
                     description:
-                      "Deal/company id from HubSpot input, or 'local' when grounded in Alliara data.",
+                      "Deal/company id from HubSpot input, or 'local' when grounded in Kept data.",
                   },
                 },
                 required: ["title", "detail"],
@@ -236,25 +237,21 @@ serve(async (req) => {
 
     const userPrompt = `Partner snapshot (JSON):\n${JSON.stringify(snapshot).slice(0, 24000)}`;
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: body.model ?? "google/gemini-2.5-flash",
-        temperature: 0.25,
-        messages: [
-          { role: "system", content: SYSTEM },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: "deliver_partner_digest" } },
-      }),
+    const aiResp = await chatCompletion({
+      model: body.model,
+      temperature: 0.25,
+      messages: [
+        { role: "system", content: SYSTEM },
+        { role: "user", content: userPrompt },
+      ],
+      tools: [tool],
+      tool_choice: { type: "function", function: { name: "deliver_partner_digest" } },
     });
 
-    if (!aiResp.ok) {
-      const t = await aiResp.text();
-      console.error("synthesize gateway", aiResp.status, t);
-      return json({ error: "AI gateway error" }, 500);
+    const aiError = await mapAiHttpError(aiResp, "hubspot-synthesize");
+    if (aiError) {
+      const headers = { ...corsHeaders, "Content-Type": "application/json" };
+      return new Response(aiError.body, { status: aiError.status, headers });
     }
 
     const data = await aiResp.json();

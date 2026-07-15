@@ -1,7 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 
 export type AccessStatus = "pending" | "approved" | "rejected";
 
@@ -33,7 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Set listener BEFORE getSession (per Lovable Cloud guidance)
+    // Set listener BEFORE getSession so OAuth redirects are picked up immediately.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => {
       setSession(s);
       setLoading(false);
@@ -102,16 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: error?.message };
     },
     signInWithGoogle: async () => {
-      const redirect_uri = typeof window !== "undefined" ? window.location.origin : undefined;
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri,
-        extraParams: { prompt: "select_account" },
+      const redirectTo =
+        typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          queryParams: { prompt: "select_account" },
+        },
       });
-      if (result.error) {
-        const msg = result.error instanceof Error ? result.error.message : String(result.error);
-        return { error: msg };
-      }
-      return {};
+      return { error: error?.message };
     },
     sendPasswordReset: async (email) => {
       const redirectTo = typeof window !== "undefined" ? `${window.location.origin}/reset-password` : undefined;

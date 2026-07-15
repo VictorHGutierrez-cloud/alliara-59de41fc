@@ -1,6 +1,6 @@
-// AI Coach edge function — generates personalized recommendations for a partner using Lovable AI.
-// Uses Gemini 2.5 Flash by default. Falls back to Pro if requested.
+// AI Coach edge function — generates personalized recommendations for a partner using OpenAI.
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { chatCompletion, mapAiHttpError } from "../_shared/ai.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,13 +8,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const COACH_SYSTEM = `You are an experienced B2B channel coach inside the Alliara product.
+const COACH_SYSTEM = `You are an experienced B2B channel coach inside the Kept product.
 
 LANGUAGE: Every string you output in the tool JSON (summary, title, why, how, expected_outcome, action item titles and descriptions) MUST be in English. Keep the same language even if the PDM typed run notes in another language.
 
 TONE: Friendly, clear, human. Write like a trusted colleague talking to a Partner Development Manager. Short sentences. Plain words. No empty corporate jargon.
 
-BRANDING: Never write OCTA, OCTO, OCTA OS, or similar. Say partner program, Alliara portal, or channel maturity / dimensions when needed.
+BRANDING: Never write OCTA, OCTO, OCTA OS, or similar. Say partner program, Kept portal, or channel maturity / dimensions when needed.
 
 FORMATTING IN PROSE FIELDS: Do not use the em dash character. Do not use markdown. Do not start lines with a hyphen as a bullet. For how only: at most two numbered steps on one line "1. ... 2. ..." OR two very short sentences. No third step.
 
@@ -234,8 +234,8 @@ serve(async (req) => {
 
   try {
     const body = (await req.json()) as CoachRequest;
-    const apiKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
 
     const focus = body.focusAxisKey
       ? body.axes.find((a) => a.key === body.focusAxisKey)
@@ -257,34 +257,21 @@ serve(async (req) => {
       body.model ?? (isQuestionMode ? "google/gemini-2.5-pro" : "google/gemini-2.5-flash");
     const toolName = isQuestionMode ? "answer_pdm_question" : "deliver_recommendations";
 
-    const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        temperature: isQuestionMode ? 0.3 : undefined,
-        messages: [
-          { role: "system", content: COACH_SYSTEM },
-          { role: "user", content: userPrompt },
-        ],
-        tools: [tool],
-        tool_choice: { type: "function", function: { name: toolName } },
-      }),
+    const aiResp = await chatCompletion({
+      model,
+      temperature: isQuestionMode ? 0.3 : undefined,
+      messages: [
+        { role: "system", content: COACH_SYSTEM },
+        { role: "user", content: userPrompt },
+      ],
+      tools: [tool],
+      tool_choice: { type: "function", function: { name: toolName } },
     });
 
-    if (!aiResp.ok) {
-      const t = await aiResp.text();
-      console.error("AI gateway error:", aiResp.status, t);
-      if (aiResp.status === 429) {
-        return json({ error: "Rate limit hit, please try again in a moment." }, 429);
-      }
-      if (aiResp.status === 402) {
-        return json({ error: "AI credits exhausted. Add usage in workspace settings." }, 402);
-      }
-      return json({ error: "AI gateway error" }, 500);
+    const aiError = await mapAiHttpError(aiResp, "ai-coach");
+    if (aiError) {
+      const headers = { ...corsHeaders, "Content-Type": "application/json" };
+      return new Response(aiError.body, { status: aiError.status, headers });
     }
 
     const data = await aiResp.json();

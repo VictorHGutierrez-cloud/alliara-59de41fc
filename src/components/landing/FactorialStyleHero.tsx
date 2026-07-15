@@ -1,11 +1,8 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useMemo, useRef, useState, type FormEvent } from "react";
-import { ChevronLeft, ChevronRight, Mail } from "lucide-react";
+import { useRef, useState, type FormEvent } from "react";
+import { BookOpen, ChevronLeft, ChevronRight, GraduationCap, Mail, MessageCircleQuestion } from "lucide-react";
 import { COPY } from "@/lib/copy";
-import imgProductRadar from "@/assets/landing/product-maturity-radar.png";
-import imgJbpTask from "@/assets/landing/jbp-new-task.png";
-import { CandyBarChart, CandyStackedArea } from "@/components/ui/candy-charts";
-import { DEMO_LANDING_GROWTH, DEMO_LANDING_REVENUE } from "@/content/landing-chart-demos";
+import { SALES_LIBRARY } from "@/content/sales-library";
 
 const MESH_STYLE: React.CSSProperties = {
   background: `
@@ -16,18 +13,29 @@ const MESH_STYLE: React.CSSProperties = {
   `,
 };
 
-function formatDemoEuro(n: number) {
-  if (n >= 1000 && n % 1000 === 0) return `€${n / 1000}k`;
-  if (n >= 1000) return `€${(n / 1000).toFixed(1)}k`;
-  return `€${n}`;
-}
+const PREVIEW_CARDS = [
+  {
+    icon: BookOpen,
+    title: COPY.landing.pillarLibraryTitle,
+    body: COPY.landing.pillarLibraryBody,
+  },
+  {
+    icon: MessageCircleQuestion,
+    title: COPY.landing.pillarCoachTitle,
+    body: COPY.landing.pillarCoachBody,
+  },
+  {
+    icon: GraduationCap,
+    title: COPY.landing.pillarTracksTitle,
+    body: COPY.landing.pillarTracksBody,
+  },
+] as const;
 
 export function FactorialStyleHero() {
   const L = COPY.landing;
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const scrollerRef = useRef<HTMLDivElement>(null);
-  const cards = L.heroCarousel;
 
   const scrollByDir = (dir: -1 | 1) => {
     const el = scrollerRef.current;
@@ -46,36 +54,6 @@ export function FactorialStyleHero() {
     void navigate({ to: "/signup", search: { email: trimmed } });
   };
 
-  const chartBlock = useMemo(
-    () => ({
-      revenue: (
-        <div className="h-[200px] w-full overflow-hidden rounded-xl bg-white px-1 pt-2">
-          <CandyBarChart
-            data={DEMO_LANDING_REVENUE}
-            height={180}
-            variant="palette"
-            valueFormatter={formatDemoEuro}
-            showLabels
-          />
-        </div>
-      ),
-      mix: (
-        <div className="h-[200px] w-full overflow-hidden rounded-xl bg-white px-2 pt-2">
-          <CandyStackedArea
-            data={DEMO_LANDING_GROWTH}
-            series={[
-              { key: "active", label: "Scaling", color: "var(--success)" },
-              { key: "nurturing", label: "Developing", color: "var(--warning)" },
-              { key: "at_risk", label: "Churn Risk", color: "var(--destructive)" },
-            ]}
-            height={170}
-          />
-        </div>
-      ),
-    }),
-    [],
-  );
-
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 -z-10" style={MESH_STYLE} aria-hidden />
@@ -91,9 +69,9 @@ export function FactorialStyleHero() {
           </p>
 
           <div className="mt-6 flex flex-wrap justify-center gap-2">
-            <Pill>{L.pillDiagnostic}</Pill>
-            <Pill>{L.pillJbp}</Pill>
-            <Pill>{L.pillKept}</Pill>
+            <Pill>{L.pillLibrary}</Pill>
+            <Pill>{L.pillCoach}</Pill>
+            <Pill>{L.pillTracks}</Pill>
           </div>
 
           <form
@@ -143,43 +121,23 @@ export function FactorialStyleHero() {
             className="flex min-h-0 flex-1 touch-pan-x gap-4 overflow-x-auto scroll-smooth pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             style={{ scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}
           >
-            {cards.map((card, i) => (
-              <article
-                key={`${card.title}-${i}`}
-                className={`group relative w-[min(78vw,320px)] shrink-0 snap-center rounded-2xl border border-neutral-200/80 bg-white/95 p-3 shadow-[0_20px_50px_-34px_rgba(11,18,32,0.35)] backdrop-blur-sm transition duration-300 ${
-                  i === 1 ? "sm:scale-[1.03] sm:shadow-lg" : ""
-                }`}
-              >
-                <div className="absolute inset-0 rounded-2xl bg-[color-mix(in_oklab,var(--primary)_6%,transparent)] opacity-100 transition group-hover:opacity-0" />
-                <div className="relative">
-                  <p className="text-left text-sm font-semibold text-neutral-900">{card.title}</p>
-                  <p className="mt-0.5 text-left text-xs text-neutral-500">{card.subtitle}</p>
-                  <div className="mt-3 overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50/80">
-                    {card.visual === "radar" ? (
-                      <img
-                        src={imgProductRadar}
-                        alt={card.imgAlt}
-                        className="h-[200px] w-full object-cover object-top"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    ) : card.visual === "revenue" ? (
-                      chartBlock.revenue
-                    ) : card.visual === "mix" ? (
-                      chartBlock.mix
-                    ) : (
-                      <img
-                        src={imgJbpTask}
-                        alt={card.imgAlt}
-                        className="h-[200px] w-full object-contain bg-white"
-                        loading="lazy"
-                        decoding="async"
-                      />
-                    )}
+            {PREVIEW_CARDS.map((card, i) => {
+              const Icon = card.icon;
+              return (
+                <article
+                  key={card.title}
+                  className={`group relative w-[min(78vw,320px)] shrink-0 snap-center rounded-2xl border border-neutral-200/80 bg-white/95 p-5 shadow-[0_20px_50px_-34px_rgba(11,18,32,0.35)] backdrop-blur-sm transition duration-300 ${
+                    i === 1 ? "sm:scale-[1.03] sm:shadow-lg" : ""
+                  }`}
+                >
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" aria-hidden />
                   </div>
-                </div>
-              </article>
-            ))}
+                  <p className="mt-4 text-left text-sm font-semibold text-neutral-900">{card.title}</p>
+                  <p className="mt-2 text-left text-xs leading-relaxed text-neutral-500">{card.body}</p>
+                </article>
+              );
+            })}
           </div>
 
           <button
@@ -194,20 +152,9 @@ export function FactorialStyleHero() {
 
         <div className="mx-auto max-w-6xl px-6 pb-2 sm:pb-4">
           <p className="text-center text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
-            {L.heroSocialProofEyebrow}
+            {L.trustEyebrow}
           </p>
-          <ul
-            className="mt-5 flex list-none flex-wrap items-center justify-center gap-x-10 gap-y-3"
-            aria-label="Demo partner names"
-          >
-            {L.heroSocialProofNames.map((name) => (
-              <li key={name}>
-                <span className="font-display text-sm font-semibold tracking-tight text-neutral-400 sm:text-base">
-                  {name}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-neutral-500">{L.trustBlurb}</p>
         </div>
       </div>
     </section>

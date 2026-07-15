@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The People Path — Interactive Lifecycle Story</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,500&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #141c19;
+      --paper: #f2eee4;
+      --sand: #e8e0d0;
+      --mist: #d5e3dc;
+      --people: #1a6b72;
+      --people-soft: #d4ecee;
+      --ops: #c4561f;
+      --ops-soft: #f5e2d4;
+      --finance: #2a6540;
+      --finance-soft: #d9eadc;
+      --it: #2c406e;
+      --it-soft: #d9e1f1;
+      --core: #5a4630;
+      --core-soft: #ebe2d4;
+      --trust: #6b3a3a;
+      --trust-soft: #f0e0e0;
+      --accent: #b93642;
+      --white: #fffcf6;
+      --muted: #57615c;
+      --ok: #1f7a4d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Outfit", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 70% 45% at 0% 0%, #d9ebe6 0%, transparent 55%),
+        radial-gradient(ellipse 50% 35% at 100% 5%, #f1ddd0 0%, transparent 50%),
+        var(--paper);
+      line-height: 1.5;
+    }
+    h1, h2, h3 { font-family: "Fraunces", Georgia, serif; letter-spacing: -0.02em; line-height: 1.15; }
+
+    .rail {
+      position: fixed; inset: 0 0 auto 0; z-index: 50;
+      background: rgba(242,238,228,.94); backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(20,28,25,.08); padding: 10px 14px 12px;
+    }
+    .rail-inner { max-width: 1120px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
+    .rail-title { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+    .stations { flex: 1; display: flex; gap: 3px; overflow-x: auto; scrollbar-width: none; }
+    .stations::-webkit-scrollbar { display: none; }
+    .stations a {
+      flex: 1; min-width: 68px; text-align: center; text-decoration: none; font-size: 10px; font-weight: 650;
+      color: var(--muted); padding: 6px 3px; border-radius: 8px;
+    }
+    .stations a::before {
+      content: ""; display: block; width: 8px; height: 8px; border-radius: 50%;
+      margin: 0 auto 5px; background: currentColor; opacity: .35;
+    }
+    .stations a.done::before { background: var(--ok); color: var(--ok); opacity: 1; }
+    .stations a.active { background: var(--white); box-shadow: 0 1px 4px rgba(20,28,25,.08); }
+    .stations a.active::before { opacity: 1; }
+    .stations a[data-h="people"] { color: var(--people); }
+    .stations a[data-h="core"] { color: var(--core); }
+    .stations a[data-h="it"] { color: var(--it); }
+    .stations a[data-h="ops"] { color: var(--ops); }
+    .stations a[data-h="finance"] { color: var(--finance); }
+
+    .story-progress {
+      width: 110px; flex-shrink: 0; text-align: right; font-size: 11px; font-weight: 700; color: var(--muted);
+    }
+    .story-progress b { color: var(--ink); }
+
+    .wrap { max-width: 980px; margin: 0 auto; padding: 86px 22px 72px; }
+
+    .hero { min-height: calc(100vh - 90px); display: grid; align-content: center; gap: 20px; padding: 28px 0 48px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--people); }
+    .hero h1 { font-size: clamp(2.4rem, 6.5vw, 4.3rem); font-weight: 800; max-width: 14ch; }
+    .hero h1 em { font-style: italic; font-weight: 500; color: var(--accent); }
+    .lede { font-size: clamp(1rem, 2vw, 1.2rem); color: var(--muted); max-width: 48ch; }
+    .sheet-note {
+      font-size: 13px; background: var(--white); border: 1px solid rgba(20,28,25,.1);
+      border-radius: 14px; padding: 12px 16px; max-width: 58ch;
+    }
+
+    .cast { display: flex; flex-wrap: wrap; gap: 8px; }
+    .person {
+      display: flex; align-items: center; gap: 8px; background: var(--white);
+      border: 1px solid rgba(20,28,25,.08); border-radius: 999px; padding: 5px 12px 5px 5px; font-size: 13px; font-weight: 500;
+    }
+    .face { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 12px; flex-shrink: 0; }
+    .lena .face { background: linear-gradient(145deg,#3d8b8f,#1a6b72); }
+    .aisha .face { background: linear-gradient(145deg,#e07a45,#c4561f); }
+    .marco .face { background: linear-gradient(145deg,#4f8a55,#2a6540); }
+    .tom .face { background: linear-gradient(145deg,#5b72a8,#2c406e); }
+    .role { display: block; font-size: 10px; color: var(--muted); font-weight: 500; }
+
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { font-size: 12px; font-weight: 600; padding: 6px 11px; border-radius: 999px; }
+    .chip.people { background: var(--people-soft); color: var(--people); }
+    .chip.ops { background: var(--ops-soft); color: var(--ops); }
+    .chip.finance { background: var(--finance-soft); color: var(--finance); }
+    .chip.it { background: var(--it-soft); color: var(--it); }
+    .chip.core { background: var(--core-soft); color: var(--core); }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+    .btn {
+      appearance: none; border: none; font: inherit; font-size: 14px; font-weight: 650;
+      border-radius: 12px; padding: 12px 18px; cursor: pointer;
+      transition: transform .12s ease, background .15s ease, box-shadow .15s ease, opacity .15s;
+    }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(185,54,66,.25); }
+    .btn-primary:hover:not(:disabled) { background: #a22e39; }
+    .btn-ghost { background: var(--white); border: 1px solid rgba(20,28,25,.12); color: var(--ink); }
+    .btn-ghost:hover:not(:disabled) { background: var(--sand); }
+    .btn-people { background: var(--people); color: #fff; }
+    .btn-ops { background: var(--ops); color: #fff; }
+    .btn-finance { background: var(--finance); color: #fff; }
+    .btn-it { background: var(--it); color: #fff; }
+    .btn-core { background: var(--core); color: #fff; }
+    .btn-sm { padding: 8px 12px; font-size: 12px; border-radius: 10px; }
+
+    .toast {
+      position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: var(--ink); color: #fff; padding: 12px 18px; border-radius: 12px;
+      font-size: 13px; font-weight: 500; z-index: 80; opacity: 0; pointer-events: none;
+      transition: .3s ease; max-width: min(90vw, 420px); text-align: center;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .chapter {
+      margin: 40px 0; padding: 32px 0; border-top: 1px solid rgba(20,28,25,.08);
+      scroll-margin-top: 70px; opacity: .28; transform: translateY(16px); transition: .5s ease;
+    }
+    .chapter.in-view { opacity: 1; transform: none; }
+    .chapter-head { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: start; margin-bottom: 18px; }
+    .num {
+      width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center;
+      color: #fff; font-family: "Fraunces", serif; font-weight: 800; font-size: 20px;
+    }
+    .chapter[data-h="people"] .num { background: var(--people); }
+    .chapter[data-h="core"] .num { background: var(--core); }
+    .chapter[data-h="it"] .num { background: var(--it); }
+    .chapter[data-h="ops"] .num { background: var(--ops); }
+    .chapter[data-h="finance"] .num { background: var(--finance); }
+    .status-pill {
+      font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 999px;
+      background: var(--sand); color: var(--muted); white-space: nowrap; align-self: center;
+    }
+    .status-pill.done { background: #d8f0e3; color: var(--ok); }
+    .hub-tag { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px; }
+    .chapter[data-h="people"] .hub-tag { color: var(--people); }
+    .chapter[data-h="core"] .hub-tag { color: var(--core); }
+    .chapter[data-h="it"] .hub-tag { color: var(--it); }
+    .chapter[data-h="ops"] .hub-tag { color: var(--ops); }
+    .chapter[data-h="finance"] .hub-tag { color: var(--finance); }
+    .chapter h2 { font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 700; margin-bottom: 8px; }
+    .scene { font-size: 1.05rem; max-width: 64ch; margin-bottom: 18px; }
+
+    .stage {
+      background: var(--white); border-radius: 22px; border: 1px solid rgba(20,28,25,.08);
+      padding: 22px; display: grid; gap: 16px; box-shadow: 0 12px 36px rgba(20,28,25,.05); position: relative; overflow: hidden;
+    }
+    .stage::before { content:""; position:absolute; top:0; left:0; right:0; height:4px; }
+    .chapter[data-h="people"] .stage::before { background: var(--people); }
+    .chapter[data-h="core"] .stage::before { background: var(--core); }
+    .chapter[data-h="it"] .stage::before { background: var(--it); }
+    .chapter[data-h="ops"] .stage::before { background: var(--ops); }
+    .chapter[data-h="finance"] .stage::before { background: var(--finance); }
+
+    .bubble { display: grid; grid-template-columns: 42px 1fr; gap: 10px; }
+    .bubble .face { width: 42px; height: 42px; }
+    .bubble p { background: var(--sand); border-radius: 4px 14px 14px 14px; padding: 11px 14px; font-size: 14px; }
+    .bubble.them p { background: var(--mist); border-radius: 14px 4px 14px 14px; }
+
+    .interactive {
+      background: var(--paper); border-radius: 16px; padding: 16px; border: 1px dashed rgba(20,28,25,.18);
+    }
+    .interactive h3 {
+      font-family: "Outfit", sans-serif; font-size: 13px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em; margin-bottom: 12px; color: var(--muted);
+    }
+    .checklist { display: grid; gap: 8px; margin-bottom: 12px; }
+    .check-row {
+      display: flex; align-items: center; gap: 10px; background: var(--white);
+      border-radius: 10px; padding: 10px 12px; font-size: 13px; transition: .25s ease;
+    }
+    .check-row .mark {
+      width: 22px; height: 22px; border-radius: 50%; border: 2px solid rgba(20,28,25,.2);
+      display: grid; place-items: center; font-size: 11px; font-weight: 700; flex-shrink: 0;
+      transition: .25s ease;
+    }
+    .check-row.on .mark { background: var(--ok); border-color: var(--ok); color: #fff; }
+    .check-row.on { background: #eef8f2; }
+    .bar { height: 8px; background: #e4ddd0; border-radius: 99px; overflow: hidden; margin: 8px 0 4px; }
+    .bar > i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--core), #c45c26); transition: width .45s ease; border-radius: inherit; }
+    .live-line { font-size: 12px; color: var(--muted); min-height: 1.4em; }
+
+    .choice-row { display: flex; flex-wrap: wrap; gap: 8px; }
+    .metric {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-top: 8px;
+    }
+    .metric div {
+      background: var(--white); border-radius: 10px; padding: 10px; text-align: center;
+    }
+    .metric strong { display: block; font-size: 20px; font-family: "Fraunces", serif; }
+    .metric span { font-size: 11px; color: var(--muted); }
+
+    .beats { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 10px; }
+    .beat { border-radius: 12px; padding: 12px; font-size: 12px; }
+    .beat h4 { font-family: "Outfit", sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+    .beat p { color: var(--muted); }
+    .chapter[data-h="people"] .beat { background: var(--people-soft); }
+    .chapter[data-h="core"] .beat { background: var(--core-soft); }
+    .chapter[data-h="it"] .beat { background: var(--it-soft); }
+    .chapter[data-h="ops"] .beat { background: var(--ops-soft); }
+    .chapter[data-h="finance"] .beat { background: var(--finance-soft); }
+
+    .modules { display: flex; flex-wrap: wrap; gap: 7px; }
+    .mod {
+      font-size: 11px; font-weight: 650; padding: 7px 10px; border-radius: 9px;
+      background: var(--paper); border: 1px dashed rgba(20,28,25,.16);
+    }
+
+    .pulse-dot {
+      display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+      margin-right: 6px; box-shadow: 0 0 0 0 rgba(31,122,77,.4); animation: pulse 1.6s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(31,122,77,.4); }
+      70% { box-shadow: 0 0 0 8px rgba(31,122,77,0); }
+      100% { box-shadow: 0 0 0 0 rgba(31,122,77,0); }
+    }
+
+    .finale {
+      margin-top: 56px; padding: 36px 24px; border-radius: 26px; text-align: center;
+      background: linear-gradient(145deg, rgba(26,107,114,.12), rgba(196,86,31,.1) 45%, rgba(44,64,110,.12));
+    }
+    .finale h2 { font-size: clamp(1.7rem, 3.8vw, 2.4rem); margin-bottom: 10px; }
+    .finale p { max-width: 50ch; margin: 0 auto 18px; color: var(--muted); }
+    .finale .modules { justify-content: center; }
+
+    footer { margin-top: 40px; padding-top: 18px; border-top: 1px solid rgba(20,28,25,.08); font-size: 12px; color: var(--muted); text-align: center; }
+
+    @media (max-width: 780px) {
+      .rail-title, .story-progress { display: none; }
+      .chapter-head { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="rail" aria-label="Story path">
+    <div class="rail-inner">
+      <div class="rail-title">People Path</div>
+      <div class="stations">
+        <a href="#c1" data-h="people" data-station="recruit">Attract</a>
+        <a href="#c2" data-h="core" data-station="onboard">Welcome</a>
+        <a href="#c3" data-h="it" data-station="it">Equip</a>
+        <a href="#c4" data-h="ops" data-station="time">Rhythm</a>
+        <a href="#c5" data-h="people" data-station="culture">Culture</a>
+        <a href="#c6" data-h="people" data-station="growth">Grow</a>
+        <a href="#c7" data-h="finance" data-station="money">Money</a>
+        <a href="#c8" data-h="core" data-station="close">Close</a>
+      </div>
+      <div class="story-progress"><b id="progressCount">0</b> / 8 chapters live</div>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow">Interactive storytelling mockup · English</p>
+      <h1>The People Path:<br /><em>one year with Lena</em></h1>
+      <p class="lede">
+        Click through the full employee lifecycle. Each chapter has real decisions —
+        hire, onboard, clock in, approve spend — based on your Factorial modules spreadsheet.
+      </p>
+      <p class="sheet-note">
+        Built from <strong>Operations Hub</strong>, <strong>People Hub</strong>, Core / Base module,
+        plus add-ons (Recruitment, Training, Expenses, IT, Procurement, Spaces, Complaints).
+      </p>
+
+      <div class="cast">
+        <div class="person lena"><div class="face">L</div><div>Lena<span class="role">Employee · Design</span></div></div>
+        <div class="person aisha"><div class="face">A</div><div>Aisha<span class="role">People / HR</span></div></div>
+        <div class="person marco"><div class="face">M</div><div>Marco<span class="role">Manager</span></div></div>
+        <div class="person tom"><div class="face">T</div><div>Tom<span class="role">IT &amp; Ops</span></div></div>
+      </div>
+
+      <div class="legend">
+        <span class="chip people">People = teal</span>
+        <span class="chip ops">Operations = orange</span>
+        <span class="chip finance">Finance = green</span>
+        <span class="chip it">IT = steel</span>
+        <span class="chip core">Core = walnut</span>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn btn-primary" type="button" id="btnStartStory">Start the story</button>
+        <button class="btn btn-ghost" type="button" id="btnResetStory">Reset all choices</button>
+      </div>
+    </header>
+
+    <!-- 1 RECRUIT -->
+    <section class="chapter" id="c1" data-h="people" data-station="recruit">
+      <div class="chapter-head">
+        <div class="num">01</div>
+        <div>
+          <span class="hub-tag">People · Recruitment + Career Page</span>
+          <h2>Aisha opens the role. Lena enters the funnel.</h2>
+        </div>
+        <div class="status-pill" data-status="recruit">Not started</div>
+      </div>
+      <p class="scene">
+        Career Page and Job Catalog go live. Aisha posts multi-job, uploads CVs in bulk,
+        uses AI Top Match, schedules interviews, and sends an offer letter.
+      </p>
+      <div class="stage">
+        <div class="bubble aisha"><div class="face">A</div><p>“One pipeline. LinkedIn, Indeed, JOIN — no lost inboxes.”</p></div>
+        <div class="bubble lena them"><div class="face">L</div><p id="recruitLine">“I applied. Waiting to see if I’m a fit…”</p></div>
+
+        <div class="interactive">
+          <h3>Your move · Hiring decisions</h3>
+          <div class="choice-row">
+            <button class="btn btn-people btn-sm" type="button" data-action="postJob">Post job live</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="aiMatch" disabled>Run AI Top Match</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="sendOffer" disabled>Send offer letter</button>
+          </div>
+          <div class="metric">
+            <div><strong id="mApplicants">0</strong><span>Applicants</span></div>
+            <div><strong id="mShortlist">0</strong><span>Shortlisted</span></div>
+            <div><strong id="mOffer">—</strong><span>Offer</span></div>
+          </div>
+          <p class="live-line" id="recruitLog">Click “Post job live” to begin recruitment.</p>
+        </div>
+
+        <div class="modules">
+          <span class="mod">Recruitment / ATS</span>
+          <span class="mod">Career Page</span>
+          <span class="mod">Job Catalog</span>
+          <span class="mod">AI Top Match</span>
+          <span class="mod">Offer letters</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 ONBOARD -->
+    <section class="chapter" id="c2" data-h="core" data-station="onboard">
+      <div class="chapter-head">
+        <div class="num">02</div>
+        <div>
+          <span class="hub-tag">Core / Base · Onboarding, Docs, Contracts</span>
+          <h2>Day zero starts on Lena’s phone.</h2>
+        </div>
+        <div class="status-pill" data-status="onboard">Locked</div>
+      </div>
+      <p class="scene">
+        Aisha launches the onboarding workflow: tasks, personalized emails, document templates.
+        Lena e-signs, uploads IDs via supertask, and appears on the directory + org chart.
+      </p>
+      <div class="stage">
+        <div class="bubble aisha"><div class="face">A</div><p>“Inbox + workflows mean I don’t chase every step.”</p></div>
+        <div class="bubble lena them"><div class="face">L</div><p id="onboardLine">“Waiting for my welcome space…”</p></div>
+
+        <div class="interactive">
+          <h3>Your move · Onboarding workflow</h3>
+          <div class="choice-row" style="margin-bottom:12px">
+            <button class="btn btn-core" type="button" id="btnStartOnboarding" disabled>Start onboarding</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="advanceOnboard" disabled>Complete next task</button>
+          </div>
+          <div class="bar"><i id="onboardBar"></i></div>
+          <p class="live-line" id="onboardPct">0% complete</p>
+          <div class="checklist" id="onboardList">
+            <div class="check-row" data-step="0"><div class="mark"></div>Invitation to Welcome space sent</div>
+            <div class="check-row" data-step="1"><div class="mark"></div>Contract e-signed (mobile)</div>
+            <div class="check-row" data-step="2"><div class="mark"></div>IDs + personal data via supertask</div>
+            <div class="check-row" data-step="3"><div class="mark"></div>Directory + org chart updated</div>
+          </div>
+        </div>
+
+        <div class="modules">
+          <span class="mod">Onboarding / Offboarding workflows</span>
+          <span class="mod">Document Management</span>
+          <span class="mod">E-signature</span>
+          <span class="mod">Employee directory</span>
+          <span class="mod">Permissions / SSO</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 IT -->
+    <section class="chapter" id="c3" data-h="it" data-station="it">
+      <div class="chapter-head">
+        <div class="num">03</div>
+        <div>
+          <span class="hub-tag">Add-on · IT Management</span>
+          <h2>Tom provisions tools. No wasted licenses.</h2>
+        </div>
+        <div class="status-pill" data-status="it">Locked</div>
+      </div>
+      <p class="scene">
+        IT Management shows who uses which software, tracks SaaS cost, and will later
+        revoke access when someone leaves. Renewals alert Tom. Payments can ride Factorial Cards.
+      </p>
+      <div class="stage">
+        <div class="bubble tom"><div class="face">T</div><p>“Right license, right person. No ghost seats.”</p></div>
+        <div class="interactive">
+          <h3>Your move · Equip Lena</h3>
+          <div class="choice-row">
+            <button class="btn btn-it btn-sm" type="button" data-action="assignApps" disabled>Assign design stack</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="linkCard" disabled>Link Factorial Card for SaaS</button>
+          </div>
+          <div class="checklist" id="itList" style="margin-top:12px">
+            <div class="check-row" data-step="apps"><div class="mark"></div>Figma · Slack · Google Workspace assigned</div>
+            <div class="check-row" data-step="card"><div class="mark"></div>SaaS renewal watched + card ready</div>
+          </div>
+          <p class="live-line" id="itLog">Finish onboarding first, then equip Lena.</p>
+        </div>
+        <div class="modules">
+          <span class="mod">IT Management</span>
+          <span class="mod">SaaS licenses</span>
+          <span class="mod">Factorial Cards</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 TIME -->
+    <section class="chapter" id="c4" data-h="ops" data-station="time">
+      <div class="chapter-head">
+        <div class="num">04</div>
+        <div>
+          <span class="hub-tag">Operations · Time, Shifts, Time Off, Spaces, Projects</span>
+          <h2>The day has a clock, a shift, and a desk.</h2>
+        </div>
+        <div class="status-pill" data-status="time">Locked</div>
+      </div>
+      <p class="scene">
+        Clock in via app (QR, geo, facial). Breaks, overtime, timesheet sign-off.
+        Marco plans shifts. Lena requests time off, books a desk in Space Management,
+        and logs hours on a project task.
+      </p>
+      <div class="stage">
+        <div class="bubble marco"><div class="face">M</div><p>“Missed punch? I see it. Shift conflict? Alert.”</p></div>
+        <div class="interactive">
+          <h3>Your move · Daily rhythm</h3>
+          <div class="choice-row">
+            <button class="btn btn-ops" type="button" data-action="clockIn" disabled><span class="pulse-dot" style="display:none" id="clockPulse"></span>Clock in</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="requestPto" disabled>Request Friday off</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="bookDesk" disabled>Book workspace</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="logProject" disabled>Log project hours</button>
+          </div>
+          <div class="metric">
+            <div><strong id="mClock">Off</strong><span>Status</span></div>
+            <div><strong id="mPto">—</strong><span>Time off</span></div>
+            <div><strong id="mDesk">—</strong><span>Space</span></div>
+            <div><strong id="mProj">0h</strong><span>Project</span></div>
+          </div>
+          <p class="live-line" id="timeLog">Equip Lena first, then run the workday.</p>
+        </div>
+        <div class="modules">
+          <span class="mod">Time Tracking</span>
+          <span class="mod">Time Off</span>
+          <span class="mod">Time Planning / Shifts</span>
+          <span class="mod">Space Management</span>
+          <span class="mod">Projects</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 CULTURE -->
+    <section class="chapter" id="c5" data-h="people" data-station="culture">
+      <div class="chapter-head">
+        <div class="num">05</div>
+        <div>
+          <span class="hub-tag">People · Communities + Engagement + Complaints channel</span>
+          <h2>Belong: feed energy, climate pulse, safe speak-up.</h2>
+        </div>
+        <div class="status-pill" data-status="culture">Locked</div>
+      </div>
+      <p class="scene">
+        Communities for announcements and claps. Engagement runs eNPS and surveys.
+        Complaints channel (add-on) stays encrypted — anonymous or identified — for whistleblower compliance.
+      </p>
+      <div class="stage">
+        <div class="interactive">
+          <h3>Your move · Culture signals</h3>
+          <div class="choice-row">
+            <button class="btn btn-people btn-sm" type="button" data-action="postCommunity" disabled>Post team win</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="sendEnps" disabled>Send eNPS survey</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="openWhistle" disabled>Show complaints channel</button>
+          </div>
+          <div class="metric">
+            <div><strong id="mClaps">0</strong><span>Claps</span></div>
+            <div><strong id="mEnps">—</strong><span>eNPS</span></div>
+            <div><strong id="mSafe">Off</strong><span>Safe channel</span></div>
+          </div>
+          <p class="live-line" id="cultureLog">Complete a workday first.</p>
+        </div>
+        <div class="modules">
+          <span class="mod">Communities</span>
+          <span class="mod">Engagement / eNPS</span>
+          <span class="mod">Complaints channel</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 GROW -->
+    <section class="chapter" id="c6" data-h="people" data-station="growth">
+      <div class="chapter-head">
+        <div class="num">06</div>
+        <div>
+          <span class="hub-tag">People · Performance + Trainings</span>
+          <h2>Six months in: 360°, goals, action plan, certificate.</h2>
+        </div>
+        <div class="status-pill" data-status="growth">Locked</div>
+      </div>
+      <p class="scene">
+        Marco launches a performance review (360°, competencies, reminders, AI summaries, agreements).
+        An action plan follows. Training tracks attendance, certificates, and competencies.
+      </p>
+      <div class="stage">
+        <div class="interactive">
+          <h3>Your move · Growth loop</h3>
+          <div class="choice-row">
+            <button class="btn btn-people btn-sm" type="button" data-action="launchReview" disabled>Launch 360° review</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="actionPlan" disabled>Create action plan</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="enrollTraining" disabled>Enroll training</button>
+          </div>
+          <div class="bar"><i id="growthBar"></i></div>
+          <p class="live-line" id="growthLog">Culture chapter unlocks growth.</p>
+        </div>
+        <div class="modules">
+          <span class="mod">Performance</span>
+          <span class="mod">Goals / Action plans</span>
+          <span class="mod">Trainings</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 MONEY -->
+    <section class="chapter" id="c7" data-h="finance" data-station="money">
+      <div class="chapter-head">
+        <div class="num">07</div>
+        <div>
+          <span class="hub-tag">Expenses · Cards · Procurement · Payroll (in Core)</span>
+          <h2>Trip receipts become payday truth.</h2>
+        </div>
+        <div class="status-pill" data-status="money">Locked</div>
+      </div>
+      <p class="scene">
+        OCR expense from mobile, Factorial Card spend, multi-step approvals, procurement POs,
+        then payroll sync (guided cycle, bookkeeper chat, automatic payslips).
+      </p>
+      <div class="stage">
+        <div class="interactive">
+          <h3>Your move · Money flow</h3>
+          <div class="choice-row">
+            <button class="btn btn-finance btn-sm" type="button" data-action="scanReceipt" disabled>Scan receipt (OCR)</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="approveExpense" disabled>Approve expense group</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="createPo" disabled>Create purchase request</button>
+            <button class="btn btn-ghost btn-sm" type="button" data-action="lockPayroll" disabled>Lock payroll cycle</button>
+          </div>
+          <div class="metric">
+            <div><strong id="mSpend">€0</strong><span>Expenses</span></div>
+            <div><strong id="mPo">—</strong><span>Procurement</span></div>
+            <div><strong id="mPay">Open</strong><span>Payroll</span></div>
+          </div>
+          <p class="live-line" id="moneyLog">Finish growth actions to unlock finance.</p>
+        </div>
+        <div class="modules">
+          <span class="mod">Expenses + OCR</span>
+          <span class="mod">Factorial Cards</span>
+          <span class="mod">Procurement</span>
+          <span class="mod">Payroll (Inside Core)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8 CLOSE -->
+    <section class="chapter" id="c8" data-h="core" data-station="close">
+      <div class="chapter-head">
+        <div class="num">08</div>
+        <div>
+          <span class="hub-tag">Core + IT · Offboarding</span>
+          <h2>Every ending keeps dignity — and access clean.</h2>
+        </div>
+        <div class="status-pill" data-status="close">Locked</div>
+      </div>
+      <p class="scene">
+        Offboarding workflow mirrors onboarding. Final payslip. Tom revokes software for leavers.
+        Reports stay accurate. The path is ready for the next hire.
+      </p>
+      <div class="stage">
+        <div class="interactive">
+          <h3>Your move · Choose Lena’s next chapter</h3>
+          <div class="choice-row">
+            <button class="btn btn-core" type="button" data-action="promote" disabled>Promote Lena</button>
+            <button class="btn btn-ghost" type="button" data-action="offboard" disabled>Run offboarding</button>
+          </div>
+          <p class="live-line" id="closeLog" style="margin-top:12px">Lock payroll to unlock the finale.</p>
+          <div class="checklist" id="closeList" style="margin-top:12px;display:none">
+            <div class="check-row on"><div class="mark">✓</div>Offboarding workflow launched</div>
+            <div class="check-row on"><div class="mark">✓</div>IT access revoked / licenses recovered</div>
+            <div class="check-row on"><div class="mark">✓</div>Final payslip distributed</div>
+          </div>
+        </div>
+        <div class="modules">
+          <span class="mod">Offboarding workflows</span>
+          <span class="mod">IT Management</span>
+          <span class="mod">Payroll</span>
+          <span class="mod">HR reports</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="finale">
+      <h2>One path. Your full module map. A story you can click.</h2>
+      <p>Attract → Welcome → Equip → Rhythm → Culture → Grow → Money → Close.</p>
+      <div class="hero-actions" style="justify-content:center">
+        <button class="btn btn-primary" type="button" id="btnReplay">Replay from Attract</button>
+      </div>
+    </section>
+
+    <footer>
+      Interactive English storytelling mockup · Sourced from “Funcionalidades de cada módulo - Factorial RH.xlsx” · Not official product UI
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const state = {
+      recruit: 0, // 0 none, 1 posted, 2 matched, 3 offer
+      onboardStarted: false,
+      onboardStep: -1,
+      itApps: false,
+      itCard: false,
+      clocked: false,
+      pto: false,
+      desk: false,
+      project: false,
+      community: false,
+      enps: false,
+      whistle: false,
+      review: false,
+      plan: false,
+      training: false,
+      spend: 0,
+      approved: false,
+      po: false,
+      payrollLocked: false,
+      finale: null, // promote | offboard
+    };
+
+    const $ = (s, el = document) => el.querySelector(s);
+    const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+
+    function toast(msg) {
+      const t = $("#toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => t.classList.remove("show"), 2400);
+    }
+
+    function setStatus(key, text, done = false) {
+      const pill = document.querySelector(`[data-status="${key}"]`);
+      if (!pill) return;
+      pill.textContent = text;
+      pill.classList.toggle("done", done);
+      const link = document.querySelector(`[data-station="${key}"]`);
+      if (link) link.classList.toggle("done", done);
+    }
+
+    function unlock(selector, on = true) {
+      $$(selector).forEach((b) => { b.disabled = !on; });
+    }
+
+    function countDone() {
+      const keys = ["recruit","onboard","it","time","culture","growth","money","close"];
+      let n = 0;
+      if (state.recruit >= 3) n++;
+      if (state.onboardStep >= 3) n++;
+      if (state.itApps && state.itCard) n++;
+      if (state.clocked && state.pto && state.desk && state.project) n++;
+      if (state.community && state.enps && state.whistle) n++;
+      if (state.review && state.plan && state.training) n++;
+      if (state.approved && state.po && state.payrollLocked) n++;
+      if (state.finale) n++;
+      $("#progressCount").textContent = n;
+      return n;
+    }
+
+    function refreshLocks() {
+      // Recruit always available at start
+      unlock('[data-action="postJob"]', state.recruit < 1);
+      unlock('[data-action="aiMatch"]', state.recruit === 1);
+      unlock('[data-action="sendOffer"]', state.recruit === 2);
+
+      const hired = state.recruit >= 3;
+      $("#btnStartOnboarding").disabled = !hired || state.onboardStarted;
+      unlock('[data-action="advanceOnboard"]', state.onboardStarted && state.onboardStep < 3);
+
+      const onboarded = state.onboardStep >= 3;
+      unlock('[data-action="assignApps"]', onboarded && !state.itApps);
+      unlock('[data-action="linkCard"]', state.itApps && !state.itCard);
+
+      const equipped = state.itApps && state.itCard;
+      unlock('[data-action="clockIn"]', equipped && !state.clocked);
+      unlock('[data-action="requestPto"]', state.clocked && !state.pto);
+      unlock('[data-action="bookDesk"]', state.clocked && !state.desk);
+      unlock('[data-action="logProject"]', state.clocked && !state.project);
+
+      const rhythm = state.clocked && state.pto && state.desk && state.project;
+      unlock('[data-action="postCommunity"]', rhythm && !state.community);
+      unlock('[data-action="sendEnps"]', state.community && !state.enps);
+      unlock('[data-action="openWhistle"]', state.enps && !state.whistle);
+
+      const culture = state.community && state.enps && state.whistle;
+      unlock('[data-action="launchReview"]', culture && !state.review);
+      unlock('[data-action="actionPlan"]', state.review && !state.plan);
+      unlock('[data-action="enrollTraining"]', state.plan && !state.training);
+
+      const grown = state.review && state.plan && state.training;
+      unlock('[data-action="scanReceipt"]', grown && state.spend === 0);
+      unlock('[data-action="approveExpense"]', state.spend > 0 && !state.approved);
+      unlock('[data-action="createPo"]', state.approved && !state.po);
+      unlock('[data-action="lockPayroll"]', state.po && !state.payrollLocked);
+
+      unlock('[data-action="promote"]', state.payrollLocked && !state.finale);
+      unlock('[data-action="offboard"]', state.payrollLocked && !state.finale);
+
+      // Status pills
+      if (state.recruit === 0) setStatus("recruit", "Not started");
+      else if (state.recruit < 3) setStatus("recruit", "In progress");
+      else setStatus("recruit", "Hired ✓", true);
+
+      if (!hired) setStatus("onboard", "Locked");
+      else if (!state.onboardStarted) setStatus("onboard", "Ready");
+      else if (state.onboardStep < 3) setStatus("onboard", "In progress");
+      else setStatus("onboard", "Complete ✓", true);
+
+      if (!onboarded) setStatus("it", "Locked");
+      else if (!(state.itApps && state.itCard)) setStatus("it", "In progress");
+      else setStatus("it", "Equipped ✓", true);
+
+      if (!equipped) setStatus("time", "Locked");
+      else if (!rhythm) setStatus("time", "In progress");
+      else setStatus("time", "Live ✓", true);
+
+      if (!rhythm) setStatus("culture", "Locked");
+      else if (!culture) setStatus("culture", "In progress");
+      else setStatus("culture", "Healthy ✓", true);
+
+      if (!culture) setStatus("growth", "Locked");
+      else if (!grown) setStatus("growth", "In progress");
+      else setStatus("growth", "Growing ✓", true);
+
+      if (!grown) setStatus("money", "Locked");
+      else if (!state.payrollLocked) setStatus("money", "In progress");
+      else setStatus("money", "Locked cycle ✓", true);
+
+      if (!state.payrollLocked) setStatus("close", "Locked");
+      else if (!state.finale) setStatus("close", "Choose ending");
+      else setStatus("close", state.finale === "promote" ? "Promoted ✓" : "Offboarded ✓", true);
+
+      countDone();
+    }
+
+    function scrollToId(id) {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    // Actions
+    document.body.addEventListener("click", (e) => {
+      const btn = e.target.closest("[data-action]");
+      if (!btn || btn.disabled) return;
+      const action = btn.dataset.action;
+
+      if (action === "postJob") {
+        state.recruit = 1;
+        $("#mApplicants").textContent = "42";
+        $("#recruitLog").textContent = "Job live on Career Page + multi-posting. Applications incoming.";
+        $("#recruitLine").textContent = "“I just applied from my phone.”";
+        toast("Job posted · Career Page is live");
+        refreshLocks();
+      }
+
+      if (action === "aiMatch") {
+        state.recruit = 2;
+        $("#mShortlist").textContent = "6";
+        $("#recruitLog").textContent = "AI Top Match highlighted Lena. Interview scheduled via calendar.";
+        $("#recruitLine").textContent = "“I got an interview invite — that was fast.”";
+        toast("AI Top Match · Lena shortlisted");
+        refreshLocks();
+      }
+
+      if (action === "sendOffer") {
+        state.recruit = 3;
+        $("#mOffer").textContent = "Sent";
+        $("#recruitLog").textContent = "Offer letter generated. Ready to start onboarding.";
+        $("#recruitLine").textContent = "“I signed the offer. See you on day one!”";
+        toast("Offer sent · Unlock Welcome");
+        refreshLocks();
+        setTimeout(() => scrollToId("c2"), 400);
+      }
+
+      if (action === "advanceOnboard") {
+        advanceOnboard();
+      }
+
+      if (action === "assignApps") {
+        state.itApps = true;
+        $("#itList [data-step='apps']").classList.add("on");
+        $("#itList [data-step='apps'] .mark").textContent = "✓";
+        $("#itLog").textContent = "Design stack assigned. Link a card to watch SaaS spend.";
+        toast("Apps assigned to Lena");
+        refreshLocks();
+      }
+
+      if (action === "linkCard") {
+        state.itCard = true;
+        $("#itList [data-step='card']").classList.add("on");
+        $("#itList [data-step='card'] .mark").textContent = "✓";
+        $("#itLog").textContent = "Factorial Card linked. Renewals + SaaS payments under control.";
+        toast("IT chapter complete");
+        refreshLocks();
+        setTimeout(() => scrollToId("c4"), 400);
+      }
+
+      if (action === "clockIn") {
+        state.clocked = true;
+        $("#mClock").textContent = "In";
+        $("#clockPulse").style.display = "inline-block";
+        $("#timeLog").textContent = "Clocked in (mobile / QR / geo). Now request PTO, book a desk, log project time.";
+        toast("Lena clocked in");
+        refreshLocks();
+      }
+
+      if (action === "requestPto") {
+        state.pto = true;
+        $("#mPto").textContent = "Pending";
+        $("#timeLog").textContent = "Friday off requested — policy + multi-level approval path ready.";
+        toast("Time-off request sent");
+        // auto approve after beat
+        setTimeout(() => {
+          $("#mPto").textContent = "OK";
+          toast("Marco approved time off");
+          refreshLocks();
+        }, 900);
+        refreshLocks();
+      }
+
+      if (action === "bookDesk") {
+        state.desk = true;
+        $("#mDesk").textContent = "B12";
+        $("#timeLog").textContent = "Workspace B12 booked in Space Management.";
+        toast("Desk reserved");
+        refreshLocks();
+      }
+
+      if (action === "logProject") {
+        state.project = true;
+        $("#mProj").textContent = "3.5h";
+        $("#timeLog").textContent = "Hours logged on Rebrand · task-level tracking on.";
+        toast("Project hours logged · Rhythm complete");
+        refreshLocks();
+        setTimeout(() => scrollToId("c5"), 400);
+      }
+
+      if (action === "postCommunity") {
+        state.community = true;
+        $("#mClaps").textContent = "24";
+        $("#cultureLog").textContent = "Team win posted. Claps and comments rolling in.";
+        toast("Community post published");
+        refreshLocks();
+      }
+
+      if (action === "sendEnps") {
+        state.enps = true;
+        $("#mEnps").textContent = "+46";
+        $("#cultureLog").textContent = "eNPS survey sent via workflow. Insights dashboard updating.";
+        toast("eNPS survey sent");
+        refreshLocks();
+      }
+
+      if (action === "openWhistle") {
+        state.whistle = true;
+        $("#mSafe").textContent = "On";
+        $("#cultureLog").textContent = "Complaints channel live — anonymous or identified, encrypted.";
+        toast("Safe speak-up channel ready");
+        refreshLocks();
+        setTimeout(() => scrollToId("c6"), 400);
+      }
+
+      if (action === "launchReview") {
+        state.review = true;
+        $("#growthBar").style.width = "40%";
+        $("#growthLog").textContent = "360° review live — reminders on, competencies tracked.";
+        toast("Performance review launched");
+        refreshLocks();
+      }
+
+      if (action === "actionPlan") {
+        state.plan = true;
+        $("#growthBar").style.width = "70%";
+        $("#growthLog").textContent = "Action plan + goals created from the agreement.";
+        toast("Action plan created");
+        refreshLocks();
+      }
+
+      if (action === "enrollTraining") {
+        state.training = true;
+        $("#growthBar").style.width = "100%";
+        $("#growthLog").textContent = "Training enrolled — attendance + certificate on mobile.";
+        toast("Training enrolled · Grow complete");
+        refreshLocks();
+        setTimeout(() => scrollToId("c7"), 400);
+      }
+
+      if (action === "scanReceipt") {
+        state.spend = 347;
+        $("#mSpend").textContent = "€347";
+        $("#moneyLog").textContent = "OCR filled the expense form from a phone photo. Waiting for approval.";
+        toast("Receipt scanned with OCR");
+        refreshLocks();
+      }
+
+      if (action === "approveExpense") {
+        state.approved = true;
+        $("#moneyLog").textContent = "Expense group approved (multi-step). Ready for procurement or payroll sync.";
+        toast("Expense approved by Marco");
+        refreshLocks();
+      }
+
+      if (action === "createPo") {
+        state.po = true;
+        $("#mPo").textContent = "PO-19";
+        $("#moneyLog").textContent = "Purchase request created · vendor managed in Procurement.";
+        toast("Purchase request created");
+        refreshLocks();
+      }
+
+      if (action === "lockPayroll") {
+        state.payrollLocked = true;
+        $("#mPay").textContent = "Locked";
+        $("#moneyLog").textContent = "Payroll cycle locked. Time + expenses synced. Payslips ready to distribute.";
+        toast("Payroll cycle locked");
+        refreshLocks();
+        setTimeout(() => scrollToId("c8"), 400);
+      }
+
+      if (action === "promote") {
+        state.finale = "promote";
+        $("#closeLog").textContent = "Lena promoted — contract update automated. Path continues.";
+        $("#closeList").style.display = "none";
+        toast("Ending: Lena was promoted");
+        refreshLocks();
+      }
+
+      if (action === "offboard") {
+        state.finale = "offboard";
+        $("#closeLog").textContent = "Offboarding workflow running. IT access cut. Licenses recovered.";
+        $("#closeList").style.display = "grid";
+        toast("Ending: Offboarding complete");
+        refreshLocks();
+      }
+    });
+
+    function advanceOnboard() {
+      if (!state.onboardStarted || state.onboardStep >= 3) return;
+      state.onboardStep += 1;
+      const row = $(`#onboardList [data-step="${state.onboardStep}"]`);
+      if (row) {
+        row.classList.add("on");
+        row.querySelector(".mark").textContent = "✓";
+      }
+      const pct = ((state.onboardStep + 1) / 4) * 100;
+      $("#onboardBar").style.width = pct + "%";
+      $("#onboardPct").textContent = Math.round(pct) + "% complete";
+      const lines = [
+        "Welcome space invitation sent with automated email variables.",
+        "Contract signed with legally valid e-signature.",
+        "IDs and personal data collected via mobile supertask.",
+        "Directory + org chart updated under Marco.",
+      ];
+      $("#onboardLine").textContent = `"${["Got the invite!", "Signed on my phone.", "Docs uploaded.", "I can see my team!"][state.onboardStep]}"`;
+      toast(lines[state.onboardStep]);
+      if (state.onboardStep >= 3) {
+        setTimeout(() => scrollToId("c3"), 500);
+      }
+      refreshLocks();
+    }
+
+    $("#btnStartOnboarding").addEventListener("click", () => {
+      if (state.recruit < 3 || state.onboardStarted) return;
+      state.onboardStarted = true;
+      state.onboardStep = -1;
+      $("#onboardLine").textContent = "“Welcome space is open — I’m going through my tasks.”";
+      toast("Onboarding workflow started");
+      refreshLocks();
+      advanceOnboard();
+    });
+
+    $("#btnStartStory").addEventListener("click", () => {
+      scrollToId("c1");
+      toast("Begin at Attract — post the job");
+    });
+
+    $("#btnReplay").addEventListener("click", () => {
+      $("#btnResetStory").click();
+      scrollToId("c1");
+    });
+
+    $("#btnResetStory").addEventListener("click", () => {
+      Object.assign(state, {
+        recruit: 0, onboardStarted: false, onboardStep: -1,
+        itApps: false, itCard: false, clocked: false, pto: false, desk: false, project: false,
+        community: false, enps: false, whistle: false, review: false, plan: false, training: false,
+        spend: 0, approved: false, po: false, payrollLocked: false, finale: null,
+      });
+      $("#mApplicants").textContent = "0";
+      $("#mShortlist").textContent = "0";
+      $("#mOffer").textContent = "—";
+      $("#recruitLog").textContent = "Click “Post job live” to begin recruitment.";
+      $("#recruitLine").textContent = "“I applied. Waiting to see if I’m a fit…”";
+      $("#onboardBar").style.width = "0%";
+      $("#onboardPct").textContent = "0% complete";
+      $("#onboardLine").textContent = "“Waiting for my welcome space…”";
+      $$("#onboardList .check-row").forEach((r) => { r.classList.remove("on"); r.querySelector(".mark").textContent = ""; });
+      $$("#itList .check-row").forEach((r) => { r.classList.remove("on"); r.querySelector(".mark").textContent = ""; });
+      $("#itLog").textContent = "Finish onboarding first, then equip Lena.";
+      $("#mClock").textContent = "Off";
+      $("#mPto").textContent = "—";
+      $("#mDesk").textContent = "—";
+      $("#mProj").textContent = "0h";
+      $("#clockPulse").style.display = "none";
+      $("#timeLog").textContent = "Equip Lena first, then run the workday.";
+      $("#mClaps").textContent = "0";
+      $("#mEnps").textContent = "—";
+      $("#mSafe").textContent = "Off";
+      $("#cultureLog").textContent = "Complete a workday first.";
+      $("#growthBar").style.width = "0%";
+      $("#growthLog").textContent = "Culture chapter unlocks growth.";
+      $("#mSpend").textContent = "€0";
+      $("#mPo").textContent = "—";
+      $("#mPay").textContent = "Open";
+      $("#moneyLog").textContent = "Finish growth actions to unlock finance.";
+      $("#closeLog").textContent = "Lock payroll to unlock the finale.";
+      $("#closeList").style.display = "none";
+      toast("Story reset");
+      refreshLocks();
+    });
+
+    // Intersection observers
+    $$(".chapter").forEach((c) => {
+      new IntersectionObserver((entries) => {
+        entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("in-view"); });
+      }, { threshold: 0.18 }).observe(c);
+
+      new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          $$(".stations a").forEach((a) => a.classList.toggle("active", a.getAttribute("href") === "#" + e.target.id));
+        });
+      }, { rootMargin: "-40% 0px -45% 0px" }).observe(c);
+    });
+
+    refreshLocks();
+  </script>
+</body>
+</html>

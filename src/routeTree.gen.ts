@@ -12,36 +12,20 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as ReportsRouteImport } from './routes/reports'
-import { Route as QualificationRouteImport } from './routes/qualification'
 import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
-import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as MethodologyRouteImport } from './routes/methodology'
 import { Route as MeetKeptRouteImport } from './routes/meet-kept'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as KeptRouteImport } from './routes/kept'
 import { Route as IntroRouteImport } from './routes/intro'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as DigestRouteImport } from './routes/digest'
-import { Route as DiagnosticRouteImport } from './routes/diagnostic'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as CertificationRouteImport } from './routes/certification'
+import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as PartnerPartnerIdRouteImport } from './routes/partner.$partnerId'
 import { Route as OnboardingStepIdRouteImport } from './routes/onboarding.$stepId'
-import { Route as KeptAskRouteImport } from './routes/kept.ask'
-import { Route as AxisAxisKeyRouteImport } from './routes/axis.$axisKey'
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
-import { Route as PartnerPartnerIdStakeholdersRouteImport } from './routes/partner.$partnerId.stakeholders'
-import { Route as PartnerPartnerIdPlanRouteImport } from './routes/partner.$partnerId.plan'
-import { Route as PartnerPartnerIdMetricsRouteImport } from './routes/partner.$partnerId.metrics'
-import { Route as PartnerPartnerIdMaturityRouteImport } from './routes/partner.$partnerId.maturity'
-import { Route as PartnerPartnerIdIntelRouteImport } from './routes/partner.$partnerId.intel'
-import { Route as PartnerPartnerIdDiagnosticRouteImport } from './routes/partner.$partnerId.diagnostic'
-import { Route as PartnerPartnerIdCoachRouteImport } from './routes/partner.$partnerId.coach'
-import { Route as PartnerPartnerIdCertificationRouteImport } from './routes/partner.$partnerId.certification'
-import { Route as PartnerPartnerIdAxesRouteImport } from './routes/partner.$partnerId.axes'
+import { Route as AcademyLibraryRouteImport } from './routes/academy.library'
+import { Route as AcademyLearnRouteImport } from './routes/academy.learn'
+import { Route as AcademyAskRouteImport } from './routes/academy.ask'
+import { Route as AcademyLibrarySlugRouteImport } from './routes/academy.library.$slug'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -58,34 +42,14 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReportsRoute = ReportsRouteImport.update({
-  id: '/reports',
-  path: '/reports',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QualificationRoute = QualificationRouteImport.update({
-  id: '/qualification',
-  path: '/qualification',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PendingApprovalRoute = PendingApprovalRouteImport.update({
   id: '/pending-approval',
   path: '/pending-approval',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PartnersRoute = PartnersRouteImport.update({
-  id: '/partners',
-  path: '/partners',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MethodologyRoute = MethodologyRouteImport.update({
-  id: '/methodology',
-  path: '/methodology',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MeetKeptRoute = MeetKeptRouteImport.update({
@@ -98,11 +62,6 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const KeptRoute = KeptRouteImport.update({
-  id: '/kept',
-  path: '/kept',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IntroRoute = IntroRouteImport.update({
   id: '/intro',
   path: '/intro',
@@ -113,24 +72,9 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DigestRoute = DigestRouteImport.update({
-  id: '/digest',
-  path: '/digest',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiagnosticRoute = DiagnosticRouteImport.update({
-  id: '/diagnostic',
-  path: '/diagnostic',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CertificationRoute = CertificationRouteImport.update({
-  id: '/certification',
-  path: '/certification',
+const AcademyRoute = AcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -138,318 +82,168 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PartnerPartnerIdRoute = PartnerPartnerIdRouteImport.update({
-  id: '/partner/$partnerId',
-  path: '/partner/$partnerId',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const OnboardingStepIdRoute = OnboardingStepIdRouteImport.update({
   id: '/$stepId',
   path: '/$stepId',
   getParentRoute: () => OnboardingRoute,
-} as any)
-const KeptAskRoute = KeptAskRouteImport.update({
-  id: '/ask',
-  path: '/ask',
-  getParentRoute: () => KeptRoute,
-} as any)
-const AxisAxisKeyRoute = AxisAxisKeyRouteImport.update({
-  id: '/axis/$axisKey',
-  path: '/axis/$axisKey',
-  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
   id: '/admin/approvals',
   path: '/admin/approvals',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PartnerPartnerIdStakeholdersRoute =
-  PartnerPartnerIdStakeholdersRouteImport.update({
-    id: '/stakeholders',
-    path: '/stakeholders',
-    getParentRoute: () => PartnerPartnerIdRoute,
-  } as any)
-const PartnerPartnerIdPlanRoute = PartnerPartnerIdPlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
-  getParentRoute: () => PartnerPartnerIdRoute,
+const AcademyLibraryRoute = AcademyLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
+  getParentRoute: () => AcademyRoute,
 } as any)
-const PartnerPartnerIdMetricsRoute = PartnerPartnerIdMetricsRouteImport.update({
-  id: '/metrics',
-  path: '/metrics',
-  getParentRoute: () => PartnerPartnerIdRoute,
+const AcademyLearnRoute = AcademyLearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
+  getParentRoute: () => AcademyRoute,
 } as any)
-const PartnerPartnerIdMaturityRoute =
-  PartnerPartnerIdMaturityRouteImport.update({
-    id: '/maturity',
-    path: '/maturity',
-    getParentRoute: () => PartnerPartnerIdRoute,
-  } as any)
-const PartnerPartnerIdIntelRoute = PartnerPartnerIdIntelRouteImport.update({
-  id: '/intel',
-  path: '/intel',
-  getParentRoute: () => PartnerPartnerIdRoute,
+const AcademyAskRoute = AcademyAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => AcademyRoute,
 } as any)
-const PartnerPartnerIdDiagnosticRoute =
-  PartnerPartnerIdDiagnosticRouteImport.update({
-    id: '/diagnostic',
-    path: '/diagnostic',
-    getParentRoute: () => PartnerPartnerIdRoute,
-  } as any)
-const PartnerPartnerIdCoachRoute = PartnerPartnerIdCoachRouteImport.update({
-  id: '/coach',
-  path: '/coach',
-  getParentRoute: () => PartnerPartnerIdRoute,
-} as any)
-const PartnerPartnerIdCertificationRoute =
-  PartnerPartnerIdCertificationRouteImport.update({
-    id: '/certification',
-    path: '/certification',
-    getParentRoute: () => PartnerPartnerIdRoute,
-  } as any)
-const PartnerPartnerIdAxesRoute = PartnerPartnerIdAxesRouteImport.update({
-  id: '/axes',
-  path: '/axes',
-  getParentRoute: () => PartnerPartnerIdRoute,
+const AcademyLibrarySlugRoute = AcademyLibrarySlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => AcademyLibraryRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/certification': typeof CertificationRoute
-  '/dashboard': typeof DashboardRoute
-  '/diagnostic': typeof DiagnosticRoute
-  '/digest': typeof DigestRoute
+  '/academy': typeof AcademyRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
-  '/kept': typeof KeptRouteWithChildren
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
-  '/methodology': typeof MethodologyRoute
   '/onboarding': typeof OnboardingRouteWithChildren
-  '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
-  '/qualification': typeof QualificationRoute
-  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/academy/ask': typeof AcademyAskRoute
+  '/academy/learn': typeof AcademyLearnRoute
+  '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/admin/approvals': typeof AdminApprovalsRoute
-  '/axis/$axisKey': typeof AxisAxisKeyRoute
-  '/kept/ask': typeof KeptAskRoute
   '/onboarding/$stepId': typeof OnboardingStepIdRoute
-  '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
-  '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
-  '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
-  '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
-  '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
-  '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
-  '/partner/$partnerId/maturity': typeof PartnerPartnerIdMaturityRoute
-  '/partner/$partnerId/metrics': typeof PartnerPartnerIdMetricsRoute
-  '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
-  '/partner/$partnerId/stakeholders': typeof PartnerPartnerIdStakeholdersRoute
+  '/academy/library/$slug': typeof AcademyLibrarySlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/certification': typeof CertificationRoute
-  '/dashboard': typeof DashboardRoute
-  '/diagnostic': typeof DiagnosticRoute
-  '/digest': typeof DigestRoute
+  '/academy': typeof AcademyRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
-  '/kept': typeof KeptRouteWithChildren
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
-  '/methodology': typeof MethodologyRoute
   '/onboarding': typeof OnboardingRouteWithChildren
-  '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
-  '/qualification': typeof QualificationRoute
-  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/academy/ask': typeof AcademyAskRoute
+  '/academy/learn': typeof AcademyLearnRoute
+  '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/admin/approvals': typeof AdminApprovalsRoute
-  '/axis/$axisKey': typeof AxisAxisKeyRoute
-  '/kept/ask': typeof KeptAskRoute
   '/onboarding/$stepId': typeof OnboardingStepIdRoute
-  '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
-  '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
-  '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
-  '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
-  '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
-  '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
-  '/partner/$partnerId/maturity': typeof PartnerPartnerIdMaturityRoute
-  '/partner/$partnerId/metrics': typeof PartnerPartnerIdMetricsRoute
-  '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
-  '/partner/$partnerId/stakeholders': typeof PartnerPartnerIdStakeholdersRoute
+  '/academy/library/$slug': typeof AcademyLibrarySlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/certification': typeof CertificationRoute
-  '/dashboard': typeof DashboardRoute
-  '/diagnostic': typeof DiagnosticRoute
-  '/digest': typeof DigestRoute
+  '/academy': typeof AcademyRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
-  '/kept': typeof KeptRouteWithChildren
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
-  '/methodology': typeof MethodologyRoute
   '/onboarding': typeof OnboardingRouteWithChildren
-  '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
-  '/qualification': typeof QualificationRoute
-  '/reports': typeof ReportsRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
+  '/academy/ask': typeof AcademyAskRoute
+  '/academy/learn': typeof AcademyLearnRoute
+  '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/admin/approvals': typeof AdminApprovalsRoute
-  '/axis/$axisKey': typeof AxisAxisKeyRoute
-  '/kept/ask': typeof KeptAskRoute
   '/onboarding/$stepId': typeof OnboardingStepIdRoute
-  '/partner/$partnerId': typeof PartnerPartnerIdRouteWithChildren
-  '/partner/$partnerId/axes': typeof PartnerPartnerIdAxesRoute
-  '/partner/$partnerId/certification': typeof PartnerPartnerIdCertificationRoute
-  '/partner/$partnerId/coach': typeof PartnerPartnerIdCoachRoute
-  '/partner/$partnerId/diagnostic': typeof PartnerPartnerIdDiagnosticRoute
-  '/partner/$partnerId/intel': typeof PartnerPartnerIdIntelRoute
-  '/partner/$partnerId/maturity': typeof PartnerPartnerIdMaturityRoute
-  '/partner/$partnerId/metrics': typeof PartnerPartnerIdMetricsRoute
-  '/partner/$partnerId/plan': typeof PartnerPartnerIdPlanRoute
-  '/partner/$partnerId/stakeholders': typeof PartnerPartnerIdStakeholdersRoute
+  '/academy/library/$slug': typeof AcademyLibrarySlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/certification'
-    | '/dashboard'
-    | '/diagnostic'
-    | '/digest'
+    | '/academy'
     | '/forgot-password'
     | '/intro'
-    | '/kept'
     | '/login'
     | '/meet-kept'
-    | '/methodology'
     | '/onboarding'
-    | '/partners'
     | '/pending-approval'
-    | '/qualification'
-    | '/reports'
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/academy/ask'
+    | '/academy/learn'
+    | '/academy/library'
     | '/admin/approvals'
-    | '/axis/$axisKey'
-    | '/kept/ask'
     | '/onboarding/$stepId'
-    | '/partner/$partnerId'
-    | '/partner/$partnerId/axes'
-    | '/partner/$partnerId/certification'
-    | '/partner/$partnerId/coach'
-    | '/partner/$partnerId/diagnostic'
-    | '/partner/$partnerId/intel'
-    | '/partner/$partnerId/maturity'
-    | '/partner/$partnerId/metrics'
-    | '/partner/$partnerId/plan'
-    | '/partner/$partnerId/stakeholders'
+    | '/academy/library/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/certification'
-    | '/dashboard'
-    | '/diagnostic'
-    | '/digest'
+    | '/academy'
     | '/forgot-password'
     | '/intro'
-    | '/kept'
     | '/login'
     | '/meet-kept'
-    | '/methodology'
     | '/onboarding'
-    | '/partners'
     | '/pending-approval'
-    | '/qualification'
-    | '/reports'
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/academy/ask'
+    | '/academy/learn'
+    | '/academy/library'
     | '/admin/approvals'
-    | '/axis/$axisKey'
-    | '/kept/ask'
     | '/onboarding/$stepId'
-    | '/partner/$partnerId'
-    | '/partner/$partnerId/axes'
-    | '/partner/$partnerId/certification'
-    | '/partner/$partnerId/coach'
-    | '/partner/$partnerId/diagnostic'
-    | '/partner/$partnerId/intel'
-    | '/partner/$partnerId/maturity'
-    | '/partner/$partnerId/metrics'
-    | '/partner/$partnerId/plan'
-    | '/partner/$partnerId/stakeholders'
+    | '/academy/library/$slug'
   id:
     | '__root__'
     | '/'
-    | '/certification'
-    | '/dashboard'
-    | '/diagnostic'
-    | '/digest'
+    | '/academy'
     | '/forgot-password'
     | '/intro'
-    | '/kept'
     | '/login'
     | '/meet-kept'
-    | '/methodology'
     | '/onboarding'
-    | '/partners'
     | '/pending-approval'
-    | '/qualification'
-    | '/reports'
     | '/reset-password'
     | '/settings'
     | '/signup'
+    | '/academy/ask'
+    | '/academy/learn'
+    | '/academy/library'
     | '/admin/approvals'
-    | '/axis/$axisKey'
-    | '/kept/ask'
     | '/onboarding/$stepId'
-    | '/partner/$partnerId'
-    | '/partner/$partnerId/axes'
-    | '/partner/$partnerId/certification'
-    | '/partner/$partnerId/coach'
-    | '/partner/$partnerId/diagnostic'
-    | '/partner/$partnerId/intel'
-    | '/partner/$partnerId/maturity'
-    | '/partner/$partnerId/metrics'
-    | '/partner/$partnerId/plan'
-    | '/partner/$partnerId/stakeholders'
+    | '/academy/library/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CertificationRoute: typeof CertificationRoute
-  DashboardRoute: typeof DashboardRoute
-  DiagnosticRoute: typeof DiagnosticRoute
-  DigestRoute: typeof DigestRoute
+  AcademyRoute: typeof AcademyRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IntroRoute: typeof IntroRoute
-  KeptRoute: typeof KeptRouteWithChildren
   LoginRoute: typeof LoginRoute
   MeetKeptRoute: typeof MeetKeptRoute
-  MethodologyRoute: typeof MethodologyRoute
   OnboardingRoute: typeof OnboardingRouteWithChildren
-  PartnersRoute: typeof PartnersRoute
   PendingApprovalRoute: typeof PendingApprovalRoute
-  QualificationRoute: typeof QualificationRoute
-  ReportsRoute: typeof ReportsRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
   SignupRoute: typeof SignupRoute
   AdminApprovalsRoute: typeof AdminApprovalsRoute
-  AxisAxisKeyRoute: typeof AxisAxisKeyRoute
-  PartnerPartnerIdRoute: typeof PartnerPartnerIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -475,20 +269,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reports': {
-      id: '/reports'
-      path: '/reports'
-      fullPath: '/reports'
-      preLoaderRoute: typeof ReportsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/qualification': {
-      id: '/qualification'
-      path: '/qualification'
-      fullPath: '/qualification'
-      preLoaderRoute: typeof QualificationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/pending-approval': {
       id: '/pending-approval'
       path: '/pending-approval'
@@ -496,25 +276,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PendingApprovalRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/partners': {
-      id: '/partners'
-      path: '/partners'
-      fullPath: '/partners'
-      preLoaderRoute: typeof PartnersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/methodology': {
-      id: '/methodology'
-      path: '/methodology'
-      fullPath: '/methodology'
-      preLoaderRoute: typeof MethodologyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/meet-kept': {
@@ -531,13 +297,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/kept': {
-      id: '/kept'
-      path: '/kept'
-      fullPath: '/kept'
-      preLoaderRoute: typeof KeptRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/intro': {
       id: '/intro'
       path: '/intro'
@@ -552,32 +311,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/digest': {
-      id: '/digest'
-      path: '/digest'
-      fullPath: '/digest'
-      preLoaderRoute: typeof DigestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diagnostic': {
-      id: '/diagnostic'
-      path: '/diagnostic'
-      fullPath: '/diagnostic'
-      preLoaderRoute: typeof DiagnosticRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/certification': {
-      id: '/certification'
-      path: '/certification'
-      fullPath: '/certification'
-      preLoaderRoute: typeof CertificationRouteImport
+    '/academy': {
+      id: '/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof AcademyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -587,33 +325,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/partner/$partnerId': {
-      id: '/partner/$partnerId'
-      path: '/partner/$partnerId'
-      fullPath: '/partner/$partnerId'
-      preLoaderRoute: typeof PartnerPartnerIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/onboarding/$stepId': {
       id: '/onboarding/$stepId'
       path: '/$stepId'
       fullPath: '/onboarding/$stepId'
       preLoaderRoute: typeof OnboardingStepIdRouteImport
       parentRoute: typeof OnboardingRoute
-    }
-    '/kept/ask': {
-      id: '/kept/ask'
-      path: '/ask'
-      fullPath: '/kept/ask'
-      preLoaderRoute: typeof KeptAskRouteImport
-      parentRoute: typeof KeptRoute
-    }
-    '/axis/$axisKey': {
-      id: '/axis/$axisKey'
-      path: '/axis/$axisKey'
-      fullPath: '/axis/$axisKey'
-      preLoaderRoute: typeof AxisAxisKeyRouteImport
-      parentRoute: typeof rootRouteImport
     }
     '/admin/approvals': {
       id: '/admin/approvals'
@@ -622,81 +339,63 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminApprovalsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/partner/$partnerId/stakeholders': {
-      id: '/partner/$partnerId/stakeholders'
-      path: '/stakeholders'
-      fullPath: '/partner/$partnerId/stakeholders'
-      preLoaderRoute: typeof PartnerPartnerIdStakeholdersRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
+    '/academy/library': {
+      id: '/academy/library'
+      path: '/library'
+      fullPath: '/academy/library'
+      preLoaderRoute: typeof AcademyLibraryRouteImport
+      parentRoute: typeof AcademyRoute
     }
-    '/partner/$partnerId/plan': {
-      id: '/partner/$partnerId/plan'
-      path: '/plan'
-      fullPath: '/partner/$partnerId/plan'
-      preLoaderRoute: typeof PartnerPartnerIdPlanRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
+    '/academy/learn': {
+      id: '/academy/learn'
+      path: '/learn'
+      fullPath: '/academy/learn'
+      preLoaderRoute: typeof AcademyLearnRouteImport
+      parentRoute: typeof AcademyRoute
     }
-    '/partner/$partnerId/metrics': {
-      id: '/partner/$partnerId/metrics'
-      path: '/metrics'
-      fullPath: '/partner/$partnerId/metrics'
-      preLoaderRoute: typeof PartnerPartnerIdMetricsRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
+    '/academy/ask': {
+      id: '/academy/ask'
+      path: '/ask'
+      fullPath: '/academy/ask'
+      preLoaderRoute: typeof AcademyAskRouteImport
+      parentRoute: typeof AcademyRoute
     }
-    '/partner/$partnerId/maturity': {
-      id: '/partner/$partnerId/maturity'
-      path: '/maturity'
-      fullPath: '/partner/$partnerId/maturity'
-      preLoaderRoute: typeof PartnerPartnerIdMaturityRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
-    }
-    '/partner/$partnerId/intel': {
-      id: '/partner/$partnerId/intel'
-      path: '/intel'
-      fullPath: '/partner/$partnerId/intel'
-      preLoaderRoute: typeof PartnerPartnerIdIntelRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
-    }
-    '/partner/$partnerId/diagnostic': {
-      id: '/partner/$partnerId/diagnostic'
-      path: '/diagnostic'
-      fullPath: '/partner/$partnerId/diagnostic'
-      preLoaderRoute: typeof PartnerPartnerIdDiagnosticRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
-    }
-    '/partner/$partnerId/coach': {
-      id: '/partner/$partnerId/coach'
-      path: '/coach'
-      fullPath: '/partner/$partnerId/coach'
-      preLoaderRoute: typeof PartnerPartnerIdCoachRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
-    }
-    '/partner/$partnerId/certification': {
-      id: '/partner/$partnerId/certification'
-      path: '/certification'
-      fullPath: '/partner/$partnerId/certification'
-      preLoaderRoute: typeof PartnerPartnerIdCertificationRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
-    }
-    '/partner/$partnerId/axes': {
-      id: '/partner/$partnerId/axes'
-      path: '/axes'
-      fullPath: '/partner/$partnerId/axes'
-      preLoaderRoute: typeof PartnerPartnerIdAxesRouteImport
-      parentRoute: typeof PartnerPartnerIdRoute
+    '/academy/library/$slug': {
+      id: '/academy/library/$slug'
+      path: '/$slug'
+      fullPath: '/academy/library/$slug'
+      preLoaderRoute: typeof AcademyLibrarySlugRouteImport
+      parentRoute: typeof AcademyLibraryRoute
     }
   }
 }
 
-interface KeptRouteChildren {
-  KeptAskRoute: typeof KeptAskRoute
+interface AcademyLibraryRouteChildren {
+  AcademyLibrarySlugRoute: typeof AcademyLibrarySlugRoute
 }
 
-const KeptRouteChildren: KeptRouteChildren = {
-  KeptAskRoute: KeptAskRoute,
+const AcademyLibraryRouteChildren: AcademyLibraryRouteChildren = {
+  AcademyLibrarySlugRoute: AcademyLibrarySlugRoute,
 }
 
-const KeptRouteWithChildren = KeptRoute._addFileChildren(KeptRouteChildren)
+const AcademyLibraryRouteWithChildren = AcademyLibraryRoute._addFileChildren(
+  AcademyLibraryRouteChildren,
+)
+
+interface AcademyRouteChildren {
+  AcademyAskRoute: typeof AcademyAskRoute
+  AcademyLearnRoute: typeof AcademyLearnRoute
+  AcademyLibraryRoute: typeof AcademyLibraryRouteWithChildren
+}
+
+const AcademyRouteChildren: AcademyRouteChildren = {
+  AcademyAskRoute: AcademyAskRoute,
+  AcademyLearnRoute: AcademyLearnRoute,
+  AcademyLibraryRoute: AcademyLibraryRouteWithChildren,
+}
+
+const AcademyRouteWithChildren =
+  AcademyRoute._addFileChildren(AcademyRouteChildren)
 
 interface OnboardingRouteChildren {
   OnboardingStepIdRoute: typeof OnboardingStepIdRoute
@@ -710,57 +409,29 @@ const OnboardingRouteWithChildren = OnboardingRoute._addFileChildren(
   OnboardingRouteChildren,
 )
 
-interface PartnerPartnerIdRouteChildren {
-  PartnerPartnerIdAxesRoute: typeof PartnerPartnerIdAxesRoute
-  PartnerPartnerIdCertificationRoute: typeof PartnerPartnerIdCertificationRoute
-  PartnerPartnerIdCoachRoute: typeof PartnerPartnerIdCoachRoute
-  PartnerPartnerIdDiagnosticRoute: typeof PartnerPartnerIdDiagnosticRoute
-  PartnerPartnerIdIntelRoute: typeof PartnerPartnerIdIntelRoute
-  PartnerPartnerIdMaturityRoute: typeof PartnerPartnerIdMaturityRoute
-  PartnerPartnerIdMetricsRoute: typeof PartnerPartnerIdMetricsRoute
-  PartnerPartnerIdPlanRoute: typeof PartnerPartnerIdPlanRoute
-  PartnerPartnerIdStakeholdersRoute: typeof PartnerPartnerIdStakeholdersRoute
-}
-
-const PartnerPartnerIdRouteChildren: PartnerPartnerIdRouteChildren = {
-  PartnerPartnerIdAxesRoute: PartnerPartnerIdAxesRoute,
-  PartnerPartnerIdCertificationRoute: PartnerPartnerIdCertificationRoute,
-  PartnerPartnerIdCoachRoute: PartnerPartnerIdCoachRoute,
-  PartnerPartnerIdDiagnosticRoute: PartnerPartnerIdDiagnosticRoute,
-  PartnerPartnerIdIntelRoute: PartnerPartnerIdIntelRoute,
-  PartnerPartnerIdMaturityRoute: PartnerPartnerIdMaturityRoute,
-  PartnerPartnerIdMetricsRoute: PartnerPartnerIdMetricsRoute,
-  PartnerPartnerIdPlanRoute: PartnerPartnerIdPlanRoute,
-  PartnerPartnerIdStakeholdersRoute: PartnerPartnerIdStakeholdersRoute,
-}
-
-const PartnerPartnerIdRouteWithChildren =
-  PartnerPartnerIdRoute._addFileChildren(PartnerPartnerIdRouteChildren)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CertificationRoute: CertificationRoute,
-  DashboardRoute: DashboardRoute,
-  DiagnosticRoute: DiagnosticRoute,
-  DigestRoute: DigestRoute,
+  AcademyRoute: AcademyRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IntroRoute: IntroRoute,
-  KeptRoute: KeptRouteWithChildren,
   LoginRoute: LoginRoute,
   MeetKeptRoute: MeetKeptRoute,
-  MethodologyRoute: MethodologyRoute,
   OnboardingRoute: OnboardingRouteWithChildren,
-  PartnersRoute: PartnersRoute,
   PendingApprovalRoute: PendingApprovalRoute,
-  QualificationRoute: QualificationRoute,
-  ReportsRoute: ReportsRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,
   SignupRoute: SignupRoute,
   AdminApprovalsRoute: AdminApprovalsRoute,
-  AxisAxisKeyRoute: AxisAxisKeyRoute,
-  PartnerPartnerIdRoute: PartnerPartnerIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

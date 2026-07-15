@@ -24,7 +24,7 @@ function ResetPassword() {
     setBusy(false);
     if (error) return toast.error(error);
     toast.success("Password updated");
-    nav({ to: "/partners" });
+    nav({ to: "/academy" });
   };
 
   return (

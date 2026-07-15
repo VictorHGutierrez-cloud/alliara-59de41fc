@@ -9,8 +9,8 @@ export const Route = createFileRoute("/onboarding/$stepId")({
     const step = ONBOARDING_STEPS.find((s) => s.id === params.stepId);
     return {
       meta: [
-        { title: step ? `${step.title} — Onboarding Alliara` : "Onboarding — Alliara" },
-        { name: "description", content: step?.summary ?? "Alliara tour." },
+        { title: step ? `${step.title} — Onboarding Kept` : "Onboarding — Kept" },
+        { name: "description", content: step?.summary ?? "Kept tour." },
       ],
     };
   },

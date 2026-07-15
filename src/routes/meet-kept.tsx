@@ -12,7 +12,7 @@ function MeetKeptRedirect() {
   const { user, loading } = useAuth();
   useEffect(() => {
     if (loading) return;
-    if (user) void nav({ to: "/kept", replace: true });
+    if (user) void nav({ to: "/academy", replace: true });
     else void nav({ to: "/intro", replace: true });
   }, [loading, user, nav]);
   return (

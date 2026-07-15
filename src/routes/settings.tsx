@@ -1,470 +1,109 @@
-import { createFileRoute, Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import { COPY } from "@/lib/copy";
+import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
 import { toast } from "sonner";
-import { Camera, Link2, Loader2, Lock, RefreshCw, User as UserIcon } from "lucide-react";
-import { syncHubSpot } from "@/lib/hubspot-client";
-import { isHubSpotOfflineError, invalidateHubSpotConnection } from "@/lib/hubspot-connection";
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
-      { title: "Settings · Alliara" },
-      { name: "description", content: "Manage your profile, photo, role and password." },
+      { title: COPY.settings.pageMetaTitle },
+      { name: "description", content: COPY.settings.pageIntro },
     ],
   }),
   component: SettingsPage,
 });
 
 function SettingsPage() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
-  const searchStr = useRouterState({ select: (s) => s.location.searchStr ?? "" });
-
-  const [hubConnected, setHubConnected] = useState(false);
-  const [hubPortalId, setHubPortalId] = useState<number | null>(null);
-  const [hubSyncing, setHubSyncing] = useState(false);
-  const [hubConnectBusy, setHubConnectBusy] = useState(false);
-  const [lastCompaniesSync, setLastCompaniesSync] = useState<string | null>(null);
-  const [lastDealsSync, setLastDealsSync] = useState<string | null>(null);
-  const [syncError, setSyncError] = useState<string | null>(null);
-
+  const { user, loading, signOut } = useAuth();
+  const nav = useNavigate();
   const [displayName, setDisplayName] = useState("");
-  const [position, setPosition] = useState("");
-  const [company, setCompany] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [uploading, setUploading] = useState(false);
-
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [savingPassword, setSavingPassword] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate({ to: "/login" });
-    }
-  }, [loading, user, navigate]);
+    if (!loading && !user) void nav({ to: "/login" });
+  }, [loading, user, nav]);
 
-  const loadHub = useCallback(async () => {
-    if (!user) return;
-    const { data: conn } = await supabase
-      .from("hubspot_connections")
-      .select("id, portal_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (conn) {
-      setHubConnected(true);
-      setHubPortalId(Number(conn.portal_id));
-      const { data: st } = await supabase
-        .from("hubspot_sync_state")
-        .select("last_companies_sync_at, last_deals_sync_at, last_error")
-        .eq("connection_id", conn.id)
-        .maybeSingle();
-      setLastCompaniesSync(st?.last_companies_sync_at ?? null);
-      setLastDealsSync(st?.last_deals_sync_at ?? null);
-      setSyncError(st?.last_error ?? null);
-    } else {
-      setHubConnected(false);
-      setHubPortalId(null);
-      setLastCompaniesSync(null);
-      setLastDealsSync(null);
-      setSyncError(null);
+  useEffect(() => {
+    if (user) {
+      setDisplayName(
+        (user.user_metadata?.full_name as string | undefined) ??
+          (user.user_metadata?.name as string | undefined) ??
+          "",
+      );
     }
   }, [user]);
 
-  useEffect(() => {
-    void loadHub();
-  }, [loadHub]);
-
-  useEffect(() => {
-    const q = new URLSearchParams(searchStr.startsWith("?") ? searchStr.slice(1) : searchStr);
-    const hs = q.get("hubspot");
-    if (hs === "connected") {
-      toast.success("HubSpot connected. Run Sync, then link companies on each partner.");
-      void loadHub();
-      navigate({ to: "/settings", replace: true, search: () => ({}) });
-    }
-    if (hs === "error") {
-      toast.error("HubSpot connection failed. Check redirect URL and secrets.");
-      navigate({ to: "/settings", replace: true, search: () => ({}) });
-    }
-  }, [searchStr, navigate, loadHub]);
-
-  useEffect(() => {
+  async function saveProfile() {
     if (!user) return;
-    (async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("display_name, position, company, avatar_url")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (error) {
-        toast.error("Could not load profile");
-        return;
-      }
-      setDisplayName(data?.display_name ?? "");
-      setPosition((data as { position?: string | null } | null)?.position ?? "");
-      setCompany(data?.company ?? "");
-      setAvatarUrl((data as { avatar_url?: string | null } | null)?.avatar_url ?? null);
-    })();
-  }, [user]);
-
-  async function handleSaveProfile(e: React.FormEvent) {
-    e.preventDefault();
-    if (!user) return;
-    setSavingProfile(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({
-        display_name: displayName.trim() || null,
-        position: position.trim() || null,
-        company: company.trim() || null,
-      })
-      .eq("id", user.id);
-    setSavingProfile(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    toast.success("Profile updated");
+    setBusy(true);
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { error } = await supabase.auth.updateUser({
+      data: { full_name: displayName.trim() || null },
+    });
+    setBusy(false);
+    if (error) toast.error(COPY.settings.saveError);
+    else toast.success(COPY.settings.savedToast);
   }
 
-  async function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please choose an image file");
-      return;
-    }
-    if (file.size > 4 * 1024 * 1024) {
-      toast.error("Image must be smaller than 4 MB");
-      return;
-    }
-    setUploading(true);
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-    const path = `${user.id}/avatar-${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage
-      .from("avatars")
-      .upload(path, file, { upsert: true, cacheControl: "3600" });
-    if (upErr) {
-      setUploading(false);
-      toast.error(upErr.message);
-      return;
-    }
-    const { data: pub } = supabase.storage.from("avatars").getPublicUrl(path);
-    const url = pub.publicUrl;
-    const { error: dbErr } = await supabase
-      .from("profiles")
-      .update({ avatar_url: url })
-      .eq("id", user.id);
-    setUploading(false);
-    if (dbErr) {
-      toast.error(dbErr.message);
-      return;
-    }
-    setAvatarUrl(url);
-    toast.success("Photo updated");
-  }
-
-  async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault();
-    if (newPassword.length < 8) {
-      toast.error("Password must be at least 8 characters");
-      return;
-    }
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-    setSavingPassword(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setSavingPassword(false);
-    if (error) {
-      toast.error(error.message);
-      return;
-    }
-    setNewPassword("");
-    setConfirmPassword("");
-    toast.success("Password updated");
-  }
-
-  if (loading || !user) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center text-muted-foreground">
-        Loading…
-      </div>
-    );
-  }
-
-  const initials = (displayName || user.email || "?")
-    .split(/\s+/)
-    .map((s) => s[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  if (loading || !user) return null;
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-10 pb-32">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Manage your personal info. Your data and partner assignments stay linked to your
-            account, even if you change your name or photo.
-          </p>
-        </div>
-        <KeptIllustration
-          variant="sidebarPeek"
-          className="h-24 w-auto shrink-0 object-contain opacity-90 sm:mt-1"
-          decorative
-        />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserIcon className="h-5 w-5" /> Profile
-          </CardTitle>
-          <CardDescription>How you appear across Alliara.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-6 flex items-center gap-5">
-            <div className="relative">
-              <Avatar className="h-20 w-20">
-                <AvatarImage
-                  src={avatarUrl ?? undefined}
-                  alt={displayName || user.email || "Avatar"}
-                />
-                <AvatarFallback className="text-lg">{initials}</AvatarFallback>
-              </Avatar>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className="absolute -bottom-1 -right-1 grid h-8 w-8 place-items-center rounded-full border border-border bg-background shadow-sm hover:bg-surface-2 disabled:opacity-60"
-                aria-label="Change photo"
-              >
-                {uploading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Camera className="h-4 w-4" />
-                )}
-              </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarChange}
-              />
-            </div>
-            <div className="text-sm">
-              <div className="font-medium">{displayName || "Unnamed"}</div>
-              <div className="text-muted-foreground">{user.email}</div>
-            </div>
+    <AcademyPageShell
+      eyebrow={COPY.settings.eyebrow}
+      title={COPY.settings.pageTitle}
+      subtitle={COPY.settings.pageIntro}
+      backToAcademy
+    >
+      <section className="mt-8 max-w-lg space-y-6">
+        <div className="rounded-2xl border border-border/60 bg-card p-5 card-elev space-y-4">
+          <h2 className="text-sm font-semibold">{COPY.settings.profileSection}</h2>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-medium text-muted-foreground">{COPY.settings.nameLabel}</span>
+            <input
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              className="w-full rounded-xl border border-border bg-background px-3 py-2.5 text-sm"
+            />
+          </label>
+          <div className="space-y-1.5">
+            <span className="text-xs font-medium text-muted-foreground">{COPY.settings.emailLabel}</span>
+            <p className="rounded-xl border border-border/60 bg-surface/50 px-3 py-2.5 text-sm text-muted-foreground">
+              {user.email}
+            </p>
+            <p className="text-[11px] text-muted-foreground">{COPY.settings.emailHint}</p>
           </div>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void saveProfile()}
+            className="inline-flex min-h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+          >
+            {busy ? "Saving…" : "Save"}
+          </button>
+        </div>
 
-          <form onSubmit={handleSaveProfile} className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="display_name">Display name</Label>
-              <Input
-                id="display_name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your name"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="position">Role / Position</Label>
-              <Input
-                id="position"
-                value={position}
-                onChange={(e) => setPosition(e.target.value)}
-                placeholder="e.g. Partner Development Manager"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company">Company</Label>
-              <Input
-                id="company"
-                value={company}
-                onChange={(e) => setCompany(e.target.value)}
-                placeholder="e.g. Factorial"
-              />
-            </div>
-            <div className="sm:col-span-2 flex justify-end">
-              <Button type="submit" disabled={savingProfile}>
-                {savingProfile && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Save profile
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+        <div className="rounded-2xl border border-border/60 bg-card p-5 card-elev">
+          <h2 className="text-sm font-semibold">{COPY.settings.tourLink}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{COPY.settings.tourLinkHint}</p>
+          <Link
+            to="/onboarding/welcome"
+            className="mt-4 inline-flex min-h-10 items-center rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
+          >
+            {COPY.onboarding.replayCta}
+          </Link>
+        </div>
 
-      <div className="my-8">
-        <Separator />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link2 className="h-5 w-5" /> HubSpot
-          </CardTitle>
-          <CardDescription>
-            HubSpot is the source of truth for accounts, pipeline, and activities. Connect once,
-            sync regularly, then link each Alliara partner to a HubSpot company ID (edit partner)
-            before running the weekly digest.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {hubConnected ? (
-            <>
-              <p className="text-sm text-muted-foreground">
-                {hubPortalId && hubPortalId > 0 ? (
-                  <>Connected portal ID: <span className="font-mono text-foreground">{hubPortalId}</span></>
-                ) : (
-                  <>Connected via Private App token.</>
-                )}
-              </p>
-              <p className="text-sm text-muted-foreground">
-                Last companies sync:{" "}
-                {lastCompaniesSync ? new Date(lastCompaniesSync).toLocaleString() : "never"}
-                <br />
-                Last deals sync:{" "}
-                {lastDealsSync ? new Date(lastDealsSync).toLocaleString() : "never"}
-              </p>
-              {syncError && <p className="text-sm text-destructive">Last error: {syncError}</p>}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  disabled={hubSyncing}
-                  onClick={async () => {
-                    setHubSyncing(true);
-                    try {
-                      const r = await syncHubSpot();
-                      toast.success(`Synced ${r.companies} companies, ${r.deals} deals`);
-                      invalidateHubSpotConnection();
-                      void loadHub();
-                    } catch (e) {
-                      if (isHubSpotOfflineError(e)) {
-                        toast.message((e as Error).message);
-                      } else {
-                        toast.error((e as Error).message);
-                      }
-                    } finally {
-                      setHubSyncing(false);
-                    }
-                  }}
-                >
-                  {hubSyncing ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <RefreshCw className="mr-2 h-4 w-4" />
-                  )}
-                  Sync from HubSpot
-                </Button>
-                <Button type="button" variant="outline" asChild>
-                  <Link to="/digest">Open weekly digest</Link>
-                </Button>
-              </div>
-            </>
-          ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                A integração HubSpot é opcional. Score, diagnóstico, portfolio e leads funcionam
-                normalmente sem ela. Conecte quando o token Private App estiver disponível para
-                desbloquear o digest semanal e o sync de empresas/deals.
-              </p>
-              <div className="flex flex-wrap gap-2">
-              <Button
-                type="button"
-                disabled={hubConnectBusy}
-                onClick={async () => {
-                  setHubConnectBusy(true);
-                  try {
-                    const r = await syncHubSpot();
-                    toast.success(`Connected. Synced ${r.companies} companies, ${r.deals} deals.`);
-                    invalidateHubSpotConnection();
-                    void loadHub();
-                  } catch (e) {
-                    if (isHubSpotOfflineError(e)) {
-                      toast.message((e as Error).message);
-                    } else {
-                      toast.error((e as Error).message);
-                    }
-                  } finally {
-                    setHubConnectBusy(false);
-                  }
-                }}
-              >
-                {hubConnectBusy ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Link2 className="mr-2 h-4 w-4" />
-                )}
-                Connect HubSpot
-              </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="my-8">
-        <Separator />
-      </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" /> Password
-          </CardTitle>
-          <CardDescription>Use at least 8 characters.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleChangePassword} className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="new_password">New password</Label>
-              <Input
-                id="new_password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm_password">Confirm password</Label>
-              <Input
-                id="confirm_password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-            </div>
-            <div className="sm:col-span-2 flex justify-end">
-              <Button type="submit" disabled={savingPassword}>
-                {savingPassword && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Update password
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+        <button
+          type="button"
+          onClick={() => signOut()}
+          className="inline-flex min-h-10 items-center rounded-xl border border-destructive/40 px-4 text-sm font-semibold text-destructive hover:bg-destructive/5"
+        >
+          {COPY.settings.signOutCta}
+        </button>
+      </section>
+    </AcademyPageShell>
   );
 }

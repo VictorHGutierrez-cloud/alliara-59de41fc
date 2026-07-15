@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sales Psychology Training · Factorial Path</title>
+  <meta name="description" content="Teach Factorial sellers 2026 B2B purchase psychology: decision fatigue, loss aversion, Dark Funnel, and curated demos." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #15201c;
+      --paper: #f3efe6;
+      --card: #fffcf7;
+      --line: rgba(21,32,28,.1);
+      --muted: #5a655f;
+      --accent: #b93642;
+      --ops: #c4561f;
+      --people: #1a6b72;
+      --finance: #2a6540;
+      --ok: #1f7a4d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: "Outfit", sans-serif; background: var(--paper); color: var(--ink); line-height: 1.55; }
+    h1, h2, h3 { font-family: "Fraunces", Georgia, serif; letter-spacing: -.02em; line-height: 1.15; }
+    .top {
+      position: sticky; top: 0; z-index: 40;
+      background: rgba(243,239,230,.96); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line); padding: 10px 14px;
+    }
+    .top-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 6px; overflow-x: auto; align-items: center; }
+    .brand { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); white-space: nowrap; margin-right: 6px; }
+    .top a {
+      text-decoration: none; color: var(--muted); font-size: 11px; font-weight: 650;
+      padding: 7px 10px; border-radius: 999px; white-space: nowrap;
+    }
+    .top a:hover, .top a.on { background: var(--card); color: var(--ink); }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 28px 18px 80px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.1rem); margin: 8px 0 12px; max-width: 18ch; }
+    .lede { color: var(--muted); max-width: 54ch; margin-bottom: 16px; }
+    .kit {
+      display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 8px;
+    }
+    .btn {
+      appearance: none; border: none; font: inherit; font-weight: 650; font-size: 13px;
+      border-radius: 10px; padding: 10px 14px; cursor: pointer; text-decoration: none; display: inline-block;
+    }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+    .rule {
+      margin-top: 14px; padding: 14px 16px; background: var(--card);
+      border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; max-width: 62ch; font-size: 14px;
+    }
+    section { margin: 36px 0; scroll-margin-top: 58px; padding-top: 8px; border-top: 1px solid var(--line); }
+    section > h2 { font-size: 1.45rem; margin-bottom: 8px; }
+    .sub { color: var(--muted); margin-bottom: 14px; font-size: 15px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; margin: 12px 0; }
+    .card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    .card p, .card li { font-size: 14px; }
+    .card ul, .card ol { padding-left: 18px; }
+    .card li { margin: 4px 0; }
+    .take {
+      background: #ebe8df; border-radius: 14px; padding: 14px 16px; margin-top: 12px;
+      border: 1px dashed rgba(21,32,28,.18);
+    }
+    .take strong { display: block; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ops); margin-bottom: 4px; }
+    .grid { display: grid; gap: 10px; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .stat {
+      text-align: center; padding: 14px; background: var(--card); border-radius: 14px; border: 1px solid var(--line);
+    }
+    .stat b { display: block; font-family: "Fraunces", serif; font-size: 1.8rem; color: var(--accent); }
+    .stat span { font-size: 12px; color: var(--muted); }
+    .script {
+      background: #15201c; color: #f3efe6; border-radius: 14px; padding: 14px 16px;
+      font-size: 13.5px; white-space: pre-wrap; margin-top: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+    .check { list-style: none; padding: 0; }
+    .check li {
+      display: grid; grid-template-columns: 22px 1fr; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px;
+    }
+    .check input { margin-top: 3px; width: 16px; height: 16px; }
+    .tag {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; margin-bottom: 8px; color: var(--people);
+    }
+    .tag.ops { color: var(--ops); }
+    .tag.accent { color: var(--accent); }
+    details { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 8px 0; }
+    summary { cursor: pointer; font-weight: 650; font-size: 14px; }
+    details p, details ul { margin-top: 8px; font-size: 14px; }
+    footer { margin-top: 40px; font-size: 12px; color: var(--muted); text-align: center; }
+    .progress-wrap { margin: 18px 0; }
+    .bar { height: 8px; background: #e4ddd0; border-radius: 99px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+    .progress-label { font-size: 12px; color: var(--muted); margin-top: 6px; }
+    @media print {
+      .top, .kit, .progress-wrap { display: none !important; }
+      section { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top">
+    <div class="top-inner">
+      <a class="brand" href="index.html">Factorial Path</a>
+      <a href="#thesis">Thesis</a>
+      <a href="#fatigue">Fatigue</a>
+      <a href="#loss">Loss</a>
+      <a href="#committee">Committee</a>
+      <a href="#dark">Dark Funnel</a>
+      <a href="#role">Role</a>
+      <a href="#position">Position</a>
+      <a href="#compete">Compete</a>
+      <a href="#methods">Methods</a>
+      <a href="#wfm">WFM</a>
+      <a href="#trends">Trends</a>
+      <a href="#kits">Field kits</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header style="padding:12px 0 8px">
+      <p class="eyebrow">Seller training · English · 2026</p>
+      <h1>Sales psychology for Factorial</h1>
+      <p class="lede">
+        Features look alike. Buyers researched you with AI before the call.
+        This curriculum teaches diagnosis, risk framing, curation, and trust — how elite Factorial sellers win.
+      </p>
+      <div class="kit">
+        <a class="btn btn-primary" href="people-path-story.html">Open People Path</a>
+        <a class="btn btn-ghost" href="factorial-us-caribbean-battlecards.html">Battle cards</a>
+        <a class="btn btn-ghost" href="factorial-smb-playbook.html">SMB playbook</a>
+        <a class="btn btn-ghost" href="sales-psychology.md">Full MD</a>
+      </div>
+      <p class="rule"><strong>Core rule:</strong> risk of staying → cure the fracture → prove with a curated demo → expand later.</p>
+      <div class="progress-wrap">
+        <div class="bar"><i id="readBar"></i></div>
+        <p class="progress-label"><span id="readPct">0</span>% of modules marked complete</p>
+      </div>
+    </header>
+
+    <section id="thesis" data-module>
+      <h2>1. Thesis — Features era is over</h2>
+      <p class="sub">HR/WFM platforms commoditized. GenAI equalized information. Catalog demos no longer win.</p>
+      <div class="card">
+        <p>Differentiate with deep diagnosis, risk mitigation, and alignment with an often-invisible buying committee. Sell resilience — not a module warehouse.</p>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>If your first three moves are capabilities, status quo is already winning.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="fatigue" data-module>
+      <h2>2. Decision fatigue</h2>
+      <p class="sub">More features can freeze the buyer. Holistic demos trigger implementation anxiety.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag accent">Kill pattern</span>
+          <h3>Module dump</h3>
+          <p>Show everything Factorial can do on call one. Buyer concludes transition &gt; current pain.</p>
+        </div>
+        <div class="card">
+          <span class="tag ops">Win pattern</span>
+          <h3>Curation</h3>
+          <p>One urgent fracture. Land Core + Time Off + Time Tracking. Expand Expenses/ATS/Shifts only if that is the fire.</p>
+        </div>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>Land narrow. Expand on the same employee record later.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="loss" data-module>
+      <h2>3. Loss aversion — risk before ROI</h2>
+      <p class="sub">Losses feel ~2× as painful as equivalent gains feel good. Fear of failed implementation beats abstract efficiency promises.</p>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:10px">
+        <div class="stat"><b>~59%</b><span>Prefer risk-mitigation frame</span></div>
+        <div class="stat"><b>~24%</b><span>Prefer features frame</span></div>
+        <div class="stat"><b>~17%</b><span>Prefer ROI frame</span></div>
+      </div>
+      <p class="sub" style="margin-top:10px">Training benchmark from curriculum research on simulated committees — use as dogma for pitch order.</p>
+      <div class="script">Pattern: Risk today → Cost of waiting → Proof Factorial removes that risk → Then expansion roadmap.</div>
+      <div class="take"><strong>Seller takeaway</strong>Make staying look riskier than switching — then prove safety with product.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="committee" data-module>
+      <h2>4. Buying committees</h2>
+      <p class="sub">Large stakeholder webs (~13 internal is a common citation). One message never fits all.</p>
+      <div class="card" style="overflow-x:auto">
+        <table>
+          <thead><tr><th>Stakeholder</th><th>Protects</th><th>Your angle</th></tr></thead>
+          <tbody>
+            <tr><td>HR / People</td><td>Climate, talent process</td><td>Adoption, fairness, visibility</td></tr>
+            <tr><td>CFO / Finance</td><td>Cost, liability</td><td>Consolidation, clean payroll inputs</td></tr>
+            <tr><td>Ops</td><td>Coverage, disruption</td><td>Shifts, mobile time, adherence</td></tr>
+            <tr><td>IT / Security</td><td>Data, AI leakage</td><td>Permissions, governed Factorial One</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>Map the committee before you demo. Be a diplomat.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="dark" data-module>
+      <h2>5. Dark Funnel + GenAI</h2>
+      <p class="sub">Most of the journey is anonymous. Buyers shortlist before talking to you. Research:seller time often ~5:1.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag accent">Gartner tension</span>
+          <p>~67% want a rep-free journey — yet ~69% still ask reps to validate AI insights. AI cannot give psychological safety.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Your opening</span>
+          <p>Assume an AI-built comparison already exists. Correct framing; don’t restart HRIS 101.</p>
+        </div>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>“What did ChatGPT/G2 tell you about us vs HiBob/Personio — and what felt incomplete?”</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="role" data-module>
+      <h2>6. Seller role — context oracle</h2>
+      <div class="card">
+        <ol>
+          <li>Verify AI premises (and hallucinations).</li>
+          <li>Reduce friction and fear.</li>
+          <li>Lend trust capital so the committee can decide.</li>
+        </ol>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>You are not a catalog. You make an algorithmically prepared decision feel safe.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="position" data-module>
+      <h2>7. Factorial positioning</h2>
+      <p class="sub">Central nervous system — surgical pain → cure. Factorial One = governance-safe cognitive capacity, not chatbot cosplay.</p>
+      <details open>
+        <summary>Pain → sell this (not that)</summary>
+        <ul>
+          <li><strong>Retention:</strong> visibility across goals/satisfaction/burnout — not “performance module”</li>
+          <li><strong>Compliance risk:</strong> spreadsheet liability vs controlled time/payroll inputs</li>
+          <li><strong>Month-end chaos:</strong> time + leave → payroll-ready variables</li>
+          <li><strong>AI leakage fear:</strong> Factorial One inside the corporate wall</li>
+        </ul>
+      </details>
+      <div class="take"><strong>Seller takeaway</strong>One fracture per first meeting. The other ~90% is expansion insurance.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="compete" data-module>
+      <h2>8. Competitive psychology</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag">Brazil case (curriculum)</span>
+          <p>Hyper-competition with Sólides, Convenia, Gupy, ADP, Workday. Refuse line-by-line wars. Sell executive peace of mind.</p>
+        </div>
+        <div class="card">
+          <span class="tag ops">US &amp; Caribbean (your field)</span>
+          <p><strong>HiBob:</strong> culture-first → counter with ops/month-end risk.<br />
+          <strong>Personio:</strong> EU gravity → counter with English-first operating fit.</p>
+          <p style="margin-top:8px"><a href="factorial-us-caribbean-battlecards.html">Open battle cards →</a></p>
+        </div>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>Never fight “they also have X.” Fight which risk drops this quarter.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="methods" data-module>
+      <h2>9. Methods hybrid</h2>
+      <div class="card">
+        <p><strong>Recommended:</strong> Challenger reframing + MEDDIC rigor + Implication-heavy SPIN.<br />
+        Skip basic Situation grilling for AI-prepped buyers. SMB: MEDDIC-lite.</p>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>Enter teaching. Qualify ruthlessly. Don’t interrogate.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="wfm" data-module>
+      <h2>10. WFM psychology</h2>
+      <p class="sub">Ops wants predictability. Workers want fairness and agency. Mobile-first self-service is non-negotiable.</p>
+      <div class="card">
+        <ul>
+          <li>Forecasting · real-time adherence · compliance matrices</li>
+          <li>Shift swap / availability · explainable fairness</li>
+          <li>Hospitality &amp; Caribbean tourism: coverage + fairness beats culture feeds</li>
+        </ul>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>Balance control and dignity — or the frontline rejects the tool.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="trends" data-module>
+      <h2>11. Trends to sell into</h2>
+      <div class="grid grid-2">
+        <div class="card"><h3>DEX vs tool fatigue</h3><p>One experience layer beats another app.</p></div>
+        <div class="card"><h3>Skills-based orgs</h3><p>Internal mobility vs endless external hiring.</p></div>
+        <div class="card"><h3>Hybrid / flexible work</h3><p>FT + contractors + volatility — native support.</p></div>
+        <div class="card"><h3>Real-time analytics</h3><p>Intervene before burnout / understaffing.</p></div>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>Trends justify consolidation on Factorial’s spine — not more fragmentation.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section id="kits" data-module>
+      <h2>12. Field kits</h2>
+      <div class="card">
+        <h3>Pre-call checklist (print/use)</h3>
+        <ul class="check">
+          <li><input type="checkbox" /><div>Primary pain hypothesis</div></li>
+          <li><input type="checkbox" /><div>Persona (owner / HR / finance / ops)</div></li>
+          <li><input type="checkbox" /><div>Land bundle chosen</div></li>
+          <li><input type="checkbox" /><div>Only 3 People Path beats planned</div></li>
+          <li><input type="checkbox" /><div>Dated ask prepared</div></li>
+          <li><input type="checkbox" /><div>AI shortlist assumption (competitors)</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Risk-first opener</h3>
+        <div class="script">“Before any product tour: most teams I meet already researched tools with AI. I’m not here to re-list modules. I want 10 minutes on the risk you’re carrying this quarter — timesheets, leave chaos, or spend hitting payroll dirty — and whether staying as-is is actually safer than changing.”</div>
+      </div>
+      <div class="card">
+        <h3>Demo map</h3>
+        <ul>
+          <li><strong>Onboarding pain:</strong> Start onboarding</li>
+          <li><strong>Time/leave:</strong> Clock in → Request PTO</li>
+          <li><strong>Money:</strong> Scan receipt → Approve → Lock payroll</li>
+          <li><strong>vs HiBob:</strong> Time → payroll lock first</li>
+          <li><strong>vs Personio:</strong> Onboarding → time/shifts → expenses → payroll</li>
+        </ul>
+        <div class="kit" style="margin-top:12px">
+          <a class="btn btn-primary" href="people-path-story.html">Practice on People Path</a>
+          <a class="btn btn-ghost" href="factorial-sales-playbook.html">MEDDPICC / SPIN</a>
+        </div>
+      </div>
+      <div class="take"><strong>Seller takeaway</strong>One principle per live call until it becomes muscle memory.</div>
+      <label class="check" style="margin-top:12px;display:block"><li style="border:none;display:flex;gap:8px;align-items:center"><input type="checkbox" data-done /> Module complete</li></label>
+    </section>
+
+    <section>
+      <h2>Workshop (90 min)</h2>
+      <div class="card">
+        <ol>
+          <li>Thesis + decision fatigue — 15′</li>
+          <li>Rewrite a feature pitch into a risk pitch — 20′</li>
+          <li>Dark Funnel + AI validator role — 15′</li>
+          <li>Live People Path practice — 25′</li>
+          <li>Committee map + MEDDIC-lite on a real opp — 15′</li>
+        </ol>
+      </div>
+      <p class="sub" style="margin-top:12px">Full narrative + sources: <a href="sales-psychology.md">sales-psychology.md</a></p>
+    </section>
+
+    <footer>
+      Internal Factorial Path sales enablement · Not an official Factorial product document · Pair with battle cards &amp; People Path
+    </footer>
+  </div>
+
+  <script>
+    const boxes = [...document.querySelectorAll("[data-done]")];
+    const bar = document.getElementById("readBar");
+    const pct = document.getElementById("readPct");
+    const KEY = "fp-sales-psych-progress";
+
+    function load() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(KEY) || "[]");
+        boxes.forEach((b, i) => { b.checked = !!saved[i]; });
+      } catch (e) {}
+      paint();
+    }
+    function paint() {
+      const n = boxes.filter((b) => b.checked).length;
+      const p = Math.round((n / boxes.length) * 100);
+      bar.style.width = p + "%";
+      pct.textContent = p;
+      localStorage.setItem(KEY, JSON.stringify(boxes.map((b) => b.checked)));
+    }
+    boxes.forEach((b) => b.addEventListener("change", paint));
+    load();
+
+    const links = [...document.querySelectorAll(".top a[href^='#']")];
+    const sections = links.map((a) => document.querySelector(a.getAttribute("href"))).filter(Boolean);
+    new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id));
+      });
+    }, { rootMargin: "-40% 0px -50% 0px" }).observe &&
+    sections.forEach((s) => {
+      new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id));
+        });
+      }, { rootMargin: "-40% 0px -50% 0px" }).observe(s);
+    });
+  </script>
+</body>
+</html>

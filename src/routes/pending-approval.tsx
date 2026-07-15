@@ -12,7 +12,7 @@ function PendingApproval() {
 
   useEffect(() => {
     if (!user) nav({ to: "/login", replace: true });
-    else if (accessStatus === "approved") nav({ to: "/partners", replace: true });
+    else if (accessStatus === "approved") nav({ to: "/academy", replace: true });
   }, [user, accessStatus, nav]);
 
   const rejected = accessStatus === "rejected";

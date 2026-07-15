@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Factorial Battle Cards · US & Caribbean · vs HiBob & Personio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #15201c;
+      --paper: #f3efe6;
+      --card: #fffcf7;
+      --line: rgba(21,32,28,.1);
+      --muted: #5a655f;
+      --accent: #b93642;
+      --people: #1a6b72;
+      --ops: #c4561f;
+      --finance: #2a6540;
+      --hibob: #5b4bb8;
+      --personio: #0b5fff;
+      --factorial: #b93642;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: "Outfit", sans-serif; background: var(--paper); color: var(--ink); line-height: 1.5; }
+    h1, h2, h3 { font-family: "Fraunces", Georgia, serif; letter-spacing: -.02em; line-height: 1.15; }
+    .top {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(243,239,230,.96); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line); padding: 10px 14px;
+    }
+    .top-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 6px; overflow-x: auto; }
+    .top a {
+      text-decoration: none; color: var(--muted); font-size: 12px; font-weight: 650;
+      padding: 8px 11px; border-radius: 999px; white-space: nowrap;
+    }
+    .top a:hover { background: var(--card); color: var(--ink); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 26px 18px 80px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ops); }
+    .hero h1 { font-size: clamp(1.9rem, 4.8vw, 3rem); margin: 8px 0 10px; max-width: 18ch; }
+    .lede { color: var(--muted); max-width: 58ch; }
+    .rule {
+      margin-top: 14px; padding: 14px 16px; background: var(--card);
+      border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; max-width: 64ch; font-size: 14px;
+    }
+    section { margin: 34px 0; scroll-margin-top: 56px; }
+    section > h2 { font-size: 1.55rem; margin-bottom: 8px; }
+    .sub { color: var(--muted); margin-bottom: 14px; max-width: 62ch; font-size: 15px; }
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+    .card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    .card p, .card li { font-size: 14px; }
+    .card ul, .card ol { padding-left: 18px; }
+    .card li { margin: 4px 0; }
+    .tag {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .tag.f { color: var(--factorial); }
+    .tag.h { color: var(--hibob); }
+    .tag.p { color: var(--personio); }
+    .tag.ops { color: var(--ops); }
+    .tag.ok { color: var(--finance); }
+    .script {
+      background: #15201c; color: #f3efe6; border-radius: 14px; padding: 14px 16px;
+      font-size: 13.5px; white-space: pre-wrap; margin-top: 10px;
+    }
+    .vs {
+      display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; font-size: 12px; margin-top: 10px;
+    }
+    .vs div { background: #f0ebe1; border-radius: 10px; padding: 10px; }
+    .vs strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 4px; }
+    .vs .f strong { color: var(--factorial); }
+    .vs .h strong { color: var(--hibob); }
+    .vs .p strong { color: var(--personio); }
+    @media (max-width: 720px) { .vs { grid-template-columns: 1fr; } }
+    .tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .tabs button {
+      appearance: none; border: 1px solid var(--line); background: var(--card); font: inherit;
+      font-size: 12px; font-weight: 650; padding: 8px 12px; border-radius: 999px; cursor: pointer; color: var(--muted);
+    }
+    .tabs button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+    .pane { display: none; }
+    .pane.on { display: block; }
+    .btn {
+      appearance: none; border: none; font: inherit; font-weight: 650; font-size: 13px;
+      background: var(--accent); color: #fff; border-radius: 10px; padding: 10px 14px; cursor: pointer;
+    }
+    .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .warn { font-size: 13px; color: var(--muted); margin-top: 8px; }
+    footer { margin-top: 40px; text-align: center; font-size: 12px; color: var(--muted); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <nav class="top">
+    <div class="top-inner">
+      <a href="#pov">POV</a>
+      <a href="#hibob">vs HiBob</a>
+      <a href="#personio">vs Personio</a>
+      <a href="#matrix">Trap matrix</a>
+      <a href="#niches">Niches</a>
+      <a href="#demo">Demo path</a>
+      <a href="#scripts">Scripts</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header style="padding:18px 0 8px">
+      <p class="eyebrow">US &amp; Caribbean · SMB · Always English</p>
+      <h1>Battle cards: Factorial vs HiBob &amp; Personio</h1>
+      <p class="lede">
+        Your market hears culture platforms and EU HR brands every week.
+        You win by selling <strong>operations reality</strong>: time, shifts, spend, payroll-ready data, and one employee lifecycle — at SMB speed.
+      </p>
+      <p class="rule">
+        <strong>Positioning line (memorize):</strong>
+        “HiBob wins hearts. Personio wins European HR admin. Factorial wins the weekly operating system — time, people, and money on one record — so US &amp; Caribbean SMBs stop living in spreadsheets.”
+      </p>
+    </header>
+
+    <section id="pov">
+      <h2>1. Market POV · US &amp; Caribbean SMB</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag f">What buyers feel</span>
+          <ul>
+            <li>English-first teams across offices / islands</li>
+            <li>Hospitality, retail, services, clinics, agencies</li>
+            <li>Accountant / local payroll provider stays in the loop</li>
+            <li>Fear of overpaying for “pretty culture software”</li>
+            <li>Need mobile clock-in, leave, expenses that managers actually use</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="tag ops">How you land</span>
+          <h3>Default land package</h3>
+          <p><strong>Core + Time Off + Time Tracking</strong></p>
+          <p>+ Shifts if rotating staff · + Expenses if receipt chaos · + Recruitment if hiring spike</p>
+          <div class="script">“Let’s fix the weekly chaos first. Culture modules can come once the operating rhythm is clean.”</div>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn" type="button" onclick="window.open('people-path-story.html','_blank')">Open People Path (demo)</button>
+        <button class="btn ghost" type="button" onclick="window.open('factorial-smb-playbook.html','_blank')">SMB playbook</button>
+      </div>
+    </section>
+
+    <section id="hibob">
+      <h2>2. vs HiBob (Bob)</h2>
+      <p class="sub">HiBob = engagement / culture-first, modern UX, often premium. Strong when the buyer wants “people experience.” Vulnerable when the buyer needs ops depth + value.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag h">Where HiBob is strong</span>
+          <ul>
+            <li>Employee experience / culture vibe</li>
+            <li>Polished UI and brand story</li>
+            <li>Performance / compensation narratives for scaling tech-ish teams</li>
+            <li>Global mid-market positioning</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="tag f">Where you attack</span>
+          <ul>
+            <li><strong>Ops stack:</strong> time tracking depth, shifts, spaces, project hours</li>
+            <li><strong>Money path:</strong> expenses OCR, cards, procurement → payroll sync</li>
+            <li><strong>IT + offboarding access</strong> tied to HR changes</li>
+            <li><strong>SMB value / modular land</strong> without buying a culture palace first</li>
+            <li><strong>Caribbean / multi-site workforce</strong> ops (schedules, mobile, leave)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Kill soundbites (HiBob)</h3>
+        <div class="script">“Bob is beautiful for culture. The question for you is month-end: shifts, missing punches, expenses, and payroll inputs. Do you want a social feed — or an operating system that feeds your accountant clean data?”
+
+“If engagement is the only pain, Bob is a fair shortlist. If managers still chase timesheets and leave on WhatsApp, you’re buying the wrong layer first.”
+
+“Let’s price the problem you feel every Friday — not the brochure. Start Core + Time, then add performance when the fire is out.”</div>
+      </div>
+      <div class="vs">
+        <div class="h"><strong>HiBob leans</strong>Culture, EX, mid-market polish</div>
+        <div class="f"><strong>Factorial leans</strong>Time/ops, spend, IT-HR loop, SMB land speed</div>
+        <div class="p"><strong>Watch-out</strong>Don’t trash culture — re-sequence: ops first, EX later</div>
+      </div>
+    </section>
+
+    <section id="personio">
+      <h2>3. vs Personio</h2>
+      <p class="sub">Personio = European HRIS powerhouse (esp. DACH mental model): compliance, recruiting, structured HR ops. In US &amp; Caribbean deals, it often feels “great for Europe, heavier / less local” unless the buyer is EU-centric.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag p">Where Personio is strong</span>
+          <ul>
+            <li>Structured HR processes &amp; recruiting reputation</li>
+            <li>European compliance narrative / GDPR heritage</li>
+            <li>Brand trust with EU HQs expanding abroad</li>
+            <li>Broad HR lifecycle coverage</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="tag f">Where you attack (US &amp; Caribbean)</span>
+          <ul>
+            <li><strong>Fit to market:</strong> English-first US/Caribbean ops story, not EU payroll theater</li>
+            <li><strong>All-in-one ops + finance adjacency:</strong> expenses, projects, shifts, spaces, IT</li>
+            <li><strong>Faster SMB commercial clarity:</strong> land small, expand on same employee record</li>
+            <li><strong>Partner payroll model:</strong> work with existing US / island payroll providers instead of forcing EU-native assumptions</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Kill soundbites (Personio)</h3>
+        <div class="script">“Personio is excellent if your center of gravity is European HR compliance. Your team runs US &amp; Caribbean operations — English-first, local payroll partners, multi-site schedules. Factorial is built as the operating layer for that reality.”
+
+“If you pick Personio because ‘everyone in Europe uses it,’ test one scenario: a Friday night shift change + expense + leave balance hitting payroll variables. That’s where we earn the deal.”
+
+“We’re not asking you to rip out your accountant. We’re asking to stop sending them messy inputs.”</div>
+      </div>
+      <p class="warn">Integrity note: never invent false “Personio doesn’t do X.” Attack fit, gravity, and breadth of ops/finance/IT on one spine — then prove in demo.</p>
+    </section>
+
+    <section id="matrix">
+      <h2>4. Objection / trap matrix</h2>
+      <div class="card" style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr><th>They say</th><th>Likely competitor</th><th>You answer</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>“We want something modern / culture-first.”</td>
+              <td>HiBob</td>
+              <td>Agree → then ask month-end ops cost → land Time/Core → expand EX later.</td>
+            </tr>
+            <tr>
+              <td>“Our EU HQ likes Personio.”</td>
+              <td>Personio</td>
+              <td>“HQ vs local ops needs. Run a dual fit test: Caribbean/US workflows + English managers.”</td>
+            </tr>
+            <tr>
+              <td>“They’re cheaper / we’re comparing PEPM.”</td>
+              <td>Both</td>
+              <td>Compare total cost: tools replaced + admin hours + payroll corrections — not seat sticker only.</td>
+            </tr>
+            <tr>
+              <td>“We already have Gusto / ADP / local payroll.”</td>
+              <td>Status quo</td>
+              <td>“Perfect. Factorial feeds them cleaner variables. Payroll stays; chaos goes.”</td>
+            </tr>
+            <tr>
+              <td>“We need Bamboo-like simplicity.”</td>
+              <td>Alt shortlist</td>
+              <td>“Simplicity yes — but with shifts/expenses depth when you grow past 40 people.”</td>
+            </tr>
+            <tr>
+              <td>“Show us AI.”</td>
+              <td>Both</td>
+              <td>“AI that saves admin minutes: CV match, OCR receipts, review summaries, workflow emails — not a gimmick.”</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="niches">
+      <h2>5. Niche plays (all English)</h2>
+      <p class="sub">Click a niche. Use that talk track + land modules + People Path beats.</p>
+      <div class="tabs" id="nicheTabs">
+        <button type="button" class="on" data-pane="hospitality">Hospitality</button>
+        <button type="button" data-pane="retail">Retail / multi-site</button>
+        <button type="button" data-pane="services">Agencies / services</button>
+        <button type="button" data-pane="healthcare">Clinics</button>
+        <button type="button" data-pane="field">Field / construction</button>
+        <button type="button" data-pane="startup">Tech / startups</button>
+        <button type="button" data-pane="holding">Multi-island / holding</button>
+      </div>
+
+      <div class="pane on" id="hospitality">
+        <div class="card">
+          <span class="tag ops">Hotels · restaurants · tourism (Caribbean strong)</span>
+          <h3>Pain</h3>
+          <p>Rotating shifts, overtime, no-shows, tip/expense noise, multi-language staff on mobile, seasonality.</p>
+          <h3 style="margin-top:10px">Land</h3>
+          <p>Core + Time Tracking + Time Off + <strong>Shift Planning</strong> (+ Spaces if desk/area booking matters)</p>
+          <h3 style="margin-top:10px">Vs competitors</h3>
+          <p><strong>vs HiBob:</strong> culture software won’t write the rota. <strong>vs Personio:</strong> prove shift coverage + mobile clock (QR/geo) in their language of ops.</p>
+          <div class="script">“Tourism lives and dies on coverage. Let’s build one week of shifts, clock-ins, and leave — then see what payroll receives.”</div>
+        </div>
+      </div>
+
+      <div class="pane" id="retail">
+        <div class="card">
+          <span class="tag ops">Retail · multi-location US &amp; islands</span>
+          <h3>Pain</h3>
+          <p>Many locations, managers approving leave late, inconsistent time policies, high turnover onboarding.</p>
+          <h3 style="margin-top:10px">Land</h3>
+          <p>Core + Time Off + Time Tracking (+ Shifts) (+ Recruitment if hiring machine)</p>
+          <div class="script">“Every store manager should approve in one tap — not rewrite your Excel.”</div>
+        </div>
+      </div>
+
+      <div class="pane" id="services">
+        <div class="card">
+          <span class="tag ok">Agencies · consultants · professional services</span>
+          <h3>Pain</h3>
+          <p>Billable hours, project costs, expenses on client trips, utilization invisible.</p>
+          <h3 style="margin-top:10px">Land</h3>
+          <p>Core + Time Tracking + <strong>Projects</strong> + Expenses</p>
+          <h3 style="margin-top:10px">Vs competitors</h3>
+          <p>HiBob/Personio conversations often stay “HR.” You sell <strong>delivery economics</strong>.</p>
+          <div class="script">“Your margin leaks in hours and receipts. Put both on the project — then payroll.”</div>
+        </div>
+      </div>
+
+      <div class="pane" id="healthcare">
+        <div class="card">
+          <span class="tag ops">Clinics · care teams</span>
+          <h3>Pain</h3>
+          <p>Credentials/docs, schedules, absences, compliance anxiety, overtime.</p>
+          <h3 style="margin-top:10px">Land</h3>
+          <p>Core (docs/e-sign) + Time Off + Time Tracking (+ Shifts)</p>
+          <div class="script">“Licenses and leave can’t live in email. One employee file, one schedule truth.”</div>
+        </div>
+      </div>
+
+      <div class="pane" id="field">
+        <div class="card">
+          <span class="tag ops">Construction · field services</span>
+          <h3>Pain</h3>
+          <p>Who showed up on site, geo trust, overtime disputes, safety docs.</p>
+          <h3 style="margin-top:10px">Land</h3>
+          <p>Core + Time Tracking (geo/QR) + Time Off (+ Projects)</p>
+          <div class="script">“If we can’t prove presence, we can’t defend payroll. Mobile clock with location is the first win.”</div>
+        </div>
+      </div>
+
+      <div class="pane" id="startup">
+        <div class="card">
+          <span class="tag h">Tech / startups (where HiBob hits hardest)</span>
+          <h3>Pain</h3>
+          <p>They ask for culture tools first — but still have onboarding + PTO + expenses chaos.</p>
+          <h3 style="margin-top:10px">Land</h3>
+          <p>Core + Time Off (+ Recruitment) (+ Expenses). Add Performance after land.</p>
+          <div class="script">“Bob looks like your culture deck. Factorial looks like your operating week. If you’re under 150 people, buy the week first.”</div>
+        </div>
+      </div>
+
+      <div class="pane" id="holding">
+        <div class="card">
+          <span class="tag f">Multi-island / regional holding companies</span>
+          <h3>Pain</h3>
+          <p>Several entities, shared policies vs local rules, English HQ reporting, payroll partners per island/country.</p>
+          <h3 style="margin-top:10px">Land</h3>
+          <p>Core (directory, permissions, docs) + Time Off policies + reporting · then Time/Expenses per opco</p>
+          <h3 style="margin-top:10px">Vs Personio</h3>
+          <p>Don’t fight “EU compliance badge.” Fight <strong>operating fit</strong> for English regional management + partner payroll.</p>
+          <div class="script">“One people spine across islands — local payroll partners stay — HQ finally sees one truth.”</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <h2>6. 20-minute competitive demo path</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag f">When competing with HiBob</span>
+          <ol>
+            <li>Acknowledge culture need (30 sec)</li>
+            <li>Implication: month-end ops cost</li>
+            <li>People Path: <strong>Clock in → PTO → Lock payroll</strong></li>
+            <li>Optional: Expenses OCR</li>
+            <li>Close: land Time/Core this month; EX later</li>
+          </ol>
+        </div>
+        <div class="card">
+          <span class="tag p">When competing with Personio</span>
+          <ol>
+            <li>Ask where company gravity is (US/Caribbean vs EU HQ)</li>
+            <li>People Path: <strong>Onboarding → Shifts/Time → Expenses → Payroll lock</strong></li>
+            <li>Show partner-payroll collaboration narrative</li>
+            <li>Close: operating fit test with local managers (English)</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="scripts">
+      <h2>7. Call openers &amp; emails (English)</h2>
+      <div class="card">
+        <h3>Discovery opener</h3>
+        <div class="script">“I’ll keep this practical. In US &amp; Caribbean teams I support, the deal usually comes down to time, leave, and clean inputs to payroll — not which logo looks more European or more cultural. What’s breaking in your week right now?”</div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Email after HiBob evaluation</h3>
+        <div class="script">Subject: Culture software vs operating week
+
+Hi [Name] — loved the focus on employee experience. One question to pressure-test with your team: when shifts, missing punches, and expenses hit payroll this month, which tool owns that workflow end-to-end?
+
+Happy to run a 20-minute Factorial path (time → leave → payroll-ready data) next to Bob so the comparison is fair.
+
+Thu 10:00 or Fri 14:00 work?</div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Email after Personio evaluation</h3>
+        <div class="script">Subject: EU brand vs US/Caribbean operating fit
+
+Hi [Name] — Personio is a serious HRIS brand in Europe. For your US &amp; Caribbean managers, I’d like 20 minutes on English-first operations: onboarding, schedules/time, expenses, and how variables reach your current payroll partner.
+
+If Personio wins that scenario, you’ll know. If Factorial wins it, you’ll know why — fast.
+
+Open to a short bake-off?</div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Champion one-liner (give them this)</h3>
+        <div class="script">“We’re choosing the system managers will actually use for time and leave — connected to spend and payroll — not only the prettiest culture suite or the most European HR brand.”</div>
+      </div>
+    </section>
+
+    <footer>
+      Sales enablement for Victor · US &amp; Caribbean SMB · English · Competitive notes are positioning aids — always validate feature claims against current Product/SE guidance before formal RFP responses.
+    </footer>
+  </div>
+
+  <script>
+    const tabs = [...document.querySelectorAll("#nicheTabs button")];
+    const panes = [...document.querySelectorAll(".pane")];
+    tabs.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        tabs.forEach((b) => b.classList.remove("on"));
+        panes.forEach((p) => p.classList.remove("on"));
+        btn.classList.add("on");
+        document.getElementById(btn.dataset.pane).classList.add("on");
+      });
+    });
+  </script>
+</body>
+</html>

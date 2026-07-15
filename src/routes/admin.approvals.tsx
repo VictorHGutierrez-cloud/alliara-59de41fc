@@ -25,7 +25,7 @@ function AdminApprovals() {
 
   useEffect(() => {
     if (!loading && !user) nav({ to: "/login", replace: true });
-    if (!loading && user && !isAdmin) nav({ to: "/partners", replace: true });
+    if (!loading && user && !isAdmin) nav({ to: "/academy", replace: true });
   }, [user, isAdmin, loading, nav]);
 
   const refresh = useCallback(async () => {

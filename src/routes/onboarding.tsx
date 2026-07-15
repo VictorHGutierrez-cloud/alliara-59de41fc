@@ -9,8 +9,8 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/onboarding")({
   head: () => ({
     meta: [
-      { title: "Onboarding — Alliara" },
-      { name: "description", content: "Step-by-step tour of the Alliara system." },
+      { title: "Onboarding — Kept" },
+      { name: "description", content: "Step-by-step tour of the Kept system." },
     ],
   }),
   component: OnboardingLayout,
@@ -72,7 +72,7 @@ function OnboardingLayout() {
           <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground inline-flex items-center gap-2">
             <GraduationCap className="h-3.5 w-3.5" /> Onboarding
           </p>
-          <h1 className="page-title mt-2">Get to know Alliara, at your own pace</h1>
+          <h1 className="page-title mt-2">Get to know Kept, at your own pace</h1>
           <p className="page-subtitle mt-2 max-w-prose">
             A step-by-step tour. Skip, go back, or jump straight into any part of the app from here.
           </p>

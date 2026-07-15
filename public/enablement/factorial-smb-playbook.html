@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Factorial SMB Sales Playbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #15201c;
+      --paper: #f3efe6;
+      --card: #fffcf7;
+      --line: rgba(21,32,28,.1);
+      --muted: #5a655f;
+      --accent: #b93642;
+      --people: #1a6b72;
+      --ops: #c4561f;
+      --finance: #2a6540;
+      --ok: #1f7a4d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: "Outfit", sans-serif; background: var(--paper); color: var(--ink); line-height: 1.5; }
+    h1, h2, h3 { font-family: "Fraunces", Georgia, serif; letter-spacing: -.02em; line-height: 1.15; }
+    .top {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(243,239,230,.95); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line); padding: 10px 16px;
+    }
+    .top-inner { max-width: 920px; margin: 0 auto; display: flex; gap: 8px; overflow-x: auto; }
+    .top a {
+      text-decoration: none; color: var(--muted); font-size: 12px; font-weight: 650;
+      padding: 8px 12px; border-radius: 999px; white-space: nowrap;
+    }
+    .top a:hover { background: var(--card); color: var(--ink); }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ops); }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 8px 0 12px; max-width: 16ch; }
+    .lede { color: var(--muted); max-width: 54ch; }
+    .rule {
+      margin-top: 16px; padding: 14px 16px; background: var(--card);
+      border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; max-width: 60ch; font-size: 14px;
+    }
+    section { margin: 34px 0; scroll-margin-top: 58px; }
+    section > h2 { font-size: 1.55rem; margin-bottom: 8px; }
+    .sub { color: var(--muted); margin-bottom: 14px; max-width: 58ch; }
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+    .card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    .card p, .card li { font-size: 14px; }
+    .card ul, .card ol { padding-left: 18px; }
+    .card li { margin: 4px 0; }
+    .tag {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; margin-bottom: 8px; color: var(--people);
+    }
+    .tag.ops { color: var(--ops); }
+    .tag.finance { color: var(--finance); }
+    .tag.accent { color: var(--accent); }
+    .term { background: #ebe4d6; border-radius: 8px; padding: 2px 6px; font-weight: 650; font-size: 12px; }
+    .script {
+      background: #15201c; color: #f3efe6; border-radius: 14px; padding: 16px;
+      font-size: 14px; white-space: pre-wrap; margin-top: 10px;
+    }
+    .q { border-left: 3px solid var(--ops); padding-left: 12px; margin: 8px 0; font-size: 14px; }
+    .btn {
+      appearance: none; border: none; font: inherit; font-weight: 650; font-size: 13px;
+      background: var(--accent); color: #fff; border-radius: 10px; padding: 10px 14px; cursor: pointer;
+    }
+    .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .check { list-style: none; padding: 0; }
+    .check li {
+      display: grid; grid-template-columns: 22px 1fr; gap: 10px;
+      padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px;
+    }
+    .check input { margin-top: 3px; width: 16px; height: 16px; }
+    .steps { counter-reset: s; }
+    .steps li {
+      list-style: none; position: relative; padding: 12px 12px 12px 48px;
+      border: 1px solid var(--line); border-radius: 12px; background: var(--card); margin-bottom: 8px; font-size: 14px;
+    }
+    .steps li::before {
+      counter-increment: s; content: counter(s);
+      position: absolute; left: 12px; top: 12px;
+      width: 26px; height: 26px; border-radius: 8px; background: var(--ops); color: #fff;
+      display: grid; place-items: center; font-weight: 700; font-size: 13px;
+    }
+    footer { margin-top: 36px; font-size: 12px; color: var(--muted); text-align: center; }
+    .warn { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <nav class="top">
+    <div class="top-inner">
+      <a href="#smb">SMB reality</a>
+      <a href="#buyer">Who buys</a>
+      <a href="#qualify">Qualify fast</a>
+      <a href="#spin">SPIN SMB</a>
+      <a href="#bundle">Bundles</a>
+      <a href="#demo">20-min demo</a>
+      <a href="#objections">Objections</a>
+      <a href="#close">Close</a>
+      <a href="#week">Weekly habit</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero" style="padding:20px 0">
+      <p class="eyebrow">SMB playbook · Factorial seller</p>
+      <h1>Win SMB with speed, clarity, and one story</h1>
+      <p class="lede">
+        In SMB you rarely need heavy enterprise theater.
+        You need to find the owner-pain fast, show relief in 20 minutes, and make the next step stupidly easy.
+      </p>
+      <p class="rule">
+        <strong>SMB golden rule:</strong> replace chaos (Excel + WhatsApp + accountant back-and-forth),
+        not “transform HR strategy.” Sell <em>time back + fewer errors + one place</em>.
+      </p>
+    </header>
+
+    <section id="smb">
+      <h2>1. SMB vs Enterprise (how you sell changes)</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag accent">SMB (you)</span>
+          <h3>What matters</h3>
+          <ul>
+            <li>Cycle: days/weeks, not months</li>
+            <li>1–3 people decide</li>
+            <li>Owner / office manager / HR generalist</li>
+            <li>Price + time-to-go-live</li>
+            <li>Enemy #1: Excel + “we’ll manage somehow”</li>
+            <li>Demo must feel immediate</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="tag">Enterprise (less often)</span>
+          <h3>Different game</h3>
+          <ul>
+            <li>MEDDPICC + security + procurement</li>
+            <li>Many stakeholders</li>
+            <li>Pilot committees</li>
+            <li>Paper process can kill deals</li>
+          </ul>
+          <p class="warn">Keep the enterprise playbook for later upmarket deals. Don’t over-process SMB.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="buyer">
+      <h2>2. Who you actually talk to</h2>
+      <p class="sub">Name the persona. Pitch to their week, not to “HR transformation.”</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag ops">Owner / Founder</span>
+          <h3>Cares about</h3>
+          <p>Cost, control, not hiring an HR team, sleeping better at month-end.</p>
+          <div class="script">“You shouldn’t need 4 tools and a Friday nights spreadsheet to know who worked, who’s off, and what to pay.”</div>
+        </div>
+        <div class="card">
+          <span class="tag">Office / People Ops</span>
+          <h3>Cares about</h3>
+          <p>Chasing documents, timesheets, leave requests, onboarding chaos.</p>
+          <div class="script">“Your job becomes approvals and exceptions — not detective work on WhatsApp.”</div>
+        </div>
+        <div class="card">
+          <span class="tag finance">Accountant / Finance</span>
+          <h3>Cares about</h3>
+          <p>Clean variables, fewer corrections, payslips distributed, expense mess.</p>
+          <div class="script">“Time + expenses land ready for payroll — lock the cycle so last-minute edits stop.”</div>
+        </div>
+        <div class="card">
+          <span class="tag">Manager (influencer)</span>
+          <h3>Cares about</h3>
+          <p>Approve leave, see who’s in, stop babysitting clock-ins.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="qualify">
+      <h2>3. Qualify in 5 minutes (SMB MEDDIC-lite)</h2>
+      <p class="sub">Don’t run full MEDDPICC on a 40-person company. Use this light checklist.</p>
+      <div class="card">
+        <ul class="check">
+          <li><input type="checkbox" /><div><strong>Pain now?</strong> Something hurts this month (payroll errors, inspector fear, growth hiring, forgotten leave).</div></li>
+          <li><input type="checkbox" /><div><strong>Owner reachable?</strong> Can you get the person who pays in call 1 or 2?</div></li>
+          <li><input type="checkbox" /><div><strong>Team size fit?</strong> Usually ~15–200 (confirm your Factorial sweet spot for your market).</div></li>
+          <li><input type="checkbox" /><div><strong>Current stack?</strong> Excel / local payroll only / old HRIS / multi-tools.</div></li>
+          <li><input type="checkbox" /><div><strong>Timeline?</strong> “This quarter” beats “exploring someday.”</div></li>
+          <li><input type="checkbox" /><div><strong>Budget signal?</strong> Already paying 2–3 tools or an admin salary for chaos.</div></li>
+        </ul>
+        <p class="warn">If no pain + no owner + no date → nurture. Don’t run full demos for tourists.</p>
+      </div>
+    </section>
+
+    <section id="spin">
+      <h2>4. SPIN questions for SMB (short)</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag">Situation</span>
+          <div class="q">How do people request holidays today?</div>
+          <div class="q">Where does clock-in live — app, paper, memory?</div>
+          <div class="q">Who prepares payroll variables for the accountant?</div>
+        </div>
+        <div class="card">
+          <span class="tag ops">Problem</span>
+          <div class="q">What breaks every month-end?</div>
+          <div class="q">What still needs chasing on WhatsApp?</div>
+          <div class="q">When someone joins, how many days until laptop + contract + access are done?</div>
+        </div>
+        <div class="card">
+          <span class="tag accent">Implication</span>
+          <div class="q">If timesheets are late, what happens to payroll mistakes and trust?</div>
+          <div class="q">If you hire 10 more people this year, does the current process survive?</div>
+        </div>
+        <div class="card">
+          <span class="tag">Need-payoff</span>
+          <div class="q">If leave + time + documents were in one place, how many hours/week come back?</div>
+          <div class="q">What would “employees self-serve” change for you personally?</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="bundle">
+      <h2>5. SMB bundles (keep it simple)</h2>
+      <p class="sub">Don’t open the whole catalog on call 1. Offer a clear land package.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag ops">Land #1 · Most common SMB</span>
+          <h3>Core + Time Off + Time Tracking</h3>
+          <p><strong>Pitch:</strong> “Stop the holiday/time chaos and feed cleaner data to payroll.”</p>
+          <p>Add Shifts only if they have rotating workforce (retail, clinics, hospitality).</p>
+        </div>
+        <div class="card">
+          <span class="tag">Land #2 · Hiring pain</span>
+          <h3>Core + Recruitment (+ Onboarding workflows)</h3>
+          <p><strong>Pitch:</strong> “From career page to signed contract without email archaeology.”</p>
+        </div>
+        <div class="card">
+          <span class="tag finance">Expand #1</span>
+          <h3>+ Expenses (and Cards if relevant)</h3>
+          <p>After land: “Receipts on phone → approval → payroll.”</p>
+        </div>
+        <div class="card">
+          <span class="tag">Expand #2</span>
+          <h3>+ Performance / Engagement</h3>
+          <p>When they’re past firefighting: reviews + eNPS without new tools.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Bundling phrase (use this)</h3>
+        <div class="script">“Let’s start with the weekly pain — time and absences on Core — then plug expenses when month-end is calm. Expanding is easy because it’s the same employee.”</div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <h2>6. The 20-minute SMB demo (with People Path)</h2>
+      <p class="sub">For SMB, never demo everything. Show 4 beats max.</p>
+      <ol class="steps">
+        <li><strong>2 min · Mirror their pain</strong> — “You said month-end timesheets + leave chasing. I’ll show only that path.”</li>
+        <li><strong>12 min · Click People Path</strong> — Welcome (Start onboarding) → Rhythm (Clock in / PTO) → Money (Scan receipt / Lock payroll) if finance cares.</li>
+        <li><strong>3 min · Contrast</strong> — “Today: WhatsApp + Excel. Tomorrow: one spine.”</li>
+        <li><strong>3 min · Clear next step</strong> — trial / second call with owner / proposal date.</li>
+      </ol>
+      <div class="actions">
+        <button class="btn" type="button" onclick="window.open('people-path-story.html','_blank')">Open People Path</button>
+        <button class="btn ghost" type="button" onclick="window.open('factorial-sales-playbook.html','_blank')">Enterprise playbook (later)</button>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Default SMB click path</h3>
+        <div class="script">1) Start onboarding
+2) Clock in + request Friday off
+3) Scan receipt → approve → lock payroll
+(Skip Culture/IT unless they asked.)</div>
+      </div>
+    </section>
+
+    <section id="objections">
+      <h2>7. Classic SMB objections</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>“We’re too small”</h3>
+          <div class="script">“That’s exactly when bad process hurts most — one admin wearing five hats. Factorial Core is built so you don’t hire a full HR stack to get organized.”</div>
+        </div>
+        <div class="card">
+          <h3>“We already use Excel / WhatsApp”</h3>
+          <div class="script">“It works until it doesn’t — leave fights, missing punches, payroll corrections. Want to see one employee week without chasing?”</div>
+        </div>
+        <div class="card">
+          <h3>“Other tool is cheaper”</h3>
+          <div class="script">“Cheaper per seat can be expensive in hours. What are you paying in tools + admin time + payroll fixes today? Let’s compare that, not only list price.”</div>
+        </div>
+        <div class="card">
+          <h3>“We need to think”</h3>
+          <div class="script">“Totally. What specifically are we thinking about — price, go-live effort, or whether the owner has seen it? Let’s book that exact conversation.”</div>
+        </div>
+        <div class="card">
+          <h3>“Our accountant already has something”</h3>
+          <div class="script">“Perfect — Factorial prepares cleaner variables and collaborates with payroll partners. Accountant keeps their role; you stop sending messy inputs.”</div>
+        </div>
+        <div class="card">
+          <h3>“Implementation scares us”</h3>
+          <div class="script">“SMB rollout is phased: directory + absences + time first. We don’t boil the ocean on week one.”</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="close">
+      <h2>8. Closing SMB (simple mutual plan)</h2>
+      <div class="card">
+        <h3>End every good call with 3 things</h3>
+        <ol style="padding-left:18px;font-size:14px">
+          <li><strong>Confirmed pain</strong> in their words</li>
+          <li><strong>Recommended land bundle</strong> (usually Core + Time Off + Time Tracking)</li>
+          <li><strong>Dated next step</strong> — owner demo, trial kickoff, or proposal review</li>
+        </ol>
+        <div class="script" style="margin-top:12px">“Next step I’d suggest: 25 minutes Thursday with you + [owner], same story focused on month-end. If it clicks, we scope a go-live date the same week. Does Thursday 10:00 work?”</div>
+      </div>
+    </section>
+
+    <section id="week">
+      <h2>9. Your weekly SMB seller habit</h2>
+      <div class="card">
+        <ul class="check">
+          <li><input type="checkbox" /><div><strong>Mon:</strong> Pick top 10 deals — kill “no date / no pain” ones</div></li>
+          <li><input type="checkbox" /><div><strong>Daily:</strong> Run the 4-beat People Path once out loud (2 minutes)</div></li>
+          <li><input type="checkbox" /><div><strong>Every call:</strong> 4 SPIN questions before any clicking</div></li>
+          <li><input type="checkbox" /><div><strong>Every proposal:</strong> one land bundle + one expand path (not 12 modules)</div></li>
+          <li><input type="checkbox" /><div><strong>Fri:</strong> Note top 3 objections you heard — sharpen answers</div></li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Before you dial (60 seconds)</h3>
+        <div class="script">1) Pain hypothesis?
+2) Persona (owner / ops / finance)?
+3) Land bundle?
+4) Which 3 clicks will I show?
+5) What dated ask will I make?</div>
+      </div>
+    </section>
+
+    <footer>
+      SMB playbook for Victor · Pair with people-path-story.html · Not official Factorial training
+    </footer>
+  </div>
+</body>
+</html>

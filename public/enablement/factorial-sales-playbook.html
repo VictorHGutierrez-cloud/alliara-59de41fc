@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Factorial Enterprise Sales Playbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700;9..144,800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #15201c;
+      --paper: #f3efe6;
+      --card: #fffcf7;
+      --line: rgba(21,32,28,.1);
+      --muted: #5a655f;
+      --accent: #b93642;
+      --people: #1a6b72;
+      --ops: #c4561f;
+      --finance: #2a6540;
+      --it: #2c406e;
+      --ok: #1f7a4d;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "Outfit", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.5;
+    }
+    h1, h2, h3 { font-family: "Fraunces", Georgia, serif; letter-spacing: -.02em; line-height: 1.15; }
+    .top {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(243,239,230,.95); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line); padding: 10px 16px;
+    }
+    .top-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 8px; overflow-x: auto; }
+    .top a {
+      text-decoration: none; color: var(--muted); font-size: 12px; font-weight: 650;
+      padding: 8px 12px; border-radius: 999px; white-space: nowrap; background: transparent;
+    }
+    .top a:hover, .top a.on { background: var(--card); color: var(--ink); }
+    .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 80px; }
+    .hero { padding: 24px 0 20px; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--people); }
+    .hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); margin: 8px 0 12px; max-width: 16ch; }
+    .lede { color: var(--muted); max-width: 56ch; font-size: 1.05rem; }
+    .rule { font-size: 14px; margin-top: 16px; padding: 14px 16px; background: var(--card); border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; max-width: 62ch; }
+    section { margin: 36px 0; scroll-margin-top: 60px; }
+    section > h2 { font-size: 1.7rem; margin-bottom: 8px; }
+    .sub { color: var(--muted); margin-bottom: 16px; max-width: 60ch; }
+    .grid { display: grid; gap: 12px; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+    .card {
+      background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px;
+    }
+    .card h3 { font-size: 1.05rem; margin-bottom: 6px; }
+    .card p, .card li { font-size: 14px; color: var(--ink); }
+    .card ul { padding-left: 18px; }
+    .card li { margin: 4px 0; }
+    .tag {
+      display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+      text-transform: uppercase; margin-bottom: 8px; color: var(--people);
+    }
+    .tag.ops { color: var(--ops); }
+    .tag.finance { color: var(--finance); }
+    .tag.it { color: var(--it); }
+    .tag.accent { color: var(--accent); }
+    .term {
+      background: #ebe4d6; border-radius: 8px; padding: 2px 6px; font-weight: 650; font-size: 12px;
+    }
+    .check { list-style: none; padding: 0; }
+    .check li {
+      display: grid; grid-template-columns: 22px 1fr; gap: 10px; align-items: start;
+      padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 14px;
+    }
+    .check input { margin-top: 3px; width: 16px; height: 16px; }
+    .btn {
+      appearance: none; border: none; font: inherit; font-weight: 650; font-size: 13px;
+      background: var(--accent); color: #fff; border-radius: 10px; padding: 10px 14px; cursor: pointer;
+    }
+    .btn.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--line); }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .score {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px;
+    }
+    .score button {
+      border: 1px solid var(--line); background: var(--card); border-radius: 8px;
+      padding: 6px 10px; cursor: pointer; font: inherit; font-size: 12px; font-weight: 650;
+    }
+    .score button.on { background: var(--ok); color: #fff; border-color: var(--ok); }
+    .total { margin-top: 12px; font-weight: 700; }
+    .script {
+      background: #15201c; color: #f3efe6; border-radius: 14px; padding: 16px; font-size: 14px;
+      white-space: pre-wrap; margin-top: 10px;
+    }
+    .q { border-left: 3px solid var(--people); padding-left: 12px; margin: 10px 0; font-size: 14px; }
+    .q b { color: var(--people); }
+    footer { margin-top: 40px; font-size: 12px; color: var(--muted); text-align: center; }
+    .warn { font-size: 13px; color: var(--muted); margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <nav class="top">
+    <div class="top-inner">
+      <a href="#mindset">Mindset</a>
+      <a href="#differentiate">Differentiate</a>
+      <a href="#meddpicc">MEDDPICC</a>
+      <a href="#spin">SPIN</a>
+      <a href="#bundle">Bundling</a>
+      <a href="#story">Storytelling</a>
+      <a href="#deck">Deck structure</a>
+      <a href="#enterprise">Enterprise</a>
+      <a href="#practice">Practice</a>
+    </div>
+  </nav>
+
+  <div class="wrap">
+    <header class="hero">
+      <p class="eyebrow">Sales playbook · Factorial · Enterprise-ready</p>
+      <h1>Be the seller who makes Factorial inevitable</h1>
+      <p class="lede">
+        Competitors can list similar features. You win when the buyer feels:
+        <strong>“this solves OUR pain, in OUR process, with less risk.”</strong>
+      </p>
+      <p class="rule">
+        <strong>Golden rule:</strong> never lead with modules.
+        Lead with the <em>business problem</em> → prove with a <em>lifecycle story</em> →
+        lock the deal with <em>MEDDPICC</em>.
+      </p>
+    </header>
+
+    <section id="mindset">
+      <h2>1. Mindset: what “best seller” actually means</h2>
+      <p class="sub">You are not a tour guide of the product. You are a buying advisor.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag accent">Average seller</span>
+          <h3>Feature tour</h3>
+          <ul>
+            <li>“We also have time tracking…”</li>
+            <li>Same demo for every account</li>
+            <li>Discounts when stuck</li>
+            <li>Hope champion will “sell inside”</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="tag">Top seller</span>
+          <h3>Mutual buying process</h3>
+          <ul>
+            <li>“Your pain costs X — here’s how we remove it”</li>
+            <li>Custom story per persona</li>
+            <li>Trades value for urgency</li>
+            <li>Runs MEDDPICC with the champion</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="differentiate">
+      <h2>2. How Factorial differentiates (say this out loud)</h2>
+      <p class="sub">Don’t say “we have AI.” Say what AI + platform <em>changes in the buyer’s week</em>.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag">Point of view</span>
+          <h3>One operating system for people work</h3>
+          <p>HR + Time + Talent + Spend + IT access on the <strong>same employee record</strong>. Competitors often stitch tools; Factorial stitches the lifecycle.</p>
+        </div>
+        <div class="card">
+          <span class="tag ops">Time</span>
+          <h3>Operations depth (your hardest-to-copy layer)</h3>
+          <p>Time tracking, time off, shift planning, spaces, project hours — connected to payroll variables. This is where many “pretty HRIS” tools go shallow.</p>
+        </div>
+        <div class="card">
+          <span class="tag it">IT</span>
+          <h3>HR change → IT action</h3>
+          <p>Hire / offboard changes licenses and access. That’s a CFO + CISO conversation, not just HR. Use it in enterprise deals.</p>
+        </div>
+        <div class="card">
+          <span class="tag finance">Finance</span>
+          <h3>Spend + payroll truth</h3>
+          <p>OCR expenses, cards, procurement approvals, then sync into a guided payroll cycle with bookkeeper collaboration — fewer spreadsheet handoffs.</p>
+        </div>
+        <div class="card">
+          <span class="tag">People</span>
+          <h3>Talent that closes the loop</h3>
+          <p>ATS → onboarding → performance / training / engagement without exporting humans to another system.</p>
+        </div>
+        <div class="card">
+          <span class="tag accent">AI (how to sell it)</span>
+          <h3>Speed + consistency, not magic</h3>
+          <p>CV Top Match, OCR, review summaries, workflow emails with variables. Pitch: <em>“less admin minutes, fewer mistakes, same process every time.”</em></p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Competition trap (avoid)</h3>
+        <p>If they say “Personio / Bamboo / HiBob / Rippling also does X”, answer:</p>
+        <div class="script">“Totally — X exists in several tools. The question is whether X is connected to time, payroll, and offboarding on day 90. Can we map YOUR process end-to-end for one employee — Lena — and see where handoffs break today?”</div>
+      </div>
+    </section>
+
+    <section id="meddpicc">
+      <h2>3. MEDDPICC (enterprise deal quality)</h2>
+      <p class="sub">
+        <span class="term">MEDDPICC</span> = checklist to know if a deal is real.
+        Score each letter 0–2. Below 10 = nurture. 10–14 = work it. 15+ = commit forecast.
+      </p>
+      <div class="card">
+        <ul class="check" id="medList">
+          <li><input type="checkbox" data-m="M" /><div><strong>M — Metrics</strong><br />What economic outcome? (hours saved, payroll error rate, time-to-hire, license waste)</div></li>
+          <li><input type="checkbox" data-m="E" /><div><strong>E — Economic Buyer</strong><br />Who signs / blocks budget? (often CHRO + CFO together in enterprise)</div></li>
+          <li><input type="checkbox" data-m="D1" /><div><strong>D — Decision Criteria</strong><br />Official must-haves: security, payroll country, integrations, mobile, language</div></li>
+          <li><input type="checkbox" data-m="D2" /><div><strong>D — Decision Process</strong><br />Steps, dates, legal, security review, pilot scope</div></li>
+          <li><input type="checkbox" data-m="P" /><div><strong>P — Paper Process</strong><br />Procurement, DPA, MSA, vendor onboarding timeline</div></li>
+          <li><input type="checkbox" data-m="I" /><div><strong>I — Identify Pain</strong><br />Business pain with cost — not feature envy</div></li>
+          <li><input type="checkbox" data-m="C1" /><div><strong>C — Champion</strong><br />Someone who sells for you when you leave the room</div></li>
+          <li><input type="checkbox" data-m="C2" /><div><strong>C — Competition</strong><br />Named alternatives + status quo (Excel is often #1 enemy)</div></li>
+        </ul>
+        <div class="score" id="medScores"></div>
+        <p class="total">Deal score: <span id="medTotal">0</span> / 16 · <span id="medLabel">too early</span></p>
+        <p class="warn">Tip: share this list with your champion. Co-fill it. That’s advanced selling.</p>
+      </div>
+    </section>
+
+    <section id="spin">
+      <h2>4. SPIN questions (discovery that earns the demo)</h2>
+      <p class="sub">
+        <span class="term">SPIN</span> = Situation → Problem → Implication → Need-payoff.
+        Implication is where urgency is born.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag">S · Situation</span>
+          <div class="q"><b>S:</b> How many tools do people data touch today (HRIS, time, ATS, expenses, IT)?</div>
+          <div class="q"><b>S:</b> Who owns payroll variables when time and expenses disagree?</div>
+        </div>
+        <div class="card">
+          <span class="tag ops">P · Problem</span>
+          <div class="q"><b>P:</b> Where do handoffs break — onboarding, timesheets, or month-end?</div>
+          <div class="q"><b>P:</b> What still lives in spreadsheets that shouldn’t?</div>
+        </div>
+        <div class="card">
+          <span class="tag accent">I · Implication</span>
+          <div class="q"><b>I:</b> If timesheets slip 3 days, what happens to payroll accuracy and trust?</div>
+          <div class="q"><b>I:</b> What’s the cost of a bad hire + slow onboarding in your growth plan?</div>
+        </div>
+        <div class="card">
+          <span class="tag">N · Need-payoff</span>
+          <div class="q"><b>N:</b> If one employee record drove time, spend, and IT access, what would that free up for your team?</div>
+          <div class="q"><b>N:</b> What would ‘locked payroll cycle’ change for managers and finance?</div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>30-second SPIN opener (copy)</h3>
+        <div class="script">“Before I show Product Designer screens, I want 10 minutes on how a hire moves from offer → first month → payroll. Where does that break today — and what does that cost you?”</div>
+      </div>
+    </section>
+
+    <section id="bundle">
+      <h2>5. Bundling (what you called “bunting”)</h2>
+      <p class="sub">
+        <span class="term">Bundling</span> = selling a package that solves a business outcome,
+        not à-la-carte modules that invite cherry-picking with competitors.
+      </p>
+      <div class="grid grid-2">
+        <div class="card">
+          <span class="tag ops">Bundle A · Run the company week</span>
+          <h3>Operations + Core</h3>
+          <p>Core + Time Tracking + Time Off (+ Shifts / Spaces if workforce is physical).</p>
+          <p><strong>Outcome:</strong> compliance + visibility + less manager firefighting.</p>
+        </div>
+        <div class="card">
+          <span class="tag">Bundle B · Grow without chaos</span>
+          <h3>People + Core</h3>
+          <p>Core + Recruitment + Performance + Engagement (+ Training).</p>
+          <p><strong>Outcome:</strong> hire → onboard → review on one spine.</p>
+        </div>
+        <div class="card">
+          <span class="tag finance">Bundle C · Money with control</span>
+          <h3>Finance lean</h3>
+          <p>Expenses (+ Cards) + Procurement + Payroll-in-Core sync.</p>
+          <p><strong>Outcome:</strong> spend policy → approval → payslip without Excel bridges.</p>
+        </div>
+        <div class="card">
+          <span class="tag it">Bundle D · Enterprise expansion</span>
+          <h3>IT attached to HR</h3>
+          <p>IT Management + offboarding access cut + SaaS cost control.</p>
+          <p><strong>Outcome:</strong> security + cost — CFO/CISO care.</p>
+        </div>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Bundling rules</h3>
+        <ul>
+          <li>Always start from <strong>Core</strong> (directory, docs, workflows, payroll spine).</li>
+          <li>Add 1 hub that matches the #1 pain — don’t dump everything on meeting 1.</li>
+          <li>Enterprise: land Bundle A or B, expand IT/Finance in the business case.</li>
+          <li>Never discount random modules — discount <em>time-to-value</em> (implementation package, pilot length).</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="story">
+      <h2>6. Storytelling (use The People Path)</h2>
+      <p class="sub">Your interactive story file is the demo spine. Don’t click 40 menus — walk Lena’s year.</p>
+      <div class="card">
+        <h3>Demo narrative (8 beats)</h3>
+        <ol style="padding-left:18px;font-size:14px">
+          <li><strong>Attract</strong> — ATS / Career Page (speed to offer)</li>
+          <li><strong>Welcome</strong> — Start onboarding workflow (day-zero readiness)</li>
+          <li><strong>Equip</strong> — IT licenses (risk + waste)</li>
+          <li><strong>Rhythm</strong> — Clock / PTO / shifts / spaces / projects</li>
+          <li><strong>Culture</strong> — Communities, eNPS, safe channel</li>
+          <li><strong>Grow</strong> — 360° + training</li>
+          <li><strong>Money</strong> — OCR → approvals → lock payroll</li>
+          <li><strong>Close</strong> — Promote vs offboard (same spine)</li>
+        </ol>
+        <div class="actions">
+          <button class="btn" type="button" onclick="window.open('people-path-story.html','_blank')">Open People Path story</button>
+        </div>
+        <p class="warn">In live demos: pause after Implication questions, THEN click the matching beat.</p>
+      </div>
+    </section>
+
+    <section id="deck">
+      <h2>7. Presentation structure (enterprise meeting)</h2>
+      <p class="sub">45–60 minutes. If you talk product for 40 minutes, you already lost.</p>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Recommended agenda</h3>
+          <ol style="padding-left:18px;font-size:14px">
+            <li>5' · Goal of the meeting + confirmation of pain</li>
+            <li>10' · SPIN discovery (or validate pre-call notes)</li>
+            <li>20' · Story demo (only relevant beats)</li>
+            <li>10' · Business case / ROI sketch</li>
+            <li>10' · Decision process + next mutual actions</li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3>Slide order (if using deck)</h3>
+          <ol style="padding-left:18px;font-size:14px">
+            <li>Their world / cost of status quo</li>
+            <li>Point of view: one people OS</li>
+            <li>Proof moments (3 screenshots max OR live story)</li>
+            <li>Security &amp; rollout for enterprise</li>
+            <li>Commercial options as bundles</li>
+            <li>Mutual plan (dates)</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section id="enterprise">
+      <h2>8. Enterprise-specific muscle</h2>
+      <div class="grid grid-2">
+        <div class="card">
+          <h3>Multi-thread early</h3>
+          <p>HR alone rarely closes enterprise. Thread Finance (payroll/spend), Ops (time), IT/Security (access), sometimes Works Council.</p>
+        </div>
+        <div class="card">
+          <h3>Pilot with success criteria</h3>
+          <p>Define: population, modules, dates, KPIs (e.g. 95% timesheets on time). Pilots without metrics become free forever.</p>
+        </div>
+        <div class="card">
+          <h3>Risk reverse</h3>
+          <p>Address security, permissions, audit log, SSO, data residency before they ask — then ask who owns the security review.</p>
+        </div>
+        <div class="card">
+          <h3>Champion enablement pack</h3>
+          <p>Give them: 1-pager POV, People Path link, MEDDPICC gaps, internal email draft. Make them dangerous in a good way.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="practice">
+      <h2>9. 14-day practice plan (become sharper)</h2>
+      <div class="card">
+        <ul class="check">
+          <li><input type="checkbox" /><div><strong>Day 1–2:</strong> Memorize Bundles A–D + differentiation POV in &lt;60 seconds</div></li>
+          <li><input type="checkbox" /><div><strong>Day 3–4:</strong> Run People Path click-path once daily (out loud)</div></li>
+          <li><input type="checkbox" /><div><strong>Day 5:</strong> Write Implication questions for your top 3 industries</div></li>
+          <li><input type="checkbox" /><div><strong>Day 6–7:</strong> Score your open pipeline with MEDDPICC; kill or repair weak deals</div></li>
+          <li><input type="checkbox" /><div><strong>Day 8:</strong> Role-play competition trap answer with a peer</div></li>
+          <li><input type="checkbox" /><div><strong>Day 9–10:</strong> Build a champion email template + mutual close plan template</div></li>
+          <li><input type="checkbox" /><div><strong>Day 11–14:</strong> On every call: 1 metric, 1 EB name, 1 next dated step — or no next meeting</div></li>
+        </ul>
+      </div>
+      <div class="card" style="margin-top:12px">
+        <h3>Before every important call (2 minutes)</h3>
+        <div class="script">1) What is their #1 economic pain?
+2) Which bundle matches?
+3) Which 3 People Path beats will I show?
+4) What MEDDPICC gap am I closing today?
+5) What dated ask will I leave with?</div>
+      </div>
+    </section>
+
+    <footer>
+      Personal coaching playbook · Pair with people-path-story.html · Not an official Factorial training doc
+    </footer>
+  </div>
+
+  <script>
+    // MEDDPICC scoring
+    const letters = [
+      ["M","Metrics"],["E","Economic Buyer"],["D1","Dec. Criteria"],["D2","Dec. Process"],
+      ["P","Paper"],["I","Pain"],["C1","Champion"],["C2","Competition"]
+    ];
+    const scores = Object.fromEntries(letters.map(([k]) => [k, 0]));
+    const box = document.getElementById("medScores");
+    letters.forEach(([k, label]) => {
+      const wrap = document.createElement("div");
+      wrap.style.display = "grid";
+      wrap.style.gap = "4px";
+      wrap.innerHTML = `<div style="font-size:11px;font-weight:700;color:var(--muted)">${label}</div>`;
+      const row = document.createElement("div");
+      row.className = "score";
+      [0,1,2].forEach((n) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = n;
+        b.addEventListener("click", () => {
+          scores[k] = n;
+          [...row.children].forEach((c) => c.classList.remove("on"));
+          b.classList.add("on");
+          updateTotal();
+        });
+        if (n === 0) b.classList.add("on");
+        row.appendChild(b);
+      });
+      wrap.appendChild(row);
+      box.appendChild(wrap);
+    });
+    function updateTotal() {
+      const t = Object.values(scores).reduce((a,b) => a+b, 0);
+      document.getElementById("medTotal").textContent = t;
+      const label = document.getElementById("medLabel");
+      if (t < 10) label.textContent = "too early — discover more";
+      else if (t < 15) label.textContent = "workable — close gaps";
+      else label.textContent = "strong — commit & execute";
+    }
+
+    // Active nav
+    const links = [...document.querySelectorAll(".top a")];
+    const sections = links.map((a) => document.querySelector(a.getAttribute("href")));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        links.forEach((a) => a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id));
+      });
+    }, { rootMargin: "-40% 0px -50% 0px" });
+    sections.forEach((s) => s && io.observe(s));
+  </script>
+</body>
+</html>

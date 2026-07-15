@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Factorial HR — UI Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --radical-red: #fa5655;
+      --radical-red-dark: #e24342;
+      --radical-red-soft: #fff1f0;
+      --viridian: #0f766e;
+      --viridian-soft: #e6f5f3;
+      --ink: #1a1a1a;
+      --ink-2: #3d3d3d;
+      --muted: #6b6b6b;
+      --line: #e8e8ea;
+      --bg: #f5f5f6;
+      --surface: #ffffff;
+      --sidebar: #ffffff;
+      --sidebar-w: 232px;
+      --radius: 12px;
+      --shadow: 0 1px 2px rgba(26, 26, 26, 0.04), 0 8px 24px rgba(26, 26, 26, 0.04);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Fira Sans", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* —— App shell —— */
+    .app {
+      display: grid;
+      grid-template-columns: var(--sidebar-w) 1fr;
+      min-height: 100vh;
+    }
+
+    aside {
+      background: var(--sidebar);
+      border-right: 1px solid var(--line);
+      padding: 20px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 10px;
+    }
+
+    .brand-mark {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--radical-red);
+      display: grid;
+      place-items: center;
+      color: white;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .brand-name {
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    .nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+    .nav button {
+      appearance: none;
+      border: none;
+      background: transparent;
+      text-align: left;
+      font: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink-2);
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.15s ease, color 0.15s ease;
+    }
+
+    .nav button:hover { background: var(--bg); }
+    .nav button.active {
+      background: var(--radical-red-soft);
+      color: var(--radical-red-dark);
+      font-weight: 600;
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      opacity: 0.85;
+      flex-shrink: 0;
+    }
+
+    .aside-foot {
+      padding: 12px;
+      border-radius: var(--radius);
+      background: var(--bg);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .aside-foot strong { color: var(--ink-2); display: block; margin-bottom: 2px; }
+
+    /* —— Main —— */
+    main {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .topbar {
+      height: 64px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      gap: 16px;
+    }
+
+    .search {
+      flex: 1;
+      max-width: 420px;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #f9a8a7, var(--radical-red));
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 28px;
+      max-width: 1180px;
+      width: 100%;
+      margin: 0 auto;
+      animation: fadeIn 0.35s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .page-header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+
+    .page-header p {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 14px;
+      max-width: 520px;
+    }
+
+    .story-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-2);
+      white-space: nowrap;
+    }
+
+    .story-chip span { color: var(--radical-red); font-weight: 700; }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: 1.2fr 1fr; }
+    .grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .card .sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .stat-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 120px;
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 14px;
+    }
+
+    .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .stat .value { font-size: 22px; font-weight: 700; margin-top: 4px; letter-spacing: -0.02em; }
+    .stat .hint { font-size: 11px; color: var(--viridian); margin-top: 4px; font-weight: 500; }
+
+    .list { display: flex; flex-direction: column; gap: 10px; }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--bg);
+    }
+
+    .check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .check.done { background: var(--viridian-soft); color: var(--viridian); }
+    .check.todo { background: #eee; color: var(--muted); }
+    .check.warn { background: var(--radical-red-soft); color: var(--radical-red); }
+
+    .list-item .meta { flex: 1; min-width: 0; }
+    .list-item .meta strong { display: block; font-size: 13px; font-weight: 600; }
+    .list-item .meta small { color: var(--muted); font-size: 11px; }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+
+    .badge.green { background: var(--viridian-soft); color: var(--viridian); }
+    .badge.red { background: var(--radical-red-soft); color: var(--radical-red-dark); }
+    .badge.gray { background: #eee; color: var(--muted); }
+
+    .btn {
+      appearance: none;
+      border: none;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--radical-red); color: white; }
+    .btn-primary:hover { background: var(--radical-red-dark); }
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink-2);
+    }
+
+    .progress {
+      height: 8px;
+      background: #ececef;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 12px 0 8px;
+    }
+
+    .progress > i {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, var(--radical-red), #ff8a80);
+      border-radius: inherit;
+      width: 0;
+      animation: grow 1s ease forwards;
+    }
+
+    @keyframes grow { to { width: var(--w, 72%); } }
+
+    .bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 88px;
+      margin-top: 8px;
+    }
+
+    .bars span {
+      flex: 1;
+      border-radius: 6px 6px 2px 2px;
+      background: var(--radical-red-soft);
+      position: relative;
+      animation: rise 0.7s ease forwards;
+      transform-origin: bottom;
+    }
+
+    .bars span::after {
+      content: attr(data-d);
+      position: absolute;
+      bottom: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .bars span.on { background: var(--radical-red); }
+
+    @keyframes rise {
+      from { transform: scaleY(0.2); opacity: 0.4; }
+      to { transform: scaleY(1); opacity: 1; }
+    }
+
+    .clock {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--viridian-soft), #fff);
+      border: 1px solid #cfe8e4;
+      margin-bottom: 14px;
+    }
+
+    .clock-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--viridian);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.15);
+      animation: pulse 1.8s ease infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.15); }
+      50% { box-shadow: 0 0 0 8px rgba(15, 118, 110, 0.08); }
+    }
+
+    .clock strong { display: block; font-size: 15px; }
+    .clock small { color: var(--muted); font-size: 12px; }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.35s ease; }
+
+    .journey {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .journey button {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: var(--muted);
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .journey button.active,
+    .journey button:hover {
+      border-color: var(--radical-red);
+      color: var(--radical-red-dark);
+      background: var(--radical-red-soft);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .table th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      padding: 0 0 10px;
+      font-weight: 600;
+    }
+
+    .table td {
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+      vertical-align: middle;
+    }
+
+    footer.mock-note {
+      text-align: center;
+      padding: 12px;
+      font-size: 11px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      background: var(--surface);
+    }
+
+    @media (max-width: 960px) {
+      .app { grid-template-columns: 1fr; }
+      aside {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+      .nav { flex-direction: row; flex-wrap: wrap; }
+      .aside-foot { display: none; }
+      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+      .content { padding: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <div class="brand-mark">F</div>
+        <div class="brand-name">Factorial</div>
+      </div>
+
+      <nav class="nav" aria-label="Main">
+        <button class="active" data-view="home" type="button">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5z"/></svg>
+          Home
+        </button>
+        <button data-view="onboarding" type="button">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+          Onboarding
+        </button>
+        <button data-view="time" type="button">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          Time Tracking
+        </button>
+        <button data-view="performance" type="button">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M10 19V9M16 19v-6M22 19V7"/></svg>
+          Performance
+        </button>
+        <button data-view="expenses" type="button">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M8 15h2"/></svg>
+          Expenses & Payroll
+        </button>
+      </nav>
+
+      <div class="aside-foot">
+        <strong>Story mockup</strong>
+        Employee journey from day zero to payroll — based on your Factorial deck.
+      </div>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div class="search">Search people, tasks, documents…</div>
+        <div class="top-actions">
+          <button class="btn btn-ghost" type="button">Inbox · 5</button>
+          <div class="avatar" title="Sara Mendes">SM</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div class="journey" role="tablist" aria-label="Story chapters">
+          <button class="active" data-view="home" type="button">Overview</button>
+          <button data-view="onboarding" type="button">1 · Onboarding</button>
+          <button data-view="time" type="button">2 · Daily ops</button>
+          <button data-view="performance" type="button">3 · Growth</button>
+          <button data-view="expenses" type="button">4 · Money</button>
+        </div>
+
+        <!-- HOME -->
+        <section class="panel active" id="home">
+          <div class="page-header">
+            <div>
+              <h1>Good morning, Sara</h1>
+              <p>Your Factorial workspace — one place for people, time, performance, and payroll.</p>
+            </div>
+            <div class="story-chip"><span>Live</span> Complete employee lifecycle</div>
+          </div>
+
+          <div class="grid grid-3" style="margin-bottom:16px">
+            <div class="stat card" style="padding:16px">
+              <div class="label">New hires this week</div>
+              <div class="value">3</div>
+              <div class="hint">Onboarding on track</div>
+            </div>
+            <div class="stat card" style="padding:16px">
+              <div class="label">Clocked in now</div>
+              <div class="value">128</div>
+              <div class="hint">2 missing punch alerts</div>
+            </div>
+            <div class="stat card" style="padding:16px">
+              <div class="label">Payroll cycle</div>
+              <div class="value" style="font-size:18px;margin-top:8px">Locked</div>
+              <div class="hint">Ready for bookkeeper sync</div>
+            </div>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="card">
+              <h2>Today’s priorities</h2>
+              <p class="sub">Inbox — requests waiting on you</p>
+              <div class="list">
+                <div class="list-item">
+                  <div class="check warn">!</div>
+                  <div class="meta">
+                    <strong>Approve expense group · Berlin trip</strong>
+                    <small>Alex Rivera · €347.20</small>
+                  </div>
+                  <span class="badge red">Action</span>
+                </div>
+                <div class="list-item">
+                  <div class="check todo">·</div>
+                  <div class="meta">
+                    <strong>Complete manager review · Q2</strong>
+                    <small>Due in 3 days · Performance</small>
+                  </div>
+                  <span class="badge gray">Review</span>
+                </div>
+                <div class="list-item">
+                  <div class="check done">✓</div>
+                  <div class="meta">
+                    <strong>Welcome tasks for Maya Chen</strong>
+                    <small>Laptop assigned · Contract signed</small>
+                  </div>
+                  <span class="badge green">Done</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Team heartbeat</h2>
+              <p class="sub">Time & compliance at a glance</p>
+              <div class="clock">
+                <div class="clock-dot"></div>
+                <div>
+                  <strong>You’re clocked in</strong>
+                  <small>Since 09:02 · Reminder alerts enabled</small>
+                </div>
+              </div>
+              <div class="bars" aria-hidden="true">
+                <span style="height:55%" data-d="Mon"></span>
+                <span style="height:72%" data-d="Tue" class="on"></span>
+                <span style="height:48%" data-d="Wed"></span>
+                <span style="height:80%" data-d="Thu" class="on"></span>
+                <span style="height:40%" data-d="Fri"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ONBOARDING -->
+        <section class="panel" id="onboarding">
+          <div class="page-header">
+            <div>
+              <h1>Welcome space</h1>
+              <p>New hires start before day one — contracts, personal data, and IT assets in one automated flow.</p>
+            </div>
+            <button class="btn btn-primary" type="button">Create onboarding workflow</button>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="card">
+              <h2>Maya Chen · Product Designer</h2>
+              <p class="sub">Starts Monday · Onboarding progress</p>
+              <div class="progress"><i style="--w:78%"></i></div>
+              <p class="sub" style="margin-top:0">78% complete · Automated sequence running</p>
+              <div class="list">
+                <div class="list-item">
+                  <div class="check done">✓</div>
+                  <div class="meta">
+                    <strong>Invitation sent to Welcome space</strong>
+                    <small>Mobile app + web · Secure document access</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div class="check done">✓</div>
+                  <div class="meta">
+                    <strong>Contract viewed &amp; signed</strong>
+                    <small>eSignature completed yesterday</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div class="check done">✓</div>
+                  <div class="meta">
+                    <strong>Personal data completed</strong>
+                    <small>Bank details, address, emergency contact</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div class="check todo">·</div>
+                  <div class="meta">
+                    <strong>IT asset: MacBook Pro 14"</strong>
+                    <small>Assigned from Device catalog · Pending pickup</small>
+                  </div>
+                  <span class="badge gray">IT sync</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Why this matters</h2>
+              <p class="sub">Value from the Factorial story</p>
+              <div class="stat-row" style="flex-direction:column">
+                <div class="stat">
+                  <div class="label">For HR</div>
+                  <div class="value" style="font-size:16px">Less chasing</div>
+                  <div class="hint">Predefined task sequences &amp; welcome emails</div>
+                </div>
+                <div class="stat">
+                  <div class="label">For the employee</div>
+                  <div class="value" style="font-size:16px">Pro welcome</div>
+                  <div class="hint">Phone-first onboarding before day one</div>
+                </div>
+                <div class="stat">
+                  <div class="label">For IT</div>
+                  <div class="value" style="font-size:16px">Day-one ready</div>
+                  <div class="hint">Devices assigned inside the same flow</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- TIME -->
+        <section class="panel" id="time">
+          <div class="page-header">
+            <div>
+              <h1>Time tracking &amp; projects</h1>
+              <p>Clock-in reminders, missing punch alerts, rest compliance, and task-level project time.</p>
+            </div>
+            <div class="story-chip"><span>Alert</span> Rest break threshold · 6h</div>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="card">
+              <h2>Live status</h2>
+              <p class="sub">Push: “Remember to clock in”</p>
+              <div class="clock">
+                <div class="clock-dot"></div>
+                <div>
+                  <strong>Alex Rivera · Clocked in</strong>
+                  <small>Project: Brand relaunch · Task: UI polish</small>
+                </div>
+              </div>
+              <table class="table">
+                <thead>
+                  <tr><th>Person</th><th>Status</th><th>Alert</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Jordan Lee</td>
+                    <td><span class="badge green">OK</span></td>
+                    <td>—</td>
+                  </tr>
+                  <tr>
+                    <td>Sam Ortiz</td>
+                    <td><span class="badge red">Missing out</span></td>
+                    <td>Weekly summary</td>
+                  </tr>
+                  <tr>
+                    <td>Priya Nair</td>
+                    <td><span class="badge gray">Break due</span></td>
+                    <td>30 min required</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="card">
+              <h2>This week · hours by day</h2>
+              <p class="sub">Manager view — no spreadsheet hunting</p>
+              <div class="bars" style="height:120px;margin-bottom:24px">
+                <span style="height:70%" data-d="Mon" class="on"></span>
+                <span style="height:85%" data-d="Tue" class="on"></span>
+                <span style="height:60%" data-d="Wed"></span>
+                <span style="height:90%" data-d="Thu" class="on"></span>
+                <span style="height:45%" data-d="Fri"></span>
+              </div>
+              <div class="list">
+                <div class="list-item">
+                  <div class="check warn">!</div>
+                  <div class="meta">
+                    <strong>Rest compliance watch</strong>
+                    <small>Work past 6h without a 30-min break triggers an alert</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div class="check done">✓</div>
+                  <div class="meta">
+                    <strong>Task-level project tracking</strong>
+                    <small>Time logged against specific project tasks</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PERFORMANCE -->
+        <section class="panel" id="performance">
+          <div class="page-header">
+            <div>
+              <h1>Performance reviews</h1>
+              <p>Self, manager, and 360° reviews with templates, anonymous peers, and action plans.</p>
+            </div>
+            <button class="btn btn-primary" type="button">Launch review cycle</button>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="card">
+              <h2>Q2 Growth cycle</h2>
+              <p class="sub">Template: 360° · Custom questions enabled</p>
+              <div class="progress"><i style="--w:64%"></i></div>
+              <div class="stat-row" style="margin-bottom:16px">
+                <div class="stat">
+                  <div class="label">Self reviews</div>
+                  <div class="value">86%</div>
+                </div>
+                <div class="stat">
+                  <div class="label">Manager</div>
+                  <div class="value">71%</div>
+                </div>
+                <div class="stat">
+                  <div class="label">Peers</div>
+                  <div class="value">58%</div>
+                </div>
+              </div>
+              <div class="list">
+                <div class="list-item">
+                  <div class="check todo">·</div>
+                  <div class="meta">
+                    <strong>Your review of Alex Rivera</strong>
+                    <small>Notification sent · Waiting to be filled</small>
+                  </div>
+                  <span class="badge red">Due</span>
+                </div>
+                <div class="list-item">
+                  <div class="check done">✓</div>
+                  <div class="meta">
+                    <strong>Anonymous peer feedback</strong>
+                    <small>Enabled for this cycle</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Action plan · after review</h2>
+              <p class="sub">Turn feedback into next steps</p>
+              <div class="list">
+                <div class="list-item">
+                  <div class="check todo">1</div>
+                  <div class="meta">
+                    <strong>Lead one cross-team design crit</strong>
+                    <small>Owner: Maya · Target: August</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div class="check todo">2</div>
+                  <div class="meta">
+                    <strong>Mentorship with senior PM</strong>
+                    <small>Bi-weekly · Growth track</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div class="check todo">3</div>
+                  <div class="meta">
+                    <strong>Ship accessibility checklist</strong>
+                    <small>Linked to project goals</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- EXPENSES & PAYROLL -->
+        <section class="panel" id="expenses">
+          <div class="page-header">
+            <div>
+              <h1>Expenses &amp; payroll</h1>
+              <p>Phone receipts → expense groups → approvals → payroll concepts → bookkeeper sync.</p>
+            </div>
+            <div class="story-chip"><span>Cycle</span> Open → Locked</div>
+          </div>
+
+          <div class="grid grid-2">
+            <div class="card">
+              <h2>My Spending · Expense group</h2>
+              <p class="sub">Berlin client trip · Captured on mobile</p>
+              <table class="table">
+                <thead>
+                  <tr><th>Receipt</th><th>Amount</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Hotel · 2 nights</td>
+                    <td>€214.00</td>
+                    <td><span class="badge green">Approved</span></td>
+                  </tr>
+                  <tr>
+                    <td>Train · return</td>
+                    <td>€89.50</td>
+                    <td><span class="badge green">Approved</span></td>
+                  </tr>
+                  <tr>
+                    <td>Team dinner</td>
+                    <td>€43.70</td>
+                    <td><span class="badge gray">In review</span></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn btn-primary" type="button">Approve group</button>
+                <button class="btn btn-ghost" type="button">Corporate card sync</button>
+              </div>
+            </div>
+
+            <div class="card">
+              <h2>Payroll run · July</h2>
+              <p class="sub">Concepts + cycle control + Professionals sync</p>
+              <div class="list" style="margin-bottom:16px">
+                <div class="list-item">
+                  <div class="check done">✓</div>
+                  <div class="meta">
+                    <strong>Fixed salary</strong>
+                    <small>Payroll concept applied</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div class="check done">✓</div>
+                  <div class="meta">
+                    <strong>Variable earnings · expenses</strong>
+                    <small>Approved reimbursements included</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div class="check warn">L</div>
+                  <div class="meta">
+                    <strong>Cycle status: Locked</strong>
+                    <small>Managers cannot edit — data validated</small>
+                  </div>
+                  <span class="badge red">Locked</span>
+                </div>
+              </div>
+              <div class="stat">
+                <div class="label">Professionals module</div>
+                <div class="value" style="font-size:15px">Sync to bookkeeper</div>
+                <div class="hint">a3innuva · Sage 200 · DATEV · Silae</div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="mock-note">
+        Factorial HR UI mockup for storytelling · Not an official product screen · Brand cues: Radical Red + Fira Sans
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    const buttons = document.querySelectorAll("[data-view]");
+    const panels = document.querySelectorAll(".panel");
+    const navBtns = document.querySelectorAll(".nav button");
+    const journeyBtns = document.querySelectorAll(".journey button");
+
+    function showView(id) {
+      panels.forEach((p) => p.classList.toggle("active", p.id === id));
+      navBtns.forEach((b) => b.classList.toggle("active", b.dataset.view === id));
+      journeyBtns.forEach((b) => b.classList.toggle("active", b.dataset.view === id));
+      // restart progress bar animation when panel opens
+      const bars = document.querySelectorAll("#" + id + " .progress > i");
+      bars.forEach((el) => {
+        el.style.animation = "none";
+        void el.offsetWidth;
+        el.style.animation = "";
+      });
+    }
+
+    buttons.forEach((btn) => {
+      btn.addEventListener("click", () => showView(btn.dataset.view));
+    });
+  </script>
+</body>
+</html>

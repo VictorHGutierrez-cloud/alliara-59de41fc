@@ -23,7 +23,7 @@ function Login() {
   const [googleBusy, setGoogleBusy] = useState(false);
 
   useEffect(() => {
-    if (user) nav({ to: "/partners", replace: true });
+    if (user) nav({ to: "/academy", replace: true });
   }, [user, nav]);
 
   const onSubmit = async (e: FormEvent) => {
@@ -39,11 +39,11 @@ function Login() {
       return toast.error(error);
     }
     toast.success("Welcome back");
-    nav({ to: "/partners" });
+    nav({ to: "/academy" });
   };
 
   return (
-    <AuthLayout title="Sign in" sub="Pick up where you left off with your partners.">
+    <AuthLayout title="Sign in" sub="Pick up where you left off in Executive Academy.">
       <button
         type="button"
         disabled={googleBusy}

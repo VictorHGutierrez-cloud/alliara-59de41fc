@@ -7,7 +7,7 @@ import {
   type KeptIllustrationVariant,
 } from "@/components/brand/KeptIllustration";
 import { useAuth } from "@/lib/auth";
-import alliaraLogo from "@/assets/alliara-logo.svg?url";
+import keptLogo from "@/assets/kept-logo.svg?url";
 
 export const Route = createFileRoute("/intro")({
   head: () => ({
@@ -39,7 +39,7 @@ function IntroTourPage() {
   }, []);
 
   const finish = useCallback(() => {
-    if (user) void nav({ to: "/partners" });
+    if (user) void nav({ to: "/academy" });
     else void nav({ to: "/signup", search: {} });
   }, [user, nav]);
 
@@ -67,7 +67,7 @@ function IntroTourPage() {
             className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700 hover:text-neutral-900"
           >
             <img
-              src={alliaraLogo}
+              src={keptLogo}
               alt={COPY.auth.logoAltWordmark}
               className="h-9 w-auto max-w-[min(100%,11rem)] object-contain sm:h-10"
             />
