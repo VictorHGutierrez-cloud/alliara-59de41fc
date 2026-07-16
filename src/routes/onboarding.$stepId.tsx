@@ -66,7 +66,7 @@ function OnboardingStepPage() {
           {String(step.index).padStart(2, "0")} / {String(ONBOARDING_STEPS.length).padStart(2, "0")}
         </span>
         <span>·</span>
-        <span className="uppercase tracking-widest font-mono text-[10px]">{step.eyebrow}</span>
+        <span className="page-eyebrow">{step.eyebrow}</span>
       </div>
 
       <div className="grid gap-8 md:grid-cols-[1fr_220px] md:items-start">
@@ -75,7 +75,7 @@ function OnboardingStepPage() {
           <p className="mt-4 text-base text-muted-foreground leading-relaxed">{step.summary}</p>
 
           <div className="mt-6 rounded-2xl border border-border/70 bg-card p-5">
-            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            <p className="page-eyebrow">
               What this means for you
             </p>
             <ul className="mt-3 space-y-2">

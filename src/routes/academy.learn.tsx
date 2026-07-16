@@ -50,14 +50,14 @@ function AcademyLearnPage() {
               className="rounded-2xl border border-border/60 bg-card p-5 card-elev relative overflow-hidden"
             >
               {track.status === "coming" && (
-                <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1 text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full bg-surface-2 px-2 py-1 page-eyebrow">
                   <Lock className="h-3 w-3" />
                   {COPY.academy.trackComingSoon}
                 </div>
               )}
               <div className="flex items-center justify-between gap-3 pr-24">
                 <h2 className="text-base font-semibold">{track.title}</h2>
-                <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                <span className="page-eyebrow">
                   Track {track.order}
                 </span>
               </div>

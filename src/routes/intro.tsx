@@ -59,12 +59,12 @@ function IntroTourPage() {
   const slide = slides[idx];
 
   return (
-    <div className="min-h-svh bg-gradient-to-b from-[#fffdfb] via-[#faf8fc] to-[#fff9f6] px-4 py-8 sm:py-12">
+    <div className="min-h-svh bg-gradient-to-b from-background via-surface to-surface-2 px-4 py-8 sm:py-12">
       <div className="mx-auto flex max-w-lg flex-col">
         <div className="mb-6 flex items-center justify-between gap-3">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-neutral-700 hover:text-neutral-900"
+            className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80"
           >
             <img
               src={keptLogo}
@@ -81,22 +81,22 @@ function IntroTourPage() {
           </button>
         </div>
 
-        <p className="text-center text-[11px] font-mono uppercase tracking-[0.2em] text-neutral-500">
+        <p className="page-eyebrow text-center">
           {COPY.introTour.progress({ step: idx + 1, total: slides.length })}
         </p>
 
-        <div className="mt-6 rounded-3xl border border-neutral-200/90 bg-white p-6 shadow-[0_24px_60px_-40px_rgba(15,23,42,0.35)] sm:p-8">
-          <figure className="mx-auto flex w-full max-w-md flex-col items-center justify-center rounded-2xl border border-neutral-100 bg-neutral-50 px-3 py-6 sm:min-h-[320px] sm:px-6 sm:py-10">
+        <div className="mt-6 rounded-3xl border border-border/90 bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
+          <figure className="mx-auto flex w-full max-w-md flex-col items-center justify-center rounded-2xl border border-border/60 bg-surface-2 px-3 py-6 sm:min-h-[320px] sm:px-6 sm:py-10">
             <KeptIllustration
               variant={slide.variant}
               imageLoading="eager"
               className="mx-auto max-h-[min(52vh,420px)] w-auto max-w-full object-contain"
             />
           </figure>
-          <h1 className="mt-6 text-center font-display text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl">
+          <h1 className="mt-6 text-center font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             {slide.title}
           </h1>
-          <p className="mt-3 text-center text-sm leading-relaxed text-neutral-600 sm:text-base">
+          <p className="mt-3 text-center text-sm leading-relaxed text-muted-foreground sm:text-base">
             {slide.body}
           </p>
 
@@ -106,7 +106,7 @@ function IntroTourPage() {
                 key={i}
                 type="button"
                 onClick={() => setIdx(i)}
-                className={`h-2 rounded-full transition-all ${i === idx ? "w-8 bg-primary" : "w-2 bg-neutral-300 hover:bg-neutral-400"}`}
+                className={`h-2 rounded-full transition-all ${i === idx ? "w-8 bg-primary" : "w-2 bg-border hover:bg-muted-foreground/40"}`}
                 aria-label={`Go to slide ${i + 1}`}
               />
             ))}
@@ -117,7 +117,7 @@ function IntroTourPage() {
               type="button"
               onClick={goPrev}
               disabled={idx === 0}
-              className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-800 shadow-sm disabled:pointer-events-none disabled:opacity-40"
+              className="inline-flex min-h-11 items-center gap-1 rounded-xl border border-border bg-card px-4 text-sm font-medium text-foreground shadow-sm disabled:pointer-events-none disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" aria-hidden />
               {COPY.introTour.back}
@@ -148,7 +148,7 @@ function IntroTourPage() {
               <button
                 type="button"
                 onClick={() => void nav({ to: "/" })}
-                className="text-sm text-neutral-500 underline-offset-4 hover:underline"
+                className="text-sm text-muted-foreground underline-offset-4 hover:underline"
               >
                 {COPY.introTour.finishHome}
               </button>

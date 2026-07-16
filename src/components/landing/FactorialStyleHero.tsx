@@ -60,11 +60,11 @@ export function FactorialStyleHero() {
 
       <div className="relative px-6 pb-6 pt-10 sm:pb-10 sm:pt-14">
         <div className="mx-auto max-w-3xl text-center">
-          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-600">{L.heroEyebrow}</p>
-          <h1 className="mt-4 text-balance text-[clamp(1.85rem,4vw,3.25rem)] font-semibold tracking-tight text-neutral-900 leading-[1.08]">
+          <p className="page-eyebrow text-muted-foreground">{L.heroEyebrow}</p>
+          <h1 className="mt-4 text-balance text-[clamp(1.85rem,4vw,3.25rem)] font-semibold tracking-tight text-foreground leading-[1.08]">
             {L.heroTitle}
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-neutral-600 sm:text-lg sm:leading-relaxed">
+          <p className="mx-auto mt-4 max-w-2xl text-pretty text-base text-muted-foreground sm:text-lg sm:leading-relaxed">
             {L.heroBody}
           </p>
 
@@ -76,10 +76,10 @@ export function FactorialStyleHero() {
 
           <form
             onSubmit={onEmailSubmit}
-            className="mx-auto mt-8 flex w-full max-w-xl flex-col gap-2 rounded-full border border-neutral-200/90 bg-white/90 p-1.5 shadow-[0_12px_40px_-24px_rgba(11,18,32,0.35)] backdrop-blur-sm sm:flex-row sm:items-center"
+            className="mx-auto mt-8 flex w-full max-w-xl flex-col gap-2 rounded-full border border-border/90 bg-card/90 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-sm sm:flex-row sm:items-center"
           >
             <label className="flex min-h-11 flex-1 items-center gap-2 rounded-full px-3 py-2 sm:pl-4">
-              <Mail className="h-5 w-5 shrink-0 text-neutral-400" aria-hidden />
+              <Mail className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
               <input
                 type="email"
                 name="email"
@@ -88,7 +88,7 @@ export function FactorialStyleHero() {
                 aria-label={L.heroEmailPlaceholder}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="min-w-0 flex-1 bg-transparent text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
+                className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
             </label>
             <button
@@ -98,7 +98,7 @@ export function FactorialStyleHero() {
               {L.ctaPrimary}
             </button>
           </form>
-          <p className="mt-2 text-xs text-neutral-500">{L.heroEmailHelper}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{L.heroEmailHelper}</p>
         </div>
       </div>
 
@@ -110,7 +110,7 @@ export function FactorialStyleHero() {
           <button
             type="button"
             onClick={() => scrollByDir(-1)}
-            className="hidden min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-neutral-200/90 bg-white/90 text-neutral-700 shadow-sm backdrop-blur transition hover:bg-white hover:text-neutral-900 sm:inline-flex"
+            className="hidden min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-border/90 bg-card/90 text-foreground shadow-sm backdrop-blur transition hover:bg-card hover:text-foreground sm:inline-flex"
             aria-label="Show previous cards"
           >
             <ChevronLeft className="h-5 w-5" />
@@ -126,15 +126,15 @@ export function FactorialStyleHero() {
               return (
                 <article
                   key={card.title}
-                  className={`group relative w-[min(78vw,320px)] shrink-0 snap-center rounded-2xl border border-neutral-200/80 bg-white/95 p-5 shadow-[0_20px_50px_-34px_rgba(11,18,32,0.35)] backdrop-blur-sm transition duration-300 ${
+                  className={`group relative w-[min(78vw,320px)] shrink-0 snap-center rounded-2xl border border-border/80 bg-card/95 p-5 shadow-[var(--shadow-card)] backdrop-blur-sm transition duration-300 ${
                     i === 1 ? "sm:scale-[1.03] sm:shadow-lg" : ""
                   }`}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary-foreground">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
-                  <p className="mt-4 text-left text-sm font-semibold text-neutral-900">{card.title}</p>
-                  <p className="mt-2 text-left text-xs leading-relaxed text-neutral-500">{card.body}</p>
+                  <p className="mt-4 text-left text-sm font-semibold text-foreground">{card.title}</p>
+                  <p className="mt-2 text-left text-xs leading-relaxed text-muted-foreground">{card.body}</p>
                 </article>
               );
             })}
@@ -143,7 +143,7 @@ export function FactorialStyleHero() {
           <button
             type="button"
             onClick={() => scrollByDir(1)}
-            className="hidden min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-neutral-200/90 bg-white/90 text-neutral-700 shadow-sm backdrop-blur transition hover:bg-white hover:text-neutral-900 sm:inline-flex"
+            className="hidden min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full border border-border/90 bg-card/90 text-foreground shadow-sm backdrop-blur transition hover:bg-card hover:text-foreground sm:inline-flex"
             aria-label="Show next cards"
           >
             <ChevronRight className="h-5 w-5" />
@@ -151,10 +151,8 @@ export function FactorialStyleHero() {
         </div>
 
         <div className="mx-auto max-w-6xl px-6 pb-2 sm:pb-4">
-          <p className="text-center text-[11px] font-medium uppercase tracking-[0.14em] text-neutral-500">
-            {L.trustEyebrow}
-          </p>
-          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-neutral-500">{L.trustBlurb}</p>
+          <p className="text-center page-eyebrow">{L.trustEyebrow}</p>
+          <p className="mx-auto mt-3 max-w-xl text-center text-sm text-muted-foreground">{L.trustBlurb}</p>
         </div>
       </div>
     </section>
@@ -163,7 +161,7 @@ export function FactorialStyleHero() {
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-neutral-200/90 bg-white/80 px-3 py-1.5 text-[11px] text-neutral-600 shadow-sm">
+    <span className="inline-flex items-center rounded-full border border-border/90 bg-card/80 px-3 py-1.5 text-[11px] text-muted-foreground shadow-sm">
       {children}
     </span>
   );

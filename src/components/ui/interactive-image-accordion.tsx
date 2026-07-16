@@ -105,16 +105,16 @@ export function InteractiveImageAccordion({
       <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:items-start lg:gap-12">
         <header className="max-w-lg">
           {eyebrow ? (
-            <p className="page-eyebrow text-neutral-500" id="interactive-accordion-eyebrow">
+            <p className="page-eyebrow" id="interactive-accordion-eyebrow">
               {eyebrow}
             </p>
           ) : null}
-          <h2 className="mt-3 section-title text-3xl text-neutral-900 sm:text-4xl">{title}</h2>
+          <h2 className="mt-3 section-title text-3xl text-foreground sm:text-4xl">{title}</h2>
           {subtitle ? (
-            <p className="mt-2 text-sm font-medium text-neutral-700 sm:text-base">{subtitle}</p>
+            <p className="mt-2 text-sm font-medium text-foreground/80 sm:text-base">{subtitle}</p>
           ) : null}
           {intro ? (
-            <p className="section-subtitle mt-3 text-neutral-600 leading-relaxed">{intro}</p>
+            <p className="section-subtitle mt-3 text-muted-foreground leading-relaxed">{intro}</p>
           ) : null}
           {cta ? (
             <p className="mt-6">
@@ -184,7 +184,7 @@ export function InteractiveImageAccordion({
                           <Link
                             to="/axis/$axisKey"
                             params={{ axisKey: item.axisKey }}
-                            className="inline-flex min-h-11 items-center rounded-full bg-white/95 px-4 text-sm font-semibold text-neutral-900 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                            className="inline-flex min-h-11 items-center rounded-full bg-card/95 px-4 text-sm font-semibold text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                           >
                             Open guide →
                           </Link>
@@ -209,8 +209,8 @@ export function InteractiveImageAccordion({
                   className={cn(
                     "min-h-11 rounded-full border px-3.5 py-2 text-left text-xs font-medium transition-colors motion-reduce:transition-none",
                     isActive
-                      ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-neutral-200 bg-white text-neutral-700 hover:bg-neutral-50",
+                      ? "border-foreground bg-foreground text-background"
+                      : "border-border bg-card text-foreground hover:bg-surface-2",
                   )}
                   onClick={() => setActiveIndex(index)}
                 >

@@ -10,6 +10,8 @@ import {
 } from "@/content/sales-library";
 import { saveLastStudy, isMaterialCompleted, toggleMaterialCompleted } from "@/lib/academy-progress";
 import { Checkbox } from "@/components/ui/checkbox";
+import { MarkdownProse } from "@/components/ui/markdown-prose";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/academy/library/$slug")({
   head: ({ params }) => {
@@ -25,6 +27,7 @@ function AcademyLibraryReaderPage() {
   const nav = useNavigate();
   const material = getSalesMaterial(slug);
   const [mdText, setMdText] = useState<string | null>(null);
+  const [mdLoading, setMdLoading] = useState(false);
   const [completed, setCompleted] = useState(() => isMaterialCompleted(slug));
 
   useEffect(() => {
@@ -40,9 +43,11 @@ function AcademyLibraryReaderPage() {
   useEffect(() => {
     if (!material || material.kind !== "markdown") {
       setMdText(null);
+      setMdLoading(false);
       return;
     }
     let cancelled = false;
+    setMdLoading(true);
     void fetch(salesMaterialUrl(material))
       .then((r) => r.text())
       .then((t) => {
@@ -50,6 +55,9 @@ function AcademyLibraryReaderPage() {
       })
       .catch(() => {
         if (!cancelled) setMdText(COPY.academy.readerLoadError);
+      })
+      .finally(() => {
+        if (!cancelled) setMdLoading(false);
       });
     return () => {
       cancelled = true;
@@ -76,12 +84,12 @@ function AcademyLibraryReaderPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/academy/library"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           {COPY.academy.backToLibrary}
         </Link>
         <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex items-center gap-2 text-xs font-medium cursor-pointer">
+          <label className="inline-flex min-h-11 items-center gap-2 text-xs font-medium cursor-pointer">
             <Checkbox
               checked={completed}
               onCheckedChange={() => {
@@ -95,14 +103,14 @@ function AcademyLibraryReaderPage() {
             href={assetUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-surface-2"
+            className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-surface-2"
           >
             <ExternalLink className="h-3.5 w-3.5" />
             {COPY.academy.openNewTab}
           </a>
           <Link
             to="/academy/ask"
-            className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:opacity-90"
+            className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:opacity-90"
           >
             <MessageCircleQuestion className="h-3.5 w-3.5" />
             {COPY.academy.askAboutThis}
@@ -111,10 +119,8 @@ function AcademyLibraryReaderPage() {
       </div>
 
       <header className="mt-4 border-b border-border/60 pb-4">
-        <p className="text-[10px] font-mono uppercase tracking-widest text-primary">
-          {SALES_MATERIAL_CATEGORIES[material.category].label}
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">{material.title}</h1>
+        <p className="page-eyebrow text-primary">{SALES_MATERIAL_CATEGORIES[material.category].label}</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{material.title}</h1>
         <p className="mt-2 text-sm text-muted-foreground max-w-3xl">{material.summary}</p>
       </header>
 
@@ -125,10 +131,17 @@ function AcademyLibraryReaderPage() {
           className="mt-4 h-[min(78vh,900px)] w-full rounded-2xl border border-border bg-card"
         />
       ) : (
-        <article className="mt-4 rounded-2xl border border-border bg-card p-6 overflow-auto max-h-[78vh]">
-          <pre className="whitespace-pre-wrap font-sans text-sm leading-relaxed text-foreground/90">
-            {mdText ?? COPY.academy.readerLoading}
-          </pre>
+        <article className="mt-4 rounded-2xl border border-border bg-card p-6 sm:p-8 overflow-auto max-h-[78vh] shadow-[var(--shadow-card)]">
+          {mdLoading || mdText === null ? (
+            <div className="space-y-3">
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-5/6" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          ) : (
+            <MarkdownProse content={mdText} variant="article" />
+          )}
         </article>
       )}
     </div>

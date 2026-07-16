@@ -73,7 +73,7 @@ function Landing() {
                   key={m.slug}
                   className="rounded-2xl border border-border/60 bg-card p-5 card-elev"
                 >
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-primary">
+                  <p className="page-eyebrow text-primary">
                     {SALES_MATERIAL_CATEGORIES[m.category].label}
                   </p>
                   <h3 className="mt-2 text-base font-semibold">{m.title}</h3>

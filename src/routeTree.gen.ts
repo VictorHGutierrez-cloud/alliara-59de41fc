@@ -13,11 +13,13 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
+import { Route as PartnersRouteImport } from './routes/partners'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as MeetKeptRouteImport } from './routes/meet-kept'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as IntroRouteImport } from './routes/intro'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AcademyRouteImport } from './routes/academy'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingStepIdRouteImport } from './routes/onboarding.$stepId'
@@ -47,6 +49,11 @@ const PendingApprovalRoute = PendingApprovalRouteImport.update({
   path: '/pending-approval',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingRoute = OnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -70,6 +77,11 @@ const IntroRoute = IntroRouteImport.update({
 const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   id: '/forgot-password',
   path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AcademyRoute = AcademyRouteImport.update({
@@ -116,11 +128,13 @@ const AcademyLibrarySlugRoute = AcademyLibrarySlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/academy': typeof AcademyRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/onboarding': typeof OnboardingRouteWithChildren
+  '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -135,11 +149,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/academy': typeof AcademyRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/onboarding': typeof OnboardingRouteWithChildren
+  '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -155,11 +171,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/academy': typeof AcademyRouteWithChildren
+  '/dashboard': typeof DashboardRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/intro': typeof IntroRoute
   '/login': typeof LoginRoute
   '/meet-kept': typeof MeetKeptRoute
   '/onboarding': typeof OnboardingRouteWithChildren
+  '/partners': typeof PartnersRoute
   '/pending-approval': typeof PendingApprovalRoute
   '/reset-password': typeof ResetPasswordRoute
   '/settings': typeof SettingsRoute
@@ -176,11 +194,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/academy'
+    | '/dashboard'
     | '/forgot-password'
     | '/intro'
     | '/login'
     | '/meet-kept'
     | '/onboarding'
+    | '/partners'
     | '/pending-approval'
     | '/reset-password'
     | '/settings'
@@ -195,11 +215,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/academy'
+    | '/dashboard'
     | '/forgot-password'
     | '/intro'
     | '/login'
     | '/meet-kept'
     | '/onboarding'
+    | '/partners'
     | '/pending-approval'
     | '/reset-password'
     | '/settings'
@@ -214,11 +236,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/academy'
+    | '/dashboard'
     | '/forgot-password'
     | '/intro'
     | '/login'
     | '/meet-kept'
     | '/onboarding'
+    | '/partners'
     | '/pending-approval'
     | '/reset-password'
     | '/settings'
@@ -234,11 +258,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AcademyRoute: typeof AcademyRouteWithChildren
+  DashboardRoute: typeof DashboardRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   IntroRoute: typeof IntroRoute
   LoginRoute: typeof LoginRoute
   MeetKeptRoute: typeof MeetKeptRoute
   OnboardingRoute: typeof OnboardingRouteWithChildren
+  PartnersRoute: typeof PartnersRoute
   PendingApprovalRoute: typeof PendingApprovalRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SettingsRoute: typeof SettingsRoute
@@ -276,6 +302,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PendingApprovalRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding': {
       id: '/onboarding'
       path: '/onboarding'
@@ -309,6 +342,13 @@ declare module '@tanstack/react-router' {
       path: '/forgot-password'
       fullPath: '/forgot-password'
       preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/academy': {
@@ -412,11 +452,13 @@ const OnboardingRouteWithChildren = OnboardingRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AcademyRoute: AcademyRouteWithChildren,
+  DashboardRoute: DashboardRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   IntroRoute: IntroRoute,
   LoginRoute: LoginRoute,
   MeetKeptRoute: MeetKeptRoute,
   OnboardingRoute: OnboardingRouteWithChildren,
+  PartnersRoute: PartnersRoute,
   PendingApprovalRoute: PendingApprovalRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SettingsRoute: SettingsRoute,

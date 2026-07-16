@@ -66,6 +66,7 @@ export const COPY = {
     finishSignedIn: "Open Academy",
     finishSignedOut: "Create free account",
     finishHome: "Back to home",
+    checkingSession: "Checking session…",
     progress: ({ step, total }: { step: number; total: number }) => `Step ${step} of ${total}`,
     slides: [
       {

@@ -53,7 +53,7 @@ function AcademyHomePage() {
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+            <span className="page-eyebrow">
               {COPY.academy.eyebrow}
             </span>
           </div>
@@ -151,7 +151,7 @@ function HubCard({
       </div>
       <h3 className="mt-4 text-base font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
-      <p className="mt-4 text-[11px] font-mono uppercase tracking-widest text-muted-foreground group-hover:text-primary transition">
+      <p className="mt-4 page-eyebrow text-muted-foreground group-hover:text-primary transition">
         {meta} →
       </p>
     </Link>

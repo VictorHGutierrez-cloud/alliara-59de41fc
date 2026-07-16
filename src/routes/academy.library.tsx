@@ -92,7 +92,7 @@ function AcademyLibraryPage() {
             params={{ slug: m.slug }}
             className="rounded-2xl border border-border/60 bg-card p-5 card-elev hover:-translate-y-0.5 transition"
           >
-            <p className="text-[10px] font-mono uppercase tracking-widest text-primary">
+            <p className="page-eyebrow text-primary">
               {SALES_MATERIAL_CATEGORIES[m.category].label}
             </p>
             <h2 className="mt-2 text-base font-semibold leading-snug">{m.title}</h2>

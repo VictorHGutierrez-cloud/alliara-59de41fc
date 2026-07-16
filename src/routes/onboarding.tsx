@@ -69,7 +69,7 @@ function OnboardingLayout() {
     <div className="page-shell max-w-4xl space-y-8">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground inline-flex items-center gap-2">
+          <p className="page-eyebrow inline-flex items-center gap-2">
             <GraduationCap className="h-3.5 w-3.5" /> Onboarding
           </p>
           <h1 className="page-title mt-2">Get to know Kept, at your own pace</h1>
@@ -123,7 +123,7 @@ function OnboardingLayout() {
                   {isDone ? <Check className="h-4 w-4" /> : s.index}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                  <p className="page-eyebrow">
                     {s.eyebrow}
                   </p>
                   <p className="mt-0.5 text-base font-semibold text-foreground">{s.title}</p>

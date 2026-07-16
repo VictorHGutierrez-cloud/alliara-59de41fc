@@ -5,22 +5,20 @@ export function HeroMessage() {
   const L = COPY.landing;
 
   return (
-    <section className="relative bg-white px-6 pb-12 -mt-8">
+    <section className="relative bg-card px-6 pb-12 -mt-8">
       <div className="mx-auto max-w-6xl">
-        <div className="rounded-3xl border border-neutral-200/80 bg-white/95 backdrop-blur-xl p-6 sm:p-9 shadow-[0_30px_80px_-42px_rgba(11,18,32,0.35)]">
-          <p className="text-[11px] font-mono uppercase tracking-[0.22em] text-neutral-500">
-            {L.heroEyebrow}
-          </p>
-          <h1 className="mt-3 text-[clamp(1.95rem,4.2vw,3.7rem)] font-semibold tracking-tight text-neutral-900 leading-[1.03]">
+        <div className="rounded-3xl border border-border/80 bg-card/95 backdrop-blur-xl p-6 sm:p-9 shadow-[var(--shadow-card)]">
+          <p className="page-eyebrow">{L.heroEyebrow}</p>
+          <h1 className="mt-3 text-[clamp(1.95rem,4.2vw,3.7rem)] font-semibold tracking-tight text-foreground leading-[1.03]">
             {L.heroTitle}
           </h1>
-          <p className="mt-4 text-sm sm:text-base text-neutral-600 max-w-3xl leading-relaxed">
+          <p className="mt-4 text-sm sm:text-base text-muted-foreground max-w-3xl leading-relaxed">
             {L.heroBody}
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
-            <Pill>{L.pillDiagnostic}</Pill>
-            <Pill>{L.pillJbp}</Pill>
-            <Pill>{L.pillKept}</Pill>
+            <Pill>{L.pillLibrary}</Pill>
+            <Pill>{L.pillCoach}</Pill>
+            <Pill>{L.pillTracks}</Pill>
           </div>
           <div className="mt-7 flex flex-wrap gap-3">
             <Link
@@ -49,7 +47,7 @@ export function HeroMessage() {
 
 function Pill({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-[11px] text-neutral-600">
+    <span className="inline-flex items-center rounded-full border border-border bg-surface-2 px-3 py-1.5 text-[11px] text-muted-foreground">
       {children}
     </span>
   );
