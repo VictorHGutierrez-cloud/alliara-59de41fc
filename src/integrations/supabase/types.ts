@@ -801,6 +801,42 @@ export type Database = {
         }
         Relationships: []
       }
+      sales_briefs: {
+        Row: {
+          created_at: string
+          id: string
+          published_at: string | null
+          related_slugs: string[]
+          source_name: string
+          summary: string
+          title: string
+          topics: string[]
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          related_slugs?: string[]
+          source_name?: string
+          summary?: string
+          title: string
+          topics?: string[]
+          url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          published_at?: string | null
+          related_slugs?: string[]
+          source_name?: string
+          summary?: string
+          title?: string
+          topics?: string[]
+          url?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

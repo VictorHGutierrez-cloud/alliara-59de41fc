@@ -26,6 +26,7 @@ import { Route as OnboardingStepIdRouteImport } from './routes/onboarding.$stepI
 import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
 import { Route as AcademyLibraryRouteImport } from './routes/academy.library'
 import { Route as AcademyLearnRouteImport } from './routes/academy.learn'
+import { Route as AcademyBriefingRouteImport } from './routes/academy.briefing'
 import { Route as AcademyAskRouteImport } from './routes/academy.ask'
 import { Route as AcademyLibrarySlugRouteImport } from './routes/academy.library.$slug'
 
@@ -114,6 +115,11 @@ const AcademyLearnRoute = AcademyLearnRouteImport.update({
   path: '/learn',
   getParentRoute: () => AcademyRoute,
 } as any)
+const AcademyBriefingRoute = AcademyBriefingRouteImport.update({
+  id: '/briefing',
+  path: '/briefing',
+  getParentRoute: () => AcademyRoute,
+} as any)
 const AcademyAskRoute = AcademyAskRouteImport.update({
   id: '/ask',
   path: '/ask',
@@ -140,6 +146,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/academy/ask': typeof AcademyAskRoute
+  '/academy/briefing': typeof AcademyBriefingRoute
   '/academy/learn': typeof AcademyLearnRoute
   '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -161,6 +168,7 @@ export interface FileRoutesByTo {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/academy/ask': typeof AcademyAskRoute
+  '/academy/briefing': typeof AcademyBriefingRoute
   '/academy/learn': typeof AcademyLearnRoute
   '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -183,6 +191,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRoute
   '/signup': typeof SignupRoute
   '/academy/ask': typeof AcademyAskRoute
+  '/academy/briefing': typeof AcademyBriefingRoute
   '/academy/learn': typeof AcademyLearnRoute
   '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/admin/approvals': typeof AdminApprovalsRoute
@@ -206,6 +215,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/academy/ask'
+    | '/academy/briefing'
     | '/academy/learn'
     | '/academy/library'
     | '/admin/approvals'
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/academy/ask'
+    | '/academy/briefing'
     | '/academy/learn'
     | '/academy/library'
     | '/admin/approvals'
@@ -248,6 +259,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/signup'
     | '/academy/ask'
+    | '/academy/briefing'
     | '/academy/learn'
     | '/academy/library'
     | '/admin/approvals'
@@ -393,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademyLearnRouteImport
       parentRoute: typeof AcademyRoute
     }
+    '/academy/briefing': {
+      id: '/academy/briefing'
+      path: '/briefing'
+      fullPath: '/academy/briefing'
+      preLoaderRoute: typeof AcademyBriefingRouteImport
+      parentRoute: typeof AcademyRoute
+    }
     '/academy/ask': {
       id: '/academy/ask'
       path: '/ask'
@@ -424,12 +443,14 @@ const AcademyLibraryRouteWithChildren = AcademyLibraryRoute._addFileChildren(
 
 interface AcademyRouteChildren {
   AcademyAskRoute: typeof AcademyAskRoute
+  AcademyBriefingRoute: typeof AcademyBriefingRoute
   AcademyLearnRoute: typeof AcademyLearnRoute
   AcademyLibraryRoute: typeof AcademyLibraryRouteWithChildren
 }
 
 const AcademyRouteChildren: AcademyRouteChildren = {
   AcademyAskRoute: AcademyAskRoute,
+  AcademyBriefingRoute: AcademyBriefingRoute,
   AcademyLearnRoute: AcademyLearnRoute,
   AcademyLibraryRoute: AcademyLibraryRouteWithChildren,
 }

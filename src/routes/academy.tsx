@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookOpen, GraduationCap, MessageCircleQuestion, Sparkles } from "lucide-react";
+import { BookOpen, GraduationCap, MessageCircleQuestion, Newspaper, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import { LMS_TRACKS, SALES_LIBRARY } from "@/content/sales-library";
@@ -82,7 +82,7 @@ function AcademyHomePage() {
         </section>
       )}
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-3">
+      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <HubCard
           icon={BookOpen}
           title={COPY.academy.libraryCardTitle}
@@ -103,6 +103,13 @@ function AcademyHomePage() {
           body={COPY.academy.learnCardBody}
           meta={`${trackAvailable} tracks live`}
           to="/academy/learn"
+        />
+        <HubCard
+          icon={Newspaper}
+          title={COPY.academy.briefingCardTitle}
+          body={COPY.academy.briefingCardBody}
+          meta={COPY.academy.briefingCardMeta}
+          to="/academy/briefing"
         />
       </section>
 
@@ -139,7 +146,7 @@ function HubCard({
   title: string;
   body: string;
   meta: string;
-  to: string;
+  to: "/academy/library" | "/academy/ask" | "/academy/learn" | "/academy/briefing";
 }) {
   return (
     <Link

@@ -25,6 +25,7 @@ import {
   MessageCircleQuestion,
   Route as RouteIcon,
   Home,
+  Newspaper,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
@@ -203,6 +204,13 @@ function AppFrame() {
               label: COPY.appShell.dockTracks,
               active: path.startsWith("/academy/learn"),
               onClick: () => navigate({ to: "/academy/learn" }),
+            },
+            {
+              key: "briefing",
+              icon: Newspaper,
+              label: COPY.appShell.dockBriefing,
+              active: path.startsWith("/academy/briefing"),
+              onClick: () => navigate({ to: "/academy/briefing" }),
             },
             {
               key: "settings",
