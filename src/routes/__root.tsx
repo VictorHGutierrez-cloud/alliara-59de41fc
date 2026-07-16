@@ -9,8 +9,8 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import appCss from "../styles.css?url";
-import keptMark from "@/assets/kept-mark.svg?url";
-import keptLogo from "@/assets/kept-logo.svg?url";
+import keptMark from "@/assets/kept-mark.png?url";
+import keptLogo from "@/assets/kept-logo.png?url";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import {
@@ -82,7 +82,7 @@ export const Route = createRootRoute({
       },
     ],
     links: [
-      { rel: "icon", href: keptMark, type: "image/svg+xml" },
+      { rel: "icon", href: keptMark, type: "image/png" },
       { rel: "apple-touch-icon", href: keptMark },
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
