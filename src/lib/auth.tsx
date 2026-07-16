@@ -80,7 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isValidEmail(email)) {
         return { error: "Please enter a valid email address." };
       }
-      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined;
+      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/academy` : undefined;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { needsVerification };
     },
     resendVerification: async (email) => {
-      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined;
+      const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/academy` : undefined;
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
@@ -102,7 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     signInWithGoogle: async () => {
       const redirectTo =
-        typeof window !== "undefined" ? `${window.location.origin}/dashboard` : undefined;
+        typeof window !== "undefined" ? `${window.location.origin}/academy` : undefined;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
