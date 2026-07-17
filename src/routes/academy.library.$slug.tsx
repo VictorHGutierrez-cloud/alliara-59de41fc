@@ -130,6 +130,19 @@ function AcademyLibraryReaderPage() {
           src={assetUrl}
           className="mt-4 h-[min(78vh,900px)] w-full rounded-2xl border border-border bg-card"
         />
+      ) : material.kind === "video" ? (
+        <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
+          <video
+            key={assetUrl}
+            controls
+            playsInline
+            preload="metadata"
+            className="aspect-video w-full bg-foreground/95"
+            aria-label={material.title}
+          >
+            <source src={assetUrl} type="video/mp4" />
+          </video>
+        </div>
       ) : (
         <article className="mt-4 rounded-2xl border border-border bg-card p-6 sm:p-8 overflow-auto max-h-[78vh] shadow-[var(--shadow-card)]">
           {mdLoading || mdText === null ? (

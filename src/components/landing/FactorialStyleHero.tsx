@@ -1,8 +1,9 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { BookOpen, ChevronLeft, ChevronRight, GraduationCap, Mail, MessageCircleQuestion } from "lucide-react";
 import { COPY } from "@/lib/copy";
-import { SALES_LIBRARY } from "@/content/sales-library";
+
+const HERO_VIDEO_SRC = "/videos/next-one-activation.mp4";
 
 const MESH_STYLE: React.CSSProperties = {
   background: `
@@ -35,7 +36,25 @@ export function FactorialStyleHero() {
   const L = COPY.landing;
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
+  const [preferReducedMotion, setPreferReducedMotion] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setPreferReducedMotion(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (preferReducedMotion || !videoRef.current) return;
+    videoRef.current.defaultMuted = true;
+    void videoRef.current.play().catch(() => {
+      /* autoplay may be blocked — mesh still shows */
+    });
+  }, [preferReducedMotion]);
 
   const scrollByDir = (dir: -1 | 1) => {
     const el = scrollerRef.current;
@@ -57,6 +76,25 @@ export function FactorialStyleHero() {
   return (
     <section className="relative overflow-hidden">
       <div className="absolute inset-0 -z-10" style={MESH_STYLE} aria-hidden />
+      {!preferReducedMotion && (
+        <>
+          <video
+            ref={videoRef}
+            className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.28]"
+            src={HERO_VIDEO_SRC}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-hidden
+          />
+          <div
+            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-background/75 via-background/55 to-background"
+            aria-hidden
+          />
+        </>
+      )}
 
       <div className="relative px-6 pb-6 pt-10 sm:pb-10 sm:pt-14">
         <div className="mx-auto max-w-3xl text-center">
@@ -103,8 +141,8 @@ export function FactorialStyleHero() {
       </div>
 
       <div className="relative pb-16 pt-2">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-[#fffdfb] to-transparent sm:w-16" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-[#fff9f6] to-transparent sm:w-16" />
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-background to-transparent sm:w-16" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-background to-transparent sm:w-16" />
 
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-6">
           <button

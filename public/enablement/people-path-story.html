@@ -215,6 +215,27 @@
     .beats { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 10px; }
     .beat { border-radius: 12px; padding: 12px; font-size: 12px; }
     .beat h4 { font-family: "Fira Sans", sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+    .clip {
+      margin-top: 14px;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .clip-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 10px 12px 0;
+    }
+    .clip video {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #0f172a;
+    }
     .beat p { color: var(--muted); }
     .chapter[data-h="people"] .beat { background: var(--people-soft); }
     .chapter[data-h="core"] .beat { background: var(--core-soft); }
@@ -345,6 +366,10 @@
           <span class="mod">Job Catalog</span>
           <span class="mod">AI Top Match</span>
           <span class="mod">Offer letters</span>
+        </div>
+        <div class="clip">
+          <p class="clip-label">Product clip · ATS / Recruit</p>
+          <video controls playsinline preload="metadata" src="/videos/next-one-ats.mp4"></video>
         </div>
       </div>
     </section>
@@ -506,6 +531,10 @@
           <span class="mod">Engagement / eNPS</span>
           <span class="mod">Complaints channel</span>
         </div>
+        <div class="clip">
+          <p class="clip-label">Product clip · Surveys &amp; engagement</p>
+          <video controls playsinline preload="metadata" src="/videos/next-one-surveys.mp4"></video>
+        </div>
       </div>
     </section>
 
@@ -538,6 +567,18 @@
           <span class="mod">Performance</span>
           <span class="mod">Goals / Action plans</span>
           <span class="mod">Trainings</span>
+        </div>
+        <div class="clip">
+          <p class="clip-label">Product clip · 1:1 meetings</p>
+          <video controls playsinline preload="metadata" src="/videos/next-one-1-1-meeting.mp4"></video>
+        </div>
+        <div class="clip">
+          <p class="clip-label">Product clip · Training surveys</p>
+          <video controls playsinline preload="metadata" src="/videos/training-surveys.mp4"></video>
+        </div>
+        <div class="clip">
+          <p class="clip-label">Product clip · Analytics insights</p>
+          <video controls playsinline preload="metadata" src="/videos/next-one-analytics.mp4"></video>
         </div>
       </div>
     </section>
