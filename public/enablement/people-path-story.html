@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>The People Path — Interactive Lifecycle Story</title>
+  <title>The People Path · Kept Executive Academy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -50,7 +50,12 @@
       border-bottom: 1px solid #e5e7eb; padding: 10px 14px 12px;
     }
     .rail-inner { max-width: 1120px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
-    .rail-title { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+    .rail-title {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--accent); white-space: nowrap; text-decoration: none;
+    }
+    .rail-title:hover { color: #5b21b6; }
+    .rail-sep { color: var(--muted); font-size: 11px; white-space: nowrap; }
     .stations { flex: 1; display: flex; gap: 3px; overflow-x: auto; scrollbar-width: none; }
     .stations::-webkit-scrollbar { display: none; }
     .stations a {
@@ -278,7 +283,9 @@
 <body>
   <nav class="rail" aria-label="Story path">
     <div class="rail-inner">
-      <div class="rail-title">People Path</div>
+      <a class="rail-title" href="/academy">Kept</a>
+      <span class="rail-sep" aria-hidden="true">·</span>
+      <div class="rail-sep">People Path</div>
       <div class="stations">
         <a href="#c1" data-h="people" data-station="recruit">Attract</a>
         <a href="#c2" data-h="core" data-station="onboard">Welcome</a>
@@ -295,7 +302,7 @@
 
   <div class="wrap">
     <header class="hero">
-      <p class="eyebrow">Interactive storytelling mockup · English</p>
+      <p class="eyebrow">Kept Executive Academy · Interactive storytelling · English</p>
       <h1>The People Path:<br /><em>one year with Lena</em></h1>
       <p class="lede">
         Click through the full employee lifecycle. Each chapter has real decisions —
@@ -668,7 +675,7 @@
     </section>
 
     <footer>
-      Interactive English storytelling mockup · Sourced from “Funcionalidades de cada módulo - Factorial RH.xlsx” · Not official product UI
+      Kept Executive Academy · People Path lifecycle story · Based on Factorial modules · Not official product UI
     </footer>
   </div>
 

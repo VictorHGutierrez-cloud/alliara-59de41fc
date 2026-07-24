@@ -47,7 +47,7 @@ export const COPY = {
     finalCtaPrimary: "Create account",
     finalCtaSecondary: "Sign in",
     trustEyebrow: "Built for the field",
-    trustBlurb: "Factorial playbooks, MEDDPICC, champion development, and demo mastery — organized for daily use.",
+    trustBlurb: "Factorial playbooks, MEDDPICC, champion development, and demo mastery — organized in Kept Executive Academy for daily use.",
     trustStats: [
       { value: "7+", label: "curated resources" },
       { value: "4", label: "learning tracks" },

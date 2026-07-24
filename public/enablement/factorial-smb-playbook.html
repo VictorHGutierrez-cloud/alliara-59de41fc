@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Factorial SMB Sales Playbook</title>
+  <title>SMB Sales Playbook · Kept Executive Academy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -31,12 +31,18 @@
       background: rgba(248,250,252,.95); backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--line); padding: 10px 16px;
     }
-    .top-inner { max-width: 920px; margin: 0 auto; display: flex; gap: 8px; overflow-x: auto; }
-    .top a {
+    .top-inner { max-width: 920px; margin: 0 auto; display: flex; gap: 8px; overflow-x: auto; align-items: center; }
+    .brand {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--accent); white-space: nowrap; margin-right: 6px; text-decoration: none;
+      padding: 8px 4px;
+    }
+    .brand:hover { color: #5b21b6; background: transparent; }
+    .top a:not(.brand) {
       text-decoration: none; color: var(--muted); font-size: 12px; font-weight: 650;
       padding: 8px 12px; border-radius: 999px; white-space: nowrap;
     }
-    .top a:hover { background: var(--card); color: var(--ink); }
+    .top a:not(.brand):hover { background: var(--card); color: var(--ink); }
     .wrap { max-width: 920px; margin: 0 auto; padding: 28px 20px 80px; }
     .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ops); }
     .hero h1 { font-size: clamp(2rem, 5vw, 3rem); margin: 8px 0 12px; max-width: 16ch; }
@@ -98,6 +104,7 @@
 <body>
   <nav class="top">
     <div class="top-inner">
+      <a class="brand" href="/academy">Kept</a>
       <a href="#smb">SMB reality</a>
       <a href="#buyer">Who buys</a>
       <a href="#qualify">Qualify fast</a>
@@ -112,7 +119,7 @@
 
   <div class="wrap">
     <header class="hero" style="padding:20px 0">
-      <p class="eyebrow">SMB playbook · Factorial seller</p>
+      <p class="eyebrow">Kept Executive Academy · SMB playbook · Factorial seller</p>
       <h1>Win SMB with speed, clarity, and one story</h1>
       <p class="lede">
         In SMB you rarely need heavy enterprise theater.
@@ -346,7 +353,7 @@
     </section>
 
     <footer>
-      SMB playbook for Victor · Pair with people-path-story.html · Not official Factorial training
+      Kept Executive Academy · Factorial SMB playbook · Pair with People Path · Not an official Factorial training doc
     </footer>
   </div>
 </body>

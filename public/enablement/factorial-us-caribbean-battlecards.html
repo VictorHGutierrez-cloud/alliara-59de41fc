@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Factorial Battle Cards · US & Caribbean · vs HiBob & Personio</title>
+  <title>Battle Cards · US & Caribbean · Kept Executive Academy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -33,12 +33,18 @@
       background: rgba(248,250,252,.96); backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--line); padding: 10px 14px;
     }
-    .top-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 6px; overflow-x: auto; }
-    .top a {
+    .top-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 6px; overflow-x: auto; align-items: center; }
+    .brand {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--accent); white-space: nowrap; margin-right: 6px; text-decoration: none;
+      padding: 8px 4px;
+    }
+    .brand:hover { color: #5b21b6; background: transparent; }
+    .top a:not(.brand) {
       text-decoration: none; color: var(--muted); font-size: 12px; font-weight: 650;
       padding: 8px 11px; border-radius: 999px; white-space: nowrap;
     }
-    .top a:hover { background: var(--card); color: var(--ink); }
+    .top a:not(.brand):hover { background: var(--card); color: var(--ink); }
     .wrap { max-width: 980px; margin: 0 auto; padding: 26px 18px 80px; }
     .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--ops); }
     .hero h1 { font-size: clamp(1.9rem, 4.8vw, 3rem); margin: 8px 0 10px; max-width: 18ch; }
@@ -104,6 +110,7 @@
 <body>
   <nav class="top">
     <div class="top-inner">
+      <a class="brand" href="/academy">Kept</a>
       <a href="#pov">POV</a>
       <a href="#hibob">vs HiBob</a>
       <a href="#personio">vs Personio</a>
@@ -116,7 +123,7 @@
 
   <div class="wrap">
     <header style="padding:18px 0 8px">
-      <p class="eyebrow">US &amp; Caribbean · SMB · Always English</p>
+      <p class="eyebrow">Kept Executive Academy · US &amp; Caribbean · SMB · Always English</p>
       <h1>Battle cards: Factorial vs HiBob &amp; Personio</h1>
       <p class="lede">
         Your market hears culture platforms and EU HR brands every week.
@@ -426,7 +433,7 @@ Open to a short bake-off?</div>
     </section>
 
     <footer>
-      Sales enablement for Victor · US &amp; Caribbean SMB · English · Competitive notes are positioning aids — always validate feature claims against current Product/SE guidance before formal RFP responses.
+      Kept Executive Academy · Factorial battle cards · US &amp; Caribbean SMB · English · Competitive notes are positioning aids — always validate feature claims against current Product/SE guidance before formal RFP responses.
     </footer>
   </div>
 

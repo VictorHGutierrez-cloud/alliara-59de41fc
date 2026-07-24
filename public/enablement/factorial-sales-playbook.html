@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Factorial Enterprise Sales Playbook</title>
+  <title>Enterprise Sales Playbook · Kept Executive Academy</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500;600;700&family=Fira+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -37,12 +37,18 @@
       background: rgba(248,250,252,.95); backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--line); padding: 10px 16px;
     }
-    .top-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 8px; overflow-x: auto; }
-    .top a {
+    .top-inner { max-width: 980px; margin: 0 auto; display: flex; gap: 8px; overflow-x: auto; align-items: center; }
+    .brand {
+      font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+      color: var(--accent); white-space: nowrap; margin-right: 6px; text-decoration: none;
+      padding: 8px 4px;
+    }
+    .brand:hover { color: #5b21b6; background: transparent; }
+    .top a:not(.brand) {
       text-decoration: none; color: var(--muted); font-size: 12px; font-weight: 650;
       padding: 8px 12px; border-radius: 999px; white-space: nowrap; background: transparent;
     }
-    .top a:hover, .top a.on { background: var(--card); color: var(--ink); }
+    .top a:not(.brand):hover, .top a.on { background: var(--card); color: var(--ink); }
     .wrap { max-width: 980px; margin: 0 auto; padding: 28px 20px 80px; }
     .hero { padding: 24px 0 20px; }
     .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--people); }
@@ -106,6 +112,7 @@
 <body>
   <nav class="top">
     <div class="top-inner">
+      <a class="brand" href="/academy">Kept</a>
       <a href="#mindset">Mindset</a>
       <a href="#differentiate">Differentiate</a>
       <a href="#meddpicc">MEDDPICC</a>
@@ -120,7 +127,7 @@
 
   <div class="wrap">
     <header class="hero">
-      <p class="eyebrow">Sales playbook · Factorial · Enterprise-ready</p>
+      <p class="eyebrow">Kept Executive Academy · Factorial · Enterprise playbook</p>
       <h1>Be the seller who makes Factorial inevitable</h1>
       <p class="lede">
         Competitors can list similar features. You win when the buyer feels:
@@ -398,7 +405,7 @@
     </section>
 
     <footer>
-      Personal coaching playbook · Pair with people-path-story.html · Not an official Factorial training doc
+      Kept Executive Academy · Factorial enterprise playbook · Pair with People Path · Not an official Factorial training doc
     </footer>
   </div>
 
