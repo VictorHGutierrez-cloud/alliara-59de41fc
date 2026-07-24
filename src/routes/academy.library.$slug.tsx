@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { MarkdownProse } from "@/components/ui/markdown-prose";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/academy/library/$slug")({
   head: ({ params }) => {
@@ -79,18 +80,43 @@ function AcademyLibraryReaderPage() {
   }
 
   const assetUrl = salesMaterialUrl(material);
+  const isHtml = material.kind === "html";
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-6 pb-24">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link
-          to="/academy/library"
-          className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden"
-        >
-          {COPY.academy.backToLibrary}
-        </Link>
-        <div className="flex flex-wrap items-center gap-3">
-          <label className="inline-flex min-h-11 items-center gap-2 text-xs font-medium cursor-pointer">
+    <div
+      className={cn(
+        "flex flex-col",
+        isHtml
+          ? "h-[calc(100dvh-5rem)] w-full"
+          : "mx-auto max-w-7xl px-6 py-6 pb-24",
+      )}
+    >
+      <div
+        className={cn(
+          "flex flex-wrap items-center justify-between gap-2 shrink-0",
+          isHtml
+            ? "border-b border-border/60 bg-card/90 px-3 py-2 sm:px-4 backdrop-blur-sm"
+            : "gap-3",
+        )}
+      >
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Link
+            to="/academy/library"
+            className="inline-flex min-h-10 items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden shrink-0"
+          >
+            {COPY.academy.backToLibrary}
+          </Link>
+          {isHtml ? (
+            <div className="min-w-0 hidden sm:block">
+              <p className="page-eyebrow text-primary truncate">
+                {SALES_MATERIAL_CATEGORIES[material.category].label}
+              </p>
+              <h1 className="truncate text-sm font-semibold tracking-tight">{material.title}</h1>
+            </div>
+          ) : null}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <label className="inline-flex min-h-10 items-center gap-2 text-xs font-medium cursor-pointer">
             <Checkbox
               checked={completed}
               onCheckedChange={() => {
@@ -104,10 +130,10 @@ function AcademyLibraryReaderPage() {
             href={assetUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-surface-2"
+            className="inline-flex min-h-10 items-center gap-1 rounded-lg border border-border px-3 text-xs font-semibold hover:bg-surface-2"
           >
             <ExternalLink className="h-3.5 w-3.5" />
-            {COPY.academy.openNewTab}
+            <span className="hidden sm:inline">{COPY.academy.openNewTab}</span>
           </a>
           <Link
             to="/academy/ask"
@@ -115,25 +141,27 @@ function AcademyLibraryReaderPage() {
               topic: material.title,
               draft: COPY.academy.askContextDraft(material.title),
             }}
-            className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:opacity-90"
+            className="inline-flex min-h-10 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:opacity-90"
           >
             <MessageCircleQuestion className="h-3.5 w-3.5" />
-            {COPY.academy.askAboutThis}
+            <span className="hidden sm:inline">{COPY.academy.askAboutThis}</span>
           </Link>
         </div>
       </div>
 
-      <header className="mt-4 border-b border-border/60 pb-4">
-        <p className="page-eyebrow text-primary">{SALES_MATERIAL_CATEGORIES[material.category].label}</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight">{material.title}</h1>
-        <p className="mt-2 text-sm text-muted-foreground max-w-3xl">{material.summary}</p>
-      </header>
+      {!isHtml ? (
+        <header className="mt-4 border-b border-border/60 pb-4">
+          <p className="page-eyebrow text-primary">{SALES_MATERIAL_CATEGORIES[material.category].label}</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">{material.title}</h1>
+          <p className="mt-2 text-sm text-muted-foreground max-w-3xl">{material.summary}</p>
+        </header>
+      ) : null}
 
-      {material.kind === "html" ? (
+      {isHtml ? (
         <iframe
           title={material.title}
           src={assetUrl}
-          className="mt-4 h-[min(78vh,900px)] w-full rounded-2xl border border-border bg-card"
+          className="min-h-0 w-full flex-1 border-0 bg-card"
         />
       ) : material.kind === "video" ? (
         <div className="mt-4 overflow-hidden rounded-2xl border border-border bg-card shadow-[var(--shadow-card)]">
