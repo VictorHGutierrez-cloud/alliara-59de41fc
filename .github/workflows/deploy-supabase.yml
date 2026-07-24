@@ -13,12 +13,62 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Deploy functions
-        run: supabase functions deploy --project-ref "${{ secrets.SUPABASE_PROJECT_ID }}"
+      - name: Validate secrets
+        id: secrets
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
+            echo "::error::Missing GitHub secret SUPABASE_ACCESS_TOKEN."
+            echo "Create a token at https://supabase.com/dashboard/account/tokens"
+            echo "Then add it in GitHub: Settings → Secrets and variables → Actions → New repository secret"
+            exit 1
+          fi
+
+          PROJECT_ID="${VITE_SUPABASE_PROJECT_ID:-${SUPABASE_PROJECT_ID:-}}"
+          if [ -z "$PROJECT_ID" ]; then
+            echo "::error::Missing project ref secret."
+            echo "Add VITE_SUPABASE_PROJECT_ID (same value Cloudflare deploy uses) in GitHub Actions secrets."
+            echo "Find it in your Supabase dashboard URL: https://supabase.com/dashboard/project/<project-id>"
+            exit 1
+          fi
+
+          echo "project_id=$PROJECT_ID" >> "$GITHUB_OUTPUT"
+          echo "Secrets OK. Project ref length: ${#PROJECT_ID}"
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v3
+        with:
+          version: 2.20.12
+
+      - name: Deploy Edge Functions
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          PROJECT_ID: ${{ steps.secrets.outputs.project_id }}
+        run: |
+          set -euo pipefail
+
+          FUNCTIONS=(
+            ai-coach
+            partner-intel
+            kept-ask
+            sales-ask
+            delete-guidance
+            hubspot-oauth-start
+            hubspot-oauth-callback
+            hubspot-sync
+            hubspot-synthesize
+            hubspot-write-note
+            sales-briefing-ingest
+          )
+
+          for fn in "${FUNCTIONS[@]}"; do
+            echo "---- Deploying ${fn} ----"
+            supabase functions deploy "$fn" --project-ref "$PROJECT_ID"
+          done
+
+          echo "All ${#FUNCTIONS[@]} Edge Functions deployed."
