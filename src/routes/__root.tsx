@@ -32,6 +32,8 @@ import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { COPY } from "@/lib/copy";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { KeptAmbientPresence } from "@/components/brand/KeptAmbientPresence";
+import { Dock } from "@/components/ui/dock";
+import { useAcademyProgressSync } from "@/hooks/use-academy-progress-sync";
 import { cn } from "@/lib/utils";
 
 const SIDEBAR_COLLAPSED_KEY = "kept-sidebar-collapsed";
@@ -129,6 +131,7 @@ function AppFrame() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isLanding = path === "/";
   const navigate = useNavigate();
+  useAcademyProgressSync(user?.id);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") return false;
@@ -264,6 +267,18 @@ function AppFrame() {
   }
 
   const inAppWorkspace = Boolean(user && !isLanding);
+
+  const mobileDockItems = useMemo(
+    () =>
+      workspaceItems.filter((i) =>
+        ["home", "library", "coach", "tracks", "briefing"].includes(i.key),
+      ),
+    [workspaceItems],
+  );
+
+  const showMobileDock =
+    inAppWorkspace &&
+    (path.startsWith("/academy") || path.startsWith("/onboarding"));
 
   const sidebarColClass = sidebarCollapsed
     ? "lg:grid-cols-[4.5rem_1fr]"
@@ -489,10 +504,16 @@ function AppFrame() {
           </div>
         </header>
 
-        <main className="relative min-w-0 flex-1">
+        <main className={cn("relative min-w-0 flex-1", showMobileDock && "pb-24 lg:pb-0")}>
           <Outlet />
           {inAppWorkspace && <KeptAmbientPresence />}
         </main>
+
+        {showMobileDock ? (
+          <div className="lg:hidden">
+            <Dock items={mobileDockItems} className="bottom-3 safe-area-pb" />
+          </div>
+        ) : null}
 
         {!isLanding && (
           <footer className="border-t border-border/50 bg-card/30 py-8 text-center">

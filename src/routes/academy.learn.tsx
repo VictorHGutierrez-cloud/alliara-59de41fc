@@ -6,11 +6,13 @@ import { COPY } from "@/lib/copy";
 import { getSalesMaterial, LMS_TRACKS } from "@/content/sales-library";
 import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
 import {
+  completeMaterial,
   isMaterialCompleted,
+  pushAcademyProgress,
   saveLastStudy,
-  toggleMaterialCompleted,
   trackCompletionPercent,
 } from "@/lib/academy-progress";
+import { useCompletionCelebration } from "@/hooks/use-completion-celebration";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
@@ -24,6 +26,7 @@ function AcademyLearnPage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const [, tick] = useState(0);
+  const { celebrate, celebration } = useCompletionCelebration();
 
   useEffect(() => {
     if (!loading && !user) void nav({ to: "/login" });
@@ -37,6 +40,7 @@ function AcademyLearnPage() {
       title={COPY.academy.learnTitle}
       subtitle={COPY.academy.learnIntro}
     >
+      {celebration}
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         {LMS_TRACKS.map((track) => {
           const pct = trackCompletionPercent(track.materialSlugs);
@@ -51,7 +55,18 @@ function AcademyLearnPage() {
                   {COPY.academy.trackComingSoon}
                 </div>
               )}
-              <div className="flex items-center justify-between gap-3 pr-24">
+              <div
+                className="flex items-center justify-between gap-3 pr-24"
+                onClick={() =>
+                  saveLastStudy({ type: "track", slug: track.id, title: track.title })
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    saveLastStudy({ type: "track", slug: track.id, title: track.title });
+                  }
+                }}
+                role="presentation"
+              >
                 <h2 className="text-base font-semibold">{track.title}</h2>
                 <span className="page-eyebrow">
                   Track {track.order}
@@ -77,7 +92,9 @@ function AcademyLearnPage() {
                             id={`track-${track.id}-${slug}`}
                             checked={done}
                             onCheckedChange={() => {
-                              toggleMaterialCompleted(slug);
+                              const { justCompleted } = completeMaterial(slug);
+                              if (justCompleted) celebrate();
+                              if (user) void pushAcademyProgress(user.id);
                               tick((n) => n + 1);
                             }}
                             className="mt-0.5"

@@ -199,13 +199,16 @@ export const COPY = {
     learnMetaTitle: "Learning tracks · Executive Academy",
     learnTitle: "Learning tracks",
     learnIntro:
-      "Tracks group library content into paths. Mark materials complete as you go — progress is saved on this device.",
+      "Tracks group library content into paths. Mark materials complete as you go — progress syncs to your account.",
     trackComingSoon: "Coming soon",
     trackEmpty: "Content will be added to this track.",
     trackProgress: (pct: number) => `${pct}% complete`,
+    studyStreakLabel: (n: number) =>
+      n === 1 ? "1-day study streak" : `${n}-day study streak`,
+    studyStreakEmpty: "Study today to start your streak",
     lmsFutureTitle: "More coming",
     lmsFutureBody:
-      "Quizzes, team assignments, and cloud sync are on the roadmap. Library, coach, and local progress are live now.",
+      "Quizzes and team assignments are on the roadmap. Library, coach, cloud progress, and streaks are live now.",
     dockLabel: "Home",
     dockLibrary: "Library",
     dockCoach: "Coach",

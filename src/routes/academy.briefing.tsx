@@ -8,6 +8,7 @@ import { getSalesMaterial } from "@/content/sales-library";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { cn } from "@/lib/utils";
+import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
 
 export const Route = createFileRoute("/academy/briefing")({
   head: () => ({ meta: [{ title: COPY.academy.briefingMetaTitle }] }),
@@ -81,27 +82,12 @@ function AcademyBriefingPage() {
   if (loading || !user) return <AcademyAuthSkeleton />;
 
   return (
-    <div className="mx-auto max-w-4xl px-6 py-8 pb-32">
-      <Link
-        to="/academy"
-        className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground lg:hidden"
-      >
-        {COPY.academy.backToHub}
-      </Link>
-
-      <header className="mt-4 flex flex-wrap items-start gap-4 justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <Newspaper className="h-3.5 w-3.5 text-primary" aria-hidden />
-            <p className="page-eyebrow">{COPY.academy.briefingEyebrow}</p>
-          </div>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight">{COPY.academy.briefingTitle}</h1>
-          <p className="mt-2 text-sm text-muted-foreground max-w-2xl leading-relaxed">
-            {COPY.academy.briefingIntro}
-          </p>
-        </div>
-      </header>
-
+    <AcademyPageShell
+      backToAcademy
+      eyebrow={COPY.academy.briefingEyebrow}
+      title={COPY.academy.briefingTitle}
+      subtitle={COPY.academy.briefingIntro}
+    >
       <div className="mt-6 flex flex-wrap gap-2" role="tablist" aria-label="Time range">
         {(
           [
@@ -219,6 +205,8 @@ function AcademyBriefingPage() {
                 to="/academy/ask"
                 search={{
                   topic: b.title,
+                  source: "briefing",
+                  ...(b.related_slugs[0] ? { slug: b.related_slugs[0] } : {}),
                   draft: COPY.academy.askBriefingDraft(b.title),
                 }}
                 className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
@@ -230,7 +218,7 @@ function AcademyBriefingPage() {
           </article>
         ))}
       </div>
-    </div>
+    </AcademyPageShell>
   );
 }
 

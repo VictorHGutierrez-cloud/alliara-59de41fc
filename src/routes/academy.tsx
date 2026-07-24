@@ -1,11 +1,11 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookOpen, GraduationCap, MessageCircleQuestion, Newspaper, Sparkles } from "lucide-react";
+import { BookOpen, Flame, GraduationCap, MessageCircleQuestion, Newspaper, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import { LMS_TRACKS, SALES_LIBRARY } from "@/content/sales-library";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
-import { loadLastStudy } from "@/lib/academy-progress";
+import { loadLastStudy, getStudyStreak } from "@/lib/academy-progress";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { CalloutBanner } from "@/components/ui/callout-banner";
 import { FeatureHubCard } from "@/components/ui/feature-hub-card";
@@ -46,12 +46,14 @@ function AcademyHomePage() {
   const nav = useNavigate();
   const trackAvailable = LMS_TRACKS.filter((t) => t.status === "available").length;
   const [lastStudy, setLastStudy] = useState(() => loadLastStudy());
+  const [streak, setStreak] = useState(() => getStudyStreak());
   const [showTourBanner, setShowTourBanner] = useState(
     () => !isOnboardingFirstRunComplete(),
   );
 
   useEffect(() => {
     setLastStudy(loadLastStudy());
+    setStreak(getStudyStreak());
   }, []);
 
   useEffect(() => {
@@ -86,6 +88,15 @@ function AcademyHomePage() {
           </div>
           <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">{COPY.academy.pageTitle}</h1>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">{COPY.academy.intro}</p>
+          <p
+            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2/80 px-3 py-1 text-xs font-medium text-muted-foreground"
+            aria-live="polite"
+          >
+            <Flame className="h-3.5 w-3.5 text-primary" aria-hidden />
+            {streak.current > 0
+              ? COPY.academy.studyStreakLabel(streak.current)
+              : COPY.academy.studyStreakEmpty}
+          </p>
         </div>
         <KeptIllustration variant="keepsContext" className="h-[110px] w-auto opacity-95" decorative />
       </section>

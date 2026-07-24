@@ -8,7 +8,8 @@ import {
   salesMaterialUrl,
   SALES_MATERIAL_CATEGORIES,
 } from "@/content/sales-library";
-import { saveLastStudy, isMaterialCompleted, toggleMaterialCompleted } from "@/lib/academy-progress";
+import { saveLastStudy, isMaterialCompleted, completeMaterial, pushAcademyProgress } from "@/lib/academy-progress";
+import { useCompletionCelebration } from "@/hooks/use-completion-celebration";
 import { Checkbox } from "@/components/ui/checkbox";
 import { MarkdownProse } from "@/components/ui/markdown-prose";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -31,6 +32,7 @@ function AcademyLibraryReaderPage() {
   const [mdText, setMdText] = useState<string | null>(null);
   const [mdLoading, setMdLoading] = useState(false);
   const [completed, setCompleted] = useState(() => isMaterialCompleted(slug));
+  const { celebrate, celebration } = useCompletionCelebration();
 
   useEffect(() => {
     if (!loading && !user) void nav({ to: "/login" });
@@ -79,8 +81,8 @@ function AcademyLibraryReaderPage() {
     );
   }
 
-  const assetUrl = salesMaterialUrl(material);
   const isHtml = material.kind === "html";
+  const assetUrl = salesMaterialUrl(material, { embed: isHtml });
 
   return (
     <div
@@ -91,6 +93,7 @@ function AcademyLibraryReaderPage() {
           : "mx-auto max-w-7xl px-6 py-6 pb-24",
       )}
     >
+      {celebration}
       <div
         className={cn(
           "flex flex-wrap items-center justify-between gap-2 shrink-0",
@@ -120,8 +123,10 @@ function AcademyLibraryReaderPage() {
             <Checkbox
               checked={completed}
               onCheckedChange={() => {
-                const next = toggleMaterialCompleted(slug);
+                const { completed: next, justCompleted } = completeMaterial(slug);
                 setCompleted(next);
+                if (justCompleted) celebrate();
+                if (user) void pushAcademyProgress(user.id);
               }}
             />
             {completed ? COPY.academy.markIncomplete : COPY.academy.markComplete}
@@ -139,6 +144,8 @@ function AcademyLibraryReaderPage() {
             to="/academy/ask"
             search={{
               topic: material.title,
+              slug: material.slug,
+              source: "library",
               draft: COPY.academy.askContextDraft(material.title),
             }}
             className="inline-flex min-h-10 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:opacity-90"

@@ -47,6 +47,21 @@ Never invent product features. If unsure, say what to validate with Product/SE. 
 interface AskRequest {
   question: string;
   history?: { role: "user" | "assistant"; content: string }[];
+  context?: {
+    topic?: string;
+    slug?: string;
+    source?: "library" | "briefing" | "dock";
+  };
+}
+
+function buildSystem(context?: AskRequest["context"]): string {
+  if (!context?.topic && !context?.slug && !context?.source) return SYSTEM;
+  const lines = ["\n\nSESSION CONTEXT (use this to tailor your answer):"];
+  if (context.topic) lines.push(`- Topic: ${context.topic}`);
+  if (context.slug) lines.push(`- Academy material slug: ${context.slug}`);
+  if (context.source) lines.push(`- User arrived from: ${context.source}`);
+  lines.push("- Tie advice to this material or briefing when relevant.");
+  return SYSTEM + lines.join("\n");
 }
 
 serve(async (req) => {
@@ -57,7 +72,7 @@ serve(async (req) => {
     if (!question) return json({ error: "Empty question" }, 400);
 
     const messages = [
-      { role: "system", content: SYSTEM },
+      { role: "system", content: buildSystem(body.context) },
       ...(body.history ?? []).slice(-12),
       { role: "user", content: question },
     ];

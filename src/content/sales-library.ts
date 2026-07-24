@@ -21,6 +21,8 @@ export interface SalesMaterial {
   assetPath: string;
   durationMin?: number;
   tags: string[];
+  /** When false, hidden from library grid (still available for AI / tracks). */
+  showInLibrary?: boolean;
 }
 
 export const SALES_MATERIAL_CATEGORIES: Record<
@@ -115,6 +117,7 @@ export const SALES_LIBRARY: SalesMaterial[] = [
     assetPath: "sales-psychology.md",
     durationMin: 30,
     tags: ["reference", "curriculum", "empathy"],
+    showInLibrary: false,
   },
   {
     slug: "hr-mockup",
@@ -251,11 +254,23 @@ export function getSalesMaterial(slug: string): SalesMaterial | undefined {
   return SALES_LIBRARY.find((m) => m.slug === slug);
 }
 
-export function salesMaterialUrl(material: SalesMaterial): string {
+export function salesMaterialUrl(material: SalesMaterial, opts?: { embed?: boolean }): string {
+  let url: string;
   if (material.kind === "video") {
-    return `/videos/${material.assetPath}`;
+    url = `/videos/${material.assetPath}`;
+  } else {
+    url = `/enablement/${material.assetPath}`;
   }
-  return `/enablement/${material.assetPath}`;
+  if (opts?.embed && material.kind === "html") {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}embed=1`;
+  }
+  return url;
+}
+
+/** Materials shown in the library grid and search. */
+export function libraryMaterials(): SalesMaterial[] {
+  return SALES_LIBRARY.filter((m) => m.showInLibrary !== false);
 }
 
 export interface LmsTrack {

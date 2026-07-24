@@ -9,6 +9,12 @@ import { KeptAiChat, type KeptChatMessage } from "@/components/kept/KeptAiChat";
 
 const STORAGE_KEY = "kept-academy-ask-messages";
 
+type CoachContext = {
+  topic?: string;
+  slug?: string;
+  source?: "library" | "briefing" | "dock";
+};
+
 function loadMessages(): KeptChatMessage[] {
   if (typeof window === "undefined") return [];
   try {
@@ -38,9 +44,19 @@ export const Route = createFileRoute("/academy/ask")({
       typeof search.draft === "string" && search.draft.trim()
         ? search.draft.trim().slice(0, 600)
         : undefined;
+    const slug =
+      typeof search.slug === "string" && search.slug.trim()
+        ? search.slug.trim().slice(0, 80)
+        : undefined;
+    const source =
+      search.source === "library" || search.source === "briefing" || search.source === "dock"
+        ? search.source
+        : undefined;
     return {
       ...(topic ? { topic } : {}),
       ...(draft ? { draft } : {}),
+      ...(slug ? { slug } : {}),
+      ...(source ? { source } : {}),
     };
   },
   component: AcademyAskPage,
@@ -55,6 +71,7 @@ function AcademyAskPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [contextTopic, setContextTopic] = useState<string | undefined>(undefined);
+  const coachContext = useRef<CoachContext>({});
   const scrollRef = useRef<HTMLDivElement>(null);
   const appliedSearch = useRef(false);
 
@@ -64,16 +81,21 @@ function AcademyAskPage() {
 
   useEffect(() => {
     if (appliedSearch.current) return;
-    if (!search.draft && !search.topic) return;
+    if (!search.draft && !search.topic && !search.slug) return;
     appliedSearch.current = true;
     if (search.draft) setInput(search.draft);
     if (search.topic) setContextTopic(search.topic);
+    coachContext.current = {
+      topic: search.topic,
+      slug: search.slug,
+      source: search.source,
+    };
     void nav({
       to: "/academy/ask",
       search: {},
       replace: true,
     });
-  }, [search.draft, search.topic, nav]);
+  }, [search.draft, search.topic, search.slug, search.source, nav]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -89,8 +111,13 @@ function AcademyAskPage() {
     saveMessages(next);
     setBusy(true);
     try {
+      const ctx = coachContext.current;
       const { data, error: err } = await supabase.functions.invoke("sales-ask", {
-        body: { question: q, history: messages.slice(-12) },
+        body: {
+          question: q,
+          history: messages.slice(-12),
+          ...(ctx.topic || ctx.slug || ctx.source ? { context: ctx } : {}),
+        },
       });
       if (err) throw err;
       const content = (data as { content?: string })?.content ?? "";
@@ -114,13 +141,14 @@ function AcademyAskPage() {
     saveMessages([]);
     setError(null);
     setContextTopic(undefined);
+    coachContext.current = {};
     setInput("");
   }
 
   if (loading || !user) return <AcademyAuthSkeleton />;
 
   return (
-    <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-4xl flex-col px-4 py-4 sm:px-6">
+    <div className="mx-auto flex h-[calc(100dvh-5rem)] max-w-4xl flex-col px-4 py-4 pb-24 sm:px-6 lg:pb-4">
       <Link
         to="/academy"
         className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden"

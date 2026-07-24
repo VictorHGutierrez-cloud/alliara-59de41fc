@@ -801,6 +801,30 @@ export type Database = {
         }
         Relationships: []
       }
+      academy_progress: {
+        Row: {
+          user_id: string
+          completed_slugs: string[]
+          last_study: Json | null
+          study_dates: string[]
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          completed_slugs?: string[]
+          last_study?: Json | null
+          study_dates?: string[]
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          completed_slugs?: string[]
+          last_study?: Json | null
+          study_dates?: string[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sales_briefs: {
         Row: {
           created_at: string

@@ -1,14 +1,14 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import {
-  SALES_LIBRARY,
   SALES_MATERIAL_CATEGORIES,
+  libraryMaterials,
   type SalesMaterialCategory,
 } from "@/content/sales-library";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
+import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
 import { ContentResourceCard } from "@/components/ui/content-resource-card";
 import { SearchField } from "@/components/ui/search-field";
 
@@ -40,7 +40,7 @@ function AcademyLibraryPage() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return SALES_LIBRARY.filter((m) => {
+    return libraryMaterials().filter((m) => {
       if (category !== "all" && m.category !== category) return false;
       if (!q) return true;
       const hay = [m.title, m.summary, ...m.tags].join(" ").toLowerCase();
@@ -49,20 +49,11 @@ function AcademyLibraryPage() {
   }, [query, category]);
 
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 pb-32">
-      <Link
-        to="/academy"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden"
-      >
-        <ArrowLeft className="h-4 w-4" aria-hidden />
-        {COPY.academy.backToHub}
-      </Link>
-
-      <header className="mt-4">
-        <h1 className="text-2xl sm:text-3xl font-semibold">{COPY.academy.libraryTitle}</h1>
-        <p className="mt-2 text-sm text-muted-foreground max-w-2xl">{COPY.academy.libraryIntro}</p>
-      </header>
-
+    <AcademyPageShell
+      backToAcademy
+      title={COPY.academy.libraryTitle}
+      subtitle={COPY.academy.libraryIntro}
+    >
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <SearchField
           value={query}
@@ -101,7 +92,7 @@ function AcademyLibraryPage() {
       {filtered.length === 0 && (
         <p className="mt-10 text-center text-sm text-muted-foreground">{COPY.academy.libraryEmpty}</p>
       )}
-    </div>
+    </AcademyPageShell>
   );
 }
 
