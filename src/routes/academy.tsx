@@ -7,6 +7,10 @@ import { LMS_TRACKS, SALES_LIBRARY } from "@/content/sales-library";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { loadLastStudy } from "@/lib/academy-progress";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
+import {
+  isOnboardingFirstRunComplete,
+  markOnboardingFirstRunComplete,
+} from "@/lib/onboarding-first-run";
 
 export const Route = createFileRoute("/academy")({
   head: () => ({
@@ -36,12 +40,32 @@ function AcademyLayout() {
 }
 
 function AcademyHomePage() {
+  const { accessStatus } = useAuth();
+  const nav = useNavigate();
   const trackAvailable = LMS_TRACKS.filter((t) => t.status === "available").length;
   const [lastStudy, setLastStudy] = useState(() => loadLastStudy());
+  const [showTourBanner, setShowTourBanner] = useState(
+    () => !isOnboardingFirstRunComplete(),
+  );
 
   useEffect(() => {
     setLastStudy(loadLastStudy());
   }, []);
+
+  useEffect(() => {
+    if (accessStatus !== "approved") return;
+    if (isOnboardingFirstRunComplete()) return;
+    void nav({
+      to: "/onboarding/$stepId",
+      params: { stepId: "welcome" },
+      replace: true,
+    });
+  }, [accessStatus, nav]);
+
+  function dismissTourBanner() {
+    markOnboardingFirstRunComplete();
+    setShowTourBanner(false);
+  }
 
   const resumeTo =
     lastStudy?.type === "material"
@@ -63,6 +87,31 @@ function AcademyHomePage() {
         </div>
         <KeptIllustration variant="keepsContext" className="h-[110px] w-auto opacity-95" decorative />
       </section>
+
+      {showTourBanner ? (
+        <section className="mt-8 rounded-2xl border border-accent/30 bg-accent/10 p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold">{COPY.onboarding.firstRunBannerTitle}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{COPY.onboarding.firstRunBannerBody}</p>
+          </div>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <Link
+              to="/onboarding/$stepId"
+              params={{ stepId: "welcome" }}
+              className="inline-flex min-h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
+            >
+              {COPY.onboarding.firstRunBannerCta}
+            </Link>
+            <button
+              type="button"
+              onClick={dismissTourBanner}
+              className="inline-flex min-h-10 items-center rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
+            >
+              {COPY.onboarding.skipToAcademy}
+            </button>
+          </div>
+        </section>
+      ) : null}
 
       {lastStudy ? (
         <section className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5">

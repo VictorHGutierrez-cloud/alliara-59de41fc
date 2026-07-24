@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
+  GraduationCap,
   BookOpen,
   MessageCircleQuestion,
   Route as RouteIcon,
@@ -210,6 +211,13 @@ function AppFrame() {
               label: COPY.appShell.dockBriefing,
               active: path.startsWith("/academy/briefing"),
               onClick: () => navigate({ to: "/academy/briefing" }),
+            },
+            {
+              key: "tour",
+              icon: GraduationCap,
+              label: COPY.appShell.dockTour,
+              active: path.startsWith("/onboarding"),
+              onClick: () => navigate({ to: "/onboarding" }),
             },
             {
               key: "settings",

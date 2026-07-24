@@ -2,8 +2,10 @@ import { createFileRoute, Link, useNavigate, Outlet, useRouterState } from "@tan
 import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Check, GraduationCap, RotateCcw } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { COPY } from "@/lib/copy";
 import { ONBOARDING_STEPS, ONBOARDING_PROGRESS_KEY } from "@/content/onboarding";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { markOnboardingFirstRunComplete } from "@/lib/onboarding-first-run";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/onboarding")({
@@ -77,14 +79,23 @@ function OnboardingLayout() {
             A step-by-step tour. Skip, go back, or jump straight into any part of the app from here.
           </p>
         </div>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">Progress</p>
-          <p className="text-2xl font-semibold text-foreground">{completed}/{total}</p>
+        <div className="flex flex-col items-end gap-2 text-right">
+          <div>
+            <p className="text-xs text-muted-foreground">Progress</p>
+            <p className="text-2xl font-semibold text-foreground">{completed}/{total}</p>
+          </div>
+          <Link
+            to="/academy"
+            onClick={() => markOnboardingFirstRunComplete()}
+            className="inline-flex min-h-10 items-center rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
+          >
+            {COPY.onboarding.skipToAcademy}
+          </Link>
           {completed > 0 && (
             <button
               type="button"
               onClick={reset}
-              className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
             >
               <RotateCcw className="h-3 w-3" /> Restart
             </button>

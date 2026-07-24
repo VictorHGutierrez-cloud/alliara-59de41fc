@@ -236,6 +236,7 @@ export const COPY = {
     dockCoach: "Coach",
     dockTracks: "Tracks",
     dockBriefing: "Briefing",
+    dockTour: "Tour",
     dockSettings: "Settings",
     dockSignOut: "Sign out",
     dockApprovals: "Approvals",
@@ -248,5 +249,9 @@ export const COPY = {
     bodyLead:
       "Five steps to find the library, ask the coach, and start your first track.",
     replayCta: "Replay tour",
+    skipToAcademy: "Skip tour — go to Academy",
+    firstRunBannerTitle: "New here? Take the 5-step tour",
+    firstRunBannerBody: "Library, coach, and tracks — a quick walkthrough before your first call.",
+    firstRunBannerCta: "Start tour",
   },
 } as const;

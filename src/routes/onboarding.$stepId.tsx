@@ -1,8 +1,10 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { COPY } from "@/lib/copy";
 import { ONBOARDING_STEPS, ONBOARDING_PROGRESS_KEY } from "@/content/onboarding";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { markOnboardingFirstRunComplete } from "@/lib/onboarding-first-run";
 
 export const Route = createFileRoute("/onboarding/$stepId")({
   head: ({ params }) => {
@@ -131,7 +133,8 @@ function OnboardingStepPage() {
           </button>
         ) : (
           <Link
-            to="/onboarding"
+            to="/academy"
+            onClick={() => markOnboardingFirstRunComplete()}
             className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground glow-ring"
           >
             Finish tour <Check className="h-4 w-4" />
