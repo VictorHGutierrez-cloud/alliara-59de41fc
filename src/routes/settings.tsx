@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
+import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
@@ -47,7 +48,7 @@ function SettingsPage() {
     else toast.success(COPY.settings.savedToast);
   }
 
-  if (loading || !user) return null;
+  if (loading || !user) return <AcademyAuthSkeleton />;
 
   return (
     <AcademyPageShell

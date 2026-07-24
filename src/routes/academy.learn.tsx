@@ -13,6 +13,7 @@ import {
 } from "@/lib/academy-progress";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
+import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 
 export const Route = createFileRoute("/academy/learn")({
   head: () => ({ meta: [{ title: COPY.academy.learnMetaTitle }] }),
@@ -28,12 +29,7 @@ function AcademyLearnPage() {
     if (!loading && !user) void nav({ to: "/login" });
   }, [loading, user, nav]);
 
-  useEffect(() => {
-    const first = LMS_TRACKS.find((t) => t.status === "available");
-    if (first) saveLastStudy({ type: "track", slug: first.id, title: first.title });
-  }, []);
-
-  if (loading || !user) return null;
+  if (loading || !user) return <AcademyAuthSkeleton />;
 
   return (
     <AcademyPageShell

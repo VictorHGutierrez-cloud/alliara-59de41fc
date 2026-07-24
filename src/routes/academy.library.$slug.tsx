@@ -12,6 +12,7 @@ import { saveLastStudy, isMaterialCompleted, toggleMaterialCompleted } from "@/l
 import { Checkbox } from "@/components/ui/checkbox";
 import { MarkdownProse } from "@/components/ui/markdown-prose";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 
 export const Route = createFileRoute("/academy/library/$slug")({
   head: ({ params }) => {
@@ -64,7 +65,7 @@ function AcademyLibraryReaderPage() {
     };
   }, [material]);
 
-  if (loading || !user) return null;
+  if (loading || !user) return <AcademyAuthSkeleton />;
 
   if (!material) {
     return (

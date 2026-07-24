@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
-import { BookOpen, Clock, MessageCircleQuestion } from "lucide-react";
+import { BookOpen, Clock, MessageCircleQuestion, Route as RouteIcon } from "lucide-react";
 import { FactorialStyleHero } from "@/components/landing/FactorialStyleHero";
 import {
   AnimatedCard,
@@ -56,7 +56,7 @@ function Landing() {
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <PillarCard title={L.pillarLibraryTitle} body={L.pillarLibraryBody} icon={BookOpen} />
               <PillarCard title={L.pillarCoachTitle} body={L.pillarCoachBody} icon={MessageCircleQuestion} />
-              <PillarCard title={L.pillarTracksTitle} body={L.pillarTracksBody} icon={BookOpen} />
+              <PillarCard title={L.pillarTracksTitle} body={L.pillarTracksBody} icon={RouteIcon} />
             </div>
           </div>
         </section>

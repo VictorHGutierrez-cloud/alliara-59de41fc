@@ -49,8 +49,8 @@ export const COPY = {
     trustEyebrow: "Built for the field",
     trustBlurb: "Factorial playbooks, MEDDPICC, champion development, and demo mastery — organized in Kept Executive Academy for daily use.",
     trustStats: [
-      { value: "7+", label: "curated resources" },
-      { value: "4", label: "learning tracks" },
+      { value: "19", label: "curated resources" },
+      { value: "5", label: "learning tracks" },
       { value: "1", label: "situational coach" },
     ] as const,
   },

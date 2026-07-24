@@ -8,6 +8,7 @@ import {
   SALES_MATERIAL_CATEGORIES,
   type SalesMaterialCategory,
 } from "@/content/sales-library";
+import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 
 export const Route = createFileRoute("/academy/library")({
   head: () => ({ meta: [{ title: COPY.academy.libraryMetaTitle }] }),
@@ -24,7 +25,7 @@ function AcademyLibraryLayout() {
     if (!loading && !user) void nav({ to: "/login" });
   }, [loading, user, nav]);
 
-  if (loading || !user) return null;
+  if (loading || !user) return <AcademyAuthSkeleton />;
 
   if (!isIndex) return <Outlet />;
 

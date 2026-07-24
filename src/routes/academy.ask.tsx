@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownProse } from "@/components/ui/markdown-prose";
 import { COPY } from "@/lib/copy";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "kept-academy-ask-messages";
@@ -98,7 +99,7 @@ function AcademyAskPage() {
     setError(null);
   }
 
-  if (loading || !user) return null;
+  if (loading || !user) return <AcademyAuthSkeleton />;
 
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-3xl flex-col px-4 py-4 sm:px-6">

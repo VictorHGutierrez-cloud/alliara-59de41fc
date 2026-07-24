@@ -6,6 +6,7 @@ import { COPY } from "@/lib/copy";
 import { LMS_TRACKS, SALES_LIBRARY } from "@/content/sales-library";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { loadLastStudy } from "@/lib/academy-progress";
+import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 
 export const Route = createFileRoute("/academy")({
   head: () => ({
@@ -27,7 +28,7 @@ function AcademyLayout() {
     if (!loading && !user) void nav({ to: "/login" });
   }, [loading, user, nav]);
 
-  if (loading || !user) return null;
+  if (loading || !user) return <AcademyAuthSkeleton />;
 
   if (!isIndex) return <Outlet />;
 

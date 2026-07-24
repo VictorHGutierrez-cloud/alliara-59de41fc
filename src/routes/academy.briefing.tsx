@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { COPY } from "@/lib/copy";
 import { getSalesMaterial } from "@/content/sales-library";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/academy/briefing")({
@@ -77,7 +78,7 @@ function AcademyBriefingPage() {
     });
   }, [briefs, range]);
 
-  if (loading || !user) return null;
+  if (loading || !user) return <AcademyAuthSkeleton />;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-8 pb-32">
