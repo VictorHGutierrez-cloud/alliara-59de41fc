@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
-import { BookOpen, Clock, MessageCircleQuestion, Route as RouteIcon } from "lucide-react";
+import { BookOpen, MessageCircleQuestion, Route as RouteIcon } from "lucide-react";
 import { FactorialStyleHero } from "@/components/landing/FactorialStyleHero";
 import {
   AnimatedCard,
@@ -8,6 +8,8 @@ import {
   CardDescription,
   CardTitle,
 } from "@/components/ui/animated-card";
+import { ContentResourceCard } from "@/components/ui/content-resource-card";
+import { FeatureHubCard } from "@/components/ui/feature-hub-card";
 import { COPY } from "@/lib/copy";
 import { SALES_LIBRARY, SALES_MATERIAL_CATEGORIES } from "@/content/sales-library";
 
@@ -54,9 +56,9 @@ function Landing() {
             <h2 className="mt-3 text-center section-title text-3xl sm:text-4xl">{L.pillarsTitle}</h2>
             <p className="mx-auto mt-3 max-w-2xl text-center section-subtitle">{L.pillarsIntro}</p>
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
-              <PillarCard title={L.pillarLibraryTitle} body={L.pillarLibraryBody} icon={BookOpen} />
-              <PillarCard title={L.pillarCoachTitle} body={L.pillarCoachBody} icon={MessageCircleQuestion} />
-              <PillarCard title={L.pillarTracksTitle} body={L.pillarTracksBody} icon={RouteIcon} />
+              <FeatureHubCard title={L.pillarLibraryTitle} body={L.pillarLibraryBody} icon={BookOpen} />
+              <FeatureHubCard title={L.pillarCoachTitle} body={L.pillarCoachBody} icon={MessageCircleQuestion} />
+              <FeatureHubCard title={L.pillarTracksTitle} body={L.pillarTracksBody} icon={RouteIcon} />
             </div>
           </div>
         </section>
@@ -69,24 +71,15 @@ function Landing() {
             <h2 className="mt-2 section-title text-2xl sm:text-3xl">{L.previewTitle}</h2>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {FEATURED.map((m) => (
-                <Link
+                <ContentResourceCard
                   key={m.slug}
                   to="/signup"
                   search={{}}
-                  className="rounded-2xl border border-border/60 bg-card p-5 card-elev block hover:-translate-y-0.5 transition"
-                >
-                  <p className="page-eyebrow text-primary">
-                    {SALES_MATERIAL_CATEGORIES[m.category].label}
-                  </p>
-                  <h3 className="mt-2 text-base font-semibold">{m.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground line-clamp-3">{m.summary}</p>
-                  {m.durationMin ? (
-                    <p className="mt-3 inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      {m.durationMin} min
-                    </p>
-                  ) : null}
-                </Link>
+                  categoryLabel={SALES_MATERIAL_CATEGORIES[m.category].label}
+                  title={m.title}
+                  summary={m.summary}
+                  durationMin={m.durationMin}
+                />
               ))}
             </div>
           </div>
@@ -148,26 +141,6 @@ function Landing() {
           </div>
         </section>
       </RevealSection>
-    </div>
-  );
-}
-
-function PillarCard({
-  title,
-  body,
-  icon: Icon,
-}: {
-  title: string;
-  body: string;
-  icon: typeof BookOpen;
-}) {
-  return (
-    <div className="rounded-2xl border border-border/60 bg-card p-6 card-elev">
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <Icon className="h-5 w-5" aria-hidden />
-      </div>
-      <h3 className="mt-4 text-base font-semibold">{title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
     </div>
   );
 }

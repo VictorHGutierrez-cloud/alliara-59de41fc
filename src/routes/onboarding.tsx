@@ -103,9 +103,9 @@ function OnboardingLayout() {
         </div>
       </div>
 
-      <div className="h-1.5 w-full rounded-full bg-surface overflow-hidden">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
         <div
-          className="h-full bg-primary transition-all"
+          className="h-full rounded-full bg-gradient-to-r from-primary via-primary/80 to-accent transition-all duration-500"
           style={{ width: `${(completed / total) * 100}%` }}
         />
       </div>
@@ -119,7 +119,11 @@ function OnboardingLayout() {
                 to="/onboarding/$stepId"
                 params={{ stepId: s.id }}
                 className={cn(
-                  "group flex items-start gap-4 rounded-2xl border bg-card p-4 transition hover:border-primary/40 hover:bg-surface/80",
+                  "group relative flex items-start gap-4 overflow-hidden rounded-2xl border bg-card p-4 transition-all duration-300",
+                  "hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface/80",
+                  "before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:p-px",
+                  "before:bg-gradient-to-r before:from-primary/30 before:via-transparent before:to-transparent",
+                  "before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100",
                   isDone ? "border-primary/30" : "border-border/70",
                 )}
               >

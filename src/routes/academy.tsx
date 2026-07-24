@@ -7,6 +7,8 @@ import { LMS_TRACKS, SALES_LIBRARY } from "@/content/sales-library";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { loadLastStudy } from "@/lib/academy-progress";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
+import { CalloutBanner } from "@/components/ui/callout-banner";
+import { FeatureHubCard } from "@/components/ui/feature-hub-card";
 import {
   isOnboardingFirstRunComplete,
   markOnboardingFirstRunComplete,
@@ -89,43 +91,40 @@ function AcademyHomePage() {
       </section>
 
       {showTourBanner ? (
-        <section className="mt-8 rounded-2xl border border-accent/30 bg-accent/10 p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-semibold">{COPY.onboarding.firstRunBannerTitle}</h2>
-            <p className="mt-1 text-sm text-muted-foreground">{COPY.onboarding.firstRunBannerBody}</p>
-          </div>
-          <div className="flex flex-wrap gap-2 shrink-0">
-            <Link
-              to="/onboarding/$stepId"
-              params={{ stepId: "welcome" }}
-              className="inline-flex min-h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
-            >
-              {COPY.onboarding.firstRunBannerCta}
-            </Link>
-            <button
-              type="button"
-              onClick={dismissTourBanner}
-              className="inline-flex min-h-10 items-center rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
-            >
-              {COPY.onboarding.skipToAcademy}
-            </button>
-          </div>
-        </section>
+        <CalloutBanner
+          className="mt-8"
+          title={COPY.onboarding.firstRunBannerTitle}
+          body={COPY.onboarding.firstRunBannerBody}
+          icon={GraduationCap}
+          actions={[
+            {
+              label: COPY.onboarding.firstRunBannerCta,
+              to: "/onboarding/$stepId",
+              params: { stepId: "welcome" },
+            },
+            {
+              label: COPY.onboarding.skipToAcademy,
+              variant: "secondary",
+              onClick: dismissTourBanner,
+            },
+          ]}
+        />
       ) : null}
 
       {lastStudy ? (
-        <section className="mt-8 rounded-2xl border border-primary/20 bg-primary/5 p-5">
-          <h2 className="text-sm font-semibold">{COPY.academy.continueTitle}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{COPY.academy.continueBody}</p>
-          <p className="mt-2 text-base font-medium">{lastStudy.title}</p>
-          <Link
-            to={resumeTo.to}
-            {...("params" in resumeTo ? { params: resumeTo.params } : {})}
-            className="mt-4 inline-flex min-h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
-          >
-            {COPY.academy.continueCta}
-          </Link>
-        </section>
+        <CalloutBanner
+          className="mt-8"
+          tone="primary"
+          title={COPY.academy.continueTitle}
+          body={`${COPY.academy.continueBody} ${lastStudy.title}`}
+          actions={[
+            {
+              label: COPY.academy.continueCta,
+              to: resumeTo.to,
+              params: "params" in resumeTo ? resumeTo.params : undefined,
+            },
+          ]}
+        />
       ) : (
         <section className="mt-8 rounded-2xl border border-dashed border-border bg-surface/40 p-5">
           <p className="text-sm text-muted-foreground">{COPY.academy.continueEmpty}</p>
@@ -133,28 +132,28 @@ function AcademyHomePage() {
       )}
 
       <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <HubCard
+        <FeatureHubCard
           icon={BookOpen}
           title={COPY.academy.libraryCardTitle}
           body={COPY.academy.libraryCardBody}
           meta={`${SALES_LIBRARY.length} resources`}
           to="/academy/library"
         />
-        <HubCard
+        <FeatureHubCard
           icon={MessageCircleQuestion}
           title={COPY.academy.askCardTitle}
           body={COPY.academy.askCardBody}
           meta={COPY.academy.askCardMeta}
           to="/academy/ask"
         />
-        <HubCard
+        <FeatureHubCard
           icon={GraduationCap}
           title={COPY.academy.learnCardTitle}
           body={COPY.academy.learnCardBody}
           meta={`${trackAvailable} tracks live`}
           to="/academy/learn"
         />
-        <HubCard
+        <FeatureHubCard
           icon={Newspaper}
           title={COPY.academy.briefingCardTitle}
           body={COPY.academy.briefingCardBody}
@@ -182,35 +181,5 @@ function AcademyHomePage() {
         </div>
       </section>
     </div>
-  );
-}
-
-function HubCard({
-  icon: Icon,
-  title,
-  body,
-  meta,
-  to,
-}: {
-  icon: typeof BookOpen;
-  title: string;
-  body: string;
-  meta: string;
-  to: "/academy/library" | "/academy/ask" | "/academy/learn" | "/academy/briefing";
-}) {
-  return (
-    <Link
-      to={to}
-      className="group rounded-2xl border border-border/60 bg-card p-5 card-elev hover:-translate-y-0.5 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    >
-      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-        <Icon className="h-5 w-5" aria-hidden />
-      </div>
-      <h3 className="mt-4 text-base font-semibold">{title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{body}</p>
-      <p className="mt-4 page-eyebrow text-muted-foreground group-hover:text-primary transition">
-        {meta} →
-      </p>
-    </Link>
   );
 }

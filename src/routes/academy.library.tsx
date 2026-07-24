@@ -1,6 +1,6 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, Clock, Search } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import {
@@ -9,6 +9,8 @@ import {
   type SalesMaterialCategory,
 } from "@/content/sales-library";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
+import { ContentResourceCard } from "@/components/ui/content-resource-card";
+import { SearchField } from "@/components/ui/search-field";
 
 export const Route = createFileRoute("/academy/library")({
   head: () => ({ meta: [{ title: COPY.academy.libraryMetaTitle }] }),
@@ -62,17 +64,12 @@ function AcademyLibraryPage() {
       </header>
 
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={COPY.academy.librarySearchPlaceholder}
-            aria-label={COPY.academy.librarySearchPlaceholder}
-            className="min-h-11 w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-3 text-sm"
-          />
-        </div>
+        <SearchField
+          value={query}
+          onChange={setQuery}
+          placeholder={COPY.academy.librarySearchPlaceholder}
+          aria-label={COPY.academy.librarySearchPlaceholder}
+        />
         <div className="flex flex-wrap gap-2">
           <FilterChip active={category === "all"} onClick={() => setCategory("all")} label="All" />
           {(Object.keys(SALES_MATERIAL_CATEGORIES) as SalesMaterialCategory[]).map((key) => (
@@ -88,31 +85,16 @@ function AcademyLibraryPage() {
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {filtered.map((m) => (
-          <Link
+          <ContentResourceCard
             key={m.slug}
             to="/academy/library/$slug"
             params={{ slug: m.slug }}
-            className="rounded-2xl border border-border/60 bg-card p-5 card-elev hover:-translate-y-0.5 transition"
-          >
-            <p className="page-eyebrow text-primary">
-              {SALES_MATERIAL_CATEGORIES[m.category].label}
-            </p>
-            <h2 className="mt-2 text-base font-semibold leading-snug">{m.title}</h2>
-            <p className="mt-2 text-sm text-muted-foreground line-clamp-3">{m.summary}</p>
-            <div className="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-              {m.durationMin ? (
-                <span className="inline-flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {m.durationMin} min
-                </span>
-              ) : null}
-              {m.tags.slice(0, 3).map((t) => (
-                <span key={t} className="rounded-full bg-surface-2 px-2 py-0.5">
-                  {t}
-                </span>
-              ))}
-            </div>
-          </Link>
+            categoryLabel={SALES_MATERIAL_CATEGORIES[m.category].label}
+            title={m.title}
+            summary={m.summary}
+            durationMin={m.durationMin}
+            tags={m.tags}
+          />
         ))}
       </div>
 
