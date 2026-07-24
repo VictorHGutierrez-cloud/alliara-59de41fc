@@ -35,6 +35,20 @@ function saveMessages(msgs: Msg[]) {
 
 export const Route = createFileRoute("/academy/ask")({
   head: () => ({ meta: [{ title: COPY.academy.askMetaTitle }] }),
+  validateSearch: (search: Record<string, unknown>) => {
+    const topic =
+      typeof search.topic === "string" && search.topic.trim()
+        ? search.topic.trim().slice(0, 200)
+        : undefined;
+    const draft =
+      typeof search.draft === "string" && search.draft.trim()
+        ? search.draft.trim().slice(0, 600)
+        : undefined;
+    return {
+      ...(topic ? { topic } : {}),
+      ...(draft ? { draft } : {}),
+    };
+  },
   component: AcademyAskPage,
 });
 
@@ -52,15 +66,31 @@ function ThinkingSkeleton() {
 function AcademyAskPage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
+  const search = Route.useSearch();
   const [messages, setMessages] = useState<Msg[]>(() => loadMessages());
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [contextTopic, setContextTopic] = useState<string | undefined>(undefined);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const appliedSearch = useRef(false);
 
   useEffect(() => {
     if (!loading && !user) void nav({ to: "/login" });
   }, [loading, user, nav]);
+
+  useEffect(() => {
+    if (appliedSearch.current) return;
+    if (!search.draft && !search.topic) return;
+    appliedSearch.current = true;
+    if (search.draft) setInput(search.draft);
+    if (search.topic) setContextTopic(search.topic);
+    void nav({
+      to: "/academy/ask",
+      search: {},
+      replace: true,
+    });
+  }, [search.draft, search.topic, nav]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -97,16 +127,18 @@ function AcademyAskPage() {
     setMessages([]);
     saveMessages([]);
     setError(null);
+    setContextTopic(undefined);
+    setInput("");
   }
 
   if (loading || !user) return <AcademyAuthSkeleton />;
 
   return (
     <div className="mx-auto flex h-[calc(100vh-4rem)] max-w-3xl flex-col px-4 py-4 sm:px-6">
-      <div className="flex items-center justify-between gap-2 shrink-0">
+      <div className="flex items-center justify-between gap-2 shrink-0 lg:justify-end">
         <Link
           to="/academy"
-          className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden"
         >
           <ArrowLeft className="h-4 w-4" />
           {COPY.academy.backToHub}
@@ -129,6 +161,12 @@ function AcademyAskPage() {
           <p className="text-xs text-muted-foreground">{COPY.academy.askSubtitle}</p>
         </div>
       </div>
+
+      {contextTopic ? (
+        <p className="mt-3 shrink-0 rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-xs font-medium text-foreground">
+          {COPY.academy.askContextBanner(contextTopic)}
+        </p>
+      ) : null}
 
       <div
         ref={scrollRef}

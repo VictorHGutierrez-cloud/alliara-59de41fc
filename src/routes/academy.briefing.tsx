@@ -84,7 +84,7 @@ function AcademyBriefingPage() {
     <div className="mx-auto max-w-4xl px-6 py-8 pb-32">
       <Link
         to="/academy"
-        className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex min-h-11 items-center text-sm text-muted-foreground hover:text-foreground lg:hidden"
       >
         {COPY.academy.backToHub}
       </Link>
@@ -217,6 +217,10 @@ function AcademyBriefingPage() {
               </a>
               <Link
                 to="/academy/ask"
+                search={{
+                  topic: b.title,
+                  draft: COPY.academy.askBriefingDraft(b.title),
+                }}
                 className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
               >
                 <MessageCircleQuestion className="h-4 w-4" aria-hidden />

@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate, notFound } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ArrowLeft, ArrowRight, Check, ExternalLink } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { ONBOARDING_STEPS, ONBOARDING_PROGRESS_KEY } from "@/content/onboarding";
 import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
@@ -89,14 +89,12 @@ function OnboardingStepPage() {
           </div>
 
           {step.cta ? (
-            <a
-              href={step.cta.to}
-              target="_blank"
-              rel="noreferrer"
+            <Link
+              to={step.cta.to as "/academy/library" | "/academy/ask" | "/academy/learn"}
               className="mt-5 inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground glow-ring"
             >
-              {step.cta.label} <ExternalLink className="h-4 w-4" />
-            </a>
+              {step.cta.label} <ArrowRight className="h-4 w-4" />
+            </Link>
           ) : null}
         </div>
 

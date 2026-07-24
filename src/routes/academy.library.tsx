@@ -50,7 +50,7 @@ function AcademyLibraryPage() {
     <div className="mx-auto max-w-7xl px-6 py-8 pb-32">
       <Link
         to="/academy"
-        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+        className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden"
       >
         <ArrowLeft className="h-4 w-4" aria-hidden />
         {COPY.academy.backToHub}
@@ -69,7 +69,8 @@ function AcademyLibraryPage() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={COPY.academy.librarySearchPlaceholder}
-            className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-3 text-sm"
+            aria-label={COPY.academy.librarySearchPlaceholder}
+            className="min-h-11 w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-3 text-sm"
           />
         </div>
         <div className="flex flex-wrap gap-2">
@@ -137,8 +138,8 @@ function FilterChip({
       onClick={onClick}
       className={
         active
-          ? "rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground"
-          : "rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-surface-2"
+          ? "min-h-11 rounded-full bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground"
+          : "min-h-11 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-surface-2"
       }
     >
       {label}

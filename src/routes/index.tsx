@@ -69,9 +69,11 @@ function Landing() {
             <h2 className="mt-2 section-title text-2xl sm:text-3xl">{L.previewTitle}</h2>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {FEATURED.map((m) => (
-                <article
+                <Link
                   key={m.slug}
-                  className="rounded-2xl border border-border/60 bg-card p-5 card-elev"
+                  to="/signup"
+                  search={{}}
+                  className="rounded-2xl border border-border/60 bg-card p-5 card-elev block hover:-translate-y-0.5 transition"
                 >
                   <p className="page-eyebrow text-primary">
                     {SALES_MATERIAL_CATEGORIES[m.category].label}
@@ -84,7 +86,7 @@ function Landing() {
                       {m.durationMin} min
                     </p>
                   ) : null}
-                </article>
+                </Link>
               ))}
             </div>
           </div>

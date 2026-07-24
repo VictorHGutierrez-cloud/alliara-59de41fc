@@ -20,7 +20,6 @@ import {
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
-  GraduationCap,
   BookOpen,
   MessageCircleQuestion,
   Route as RouteIcon,
@@ -456,20 +455,7 @@ function AppFrame() {
                     </Link>
                   </>
                 )
-              ) : user ? (
-                <>
-                  <Link
-                    to="/academy"
-                    className="min-h-11 inline-flex items-center gap-1.5 rounded-xl px-3 text-sm font-semibold text-foreground transition hover:bg-surface-2 sm:px-4"
-                  >
-                    <GraduationCap className="h-4 w-4 text-primary" />
-                    {COPY.auth.headerAcademyCta}
-                  </Link>
-                  <span className="hidden text-xs text-muted-foreground sm:inline">
-                    {COPY.auth.signedInHint}
-                  </span>
-                </>
-              ) : (
+              ) : user ? null : (
                 <>
                   <Link
                     to="/login"

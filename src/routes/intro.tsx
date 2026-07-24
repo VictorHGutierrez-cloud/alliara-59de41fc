@@ -106,9 +106,14 @@ function IntroTourPage() {
                 key={i}
                 type="button"
                 onClick={() => setIdx(i)}
-                className={`h-2 rounded-full transition-all ${i === idx ? "w-8 bg-primary" : "w-2 bg-border hover:bg-muted-foreground/40"}`}
+                className={`inline-flex min-h-11 min-w-11 items-center justify-center rounded-full`}
                 aria-label={`Go to slide ${i + 1}`}
-              />
+                aria-current={i === idx ? "true" : undefined}
+              >
+                <span
+                  className={`block h-2.5 rounded-full transition-all ${i === idx ? "w-8 bg-primary" : "w-2.5 bg-border"}`}
+                />
+              </button>
             ))}
           </div>
 

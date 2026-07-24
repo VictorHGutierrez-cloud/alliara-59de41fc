@@ -109,7 +109,7 @@ export const SALES_LIBRARY: SalesMaterial[] = [
   {
     slug: "sales-psychology-md",
     title: "Sales psychology (markdown source)",
-    summary: "Same curriculum as the HTML trainer — empathy, risk framing, and AI context.",
+    summary: "Markdown source of the Sales Psychology trainer — optional copy/paste and AI context (HTML trainer is the main track item).",
     category: "psychology",
     kind: "markdown",
     assetPath: "sales-psychology.md",
@@ -275,7 +275,7 @@ export const LMS_TRACKS: LmsTrack[] = (
     order: 1,
     title: "B2B buying fundamentals",
     status: "available" as const,
-    materialSlugs: ["sales-psychology", "sales-psychology-md"],
+    materialSlugs: ["sales-psychology"],
     description: "Start here if the deal feels stuck or the buyer went dark.",
   },
   {

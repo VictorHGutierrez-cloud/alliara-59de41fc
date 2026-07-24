@@ -85,7 +85,7 @@ function AcademyLibraryReaderPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Link
           to="/academy/library"
-          className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden"
         >
           {COPY.academy.backToLibrary}
         </Link>
@@ -111,6 +111,10 @@ function AcademyLibraryReaderPage() {
           </a>
           <Link
             to="/academy/ask"
+            search={{
+              topic: material.title,
+              draft: COPY.academy.askContextDraft(material.title),
+            }}
             className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:opacity-90"
           >
             <MessageCircleQuestion className="h-3.5 w-3.5" />

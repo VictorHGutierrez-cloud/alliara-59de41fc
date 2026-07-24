@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { COPY } from "@/lib/copy";
 
 export function AcademyPageShell({
   eyebrow,
@@ -22,10 +23,10 @@ export function AcademyPageShell({
       {backToAcademy ? (
         <Link
           to="/academy"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
-          Back to Academy
+          {COPY.academy.backToHub}
         </Link>
       ) : null}
       <header className={backToAcademy ? "mt-4" : undefined}>

@@ -174,6 +174,11 @@ export const COPY = {
     readerLoadError: "Could not load this file.",
     openNewTab: "Open in new tab",
     askAboutThis: "Ask the coach",
+    askContextBanner: (topic: string) => `Context: ${topic}`,
+    askContextDraft: (title: string) =>
+      `I'm studying "${title}". Help me apply it to a live deal — what should I focus on next?`,
+    askBriefingDraft: (title: string) =>
+      `I just read this sales briefing: "${title}". How should I use it on my next call?`,
     markComplete: "Mark as completed",
     markIncomplete: "Mark as not completed",
     askMetaTitle: "Ask coach · Executive Academy",
