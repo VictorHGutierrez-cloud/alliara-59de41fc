@@ -271,6 +271,69 @@
     color: transparent;
   }
   .ring-axis { box-shadow: 0 0 0 2px var(--axis-color, var(--primary)) inset; }
+
+  /* Kept AI chat — animated gradient headline */
+  .from-kept-gradient-1-start {
+    --tw-gradient-from: #8b5cf6;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(139 92 246 / 0));
+  }
+  .to-kept-gradient-1-end { --tw-gradient-to: #c4b5fd; }
+  .from-kept-gradient-2-start {
+    --tw-gradient-from: #6366f1;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(99 102 241 / 0));
+  }
+  .to-kept-gradient-2-end { --tw-gradient-to: #a5b4fc; }
+  .from-kept-gradient-3-start {
+    --tw-gradient-from: #a855f7;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgb(168 85 247 / 0));
+  }
+  .to-kept-gradient-3-end { --tw-gradient-to: #ddd6fe; }
+
+  @keyframes kept-gradient-fg-1 {
+    from, 16.667%, to { opacity: 1; }
+    33.333%, 83.333% { opacity: 0; }
+  }
+  @keyframes kept-gradient-fg-2 {
+    from, to { opacity: 0; }
+    33.333%, 50% { opacity: 1; }
+    16.667%, 66.667% { opacity: 0; }
+  }
+  @keyframes kept-gradient-fg-3 {
+    from, 50%, to { opacity: 0; }
+    66.667%, 83.333% { opacity: 1; }
+  }
+  @keyframes kept-gradient-bg-1 {
+    from, 16.667%, to { opacity: 0; }
+    25%, 91.667% { opacity: 1; }
+  }
+  @keyframes kept-gradient-bg-2 {
+    from, to { opacity: 1; }
+    33.333%, 50% { opacity: 0; }
+    25%, 58.333% { opacity: 1; }
+  }
+  @keyframes kept-gradient-bg-3 {
+    from, 58.333%, 91.667%, to { opacity: 1; }
+    66.667%, 83.333% { opacity: 0; }
+  }
+
+  .animate-kept-gradient-fg-1 { animation: kept-gradient-fg-1 8s infinite; }
+  .animate-kept-gradient-fg-2 { animation: kept-gradient-fg-2 8s infinite; }
+  .animate-kept-gradient-fg-3 { animation: kept-gradient-fg-3 8s infinite; }
+  .before\:animate-kept-gradient-bg-1::before {
+    content: attr(data-content);
+    animation: kept-gradient-bg-1 8s infinite;
+    color: var(--foreground);
+  }
+  .before\:animate-kept-gradient-bg-2::before {
+    content: attr(data-content);
+    animation: kept-gradient-bg-2 8s infinite;
+    color: var(--foreground);
+  }
+  .before\:animate-kept-gradient-bg-3::before {
+    content: attr(data-content);
+    animation: kept-gradient-bg-3 8s infinite;
+    color: var(--foreground);
+  }
 }
 
 @layer components {
@@ -473,5 +536,14 @@
   .glow-ring:hover,
   .card-elev:hover {
     transform: none;
+  }
+
+  .animate-kept-gradient-fg-1,
+  .animate-kept-gradient-fg-2,
+  .animate-kept-gradient-fg-3,
+  .before\:animate-kept-gradient-bg-1::before,
+  .before\:animate-kept-gradient-bg-2::before,
+  .before\:animate-kept-gradient-bg-3::before {
+    animation: none;
   }
 }
