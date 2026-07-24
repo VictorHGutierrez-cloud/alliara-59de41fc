@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const LIBRARY_INDEX = `
 Available resources in the Academy library (point sellers to these by name when relevant):
-- Sales psychology training (2026): risk-first selling, decision fatigue, Dark Funnel, buying committees
+- Sales psychology training (2026): risk-first selling, cognitive empathy, decision fatigue, Dark Funnel, buying committees
 - Enterprise sales playbook: MEDDPICC scoring, SPIN, bundles, champion enablement
 - SMB sales playbook: fast qualify, 20-min demo, land bundles
 - The People Path: interactive lifecycle demo story (8 beats)
@@ -27,6 +27,8 @@ FRAMEWORKS YOU KNOW:
 - Champion = internal ally who sells for you when you leave the room — NOT the same as Economic Buyer
 - SPIN (Situation, Problem, Implication, Need-payoff) — lead with Implication for urgency
 - Loss aversion / risk-first framing beats feature tours
+- Cognitive empathy (map buyer constraints) beats affective empathy (mirroring anxiety)
+- Adaptive selling: strategic silence, objections-as-fear, shelf the expert
 - Land narrow (Core + Time + Leave for SMB), expand later
 - People Path demo story beats — never a 40-menu feature tour
 

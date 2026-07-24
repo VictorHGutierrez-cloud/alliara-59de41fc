@@ -1,7 +1,7 @@
 # Factorial Sales Psychology Training (2026)
 
 **Audience:** Factorial sellers (especially US & Caribbean SMB)  
-**Purpose:** Teach how to sell Factorial when features look similar — using purchase psychology, Dark Funnel reality, risk framing, and curated demos  
+**Purpose:** Teach how to sell Factorial when features look similar — using purchase psychology, empathy, Dark Funnel reality, risk framing, and curated demos  
 **Source:** Internal curriculum adapted from *The Transformation of HR Software Sales in 2026*, deepened with industry references listed at the end  
 **Use with:** [People Path](people-path-story.html) · [Battle cards](factorial-us-caribbean-battlecards.html) · [SMB playbook](factorial-smb-playbook.html)
 
@@ -139,7 +139,7 @@ Elite sellers:
 
 1. Verify AI-born premises (and hallucinations).
 2. Reduce friction and fear.
-3. Lend **trust capital** so the committee can decide.
+3. Lend **trust capital** so the committee can decide — through **cognitive empathy** (understanding their constraints), not by mirroring their anxiety.
 
 You are not a catalog. You are the human layer that makes an algorithmically prepared decision feel safe.
 
@@ -149,7 +149,43 @@ Ask: “What did your team already conclude from ChatGPT/G2 about us vs [competi
 
 ---
 
-## 7. Factorial positioning playbook
+## 7. Empathy & trust — the neurological layer
+
+Committees rationalize with ROI spreadsheets — but the **initial decision to trust you** is emotional. Neuroscience shows that empathetic interaction can synchronize speaker and listener brains (neural coupling) and release oxytocin, which lowers threat detection and raises trust. Up to **~90%** of financial decisions are heavily influenced by the brain’s emotional center — even in B2B.
+
+That is why risk framing (module 3) and trust building (this module) are two sides of the same coin.
+
+### Cognitive vs affective empathy
+
+Academic B2B research ([Journal of Business & Industrial Marketing](https://www.emerald.com/insight/publication/issn/0885-8624), [Cambridge Judge Business School](https://www.jbs.cam.ac.uk/)) distinguishes two types:
+
+| Type | What it is | In HR software sales |
+|------|------------|----------------------|
+| **Affective empathy** | Feeling what the buyer feels (emotional contagion) | HR director vents about burnout — you nod along |
+| **Cognitive empathy** | Understanding their perspective, constraints, and context | CFO fears budget overrun — you map how Factorial reduces payroll correction risk |
+
+**Both improve communication — but only cognitive empathy directly predicts buyer satisfaction with the salesperson.** A CFO does not need you to share their budget stress. They need you to intellectually map how the software mitigates their specific financial risks.
+
+This skill translates into **adaptive selling behavior** — dynamically adjusting your presentation based on real-time buyer feedback.
+
+### Four practice drills
+
+1. **Observer drill** — Most reps miss signals because they are rehearsing their next pitch. Watch for guardedness, tone shifts, and body language. Absence of information is a signal — follow up empathetically.
+2. **Strategic silence** — After one high-impact open question, wait. Silence is where buyers reveal unspoken implementation fears.
+3. **Shelf the expert** — The buyer is the expert on their business. Ask clarifying questions about their ecosystem before proposing anything.
+4. **Objections as fear** — Price and timing objections are symptoms of loss aversion. Validate the concern first; then guide back to risk mitigation.
+
+### Empathy-first opener (pairs with risk-first)
+
+> “Before we talk product — I want to understand what’s actually at stake for you this quarter. Not the feature list, but what keeps you up at night if this implementation goes wrong. Can we start there?”
+
+### Seller takeaway
+
+Map their constraint; don’t mirror their anxiety. Cognitive empathy + risk framing = trust capital.
+
+---
+
+## 8. Factorial positioning playbook
 
 Abandon product inventory. Adopt **organizational engineering**.
 
@@ -176,7 +212,7 @@ One fracture per first meeting. Expand only after mutual agreement on that fract
 
 ---
 
-## 8. Competitive psychology lens
+## 9. Competitive psychology lens
 
 ### Brazil hyper-competition (source case)
 
@@ -199,7 +235,7 @@ Never fight “they also have X.” Fight **which risk gets reduced this quarter
 
 ---
 
-## 9. Methodologies hybrid (2026)
+## 10. Methodologies hybrid (2026)
 
 | Method | Core move | Use on Factorial deals | Limit |
 |--------|-----------|------------------------|-------|
@@ -222,7 +258,7 @@ Enter teaching. Qualify ruthlessly. Don’t interrogate.
 
 ---
 
-## 10. WFM psychology — Ops control vs worker agency
+## 11. WFM psychology — Ops control vs worker agency
 
 Workforce Management (retail, hospitality, healthcare, manufacturing, contact centers) is **not** the same buying psychology as classical talent suites.
 
@@ -245,7 +281,7 @@ In hospitality/Caribbean tourism: sell **coverage + fairness + mobile**, not cul
 
 ---
 
-## 11. 2026 trends you should sell into
+## 12. 2026 trends you should sell into
 
 1. **DEX vs digital fatigue** — Buyers want one experience layer, not more apps (tool overload / context switching).
 2. **Skills-based orgs** — Dynamic skills > static job descriptions; internal mobility vs external hiring cost.
@@ -256,7 +292,7 @@ These trends support Factorial’s integrated spine story — consolidation agai
 
 ---
 
-## 12. Field kits
+## 13. Field kits
 
 ### Pre-call (60 seconds)
 
@@ -273,6 +309,15 @@ These trends support Factorial’s integrated spine story — consolidation agai
 - “If you hire 20% more heads this year, does the current process survive?”
 - “Where does time/leave data become payroll variables today — and who babysits that?”
 - “What did AI or G2 tell your team about us vs HiBob/Personio that still feels unproven?”
+
+### Empathy discovery prompts
+
+- “If this project fails publicly, who takes the hit — and what does that look like?”
+- “What would make you comfortable enough to champion this internally?”
+
+### Empathy role-play drill (5 minutes)
+
+Partner plays a skeptical CFO. You have 60 seconds: no product mentions — only map their constraint and validate one fear. Debrief: did you use cognitive empathy (understanding) or affective empathy (mirroring)?
 
 ### Risk-first opener (English)
 
@@ -309,8 +354,9 @@ These trends support Factorial’s integrated spine story — consolidation agai
 1. Thesis + decision fatigue (15)
 2. Loss aversion drill — rewrite a feature pitch into risk pitch (20)
 3. Dark Funnel + seller as AI validator (15)
-4. Live People Path practice (25)
-5. Committee map + MEDDIC-lite on a real opportunity (15)
+4. Cognitive empathy rewrite — turn a feature pitch into a constraint-mapping opener (10)
+5. Live People Path practice (20)
+6. Committee map + MEDDIC-lite on a real opportunity (10)
 
 ---
 
@@ -328,6 +374,7 @@ Training benchmarks are drawn from the source essay and commonly cited industry 
 - BR market context — [Convenia Blog](https://blog.convenia.com.br/), [Sólides](https://solides.com.br/), [Serasa Experian HR software guides](https://www.serasaexperian.com.br/), [GetApp Sólides alternatives](https://www.getapp.com.br/), [InfoMoney / Startups / Bloomberg Línea Factorial & Sólides coverage](https://infomoney.com.br/)
 - Factorial positioning — [Factorial BR](https://factorialhr.com.br/), [Factorial One AI agent](https://factorialhr.com.br/), TrustRadius comparisons (e.g. Factorial vs peers)
 - Packaging / pricing psychology — [PayPro Global SaaS bundling](https://payproglobal.com/), [Copperberg behavioral pricing](https://copperberg.com/)
+- Empathy & adaptive selling — [Journal of Business & Industrial Marketing (Emerald)](https://www.emerald.com/insight/publication/issn/0885-8624), [Cambridge Judge — cognitive vs emotional empathy](https://www.jbs.cam.ac.uk/), [ResearchGate — salesperson empathy in B2B](https://www.researchgate.net/), [ClickAcademy Asia — buyer behaviour](https://clickacademyasia.com/), [Converse Digital — empathy-based connections](https://conversedigital.com/)
 
 ---
 

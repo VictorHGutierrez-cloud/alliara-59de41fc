@@ -16,7 +16,7 @@ const corsHeaders = {
 
 const LIBRARY_CATALOG = `
 Valid related_slugs (use only these):
-- sales-psychology — purchase psychology, risk-first selling, decision fatigue, Dark Funnel, buying committees
+- sales-psychology — purchase psychology, risk-first selling, cognitive empathy, adaptive selling, decision fatigue, Dark Funnel, buying committees
 - enterprise-playbook — MEDDPICC, SPIN, enterprise deals, champion enablement, bundles
 - smb-playbook — SMB qualify, short demos, land-and-expand
 - people-path — narrative demos, lifecycle story demos
@@ -52,7 +52,7 @@ const RSS_FEEDS: { name: string; url: string }[] = [
 const TAVILY_QUERIES = [
   "B2B sales enablement best practices",
   "MEDDPICC OR champion selling OR buying committee 2025 OR 2026",
-  "sales discovery SPIN OR loss aversion enterprise SaaS",
+  "sales discovery SPIN OR loss aversion OR empathy enterprise SaaS",
 ];
 
 const VALID_SLUGS = new Set([

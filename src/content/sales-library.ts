@@ -58,12 +58,12 @@ export const SALES_LIBRARY: SalesMaterial[] = [
     slug: "sales-psychology",
     title: "Sales psychology training (2026)",
     summary:
-      "Why features lost, how to lead with risk, committee mapping, and curated demos.",
+      "Why features lost, how to lead with risk, cognitive empathy, committee mapping, and curated demos.",
     category: "psychology",
     kind: "html",
     assetPath: "sales-psychology.html",
-    durationMin: 25,
-    tags: ["risk", "dark funnel", "decision fatigue", "champion"],
+    durationMin: 30,
+    tags: ["risk", "dark funnel", "decision fatigue", "champion", "empathy", "trust", "cognitive empathy"],
   },
   {
     slug: "enterprise-playbook",
@@ -109,12 +109,12 @@ export const SALES_LIBRARY: SalesMaterial[] = [
   {
     slug: "sales-psychology-md",
     title: "Sales psychology (markdown source)",
-    summary: "Same curriculum as the HTML trainer — handy for copy/paste and AI context.",
+    summary: "Same curriculum as the HTML trainer — empathy, risk framing, and AI context.",
     category: "psychology",
     kind: "markdown",
     assetPath: "sales-psychology.md",
-    durationMin: 25,
-    tags: ["reference", "curriculum"],
+    durationMin: 30,
+    tags: ["reference", "curriculum", "empathy"],
   },
   {
     slug: "hr-mockup",
