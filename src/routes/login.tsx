@@ -2,6 +2,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/lib/auth";
 import { toast } from "sonner";
+import { BrandLogo } from "@/components/brand/BrandLogo";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
+import { KeptKeptaDuoIllustration } from "@/components/brand/KeptKeptaDuoIllustration";
 
 export const Route = createFileRoute("/login")({
   beforeLoad: () => {
@@ -106,9 +109,6 @@ export function GoogleIcon() {
     </svg>
   );
 }
-
-import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
-import { KeptKeptaDuoIllustration } from "@/components/brand/KeptKeptaDuoIllustration";
 
 export function AuthLayout({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
   return (
