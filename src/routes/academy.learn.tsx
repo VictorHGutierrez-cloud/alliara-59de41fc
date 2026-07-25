@@ -16,6 +16,7 @@ import { useCompletionCelebration } from "@/hooks/use-completion-celebration";
 import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 export const Route = createFileRoute("/academy/learn")({
   head: () => ({ meta: [{ title: COPY.academy.learnMetaTitle }] }),
@@ -41,7 +42,10 @@ function AcademyLearnPage() {
       subtitle={COPY.academy.learnIntro}
     >
       {celebration}
-      <div className="mt-8 grid gap-4 lg:grid-cols-2">
+      <div className="mt-6 flex justify-end">
+        <KeptIllustration variant="everythingOnTrack" className="h-20 w-auto hidden md:block" decorative />
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
         {LMS_TRACKS.map((track) => {
           const pct = trackCompletionPercent(track.materialSlugs);
           return (

@@ -7,8 +7,9 @@ import { COPY } from "@/lib/copy";
 import { getSalesMaterial } from "@/content/sales-library";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
-import { cn } from "@/lib/utils";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/academy/briefing")({
   head: () => ({ meta: [{ title: COPY.academy.briefingMetaTitle }] }),
@@ -127,7 +128,8 @@ function AcademyBriefingPage() {
 
         {filtered && filtered.length === 0 && (
           <div className="rounded-2xl border border-dashed border-border bg-background p-8 text-center">
-            <Newspaper className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden />
+            <KeptIllustration variant="remindsGently" className="mx-auto h-24 w-auto" decorative />
+            <Newspaper className="mx-auto mt-4 h-8 w-8 text-muted-foreground" aria-hidden />
             <p className="mt-3 text-sm text-muted-foreground">{COPY.academy.briefingEmpty}</p>
           </div>
         )}

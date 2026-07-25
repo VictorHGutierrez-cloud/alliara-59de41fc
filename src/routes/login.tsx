@@ -107,10 +107,23 @@ export function GoogleIcon() {
   );
 }
 
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { BrandLogo } from "@/components/brand/BrandLogo";
+
 export function AuthLayout({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
   return (
-    <div className="mx-auto max-w-md px-6 py-16">
-      <div className="rounded-2xl bg-card border border-border/50 p-8 card-elev shadow-sm">
+    <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-5xl items-center gap-10 px-6 py-12 lg:grid-cols-2">
+      <div className="hidden flex-col items-center justify-center text-center lg:flex">
+        <BrandLogo variant="auth" className="mb-8" />
+        <KeptIllustration variant="bringsCalm" className="h-48 w-auto" decorative />
+        <p className="mt-6 max-w-sm text-sm text-muted-foreground leading-relaxed">
+          Study playbooks, ask the coach when a deal stalls, and follow tracks at your own pace.
+        </p>
+      </div>
+      <div className="rounded-2xl bg-card border border-border p-8 card-elev shadow-sm">
+        <div className="lg:hidden mb-6 flex justify-center">
+          <BrandLogo variant="auth" />
+        </div>
         <h1 className="text-2xl font-semibold">{title}</h1>
         <p className="text-sm text-muted-foreground mt-1">{sub}</p>
         <div className="mt-6">{children}</div>

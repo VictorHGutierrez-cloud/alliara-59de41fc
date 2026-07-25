@@ -7,7 +7,7 @@ import {
   type KeptIllustrationVariant,
 } from "@/components/brand/KeptIllustration";
 import { useAuth } from "@/lib/auth";
-import keptLogo from "@/assets/kept-logo.png?url";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 
 export const Route = createFileRoute("/intro")({
   head: () => ({
@@ -59,19 +59,10 @@ function IntroTourPage() {
   const slide = slides[idx];
 
   return (
-    <div className="min-h-svh bg-gradient-to-b from-background via-surface to-surface-2 px-4 py-8 sm:py-12">
+    <div className="min-h-svh bg-background px-4 py-8 sm:py-12">
       <div className="mx-auto flex max-w-lg flex-col">
         <div className="mb-6 flex items-center justify-between gap-3">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-2 text-sm font-medium text-foreground hover:text-foreground/80"
-          >
-            <img
-              src={keptLogo}
-              alt={COPY.auth.logoAltWordmark}
-              className="h-9 w-auto max-w-[min(100%,11rem)] object-contain sm:h-10"
-            />
-          </Link>
+          <BrandLogo variant="intro" />
           <button
             type="button"
             onClick={skip}

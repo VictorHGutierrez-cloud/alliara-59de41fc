@@ -13,6 +13,7 @@ import {
   isOnboardingFirstRunComplete,
   markOnboardingFirstRunComplete,
 } from "@/lib/onboarding-first-run";
+import { AcademyStartGuide } from "@/components/academy/AcademyStartGuide";
 
 export const Route = createFileRoute("/academy")({
   head: () => ({
@@ -98,7 +99,7 @@ function AcademyHomePage() {
               : COPY.academy.studyStreakEmpty}
           </p>
         </div>
-        <KeptIllustration variant="keepsContext" className="h-[110px] w-auto opacity-95" decorative />
+        <KeptIllustration variant="keepsContext" className="hidden h-24 w-auto opacity-95 sm:block lg:h-28" decorative />
       </section>
 
       {showTourBanner ? (
@@ -121,6 +122,8 @@ function AcademyHomePage() {
           ]}
         />
       ) : null}
+
+      {!lastStudy || showTourBanner ? <AcademyStartGuide /> : null}
 
       {lastStudy ? (
         <CalloutBanner

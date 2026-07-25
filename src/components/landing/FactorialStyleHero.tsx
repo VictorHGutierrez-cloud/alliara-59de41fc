@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { BookOpen, ChevronLeft, ChevronRight, GraduationCap, Mail, MessageCircleQuestion } from "lucide-react";
 import { COPY } from "@/lib/copy";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 
 const HERO_VIDEO_SRC = "/videos/next-one-activation.mp4";
 
@@ -93,6 +94,12 @@ export function FactorialStyleHero() {
 
       <div className="relative px-6 pb-6 pt-10 sm:pb-10 sm:pt-14">
         <div className="mx-auto max-w-3xl text-center">
+          <KeptIllustration
+            variant="bringsCalm"
+            className="mx-auto mb-6 h-20 w-auto sm:h-24"
+            decorative
+            imageLoading="eager"
+          />
           <p className="page-eyebrow text-muted-foreground">{L.heroEyebrow}</p>
           <h1 className="mt-4 text-balance text-[clamp(1.85rem,4vw,3.25rem)] font-semibold tracking-tight text-foreground leading-[1.08]">
             {L.heroTitle}

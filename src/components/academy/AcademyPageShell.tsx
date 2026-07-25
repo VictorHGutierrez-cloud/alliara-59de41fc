@@ -8,6 +8,7 @@ export function AcademyPageShell({
   title,
   subtitle,
   backToAcademy = false,
+  illustration,
   children,
   className,
 }: {
@@ -15,6 +16,7 @@ export function AcademyPageShell({
   title: string;
   subtitle?: string;
   backToAcademy?: boolean;
+  illustration?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
 }) {
@@ -29,12 +31,15 @@ export function AcademyPageShell({
           {COPY.academy.backToHub}
         </Link>
       ) : null}
-      <header className={backToAcademy ? "mt-4" : undefined}>
-        {eyebrow ? <p className="page-eyebrow">{eyebrow}</p> : null}
-        <h1 className="mt-1 text-2xl sm:text-3xl font-semibold tracking-tight">{title}</h1>
-        {subtitle ? (
-          <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-2xl">{subtitle}</p>
-        ) : null}
+      <header className={cn("flex items-start justify-between gap-4", backToAcademy && "mt-4")}>
+        <div className="min-w-0">
+          {eyebrow ? <p className="page-eyebrow">{eyebrow}</p> : null}
+          <h1 className="mt-1 text-2xl sm:text-3xl font-semibold tracking-tight">{title}</h1>
+          {subtitle ? (
+            <p className="mt-2 text-sm text-muted-foreground leading-relaxed max-w-2xl">{subtitle}</p>
+          ) : null}
+        </div>
+        {illustration ? <div className="hidden shrink-0 sm:block">{illustration}</div> : null}
       </header>
       {children}
     </div>

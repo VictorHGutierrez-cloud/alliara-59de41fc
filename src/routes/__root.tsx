@@ -10,7 +10,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import appCss from "../styles.css?url";
 import keptMark from "@/assets/kept-mark.png?url";
-import keptLogo from "@/assets/kept-logo.png?url";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "@/components/ui/sonner";
 import {
@@ -308,25 +308,11 @@ function AppFrame() {
               sidebarCollapsed ? "flex-col items-center" : "flex-row items-center justify-between",
             )}
           >
-            <Link
+            <BrandLogo
+              variant={sidebarCollapsed ? "sidebarCollapsed" : "sidebar"}
               to="/academy"
-              className={cn(
-                "flex min-w-0 rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring",
-                sidebarCollapsed ? "justify-center p-0.5" : "flex-1 pr-1",
-              )}
-            >
-              <img
-                src={sidebarCollapsed ? keptMark : keptLogo}
-                alt={COPY.auth.logoAltWordmark}
-                className={cn(
-                  "object-contain",
-                  sidebarCollapsed
-                    ? "mx-auto size-10"
-                    : "h-auto max-h-12 w-full max-w-[12.5rem] object-left sm:max-h-[3.35rem]",
-                )}
-                decoding="async"
-              />
-            </Link>
+              className={cn(sidebarCollapsed ? "justify-center" : "flex-1 pr-1")}
+            />
             <button
               type="button"
               onClick={toggleSidebarCollapsed}
@@ -392,7 +378,7 @@ function AppFrame() {
           <div
             className={cn(
               "mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6",
-              isLanding && !inAppWorkspace ? "min-h-[5.25rem] py-3 sm:min-h-28 sm:py-5" : "h-20",
+              isLanding && !inAppWorkspace ? "min-h-16 py-3" : "h-16",
             )}
           >
             <div className="flex min-w-0 items-center gap-3">
@@ -411,33 +397,11 @@ function AppFrame() {
                     className="inline-flex min-h-11 min-w-[2.75rem] shrink-0 items-center justify-center rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
                     aria-label={COPY.appShell.goToAcademy}
                   >
-                    <img
-                      src={keptMark}
-                      alt=""
-                      className="size-9 object-contain"
-                      decoding="async"
-                    />
+                    <img src={keptMark} alt="" className="size-8 object-contain" decoding="async" />
                   </Link>
                 </>
               )}
-              {!inAppWorkspace && (
-                <Link
-                  to="/"
-                  className="flex min-w-0 items-center gap-2 font-display font-bold tracking-tight text-foreground"
-                >
-                  <img
-                    src={keptLogo}
-                    alt={COPY.auth.logoAltWordmark}
-                    className={cn(
-                      "w-auto object-contain object-left",
-                      isLanding
-                        ? "h-16 max-w-[min(100%,30rem)] sm:h-[5.25rem] md:h-28"
-                        : "h-10 max-w-[min(100%,13rem)] sm:h-12",
-                    )}
-                    decoding="async"
-                  />
-                </Link>
-              )}
+              {!inAppWorkspace && <BrandLogo variant="header" />}
             </div>
             <nav className="flex items-center gap-2 text-sm">
               {isLanding ? (
@@ -534,18 +498,7 @@ function AppFrame() {
           >
             <SheetTitle className="sr-only">App navigation</SheetTitle>
             <div className="flex h-full flex-col px-3 py-4">
-              <Link
-                to="/academy"
-                className="mb-4 flex px-2"
-                onClick={() => setMobileNavOpen(false)}
-              >
-                <img
-                  src={keptLogo}
-                  alt={COPY.auth.logoAltWordmark}
-                  className="h-auto max-h-11 w-full max-w-[12.5rem] object-contain object-left"
-                  decoding="async"
-                />
-              </Link>
+              <BrandLogo variant="sidebar" to="/academy" className="mb-4 px-2" onClick={() => setMobileNavOpen(false)} />
               <nav className="space-y-1.5">
                 {workspaceItems.map((item) => {
                   const Icon = item.icon;

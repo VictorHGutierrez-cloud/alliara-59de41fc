@@ -109,8 +109,8 @@ export function KeptAiChat({
                 animationSpeed={5}
                 containerClassName="bg-transparent opacity-20"
                 colors={[
-                  [23, 23, 23],
-                  [115, 115, 115],
+                  [233, 30, 140],
+                  [18, 26, 51],
                 ]}
                 opacities={[1, 0.8, 1, 0.8, 0.5, 0.8, 1, 0.5, 1, 1]}
                 dotSize={2}

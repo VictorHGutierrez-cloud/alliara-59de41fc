@@ -2,6 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
 import { BookOpen, MessageCircleQuestion, Route as RouteIcon } from "lucide-react";
 import { FactorialStyleHero } from "@/components/landing/FactorialStyleHero";
+import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { KeptIllustration } from "@/components/brand/KeptIllustration";
 import {
   AnimatedCard,
   CardBody,
@@ -49,6 +51,8 @@ function Landing() {
     <div className="bg-background">
       <FactorialStyleHero />
 
+      <HowItWorksSection />
+
       <RevealSection>
         <section className="px-6 py-20 sm:py-24">
           <div className="mx-auto max-w-6xl">
@@ -88,17 +92,22 @@ function Landing() {
 
       <RevealSection delay={0.08}>
         <section className="px-6 py-20">
-          <div className="mx-auto max-w-3xl rounded-3xl border border-border bg-surface-2 p-8 sm:p-10 text-center">
-            <p className="page-eyebrow">{L.coachExampleEyebrow}</p>
-            <h2 className="mt-2 text-xl sm:text-2xl font-semibold">{L.coachExampleTitle}</h2>
-            <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">{L.coachExampleBody}</p>
-            <Link
-              to="/signup"
-              search={{}}
-              className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground hover:opacity-90"
-            >
-              {L.coachExampleCta}
-            </Link>
+          <div className="mx-auto max-w-3xl rounded-3xl border border-border bg-surface-2 p-8 sm:p-10">
+            <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:text-left text-center sm:text-left">
+              <KeptIllustration variant="contextBeforeCall" className="h-24 w-auto shrink-0" decorative />
+              <div className="min-w-0">
+                <p className="page-eyebrow">{L.coachExampleEyebrow}</p>
+                <h2 className="mt-2 text-xl sm:text-2xl font-semibold">{L.coachExampleTitle}</h2>
+                <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">{L.coachExampleBody}</p>
+                <Link
+                  to="/signup"
+                  search={{}}
+                  className="mt-6 inline-flex min-h-11 items-center rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground hover:opacity-90"
+                >
+                  {L.coachExampleCta}
+                </Link>
+              </div>
+            </div>
           </div>
         </section>
       </RevealSection>
