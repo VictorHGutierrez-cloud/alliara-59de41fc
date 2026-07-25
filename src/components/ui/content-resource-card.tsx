@@ -34,16 +34,13 @@ export function ContentResourceCard({
         "group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/60 bg-card p-5 card-elev",
         "transition-all duration-300 hover:-translate-y-0.5",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        "before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:p-px",
-        "before:bg-gradient-to-br before:from-primary/35 before:via-transparent before:to-transparent",
-        "before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100",
         className,
       )}
     >
       <div className="relative flex items-start justify-between gap-2">
-        <p className="page-eyebrow text-primary">{categoryLabel}</p>
+        <p className="page-eyebrow text-muted-foreground">{categoryLabel}</p>
         <ArrowUpRight
-          className="h-4 w-4 shrink-0 text-muted-foreground transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary"
+          className="h-4 w-4 shrink-0 text-muted-foreground transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground"
           aria-hidden
         />
       </div>

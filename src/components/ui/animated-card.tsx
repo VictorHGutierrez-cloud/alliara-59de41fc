@@ -109,8 +109,8 @@ interface Visual1Props {
 }
 
 export function Visual1({
-  mainColor = "#8b5cf6",
-  secondaryColor = "#fbbf24",
+  mainColor = "#171717",
+  secondaryColor = "#a3a3a3",
   gridColor = "#80808015",
   pillBadges,
   hoverPanel = null,

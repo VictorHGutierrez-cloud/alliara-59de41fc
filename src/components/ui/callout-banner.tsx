@@ -29,10 +29,10 @@ export function CalloutBanner({
 }: CalloutBannerProps) {
   const toneClass =
     tone === "primary"
-      ? "border-primary/25 bg-gradient-to-br from-primary/10 via-card to-card"
+      ? "border-border bg-surface-2"
       : tone === "neutral"
-        ? "border-border/70 bg-surface/50"
-        : "border-accent/30 bg-gradient-to-br from-accent/10 via-card to-card";
+        ? "border-border bg-background"
+        : "border-border bg-surface-2";
 
   return (
     <section
@@ -43,10 +43,9 @@ export function CalloutBanner({
         className,
       )}
     >
-      <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
       <div className="relative flex min-w-0 items-start gap-3">
         {Icon ? (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/15 bg-primary/10 text-primary">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-2 text-foreground">
             <Icon className="h-5 w-5" aria-hidden />
           </div>
         ) : null}
@@ -60,7 +59,7 @@ export function CalloutBanner({
           const btnClass =
             action.variant === "secondary"
               ? "inline-flex min-h-11 items-center rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2 transition-colors"
-              : "inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 glow-ring transition-opacity";
+              : "inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity";
 
           if (action.to) {
             return (

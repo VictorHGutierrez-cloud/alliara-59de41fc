@@ -137,7 +137,7 @@ function AcademyHomePage() {
           ]}
         />
       ) : (
-        <section className="mt-8 rounded-2xl border border-dashed border-border bg-surface/40 p-5">
+        <section className="mt-8 rounded-2xl border border-dashed border-border bg-background p-5">
           <p className="text-sm text-muted-foreground">{COPY.academy.continueEmpty}</p>
         </section>
       )}

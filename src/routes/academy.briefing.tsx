@@ -126,7 +126,7 @@ function AcademyBriefingPage() {
         )}
 
         {filtered && filtered.length === 0 && (
-          <div className="rounded-2xl border border-dashed border-border bg-surface/40 p-8 text-center">
+          <div className="rounded-2xl border border-dashed border-border bg-background p-8 text-center">
             <Newspaper className="mx-auto h-8 w-8 text-muted-foreground" aria-hidden />
             <p className="mt-3 text-sm text-muted-foreground">{COPY.academy.briefingEmpty}</p>
           </div>

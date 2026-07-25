@@ -6,12 +6,7 @@ import { COPY } from "@/lib/copy";
 const HERO_VIDEO_SRC = "/videos/next-one-activation.mp4";
 
 const MESH_STYLE: React.CSSProperties = {
-  background: `
-    radial-gradient(ellipse 85% 55% at 12% 35%, color-mix(in oklab, var(--primary) 42%, transparent), transparent 62%),
-    radial-gradient(ellipse 70% 50% at 88% 28%, color-mix(in oklab, var(--secondary) 38%, transparent), transparent 58%),
-    radial-gradient(ellipse 65% 48% at 52% 92%, color-mix(in oklab, var(--octa-7) 28%, transparent), transparent 55%),
-    linear-gradient(180deg, #fffdfb 0%, #faf8fc 45%, #fff9f6 100%)
-  `,
+  background: "#ffffff",
 };
 
 const PREVIEW_CARDS = [
@@ -80,7 +75,7 @@ export function FactorialStyleHero() {
         <>
           <video
             ref={videoRef}
-            className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.28]"
+            className="pointer-events-none absolute inset-0 -z-10 h-full w-full object-cover opacity-[0.06]"
             src={HERO_VIDEO_SRC}
             autoPlay
             muted
@@ -90,7 +85,7 @@ export function FactorialStyleHero() {
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-background/75 via-background/55 to-background"
+            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-background via-background/95 to-background"
             aria-hidden
           />
         </>
@@ -114,7 +109,7 @@ export function FactorialStyleHero() {
 
           <form
             onSubmit={onEmailSubmit}
-            className="mx-auto mt-8 flex w-full max-w-xl flex-col gap-2 rounded-full border border-border/90 bg-card/90 p-1.5 shadow-[var(--shadow-card)] backdrop-blur-sm sm:flex-row sm:items-center"
+            className="mx-auto mt-8 flex w-full max-w-xl flex-col gap-2 rounded-full border border-border bg-card p-1.5 sm:flex-row sm:items-center"
           >
             <label className="flex min-h-11 flex-1 items-center gap-2 rounded-full px-3 py-2 sm:pl-4">
               <Mail className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
@@ -168,7 +163,7 @@ export function FactorialStyleHero() {
                     i === 1 ? "sm:scale-[1.03] sm:shadow-lg" : ""
                   }`}
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary-foreground">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface-2 text-foreground">
                     <Icon className="h-5 w-5" aria-hidden />
                   </div>
                   <p className="mt-4 text-left text-sm font-semibold text-foreground">{card.title}</p>

@@ -65,7 +65,7 @@ function Landing() {
       </RevealSection>
 
       <RevealSection delay={0.05}>
-        <section className="border-y border-border/50 bg-card/30 px-6 py-20">
+        <section className="border-y border-border px-6 py-20">
           <div className="mx-auto max-w-6xl">
             <p className="page-eyebrow">{L.previewEyebrow}</p>
             <h2 className="mt-2 section-title text-2xl sm:text-3xl">{L.previewTitle}</h2>
@@ -88,7 +88,7 @@ function Landing() {
 
       <RevealSection delay={0.08}>
         <section className="px-6 py-20">
-          <div className="mx-auto max-w-3xl rounded-3xl border border-border/60 bg-gradient-to-br from-primary/5 to-card p-8 sm:p-10 text-center">
+          <div className="mx-auto max-w-3xl rounded-3xl border border-border bg-surface-2 p-8 sm:p-10 text-center">
             <p className="page-eyebrow">{L.coachExampleEyebrow}</p>
             <h2 className="mt-2 text-xl sm:text-2xl font-semibold">{L.coachExampleTitle}</h2>
             <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">{L.coachExampleBody}</p>

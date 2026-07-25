@@ -358,7 +358,7 @@ function AppFrame() {
                     "flex min-h-11 w-full items-center gap-3 rounded-xl text-left text-sm transition",
                     sidebarCollapsed ? "justify-center px-0" : "px-3",
                     item.active
-                      ? "bg-primary/14 text-foreground shadow-[inset_0_0_0_1px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
+                      ? "bg-surface-2 text-foreground shadow-[inset_0_0_0_1px_var(--border)]"
                       : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                   )}
                 >
@@ -445,14 +445,14 @@ function AppFrame() {
                   <>
                     <Link
                       to="/academy"
-                      className="min-h-11 inline-flex items-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-neutral-100"
+                      className="min-h-11 inline-flex items-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-surface-2"
                     >
                       {COPY.auth.openWorkspaceCta}
                     </Link>
                     <button
                       type="button"
                       onClick={() => signOut()}
-                      className="ml-1 min-h-11 inline-flex items-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-neutral-100"
+                      className="ml-1 min-h-11 inline-flex items-center rounded-xl px-4 text-sm font-semibold text-foreground transition hover:bg-surface-2"
                     >
                       {COPY.auth.signOutLabel}
                     </button>
@@ -517,7 +517,7 @@ function AppFrame() {
         ) : null}
 
         {!isLanding && (
-          <footer className="border-t border-border/50 bg-card/30 py-8 text-center">
+          <footer className="border-t border-border bg-background py-8 text-center">
             <p className="text-xs text-muted-foreground">{COPY.appShell.footerCredit}</p>
             <p className="mt-3 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground/60">
               {COPY.auth.attributionByline}
@@ -560,7 +560,7 @@ function AppFrame() {
                       className={cn(
                         "flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition",
                         item.active
-                          ? "bg-primary/14 text-foreground"
+                          ? "bg-surface-2 text-foreground"
                           : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
                       )}
                     >

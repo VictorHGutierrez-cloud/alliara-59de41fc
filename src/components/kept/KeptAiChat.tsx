@@ -94,7 +94,7 @@ export function KeptAiChat({
     <div
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="relative mx-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-[var(--shadow-card)] backdrop-blur-sm"
+      className="relative mx-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
     >
       <div className="relative flex min-h-0 flex-1 flex-col p-4 sm:p-5">
         <AnimatePresence>
@@ -107,10 +107,10 @@ export function KeptAiChat({
             >
               <CanvasRevealEffect
                 animationSpeed={5}
-                containerClassName="bg-transparent opacity-25 dark:opacity-40"
+                containerClassName="bg-transparent opacity-20"
                 colors={[
-                  [139, 92, 246],
-                  [99, 102, 241],
+                  [23, 23, 23],
+                  [115, 115, 115],
                 ]}
                 opacities={[1, 0.8, 1, 0.8, 0.5, 0.8, 1, 0.5, 1, 1]}
                 dotSize={2}
@@ -132,7 +132,7 @@ export function KeptAiChat({
           </div>
 
           {contextTopic ? (
-            <p className="mx-2 mt-3 shrink-0 rounded-xl border border-primary/25 bg-primary/10 px-3 py-2 text-center text-xs font-medium text-foreground">
+            <p className="mx-2 mt-3 shrink-0 rounded-xl border border-border bg-surface-2 px-3 py-2 text-center text-xs font-medium text-foreground">
               {COPY.academy.askContextBanner(contextTopic)}
             </p>
           ) : null}
@@ -163,7 +163,7 @@ export function KeptAiChat({
                     key={i}
                     className={cn(
                       m.role === "user"
-                        ? "ml-8 rounded-2xl rounded-tr-sm bg-primary/20 px-4 py-3 text-[15px] font-medium leading-relaxed text-foreground"
+                        ? "ml-8 rounded-2xl rounded-tr-sm bg-surface-2 px-4 py-3 text-[15px] font-medium leading-relaxed text-foreground"
                         : "mr-4 rounded-2xl rounded-tl-sm border border-border/60 bg-card/95 px-4 py-3 shadow-[var(--shadow-card)]",
                     )}
                   >

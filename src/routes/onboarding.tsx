@@ -105,7 +105,7 @@ function OnboardingLayout() {
 
       <div className="h-2 w-full overflow-hidden rounded-full bg-surface">
         <div
-          className="h-full rounded-full bg-gradient-to-r from-primary via-primary/80 to-accent transition-all duration-500"
+          className="h-full rounded-full bg-foreground transition-all duration-500"
           style={{ width: `${(completed / total) * 100}%` }}
         />
       </div>
@@ -120,11 +120,8 @@ function OnboardingLayout() {
                 params={{ stepId: s.id }}
                 className={cn(
                   "group relative flex items-start gap-4 overflow-hidden rounded-2xl border bg-card p-4 transition-all duration-300",
-                  "hover:-translate-y-0.5 hover:border-primary/40 hover:bg-surface/80",
-                  "before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:p-px",
-                  "before:bg-gradient-to-r before:from-primary/30 before:via-transparent before:to-transparent",
-                  "before:opacity-0 before:transition-opacity before:duration-300 group-hover:before:opacity-100",
-                  isDone ? "border-primary/30" : "border-border/70",
+                  "hover:-translate-y-0.5 hover:border-border hover:bg-surface-2",
+                  isDone ? "border-foreground/20" : "border-border",
                 )}
               >
                 <div
@@ -151,7 +148,7 @@ function OnboardingLayout() {
         })}
       </ol>
 
-      <div className="rounded-2xl border border-dashed border-border/60 bg-surface/40 p-5 flex items-start gap-4">
+      <div className="rounded-2xl border border-dashed border-border bg-background p-5 flex items-start gap-4">
         <KeptIllustration variant="bringsCalm" className="h-16 w-auto shrink-0 object-contain" decorative />
         <div className="min-w-0">
           <p className="text-sm font-semibold">Stuck on a step?</p>

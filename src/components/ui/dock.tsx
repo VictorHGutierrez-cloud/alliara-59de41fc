@@ -35,8 +35,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
           className={cn(
             "fixed bottom-5 left-1/2 z-50 -translate-x-1/2",
             "flex items-center gap-1 rounded-2xl border border-border/60",
-            "bg-background/70 px-2 py-2 shadow-2xl backdrop-blur-xl",
-            "supports-[backdrop-filter]:bg-background/50",
+            "bg-background px-2 py-2 shadow-sm",
             className,
           )}
         >
@@ -54,7 +53,7 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
                     className={cn(
                       "relative h-11 w-11 rounded-xl transition-transform",
                       "hover:scale-110 hover:bg-surface-2",
-                      item.active && "bg-primary/10 text-primary",
+                      item.active && "bg-surface-2 text-foreground",
                     )}
                   >
                     <Icon className="h-5 w-5" />
