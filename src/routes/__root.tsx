@@ -245,6 +245,25 @@ function AppFrame() {
     [navigate, path, user, isAdmin],
   );
 
+  const mobileDockItems = useMemo(
+    () =>
+      workspaceItems.filter((i) =>
+        ["home", "library", "coach", "tracks", "briefing"].includes(i.key),
+      ),
+    [workspaceItems],
+  );
+
+  const inAppWorkspace = Boolean(user && !isLanding);
+
+  const showMobileDock =
+    !loading &&
+    inAppWorkspace &&
+    (path.startsWith("/academy") || path.startsWith("/onboarding"));
+
+  const sidebarColClass = sidebarCollapsed
+    ? "lg:grid-cols-[4.5rem_1fr]"
+    : "lg:grid-cols-[17rem_1fr]";
+
   if (loading) {
     return (
       <div className="grid min-h-screen w-full overflow-x-clip lg:grid-cols-[17rem_1fr]">
@@ -265,24 +284,6 @@ function AppFrame() {
       </div>
     );
   }
-
-  const inAppWorkspace = Boolean(user && !isLanding);
-
-  const mobileDockItems = useMemo(
-    () =>
-      workspaceItems.filter((i) =>
-        ["home", "library", "coach", "tracks", "briefing"].includes(i.key),
-      ),
-    [workspaceItems],
-  );
-
-  const showMobileDock =
-    inAppWorkspace &&
-    (path.startsWith("/academy") || path.startsWith("/onboarding"));
-
-  const sidebarColClass = sidebarCollapsed
-    ? "lg:grid-cols-[4.5rem_1fr]"
-    : "lg:grid-cols-[17rem_1fr]";
 
   return (
     <div
