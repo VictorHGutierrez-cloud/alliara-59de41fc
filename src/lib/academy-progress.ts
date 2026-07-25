@@ -1,4 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { CompanionId } from "@/lib/companion";
+import {
+  applyCompanionState,
+  getCompanionForSync,
+  hasChosenCompanionForSync,
+} from "@/lib/companion";
 
 const PROGRESS_KEY = "kept-academy-progress";
 const LAST_STUDY_KEY = "kept-academy-last-study";
@@ -21,6 +27,8 @@ export interface AcademyProgressState {
   completedSlugs: string[];
   lastStudy: LastStudy | null;
   studyDates: string[];
+  companion: CompanionId | null;
+  companionChosen: boolean;
 }
 
 function todayKey(): string {
@@ -165,10 +173,13 @@ export function loadLastStudy(): LastStudy | null {
 }
 
 export function loadProgressState(): AcademyProgressState {
+  const companionChosen = hasChosenCompanionForSync();
   return {
     completedSlugs: [...loadCompletedSlugs()],
     lastStudy: loadLastStudy(),
     studyDates: loadStudyDates(),
+    companion: companionChosen ? getCompanionForSync() : null,
+    companionChosen,
   };
 }
 
@@ -179,6 +190,7 @@ export function applyProgressState(state: AcademyProgressState) {
       localStorage.setItem(LAST_STUDY_KEY, JSON.stringify(state.lastStudy));
     }
     saveStudyDates(state.studyDates);
+    applyCompanionState(state.companion, state.companionChosen);
   } catch {
     /* ignore */
   }
@@ -195,10 +207,22 @@ function mergeProgress(local: AcademyProgressState, remote: AcademyProgressState
     }
   }
 
+  let companion = local.companion;
+  let companionChosen = local.companionChosen;
+  if (remote.companionChosen && remote.companion) {
+    companion = remote.companion;
+    companionChosen = true;
+  } else if (!companionChosen && remote.companionChosen) {
+    companion = remote.companion;
+    companionChosen = remote.companionChosen;
+  }
+
   return {
     completedSlugs: [...completed],
     lastStudy,
     studyDates,
+    companion,
+    companionChosen,
   };
 }
 
@@ -207,7 +231,7 @@ export async function syncAcademyProgress(userId: string): Promise<void> {
 
   const { data, error } = await supabase
     .from("academy_progress")
-    .select("completed_slugs, last_study, study_dates, updated_at")
+    .select("completed_slugs, last_study, study_dates, companion, updated_at")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -222,16 +246,22 @@ export async function syncAcademyProgress(userId: string): Promise<void> {
       completed_slugs: local.completedSlugs,
       last_study: local.lastStudy,
       study_dates: local.studyDates,
+      companion: local.companionChosen ? local.companion : null,
       updated_at: new Date().toISOString(),
     });
     if (insertError) console.error("[syncAcademyProgress - push]:", insertError);
     return;
   }
 
+  const remoteCompanion =
+    data.companion === "kept" || data.companion === "kepta" ? data.companion : null;
+
   const remote: AcademyProgressState = {
     completedSlugs: data.completed_slugs ?? [],
     lastStudy: (data.last_study as LastStudy | null) ?? null,
     studyDates: data.study_dates ?? [],
+    companion: remoteCompanion,
+    companionChosen: remoteCompanion !== null,
   };
 
   const merged = mergeProgress(local, remote);
@@ -242,6 +272,7 @@ export async function syncAcademyProgress(userId: string): Promise<void> {
     completed_slugs: merged.completedSlugs,
     last_study: merged.lastStudy,
     study_dates: merged.studyDates,
+    companion: merged.companionChosen ? merged.companion : null,
     updated_at: new Date().toISOString(),
   });
 
@@ -255,6 +286,7 @@ export async function pushAcademyProgress(userId: string): Promise<void> {
     completed_slugs: state.completedSlugs,
     last_study: state.lastStudy,
     study_dates: state.studyDates,
+    companion: state.companionChosen ? state.companion : null,
     updated_at: new Date().toISOString(),
   });
   if (error) console.error("[pushAcademyProgress]:", error);

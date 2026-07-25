@@ -33,6 +33,36 @@ export function setCompanion(id: CompanionId): void {
   }
 }
 
+export function getCompanionForSync(): CompanionId {
+  return getCompanion();
+}
+
+export function hasChosenCompanionForSync(): boolean {
+  return hasChosenCompanion();
+}
+
+/** Apply companion from cloud merge without duplicating setCompanion side effects. */
+export function applyCompanionState(companion: CompanionId | null, companionChosen: boolean): void {
+  if (typeof window === "undefined") return;
+  try {
+    const prevChosen = hasChosenCompanion();
+    const prevId = getCompanion();
+
+    if (companionChosen && companion) {
+      localStorage.setItem(COMPANION_KEY, companion);
+      localStorage.setItem(COMPANION_CHOSEN_KEY, "1");
+    } else if (!companionChosen) {
+      localStorage.removeItem(COMPANION_CHOSEN_KEY);
+    }
+
+    if (companionChosen && companion && (!prevChosen || prevId !== companion)) {
+      window.dispatchEvent(new CustomEvent("kept-companion-changed", { detail: companion }));
+    }
+  } catch {
+    /* ignore */
+  }
+}
+
 export function clearCompanionChoice(): void {
   if (typeof window === "undefined") return;
   try {

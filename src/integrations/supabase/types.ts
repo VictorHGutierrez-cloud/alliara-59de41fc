@@ -807,6 +807,7 @@ export type Database = {
           completed_slugs: string[]
           last_study: Json | null
           study_dates: string[]
+          companion: string | null
           updated_at: string
         }
         Insert: {
@@ -814,6 +815,7 @@ export type Database = {
           completed_slugs?: string[]
           last_study?: Json | null
           study_dates?: string[]
+          companion?: string | null
           updated_at?: string
         }
         Update: {
@@ -821,6 +823,7 @@ export type Database = {
           completed_slugs?: string[]
           last_study?: Json | null
           study_dates?: string[]
+          companion?: string | null
           updated_at?: string
         }
         Relationships: []

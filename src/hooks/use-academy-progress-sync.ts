@@ -17,9 +17,15 @@ export function useAcademyProgressSync(userId: string | undefined) {
       }
     };
 
+    const onCompanionChange = () => {
+      void pushAcademyProgress(userId);
+    };
+
     window.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("kept-companion-changed", onCompanionChange);
     return () => {
       window.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("kept-companion-changed", onCompanionChange);
       void pushAcademyProgress(userId);
     };
   }, [userId]);
