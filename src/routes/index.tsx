@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { BookOpen, MessageCircleQuestion, Route as RouteIcon } from "lucide-react";
 import { FactorialStyleHero } from "@/components/landing/FactorialStyleHero";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { KeptKeptaDuoIllustration } from "@/components/brand/KeptKeptaDuoIllustration";
 import {
   AnimatedCard,
   CardBody,
@@ -59,6 +59,9 @@ function Landing() {
             <p className="page-eyebrow text-center">{L.pillarsEyebrow}</p>
             <h2 className="mt-3 text-center section-title text-3xl sm:text-4xl">{L.pillarsTitle}</h2>
             <p className="mx-auto mt-3 max-w-2xl text-center section-subtitle">{L.pillarsIntro}</p>
+            <div className="mt-10 overflow-hidden rounded-2xl border border-border">
+              <KeptKeptaDuoIllustration variant="dealPipeline" className="max-h-44 w-full object-cover" decorative />
+            </div>
             <div className="mt-10 grid gap-4 sm:grid-cols-3">
               <FeatureHubCard title={L.pillarLibraryTitle} body={L.pillarLibraryBody} icon={BookOpen} />
               <FeatureHubCard title={L.pillarCoachTitle} body={L.pillarCoachBody} icon={MessageCircleQuestion} />
@@ -71,6 +74,9 @@ function Landing() {
       <RevealSection delay={0.05}>
         <section className="border-y border-border px-6 py-20">
           <div className="mx-auto max-w-6xl">
+            <div className="mb-8 overflow-hidden rounded-2xl border border-border">
+              <KeptKeptaDuoIllustration variant="libraryPlaybooks" className="max-h-52 w-full object-cover" decorative />
+            </div>
             <p className="page-eyebrow">{L.previewEyebrow}</p>
             <h2 className="mt-2 section-title text-2xl sm:text-3xl">{L.previewTitle}</h2>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
@@ -94,7 +100,7 @@ function Landing() {
         <section className="px-6 py-20">
           <div className="mx-auto max-w-3xl rounded-3xl border border-border bg-surface-2 p-8 sm:p-10">
             <div className="flex flex-col items-center gap-6 sm:flex-row sm:items-start sm:text-left text-center sm:text-left">
-              <KeptIllustration variant="contextBeforeCall" className="h-24 w-auto shrink-0" decorative />
+              <KeptKeptaDuoIllustration variant="coachDealHelp" className="h-32 w-full max-w-xs shrink-0 object-contain sm:h-36" decorative />
               <div className="min-w-0">
                 <p className="page-eyebrow">{L.coachExampleEyebrow}</p>
                 <h2 className="mt-2 text-xl sm:text-2xl font-semibold">{L.coachExampleTitle}</h2>
@@ -115,7 +121,8 @@ function Landing() {
       <RevealSection delay={0.1}>
         <section className="px-6 pb-24 pt-4">
           <div className="mx-auto max-w-4xl">
-            <AnimatedCard className="border-primary/15">
+            <KeptKeptaDuoIllustration variant="dailyBriefing" className="mx-auto mb-8 max-h-40 w-full max-w-lg object-contain" decorative />
+            <AnimatedCard className="border-border">
               <CardBody className="p-8 sm:p-10 text-center">
                 <CardTitle className="text-2xl sm:text-3xl">{L.finalCtaTitle}</CardTitle>
                 <CardDescription className="mx-auto mt-3 max-w-lg text-base">

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import { ONBOARDING_STEPS, ONBOARDING_PROGRESS_KEY } from "@/content/onboarding";
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { markOnboardingFirstRunComplete } from "@/lib/onboarding-first-run";
 
 export const Route = createFileRoute("/onboarding/$stepId")({
@@ -102,7 +102,7 @@ function OnboardingStepPage() {
 
         <div className="md:sticky md:top-24">
           <div className="rounded-2xl border border-border/70 bg-surface/60 p-4 flex items-center justify-center">
-            <KeptIllustration
+            <CompanionIllustration
               variant={step.variant}
               className="h-40 w-auto object-contain"
               decorative

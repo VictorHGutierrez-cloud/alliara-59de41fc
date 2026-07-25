@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 
@@ -21,7 +21,7 @@ function PendingApproval() {
   return (
     <div className="mx-auto max-w-xl px-6 py-16">
       <div className="rounded-2xl border border-border bg-card p-8 shadow-sm text-center sm:text-left">
-        <KeptIllustration variant="remindsGently" className="mx-auto h-24 w-auto sm:mx-0" decorative />
+        <CompanionIllustration variant="remindsGently" className="mx-auto h-24 w-auto sm:mx-0" decorative />
         <h1 className="mt-4 text-2xl font-semibold">
           {rejected ? "Access not granted" : "Awaiting approval"}
         </h1>

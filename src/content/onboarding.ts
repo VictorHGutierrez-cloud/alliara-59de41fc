@@ -18,9 +18,9 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     eyebrow: "Welcome",
     title: "Welcome to Executive Academy",
     summary:
-      "Kept is your study home for B2B sales — playbooks, situational coach, and tracks you follow between calls.",
+      "Your study companion walks with you through B2B sales — playbooks, situational coach, and tracks you follow between calls.",
     bullets: [
-      "Built for sales executives and leaders who sell in 2026.",
+      "Pick Kept or Kepta as your friend — change anytime in Settings.",
       "Every screen helps you study, ask, or track progress.",
       "You can replay this tour any time from Settings.",
     ],

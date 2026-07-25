@@ -9,7 +9,7 @@ import {
 } from "@/content/sales-library";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { ContentResourceCard } from "@/components/ui/content-resource-card";
 import { SearchField } from "@/components/ui/search-field";
 
@@ -54,7 +54,7 @@ function AcademyLibraryPage() {
       backToAcademy
       title={COPY.academy.libraryTitle}
       subtitle={COPY.academy.libraryIntro}
-      illustration={<KeptIllustration variant="keepsContext" className="h-20 w-auto" decorative />}
+      illustration={<CompanionIllustration variant="keepsContext" className="h-20 w-auto" decorative />}
     >
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
         <SearchField
@@ -93,7 +93,7 @@ function AcademyLibraryPage() {
 
       {filtered.length === 0 && (
         <div className="mt-12 flex flex-col items-center text-center">
-          <KeptIllustration variant="noticesDrift" className="h-24 w-auto" decorative />
+          <CompanionIllustration variant="noticesDrift" className="h-24 w-auto" decorative />
           <p className="mt-4 text-sm text-muted-foreground">{COPY.academy.libraryEmpty}</p>
           <p className="mt-1 text-xs text-muted-foreground">{COPY.academy.libraryEmptyIllustration}</p>
         </div>

@@ -3,9 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { COPY } from "@/lib/copy";
 import {
-  KeptIllustration,
   type KeptIllustrationVariant,
 } from "@/components/brand/KeptIllustration";
+import { KeptKeptaDuoIllustration, type KeptKeptaDuoVariant } from "@/components/brand/KeptKeptaDuoIllustration";
 import { useAuth } from "@/lib/auth";
 import { BrandLogo } from "@/components/brand/BrandLogo";
 
@@ -57,6 +57,13 @@ function IntroTourPage() {
   }, [goNext, goPrev]);
 
   const slide = slides[idx];
+  const duoVariants: KeptKeptaDuoVariant[] = [
+    "welcomeAcademy",
+    "libraryPlaybooks",
+    "coachDealHelp",
+    "learningTracks",
+    "dailyBriefing",
+  ];
 
   return (
     <div className="min-h-svh bg-background px-4 py-8 sm:py-12">
@@ -78,10 +85,10 @@ function IntroTourPage() {
 
         <div className="mt-6 rounded-3xl border border-border/90 bg-card p-6 shadow-[var(--shadow-card)] sm:p-8">
           <figure className="mx-auto flex w-full max-w-md flex-col items-center justify-center rounded-2xl border border-border/60 bg-surface-2 px-3 py-6 sm:min-h-[320px] sm:px-6 sm:py-10">
-            <KeptIllustration
-              variant={slide.variant}
+            <KeptKeptaDuoIllustration
+              variant={duoVariants[idx] ?? "welcomeAcademy"}
               imageLoading="eager"
-              className="mx-auto max-h-[min(52vh,420px)] w-auto max-w-full object-contain"
+              className="mx-auto max-h-[min(52vh,420px)] w-full max-w-full object-contain"
             />
           </figure>
           <h1 className="mt-6 text-center font-display text-xl font-semibold tracking-tight text-foreground sm:text-2xl">

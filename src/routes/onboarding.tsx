@@ -4,7 +4,7 @@ import { ArrowRight, Check, GraduationCap, RotateCcw } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import { ONBOARDING_STEPS, ONBOARDING_PROGRESS_KEY } from "@/content/onboarding";
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { markOnboardingFirstRunComplete } from "@/lib/onboarding-first-run";
 import { cn } from "@/lib/utils";
 
@@ -149,7 +149,7 @@ function OnboardingLayout() {
       </ol>
 
       <div className="rounded-2xl border border-dashed border-border bg-background p-5 flex items-start gap-4">
-        <KeptIllustration variant="bringsCalm" className="h-16 w-auto shrink-0 object-contain" decorative />
+        <CompanionIllustration variant="bringsCalm" className="h-16 w-auto shrink-0 object-contain" decorative />
         <div className="min-w-0">
           <p className="text-sm font-semibold">Stuck on a step?</p>
           <p className="mt-1 text-sm text-muted-foreground">

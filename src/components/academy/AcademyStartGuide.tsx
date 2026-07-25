@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { COPY } from "@/lib/copy";
 
 const STEPS = [
@@ -38,7 +38,7 @@ export function AcademyStartGuide() {
             ))}
           </ol>
         </div>
-        <KeptIllustration variant="bringsCalm" className="mx-auto h-28 w-auto sm:mx-0 sm:h-32" decorative />
+        <CompanionIllustration variant="bringsCalm" className="mx-auto h-28 w-auto sm:mx-0 sm:h-32" decorative />
       </div>
     </section>
   );

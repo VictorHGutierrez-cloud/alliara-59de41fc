@@ -1,27 +1,33 @@
 import { Link } from "@tanstack/react-router";
-import { KeptIllustration, type KeptIllustrationVariant } from "@/components/brand/KeptIllustration";
+import { KeptKeptaDuoIllustration, type KeptKeptaDuoVariant } from "@/components/brand/KeptKeptaDuoIllustration";
 import { COPY } from "@/lib/copy";
 
-const STEPS: { step: string; title: string; body: string; variant: KeptIllustrationVariant; to: string }[] = [
+const STEPS: {
+  step: string;
+  title: string;
+  body: string;
+  variant: KeptKeptaDuoVariant;
+  to: string;
+}[] = [
   {
     step: "01",
     title: COPY.landing.howStep1Title,
     body: COPY.landing.howStep1Body,
-    variant: "keepsContext",
+    variant: "welcomeAcademy",
     to: "/signup",
   },
   {
     step: "02",
     title: COPY.landing.howStep2Title,
     body: COPY.landing.howStep2Body,
-    variant: "contextBeforeCall",
+    variant: "coachDealHelp",
     to: "/signup",
   },
   {
     step: "03",
     title: COPY.landing.howStep3Title,
     body: COPY.landing.howStep3Body,
-    variant: "everythingOnTrack",
+    variant: "learningTracks",
     to: "/signup",
   },
 ];
@@ -36,20 +42,24 @@ export function HowItWorksSection() {
 
         <ol className="mt-12 grid gap-8 lg:grid-cols-3">
           {STEPS.map((s) => (
-            <li key={s.step} className="flex flex-col rounded-2xl border border-border bg-card p-6">
-              <div className="flex items-start justify-between gap-3">
+            <li key={s.step} className="flex flex-col overflow-hidden rounded-2xl border border-border bg-card">
+              <KeptKeptaDuoIllustration
+                variant={s.variant}
+                className="h-36 w-full object-cover border-b border-border/60 sm:h-40"
+                decorative
+              />
+              <div className="flex flex-1 flex-col p-6">
                 <span className="page-eyebrow text-brand-pink">{s.step}</span>
-                <KeptIllustration variant={s.variant} className="h-20 w-auto" decorative />
+                <h3 className="mt-2 text-lg font-semibold tracking-tight">{s.title}</h3>
+                <p className="mt-2 flex-1 text-sm text-muted-foreground leading-relaxed">{s.body}</p>
+                <Link
+                  to={s.to}
+                  search={{}}
+                  className="mt-5 inline-flex min-h-10 items-center text-sm font-semibold text-foreground hover:underline"
+                >
+                  {COPY.landing.howStepCta}
+                </Link>
               </div>
-              <h3 className="mt-4 text-lg font-semibold tracking-tight">{s.title}</h3>
-              <p className="mt-2 flex-1 text-sm text-muted-foreground leading-relaxed">{s.body}</p>
-              <Link
-                to={s.to}
-                search={{}}
-                className="mt-5 inline-flex min-h-10 items-center text-sm font-semibold text-foreground hover:underline"
-              >
-                {COPY.landing.howStepCta}
-              </Link>
             </li>
           ))}
         </ol>

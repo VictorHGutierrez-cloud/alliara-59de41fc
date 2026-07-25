@@ -107,15 +107,16 @@ export function GoogleIcon() {
   );
 }
 
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
-import { BrandLogo } from "@/components/brand/BrandLogo";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
+import { KeptKeptaDuoIllustration } from "@/components/brand/KeptKeptaDuoIllustration";
 
 export function AuthLayout({ title, sub, children }: { title: string; sub: string; children: React.ReactNode }) {
   return (
     <div className="mx-auto grid min-h-[calc(100dvh-4rem)] max-w-5xl items-center gap-10 px-6 py-12 lg:grid-cols-2">
       <div className="hidden flex-col items-center justify-center text-center lg:flex">
         <BrandLogo variant="auth" className="mb-8" />
-        <KeptIllustration variant="bringsCalm" className="h-48 w-auto" decorative />
+        <KeptKeptaDuoIllustration variant="welcomeAcademy" className="mb-6 max-h-44 w-full object-contain" decorative />
+        <CompanionIllustration variant="bringsCalm" className="h-32 w-auto opacity-90" decorative />
         <p className="mt-6 max-w-sm text-sm text-muted-foreground leading-relaxed">
           Study playbooks, ask the coach when a deal stalls, and follow tracks at your own pace.
         </p>

@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { getSalesMaterial } from "@/content/sales-library";
 import { keptVariantForAppPath } from "@/lib/kept-route-variant";
 import { COPY } from "@/lib/copy";
@@ -36,7 +36,7 @@ export function KeptChatDock() {
         title={COPY.academy.coachDockTitle}
         className="flex min-h-[52px] items-center justify-center rounded-2xl border border-border/80 bg-card/95 p-2 shadow-lg backdrop-blur-sm transition hover:border-primary/35 hover:shadow-xl"
       >
-        <KeptIllustration
+        <CompanionIllustration
           variant={variant}
           className="h-[52px] w-auto max-w-[76px] object-contain"
           decorative

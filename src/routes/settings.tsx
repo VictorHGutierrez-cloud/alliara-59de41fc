@@ -1,9 +1,13 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
+import { COMPANION_META } from "@/lib/companion";
+import { useCompanion } from "@/lib/companion-context";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({
@@ -19,6 +23,7 @@ export const Route = createFileRoute("/settings")({
 function SettingsPage() {
   const { user, loading, signOut } = useAuth();
   const nav = useNavigate();
+  const { companion, setCompanion } = useCompanion();
   const [displayName, setDisplayName] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -84,6 +89,37 @@ function SettingsPage() {
           >
             {busy ? "Saving…" : "Save"}
           </button>
+        </div>
+
+        <div className="rounded-2xl border border-border/60 bg-card p-5 card-elev space-y-4">
+          <h2 className="text-sm font-semibold">{COPY.companion.settingsTitle}</h2>
+          <p className="text-sm text-muted-foreground">{COPY.companion.settingsBody}</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {(["kept", "kepta"] as const).map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => {
+                  setCompanion(id);
+                  toast.success(`${COMPANION_META[id].name} is now your study companion.`);
+                }}
+                className={cn(
+                  "flex flex-col items-center rounded-xl border p-4 transition",
+                  companion === id
+                    ? "border-foreground bg-surface-2"
+                    : "border-border hover:border-foreground/30",
+                )}
+              >
+                <CompanionIllustration
+                  forceCompanion={id}
+                  variant="bringsCalm"
+                  className="h-20 w-auto"
+                  decorative
+                />
+                <span className="mt-2 text-sm font-semibold">{COMPANION_META[id].name}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="rounded-2xl border border-border/60 bg-card p-5 card-elev">

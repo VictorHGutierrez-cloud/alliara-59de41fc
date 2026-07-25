@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import appCss from "../styles.css?url";
 import keptMark from "@/assets/kept-mark.png?url";
 import { BrandLogo } from "@/components/brand/BrandLogo";
-import { AuthProvider, useAuth } from "@/lib/auth";
+import { CompanionProvider } from "@/lib/companion-context";
 import { Toaster } from "@/components/ui/sonner";
 import {
   Menu,
@@ -118,10 +118,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   return (
     <AuthProvider>
-      <ConfirmProvider>
-        <AppFrame />
-        <Toaster richColors position="top-right" />
-      </ConfirmProvider>
+      <CompanionProvider>
+        <ConfirmProvider>
+          <AppFrame />
+          <Toaster richColors position="top-right" />
+        </ConfirmProvider>
+      </CompanionProvider>
     </AuthProvider>
   );
 }

@@ -4,7 +4,7 @@ import { BookOpen, Flame, GraduationCap, MessageCircleQuestion, Newspaper, Spark
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import { LMS_TRACKS, SALES_LIBRARY } from "@/content/sales-library";
-import { KeptIllustration } from "@/components/brand/KeptIllustration";
+import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { loadLastStudy, getStudyStreak } from "@/lib/academy-progress";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { CalloutBanner } from "@/components/ui/callout-banner";
@@ -13,6 +13,7 @@ import {
   isOnboardingFirstRunComplete,
   markOnboardingFirstRunComplete,
 } from "@/lib/onboarding-first-run";
+import { hasChosenCompanion } from "@/lib/companion";
 import { AcademyStartGuide } from "@/components/academy/AcademyStartGuide";
 
 export const Route = createFileRoute("/academy")({
@@ -59,6 +60,10 @@ function AcademyHomePage() {
 
   useEffect(() => {
     if (accessStatus !== "approved") return;
+    if (!hasChosenCompanion()) {
+      void nav({ to: "/choose-companion", replace: true });
+      return;
+    }
     if (isOnboardingFirstRunComplete()) return;
     void nav({
       to: "/onboarding/$stepId",
@@ -99,7 +104,7 @@ function AcademyHomePage() {
               : COPY.academy.studyStreakEmpty}
           </p>
         </div>
-        <KeptIllustration variant="keepsContext" className="hidden h-24 w-auto opacity-95 sm:block lg:h-28" decorative />
+        <CompanionIllustration variant="keepsContext" className="hidden h-24 w-auto opacity-95 sm:block lg:h-28" decorative />
       </section>
 
       {showTourBanner ? (

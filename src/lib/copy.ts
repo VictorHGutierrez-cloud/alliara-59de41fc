@@ -57,7 +57,7 @@ export const COPY = {
     howTitle: "Three steps from signup to confident selling",
     howIntro: "No maze of menus — library for depth, coach for the moment, tracks for order.",
     howStep1Title: "Create your account",
-    howStep1Body: "Sign up with work email. Approval is quick — then your study space opens.",
+    howStep1Body: "Sign up, then choose Kept or Kepta — your friend through library, coach, and tracks.",
     howStep2Title: "Ask the coach or open a playbook",
     howStep2Body: "Stuck on a deal? Describe the situation. Need depth? Open psychology or MEDDPICC in the library.",
     howStep3Title: "Follow a track and mark progress",
@@ -126,6 +126,19 @@ export const COPY = {
       "The link may be old, or the address has a typo. Head home and we'll get you oriented.",
     homeCtaLabel: "Back to home",
     attributionByline: "Crafted with care by Victor Gutierrez",
+  },
+
+  companion: {
+    pageMetaTitle: "Choose your friend · Kept Academy",
+    eyebrow: "Your study buddy",
+    title: "Choose your friend",
+    intro:
+      "Pick who walks with you through library, tracks, and coach. You can change this anytime in Settings.",
+    continueCta: "Continue with my friend",
+    changeHint: "You can switch between Kept and Kepta later in Settings.",
+    settingsTitle: "Study companion",
+    settingsBody: "Who appears on your Academy screens and coach dock.",
+    settingsChangeCta: "Change companion",
   },
 
   academy: {
