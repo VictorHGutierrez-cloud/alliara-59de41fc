@@ -82,7 +82,7 @@
     }
     .story-progress b { color: var(--ink); }
 
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 86px 28px 72px; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 86px 28px 72px; }
 
     .hero { min-height: calc(100vh - 90px); display: grid; align-content: center; gap: 20px; padding: 28px 0 48px; }
     .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--people); }
@@ -94,17 +94,58 @@
       border-radius: 14px; padding: 12px 16px; max-width: 58ch;
     }
 
-    .cast { display: flex; flex-wrap: wrap; gap: 8px; }
+    .cast { display: flex; flex-wrap: wrap; gap: 10px; }
     .person {
-      display: flex; align-items: center; gap: 8px; background: var(--white);
-      border: 1px solid rgba(20,28,25,.08); border-radius: 999px; padding: 5px 12px 5px 5px; font-size: 13px; font-weight: 500;
+      display: flex; align-items: center; gap: 10px; background: var(--white);
+      border: 1px solid #f3d4e4; border-radius: 999px; padding: 4px 14px 4px 4px; font-size: 13px; font-weight: 500;
     }
-    .face { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 12px; flex-shrink: 0; }
-    .brenda .face { background: linear-gradient(145deg,#3d8b8f,#1a6b72); }
-    .hellen .face { background: linear-gradient(145deg,#e07a45,#c4561f); }
-    .marco .face { background: linear-gradient(145deg,#4f8a55,#2a6540); }
-    .tom .face { background: linear-gradient(145deg,#5b72a8,#2c406e); }
+    .face {
+      width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+      color: #fff; font-weight: 700; font-size: 12px; flex-shrink: 0; overflow: hidden;
+      background: var(--sand);
+    }
+    .face img {
+      width: 100%; height: 100%; object-fit: cover; object-position: center top;
+      transform: scale(1.15);
+    }
+    .brenda .face { background: linear-gradient(145deg,#fce7f3,#f9a8d4); }
+    .hellen .face { background: linear-gradient(145deg,#e0e7ff,#c7d2fe); }
+    .marco .face { background: linear-gradient(145deg,#dcfce7,#86efac); }
+    .tom .face { background: linear-gradient(145deg,#e0f2fe,#7dd3fc); }
     .role { display: block; font-size: 10px; color: var(--muted); font-weight: 500; }
+    .cast-note { font-size: 12px; color: var(--muted); max-width: 52ch; }
+
+    /* —— Linear journey spine —— */
+    .journey {
+      position: relative;
+      margin-top: 12px;
+      padding-left: 0;
+    }
+    .journey::before {
+      content: "";
+      position: absolute;
+      left: 26px;
+      top: 24px;
+      bottom: 80px;
+      width: 3px;
+      border-radius: 99px;
+      background: linear-gradient(
+        180deg,
+        var(--people) 0%,
+        var(--core) 18%,
+        var(--it) 32%,
+        var(--ops) 48%,
+        var(--people) 64%,
+        var(--people) 76%,
+        var(--finance) 88%,
+        var(--core) 100%
+      );
+      opacity: .35;
+    }
+    @media (min-width: 781px) {
+      .journey { padding-left: 8px; }
+      .journey::before { left: 26px; }
+    }
 
     .legend { display: flex; flex-wrap: wrap; gap: 8px; }
     .chip { font-size: 12px; font-weight: 600; padding: 6px 11px; border-radius: 999px; }
@@ -142,10 +183,43 @@
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     .chapter {
-      margin: 40px 0; padding: 32px 0; border-top: 1px solid rgba(20,28,25,.08);
-      scroll-margin-top: 70px; opacity: .28; transform: translateY(16px); transition: .5s ease;
+      position: relative;
+      margin: 0 0 8px;
+      padding: 28px 0 28px 64px;
+      scroll-margin-top: 70px;
+      opacity: .22;
+      transform: translateY(18px);
+      transition: .55s ease;
     }
     .chapter.in-view { opacity: 1; transform: none; }
+    .chapter::before {
+      content: "";
+      position: absolute;
+      left: 18px;
+      top: 42px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 3px solid var(--accent);
+      box-shadow: 0 0 0 4px var(--accent-soft);
+      z-index: 2;
+    }
+    .chapter[data-h="people"]::before { border-color: var(--people); box-shadow: 0 0 0 4px var(--people-soft); }
+    .chapter[data-h="core"]::before { border-color: var(--core); box-shadow: 0 0 0 4px var(--core-soft); }
+    .chapter[data-h="it"]::before { border-color: var(--it); box-shadow: 0 0 0 4px var(--it-soft); }
+    .chapter[data-h="ops"]::before { border-color: var(--ops); box-shadow: 0 0 0 4px var(--ops-soft); }
+    .chapter[data-h="finance"]::before { border-color: var(--finance); box-shadow: 0 0 0 4px var(--finance-soft); }
+    .chapter.in-view::before {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+    .chapter[data-h="people"].in-view::before { background: var(--people); border-color: var(--people); }
+    .chapter[data-h="core"].in-view::before { background: var(--core); border-color: var(--core); }
+    .chapter[data-h="it"].in-view::before { background: var(--it); border-color: var(--it); }
+    .chapter[data-h="ops"].in-view::before { background: var(--ops); border-color: var(--ops); }
+    .chapter[data-h="finance"].in-view::before { background: var(--finance); border-color: var(--finance); }
+
     .chapter-head { display: grid; grid-template-columns: auto 1fr auto; gap: 16px; align-items: start; margin-bottom: 18px; }
     .num {
       width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center;
@@ -181,10 +255,81 @@
     .chapter[data-h="ops"] .stage::before { background: var(--ops); }
     .chapter[data-h="finance"] .stage::before { background: var(--finance); }
 
-    .bubble { display: grid; grid-template-columns: 42px 1fr; gap: 10px; }
-    .bubble .face { width: 42px; height: 42px; }
-    .bubble p { background: var(--sand); border-radius: 4px 14px 14px 14px; padding: 11px 14px; font-size: 14px; }
-    .bubble.them p { background: var(--mist); border-radius: 14px 4px 14px 14px; }
+    .bubble {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 12px;
+      align-items: end;
+      opacity: 0;
+      transform: translateY(14px) scale(.96);
+      transition: opacity .45s ease, transform .45s cubic-bezier(.2,.9,.2,1);
+    }
+    .bubble.spoken {
+      opacity: 1;
+      transform: none;
+    }
+    .bubble .face {
+      width: 64px;
+      height: 64px;
+      border: 2px solid #fff;
+      box-shadow: 0 8px 20px rgba(26,18,32,.1);
+    }
+    .bubble .face img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 18%;
+      transform: scale(1.2);
+    }
+    .bubble .say {
+      position: relative;
+      background: var(--sand);
+      border-radius: 4px 18px 18px 18px;
+      padding: 12px 16px 14px;
+      font-size: 14.5px;
+      line-height: 1.45;
+      box-shadow: 0 6px 18px rgba(26,18,32,.05);
+    }
+    .bubble .say::before {
+      content: "";
+      position: absolute;
+      left: -7px;
+      bottom: 16px;
+      width: 14px;
+      height: 14px;
+      background: inherit;
+      transform: rotate(45deg);
+      border-radius: 2px;
+    }
+    .bubble .who {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+    .bubble.them .say {
+      background: #fff;
+      border: 1px solid #f3d4e4;
+      border-radius: 18px 4px 18px 18px;
+    }
+    .bubble.them .say::before {
+      left: auto;
+      right: -7px;
+    }
+    .bubble.them {
+      grid-template-columns: 1fr 64px;
+    }
+    .bubble.them .face { order: 2; }
+    .bubble.them .say { order: 1; text-align: left; }
+
+    .dialog {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 4px;
+    }
 
     .interactive {
       background: var(--paper); border-radius: 16px; padding: 16px; border: 1px dashed rgba(20,28,25,.18);
@@ -312,6 +457,14 @@
     @media (max-width: 780px) {
       .rail-title, .story-progress { display: none; }
       .chapter-head { grid-template-columns: 1fr; }
+      .chapter { padding-left: 48px; }
+      .journey::before { left: 18px; }
+      .chapter::before { left: 10px; width: 14px; height: 14px; top: 40px; }
+      .bubble, .bubble.them { grid-template-columns: 52px 1fr; }
+      .bubble.them .face { order: 0; }
+      .bubble.them .say { order: 0; border-radius: 4px 18px 18px 18px; }
+      .bubble.them .say::before { left: -7px; right: auto; }
+      .bubble .face { width: 52px; height: 52px; }
     }
   </style>
 </head>
@@ -365,11 +518,24 @@
       </div>
 
       <div class="cast">
-        <div class="person brenda"><div class="face">B</div><div>Brenda<span class="role">New hire · Design</span></div></div>
-        <div class="person hellen"><div class="face">H</div><div>Hellen<span class="role">People / HRBP</span></div></div>
-        <div class="person marco"><div class="face">M</div><div>Marco<span class="role">Design Manager</span></div></div>
-        <div class="person tom"><div class="face">T</div><div>Tom<span class="role">IT &amp; Ops</span></div></div>
+        <div class="person brenda">
+          <div class="face"><img src="/enablement/cast/brenda.png" alt="" /></div>
+          <div>Brenda<span class="role">Kepta · New hire · Design</span></div>
+        </div>
+        <div class="person hellen">
+          <div class="face"><img src="/enablement/cast/hellen.png" alt="" /></div>
+          <div>Hellen<span class="role">Kept · People / HRBP</span></div>
+        </div>
+        <div class="person marco">
+          <div class="face"><img src="/enablement/cast/marco.png" alt="" /></div>
+          <div>Marco<span class="role">Kept · Design Manager</span></div>
+        </div>
+        <div class="person tom">
+          <div class="face"><img src="/enablement/cast/tom.png" alt="" /></div>
+          <div>Tom<span class="role">Kept · IT &amp; Ops</span></div>
+        </div>
       </div>
+      <p class="cast-note">Kept and Kepta act out the year: Kepta is Brenda (the hire), Kept plays Hellen, Marco, and Tom along the path.</p>
 
       <div class="legend">
         <span class="chip people">People hub</span>
@@ -385,6 +551,7 @@
       </div>
     </header>
 
+    <div class="journey">
     <!-- 1 RECRUIT -->
     <section class="chapter" id="c1" data-h="people" data-station="recruit">
       <div class="chapter-head">
@@ -400,8 +567,16 @@
         Today: one Career Page, one pipeline, AI Top Match, and an offer letter that doesn’t get lost.
       </p>
       <div class="stage">
-        <div class="bubble hellen"><div class="face">H</div><p>“I need designers, not another spreadsheet of ‘maybe.’ One pipeline. LinkedIn, Indeed, JOIN — no lost inboxes.”</p></div>
-        <div class="bubble brenda them"><div class="face">B</div><p id="recruitLine">“I applied from my phone. Waiting to see if I’m a fit…”</p></div>
+        <div class="dialog">
+          <div class="bubble hellen" data-delay="0">
+            <div class="face"><img src="/enablement/cast/hellen.png" alt="" /></div>
+            <div class="say"><span class="who">Hellen · Kept</span>“I need designers, not another spreadsheet of ‘maybe.’ One pipeline. LinkedIn, Indeed, JOIN — no lost inboxes.”</div>
+          </div>
+          <div class="bubble brenda them" data-delay="120">
+            <div class="face"><img src="/enablement/cast/brenda.png" alt="" /></div>
+            <div class="say"><span class="who">Brenda · Kepta</span><span id="recruitLine">“I applied from my phone. Waiting to see if I’m a fit…”</span></div>
+          </div>
+        </div>
 
         <div class="seller-tip">
           <strong>Seller tip · Attract</strong>
@@ -453,8 +628,16 @@
         Brenda is a real seat in Factorial before coffee.
       </p>
       <div class="stage">
-        <div class="bubble hellen"><div class="face">H</div><p>“I don’t chase signatures anymore. The workflow does. Inbox stays for people, not paperwork.”</p></div>
-        <div class="bubble brenda them"><div class="face">B</div><p id="onboardLine">“Waiting for my welcome space…”</p></div>
+        <div class="dialog">
+          <div class="bubble hellen" data-delay="0">
+            <div class="face"><img src="/enablement/cast/hellen.png" alt="" /></div>
+            <div class="say"><span class="who">Hellen · Kept</span>“I don’t chase signatures anymore. The workflow does. Inbox stays for people, not paperwork.”</div>
+          </div>
+          <div class="bubble brenda them" data-delay="120">
+            <div class="face"><img src="/enablement/cast/brenda.png" alt="" /></div>
+            <div class="say"><span class="who">Brenda · Kepta</span><span id="onboardLine">“Waiting for my welcome space…”</span></div>
+          </div>
+        </div>
 
         <div class="seller-tip">
           <strong>Seller tip · Welcome</strong>
@@ -502,7 +685,12 @@
         IT Management ties software to the same Brenda seat — assign now, revoke later, watch renewals.
       </p>
       <div class="stage">
-        <div class="bubble tom"><div class="face">T</div><p>“Right license, right person. When she leaves, access dies with the offboarding — not three weeks later.”</p></div>
+        <div class="dialog">
+          <div class="bubble tom" data-delay="0">
+            <div class="face"><img src="/enablement/cast/tom.png" alt="" /></div>
+            <div class="say"><span class="who">Tom · Kept</span>“Right license, right person. When she leaves, access dies with the offboarding — not three weeks later.”</div>
+          </div>
+        </div>
 
         <div class="seller-tip">
           <strong>Seller tip · Equip</strong>
@@ -545,8 +733,16 @@
         all on the same seat that Payroll will trust at month-end.
       </p>
       <div class="stage">
-        <div class="bubble marco"><div class="face">M</div><p>“Missed punch? I see it. Shift conflict? Alert. I’m not the department’s human spreadsheet anymore.”</p></div>
-        <div class="bubble brenda them"><div class="face">B</div><p>“Clocked in. Desk booked. Friday off is one tap — not a negotiation.”</p></div>
+        <div class="dialog">
+          <div class="bubble marco" data-delay="0">
+            <div class="face"><img src="/enablement/cast/marco.png" alt="" /></div>
+            <div class="say"><span class="who">Marco · Kept</span>“Missed punch? I see it. Shift conflict? Alert. I’m not the department’s human spreadsheet anymore.”</div>
+          </div>
+          <div class="bubble brenda them" data-delay="120">
+            <div class="face"><img src="/enablement/cast/brenda.png" alt="" /></div>
+            <div class="say"><span class="who">Brenda · Kepta</span><span id="timeLine">“Clocked in. Desk booked. Friday off is one tap — not a negotiation.”</span></div>
+          </div>
+        </div>
 
         <div class="seller-tip">
           <strong>Seller tip · Rhythm</strong>
@@ -595,7 +791,12 @@
         Complaints Channel is sold separately — encrypted speak-up, anonymous or identified — for compliance that isn’t a shared inbox.
       </p>
       <div class="stage">
-        <div class="bubble hellen"><div class="face">H</div><p>“I don’t want culture to live in my head. I want a pulse I can show leadership — and a safe door when something’s wrong.”</p></div>
+        <div class="dialog">
+          <div class="bubble hellen" data-delay="0">
+            <div class="face"><img src="/enablement/cast/hellen.png" alt="" /></div>
+            <div class="say"><span class="who">Hellen · Kept</span>“I don’t want culture to live in my head. I want a pulse I can show leadership — and a safe door when something’s wrong.”</div>
+          </div>
+        </div>
 
         <div class="seller-tip">
           <strong>Seller tip · Culture</strong>
@@ -644,8 +845,16 @@
         Same employee record as day one. No second system of “talent.”
       </p>
       <div class="stage">
-        <div class="bubble marco"><div class="face">M</div><p>“I used to dread review season. Now the cycle runs itself — I show up for the conversation, not the admin.”</p></div>
-        <div class="bubble brenda them"><div class="face">B</div><p>“I know what good looks like. Goals are clear. Training is on my phone.”</p></div>
+        <div class="dialog">
+          <div class="bubble marco" data-delay="0">
+            <div class="face"><img src="/enablement/cast/marco.png" alt="" /></div>
+            <div class="say"><span class="who">Marco · Kept</span>“I used to dread review season. Now the cycle runs itself — I show up for the conversation, not the admin.”</div>
+          </div>
+          <div class="bubble brenda them" data-delay="120">
+            <div class="face"><img src="/enablement/cast/brenda.png" alt="" /></div>
+            <div class="say"><span class="who">Brenda · Kepta</span>“I know what good looks like. Goals are clear. Training is on my phone.”</div>
+          </div>
+        </div>
 
         <div class="seller-tip">
           <strong>Seller tip · Grow</strong>
@@ -698,7 +907,12 @@
         and Payroll inside Core locks the cycle with time + expenses already synced. Bookkeeper chat stays in the same house.
       </p>
       <div class="stage">
-        <div class="bubble hellen"><div class="face">H</div><p>“Month-end used to mean hunting receipts and retyping hours. Now the cycle opens with truth already inside.”</p></div>
+        <div class="dialog">
+          <div class="bubble hellen" data-delay="0">
+            <div class="face"><img src="/enablement/cast/hellen.png" alt="" /></div>
+            <div class="say"><span class="who">Hellen · Kept</span>“Month-end used to mean hunting receipts and retyping hours. Now the cycle opens with truth already inside.”</div>
+          </div>
+        </div>
 
         <div class="seller-tip">
           <strong>Seller tip · Money</strong>
@@ -746,6 +960,17 @@
         Or Marco promotes Brenda: contract change automated on the same Core record.
       </p>
       <div class="stage">
+        <div class="dialog">
+          <div class="bubble hellen" data-delay="0">
+            <div class="face"><img src="/enablement/cast/hellen.png" alt="" /></div>
+            <div class="say"><span class="who">Hellen · Kept</span>“Whether she stays or goes, the path stays clean. Dignity for Brenda. Licenses for Tom. Truth for payroll.”</div>
+          </div>
+          <div class="bubble brenda them" data-delay="140">
+            <div class="face"><img src="/enablement/cast/brenda.png" alt="" /></div>
+            <div class="say"><span class="who">Brenda · Kepta</span><span id="closeLine">“Whatever comes next — I was never lost in a spreadsheet.”</span></div>
+          </div>
+        </div>
+
         <div class="seller-tip">
           <strong>Seller tip · Close</strong>
           End the demo on the circle: “One seat from career page to offboarding. Land the base bundle. Expand only where the pain is loud.” Ask which ending they fear more — messy exits or stalled promotions.
@@ -772,6 +997,7 @@
         </div>
       </div>
     </section>
+    </div><!-- /.journey -->
 
     <section class="finale">
       <h2>One employee. One seat. One path you can sell.</h2>
@@ -952,6 +1178,7 @@
         $("#recruitLog").textContent = "Job live on Career Page + multi-posting. Applications incoming.";
         $("#recruitLine").textContent = "“I just applied from my phone.”";
         toast("Job posted · Career Page is live");
+        popLine("recruitLine");
         refreshLocks();
       }
 
@@ -961,6 +1188,7 @@
         $("#recruitLog").textContent = "AI Top Match highlighted Brenda. Interview scheduled via calendar.";
         $("#recruitLine").textContent = "“I got an interview invite — that was fast.”";
         toast("AI Top Match · Brenda shortlisted");
+        popLine("recruitLine");
         refreshLocks();
       }
 
@@ -970,6 +1198,7 @@
         $("#recruitLog").textContent = "Offer letter generated. Ready to start onboarding.";
         $("#recruitLine").textContent = "“I signed the offer. See you on day one!”";
         toast("Offer sent · Unlock Welcome");
+        popLine("recruitLine");
         refreshLocks();
         setTimeout(() => scrollToId("c2"), 400);
       }
@@ -1002,7 +1231,9 @@
         $("#mClock").textContent = "In";
         $("#clockPulse").style.display = "inline-block";
         $("#timeLog").textContent = "Clocked in (mobile / QR / geo). Now request PTO, book a desk, log project time.";
+        $("#timeLine").textContent = "“I’m in. Let’s make today count.”";
         toast("Brenda clocked in");
+        popLine("timeLine");
         refreshLocks();
       }
 
@@ -1010,11 +1241,15 @@
         state.pto = true;
         $("#mPto").textContent = "Pending";
         $("#timeLog").textContent = "Friday off requested — policy + multi-level approval path ready.";
+        $("#timeLine").textContent = "“Friday off requested — waiting on Marco.”";
         toast("Time-off request sent");
+        popLine("timeLine");
         // auto approve after beat
         setTimeout(() => {
           $("#mPto").textContent = "OK";
+          $("#timeLine").textContent = "“Friday’s mine. Approved in one tap.”";
           toast("Marco approved time off");
+          popLine("timeLine");
           refreshLocks();
         }, 900);
         refreshLocks();
@@ -1024,7 +1259,9 @@
         state.desk = true;
         $("#mDesk").textContent = "B12";
         $("#timeLog").textContent = "Workspace B12 booked in Space Management.";
+        $("#timeLine").textContent = "“Desk B12 is mine today.”";
         toast("Desk reserved");
+        popLine("timeLine");
         refreshLocks();
       }
 
@@ -1032,7 +1269,9 @@
         state.project = true;
         $("#mProj").textContent = "3.5h";
         $("#timeLog").textContent = "Hours logged on Rebrand · task-level tracking on.";
+        $("#timeLine").textContent = "“3.5h on Rebrand — already in the timesheet.”";
         toast("Project hours logged · Rhythm complete");
+        popLine("timeLine");
         refreshLocks();
         setTimeout(() => scrollToId("c5"), 400);
       }
@@ -1122,16 +1361,20 @@
       if (action === "promote") {
         state.finale = "promote";
         $("#closeLog").textContent = "Brenda promoted — contract update automated. Path continues.";
+        $("#closeLine").textContent = "“Promoted. Same seat. Bigger chapter.”";
         $("#closeList").style.display = "none";
         toast("Ending: Brenda was promoted");
+        popLine("closeLine");
         refreshLocks();
       }
 
       if (action === "offboard") {
         state.finale = "offboard";
         $("#closeLog").textContent = "Offboarding workflow running. IT access cut. Licenses recovered.";
+        $("#closeLine").textContent = "“Clean goodbye. Access gone. Payslip ready.”";
         $("#closeList").style.display = "grid";
         toast("Ending: Offboarding complete");
+        popLine("closeLine");
         refreshLocks();
       }
     });
@@ -1155,6 +1398,7 @@
       ];
       $("#onboardLine").textContent = `"${["Got the invite!", "Signed on my phone.", "Docs uploaded.", "I can see my team!"][state.onboardStep]}"`;
       toast(lines[state.onboardStep]);
+      popLine("onboardLine");
       if (state.onboardStep >= 3) {
         setTimeout(() => scrollToId("c3"), 500);
       }
@@ -1167,6 +1411,7 @@
       state.onboardStep = -1;
       $("#onboardLine").textContent = "“Welcome space is open — I’m going through my tasks.”";
       toast("Onboarding workflow started");
+      popLine("onboardLine");
       refreshLocks();
       advanceOnboard();
     });
@@ -1192,7 +1437,7 @@
       $("#mShortlist").textContent = "0";
       $("#mOffer").textContent = "—";
       $("#recruitLog").textContent = "Click “Post job live” to begin recruitment.";
-      $("#recruitLine").textContent = "“I applied. Waiting to see if I’m a fit…”";
+      $("#recruitLine").textContent = "“I applied from my phone. Waiting to see if I’m a fit…”";
       $("#onboardBar").style.width = "0%";
       $("#onboardPct").textContent = "0% complete";
       $("#onboardLine").textContent = "“Waiting for my welcome space…”";
@@ -1205,6 +1450,7 @@
       $("#mProj").textContent = "0h";
       $("#clockPulse").style.display = "none";
       $("#timeLog").textContent = "Equip Brenda first, then run the workday.";
+      $("#timeLine").textContent = "“Clocked in. Desk booked. Friday off is one tap — not a negotiation.”";
       $("#mClaps").textContent = "0";
       $("#mEnps").textContent = "—";
       $("#mSafe").textContent = "Off";
@@ -1216,16 +1462,42 @@
       $("#mPay").textContent = "Open";
       $("#moneyLog").textContent = "Finish growth actions to unlock finance.";
       $("#closeLog").textContent = "Lock payroll to unlock the finale.";
+      $("#closeLine").textContent = "“Whatever comes next — I was never lost in a spreadsheet.”";
       $("#closeList").style.display = "none";
+      $$(".bubble").forEach((b) => b.classList.remove("spoken"));
       toast("Story reset");
       refreshLocks();
     });
 
+    function speakBubble(el) {
+      if (!el) return;
+      el.classList.remove("spoken");
+      // force reflow so animation can replay
+      void el.offsetWidth;
+      const delay = Number(el.dataset.delay || 0);
+      setTimeout(() => el.classList.add("spoken"), delay);
+    }
+
+    function speakChapter(chapter) {
+      if (!chapter) return;
+      $$(".bubble", chapter).forEach(speakBubble);
+    }
+
+    function popLine(id) {
+      const node = document.getElementById(id);
+      const bubble = node?.closest(".bubble");
+      if (bubble) speakBubble(bubble);
+    }
+
     // Intersection observers
     $$(".chapter").forEach((c) => {
       new IntersectionObserver((entries) => {
-        entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("in-view"); });
-      }, { threshold: 0.18 }).observe(c);
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("in-view");
+          speakChapter(e.target);
+        });
+      }, { threshold: 0.22 }).observe(c);
 
       new IntersectionObserver((entries) => {
         entries.forEach((e) => {
