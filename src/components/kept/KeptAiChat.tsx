@@ -1,8 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Link } from "@tanstack/react-router";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Drama, Mic, Phone, Plus, Send, TriangleAlert } from "lucide-react";
-import { CanvasRevealEffect } from "@/components/ui/canvas-effect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -81,9 +79,6 @@ export function KeptAiChat({
   scrollRef,
   emptyActions = false,
 }: KeptAiChatProps) {
-  const [hovered, setHovered] = useState(false);
-  const [canvasReady, setCanvasReady] = useState(false);
-  const reduceMotion = useReducedMotion();
   const {
     supported: voiceSupported,
     listening,
@@ -92,44 +87,14 @@ export function KeptAiChat({
     onTranscript: (text) => onInputChange(input ? `${input} ${text}` : text),
   });
 
-  useEffect(() => {
-    setCanvasReady(true);
-  }, []);
-
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!busy && input.trim()) onSend();
   }
 
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative mx-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
-    >
+    <div className="relative mx-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
       <div className="relative flex min-h-0 flex-1 flex-col p-4 sm:p-5">
-        <AnimatePresence>
-          {hovered && canvasReady && !reduceMotion ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="pointer-events-none absolute inset-0"
-            >
-              <CanvasRevealEffect
-                animationSpeed={5}
-                containerClassName="bg-transparent opacity-20"
-                colors={[
-                  [233, 30, 140],
-                  [18, 26, 51],
-                ]}
-                opacities={[1, 0.8, 1, 0.8, 0.5, 0.8, 1, 0.5, 1, 1]}
-                dotSize={2}
-              />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
-
         <div className="relative z-20 flex min-h-0 flex-1 flex-col">
           <div className="shrink-0 px-2 text-center">
             <h1 className="flex select-none flex-wrap items-center justify-center gap-x-1 py-2 text-center text-2xl font-extrabold leading-none tracking-tight sm:text-3xl lg:text-4xl">
