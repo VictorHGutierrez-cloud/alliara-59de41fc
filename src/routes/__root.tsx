@@ -250,7 +250,7 @@ function AppFrame() {
           <div
             className={cn(
               "mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6",
-              isLanding && !inAppWorkspace ? "min-h-16 py-3" : "h-16",
+              isLanding && !inAppWorkspace ? "min-h-24 py-3" : "h-24",
             )}
           >
             <div className="flex min-w-0 items-center gap-3">

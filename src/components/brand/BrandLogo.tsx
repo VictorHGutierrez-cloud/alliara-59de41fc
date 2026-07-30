@@ -9,23 +9,23 @@ type BrandLogoVariant = "header" | "sidebar" | "sidebarCollapsed" | "auth" | "in
 const SIZES: Record<BrandLogoVariant, { src: "mark" | "wordmark"; className: string }> = {
   header: {
     src: "wordmark",
-    className: "h-8 w-auto max-w-[9.5rem] sm:h-9",
+    className: "h-16 w-auto max-w-[18rem] sm:h-[4.75rem] sm:max-w-[22rem]",
   },
   sidebar: {
     src: "wordmark",
-    className: "h-8 w-auto max-w-[9rem] object-left",
+    className: "h-14 w-auto max-w-[16rem] object-left",
   },
   sidebarCollapsed: {
     src: "mark",
-    className: "size-8",
+    className: "size-12",
   },
   auth: {
     src: "wordmark",
-    className: "h-8 w-auto max-w-[8.5rem]",
+    className: "h-16 w-auto max-w-[18rem]",
   },
   intro: {
     src: "wordmark",
-    className: "h-9 w-auto max-w-[10rem]",
+    className: "h-[4.75rem] w-auto max-w-[22rem]",
   },
 };
 
