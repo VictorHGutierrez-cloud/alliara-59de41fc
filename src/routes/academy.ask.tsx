@@ -360,7 +360,7 @@ function AcademyAskPage() {
         : undefined;
 
   return (
-    <div className="mx-auto flex h-[calc(100dvh-5rem)] max-w-4xl flex-col px-4 py-4 pb-24 sm:px-6 lg:pb-4">
+    <div className="mx-auto flex h-[calc(100dvh-6rem)] max-w-4xl flex-col px-4 py-4 pb-24 sm:px-6 lg:pb-4">
       <Link
         to="/academy"
         className="inline-flex min-h-11 shrink-0 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

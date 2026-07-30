@@ -89,7 +89,7 @@ function AcademyLibraryReaderPage() {
       className={cn(
         "flex flex-col",
         isHtml
-          ? "h-[calc(100dvh-5rem)] w-full"
+          ? "h-[calc(100dvh-6rem)] w-full"
           : "mx-auto max-w-7xl px-6 py-6 pb-24",
       )}
     >
