@@ -7,7 +7,10 @@ import { KeptKeptaDuoIllustration } from "@/components/brand/KeptKeptaDuoIllustr
 const HERO_VIDEO_SRC = "/videos/next-one-activation.mp4";
 
 const MESH_STYLE: React.CSSProperties = {
-  background: "#ffffff",
+  background:
+    "radial-gradient(52rem 32rem at 12% -6%, rgb(233 30 140 / 0.12), transparent 60%), " +
+    "radial-gradient(46rem 30rem at 88% 4%, rgb(13 148 136 / 0.10), transparent 60%), " +
+    "linear-gradient(180deg, #ffeef6 0%, #fff7fb 55%, #ffffff 100%)",
 };
 
 const PREVIEW_CARDS = [
@@ -86,7 +89,7 @@ export function FactorialStyleHero() {
             aria-hidden
           />
           <div
-            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-background via-background/95 to-background"
+            className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-transparent via-transparent to-background"
             aria-hidden
           />
         </>

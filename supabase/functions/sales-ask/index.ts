@@ -55,14 +55,92 @@ interface AskRequest {
     topic?: string;
     slug?: string;
     source?: "library" | "briefing" | "dock" | "hub";
-    mode?: "stuck" | "prep" | "briefing" | "free";
+    mode?: "stuck" | "prep" | "briefing" | "free" | "roleplay";
     deal_name?: string;
     stage?: string;
     has_champion?: "yes" | "no" | "unsure";
     competitor?: string;
     situation?: string;
+    persona?: string;
+    scenario?: string;
+    difficulty?: string;
+    phase?: "play" | "debrief";
   };
 }
+
+const ROLEPLAY_PERSONA_PROFILES: Record<string, string> = {
+  "skeptical-cfo":
+    "A skeptical CFO. You care about hard numbers, payback period, and headcount cost. You distrust vendor ROI claims and ask for proof. Vague answers annoy you; quantified, risk-framed answers earn your attention.",
+  "busy-chro":
+    "A busy CHRO. You have ten minutes between meetings and a dozen burning priorities. You interrupt ramblers. You only engage when the seller ties their point to a pain you actually feel (retention, compliance, manager overload).",
+  "pragmatic-coo":
+    "A pragmatic COO. You are process-first and skeptical of shiny tools. You ask 'how does this actually work day one?' and want implementation reality, references, and operational proof before believing anything.",
+  "rushed-founder":
+    "A startup founder in a hurry. You decide fast and get bored faster. Corporate jargon makes you disengage. You respect directness, speed, and sellers who get to the point in one sentence.",
+  "tough-procurement":
+    "A tough procurement lead. Your job is squeezing price. You mention cheaper competitors, demand discounts, and play vendors against each other. You respect sellers who hold value and trade concessions instead of caving.",
+};
+
+const ROLEPLAY_SCENARIO_LINES: Record<string, string> = {
+  "cold-call": "This is a cold call. The seller just called you out of nowhere; you were not expecting it.",
+  discovery: "This is a scheduled discovery call. You agreed to 25 minutes but your interest is not guaranteed.",
+  "demo-followup": "This is a follow-up call after a product demo you attended last week. You have doubts left over.",
+  negotiation: "This is a negotiation call. You have a proposal in hand and you want better terms.",
+  "objection-gauntlet":
+    "This is an objection drill: raise one hard objection at a time (price, status quo, timing, competitor, authority) and see how the seller handles each.",
+};
+
+const ROLEPLAY_DIFFICULTY_LINES: Record<string, string> = {
+  warmup:
+    "Difficulty warm-up: be cooperative and open. Raise mild objections, give the seller room, and reward decent questions with useful information.",
+  realistic:
+    "Difficulty realistic: behave like a normal buyer. Limited time, healthy skepticism, one or two hard objections, and you only open up when the seller earns it.",
+  brutal:
+    "Difficulty brutal: you are short on time and patience. Interrupt, push back hard, question the seller's credibility, and threaten to end the call if they waste time or pitch features. Only excellent discovery and risk framing keeps you on the line.",
+};
+
+function buildRoleplaySystem(context: NonNullable<AskRequest["context"]>): string {
+  const personaProfile =
+    ROLEPLAY_PERSONA_PROFILES[context.persona ?? ""] ??
+    `A B2B software buyer described as: ${context.persona || "a busy executive evaluating HR software"}.`;
+  const scenarioLine =
+    ROLEPLAY_SCENARIO_LINES[context.scenario ?? ""] ?? "This is a sales conversation.";
+  const difficultyLine =
+    ROLEPLAY_DIFFICULTY_LINES[context.difficulty ?? ""] ?? ROLEPLAY_DIFFICULTY_LINES.realistic;
+
+  const dealLines: string[] = [];
+  if (context.deal_name) dealLines.push(`- Company / deal on the table: ${context.deal_name}`);
+  if (context.competitor) dealLines.push(`- Alternative you are also considering: ${context.competitor}`);
+  if (context.situation) dealLines.push(`- Extra scene context from the seller: ${context.situation}`);
+
+  return `You are running a sales ROLEPLAY inside Kept's Executive Academy so a B2B sales executive can practice. You play the BUYER. The user plays the seller.
+
+YOUR CHARACTER: ${personaProfile}
+
+SCENE: ${scenarioLine}
+${difficultyLine}
+${dealLines.length > 0 ? `\nDEAL BACKDROP:\n${dealLines.join("\n")}` : ""}
+
+HARD RULES:
+- Stay in character 100% of the time. Never coach, never give sales advice, never mention you are an AI, a coach, or that this is practice.
+- Talk like a real person on a call: 1-4 short sentences, natural language, occasional questions back. No markdown headers, no bullet lists.
+- Raise objections this persona would actually raise. React realistically: good discovery, quantified value, and risk framing gradually open you up; feature pitching, rambling, or premature closing makes you colder.
+- If the seller writes "__start__", open the conversation yourself with the first line this buyer would say in this scene (for a cold call, you just picked up the phone).
+- Reply in English.`;
+}
+
+const DEBRIEF_SYSTEM = `You are the Executive Academy coach inside Kept — a senior B2B sales coach.
+
+The conversation above was a ROLEPLAY: the user was the seller, and the assistant messages were an AI playing the buyer. The roleplay just ended. Give the seller a performance debrief based ONLY on what they actually said.
+
+FORMAT (use markdown, under ~250 words):
+1. First line: **Score: X/10** with a five-word verdict
+2. **Best moment** — quote or paraphrase the seller's strongest line and why it worked
+3. **Weakest MEDDPICC letter** — name it and the evidence from the transcript
+4. **3 improvements** — numbered, concrete, phrased as "next time, say/ask..."
+5. **Keep doing** — one habit to repeat
+
+Be direct and warm, like a senior peer. Grade honestly: a seller who only pitched features should not score above 5. No em dashes.`;
 
 function hasDealContext(context?: AskRequest["context"]): boolean {
   if (!context) return false;
@@ -80,6 +158,9 @@ function hasDealContext(context?: AskRequest["context"]): boolean {
 }
 
 function buildSystem(context?: AskRequest["context"]): string {
+  if (context?.mode === "roleplay") {
+    return context.phase === "debrief" ? DEBRIEF_SYSTEM : buildRoleplaySystem(context);
+  }
   if (!hasDealContext(context)) return SYSTEM;
   const lines = ["\n\nDEAL CONTEXT (use this to tailor your answer — do not ignore it):"];
   if (context?.mode) lines.push(`- Session mode: ${context.mode}`);
@@ -101,17 +182,23 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   try {
     const body = (await req.json()) as AskRequest;
-    const question = (body.question ?? "").trim();
+    let question = (body.question ?? "").trim();
     if (!question) return json({ error: "Empty question" }, 400);
+
+    const isRoleplay = body.context?.mode === "roleplay";
+    const isDebrief = isRoleplay && body.context?.phase === "debrief";
+    if (isDebrief && question === "__debrief__") {
+      question = "The roleplay is over. Give me my debrief now.";
+    }
 
     const messages = [
       { role: "system", content: buildSystem(body.context) },
-      ...(body.history ?? []).slice(-12),
+      ...(body.history ?? []).slice(isDebrief ? -24 : -12),
       { role: "user", content: question },
     ];
 
     const aiResp = await chatCompletion({
-      temperature: 0.45,
+      temperature: isRoleplay && !isDebrief ? 0.7 : 0.45,
       messages,
     });
 

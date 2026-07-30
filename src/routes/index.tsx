@@ -72,7 +72,7 @@ function Landing() {
       </RevealSection>
 
       <RevealSection delay={0.05}>
-        <section className="border-y border-border px-6 py-20">
+        <section className="border-y border-border bg-surface-2/60 px-6 py-20">
           <div className="mx-auto max-w-6xl">
             <div className="mb-8 overflow-hidden rounded-2xl border border-border">
               <KeptKeptaDuoIllustration variant="libraryPlaybooks" className="max-h-52 w-full object-cover" decorative />

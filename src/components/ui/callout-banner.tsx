@@ -29,10 +29,10 @@ export function CalloutBanner({
 }: CalloutBannerProps) {
   const toneClass =
     tone === "primary"
-      ? "border-border bg-surface-2"
+      ? "border-primary/30 bg-accent"
       : tone === "neutral"
         ? "border-border bg-background"
-        : "border-border bg-surface-2";
+        : "border-primary/20 bg-accent/60";
 
   return (
     <section
@@ -45,7 +45,7 @@ export function CalloutBanner({
     >
       <div className="relative flex min-w-0 items-start gap-3">
         {Icon ? (
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-surface-2 text-foreground">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-background text-primary">
             <Icon className="h-5 w-5" aria-hidden />
           </div>
         ) : null}

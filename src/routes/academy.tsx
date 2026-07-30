@@ -1,12 +1,14 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
+  ArrowRight,
   BookOpen,
+  Drama,
   Flame,
   GraduationCap,
-  MessageCircleQuestion,
   Newspaper,
   Phone,
+  Route as RouteIcon,
   Sparkles,
   TriangleAlert,
 } from "lucide-react";
@@ -17,7 +19,6 @@ import { CompanionIllustration } from "@/components/brand/CompanionIllustration"
 import { loadLastStudy, getStudyStreak } from "@/lib/academy-progress";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { CalloutBanner } from "@/components/ui/callout-banner";
-import { FeatureHubCard } from "@/components/ui/feature-hub-card";
 import {
   isOnboardingFirstRunComplete,
   markOnboardingFirstRunComplete,
@@ -99,25 +100,33 @@ function AcademyHomePage() {
     setShowTourBanner(false);
   }
 
+  const latestSession = recentSessions[0];
+  const primaryIsPrep = latestSession?.mode === "prep";
+
   const resumeTo =
     lastStudy?.type === "material"
       ? { to: "/academy/library/$slug" as const, params: { slug: lastStudy.slug } }
       : { to: "/academy/learn" as const };
 
+  const sessionIsNewerThanStudy =
+    latestSession && (!lastStudy || latestSession.updated_at > lastStudy.at);
+
   return (
-    <div className="mx-auto max-w-7xl px-6 py-8 pb-32">
-      <section className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="mx-auto max-w-3xl px-6 py-10 pb-32">
+      <section className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 flex-1 space-y-2">
           <div className="flex items-center gap-2">
             <Sparkles className="h-3.5 w-3.5 text-primary" aria-hidden />
-            <span className="page-eyebrow">
-              {COPY.academy.eyebrow}
-            </span>
+            <span className="page-eyebrow">{COPY.academy.eyebrow}</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">{COPY.academy.pageTitle}</h1>
-          <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">{COPY.academy.intro}</p>
+          <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">
+            {COPY.academy.pageTitle}
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+            {COPY.academy.intro}
+          </p>
           <p
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2/80 px-3 py-1 text-xs font-medium text-muted-foreground"
+            className="inline-flex items-center gap-1.5 rounded-full border border-secondary-foreground/20 bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground"
             aria-live="polite"
           >
             <Flame className="h-3.5 w-3.5 text-primary" aria-hidden />
@@ -126,8 +135,105 @@ function AcademyHomePage() {
               : COPY.academy.studyStreakEmpty}
           </p>
         </div>
-        <CompanionIllustration variant="keepsContext" className="hidden h-24 w-auto opacity-95 sm:block lg:h-28" decorative />
+        <CompanionIllustration
+          variant="keepsContext"
+          className="hidden h-24 w-auto opacity-95 sm:block"
+          decorative
+        />
       </section>
+
+      <section className="mt-8">
+        {primaryIsPrep ? (
+          <>
+            <Link
+              to="/academy/prep"
+              className="flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl bg-primary px-6 text-lg font-semibold text-primary-foreground shadow-sm transition hover:opacity-95"
+            >
+              <span className="inline-flex items-center gap-3">
+                <Phone className="h-5 w-5" aria-hidden />
+                {COPY.academy.situationPrepCta}
+              </span>
+              <ArrowRight className="h-5 w-5 shrink-0" aria-hidden />
+            </Link>
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
+              <Link
+                to="/academy/stuck"
+                className="inline-flex min-h-11 items-center gap-1.5 px-1 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                <TriangleAlert className="h-4 w-4" aria-hidden />
+                {COPY.academy.homeOrStuckLink}
+              </Link>
+              <Link
+                to="/academy/roleplay"
+                className="inline-flex min-h-11 items-center gap-1.5 px-1 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                <Drama className="h-4 w-4" aria-hidden />
+                {COPY.academy.roleplayHomeLink}
+              </Link>
+            </div>
+          </>
+        ) : (
+          <>
+            <Link
+              to="/academy/stuck"
+              className="flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl bg-primary px-6 text-lg font-semibold text-primary-foreground shadow-sm transition hover:opacity-95"
+            >
+              <span className="inline-flex items-center gap-3">
+                <TriangleAlert className="h-5 w-5" aria-hidden />
+                {COPY.academy.situationStuckCta}
+              </span>
+              <ArrowRight className="h-5 w-5 shrink-0" aria-hidden />
+            </Link>
+            <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
+              <Link
+                to="/academy/prep"
+                className="inline-flex min-h-11 items-center gap-1.5 px-1 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                <Phone className="h-4 w-4" aria-hidden />
+                {COPY.academy.homeOrPrepLink}
+              </Link>
+              <Link
+                to="/academy/roleplay"
+                className="inline-flex min-h-11 items-center gap-1.5 px-1 text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                <Drama className="h-4 w-4" aria-hidden />
+                {COPY.academy.roleplayHomeLink}
+              </Link>
+            </div>
+          </>
+        )}
+      </section>
+
+      {latestSession || lastStudy ? (
+        <section className="mt-6">
+          <p className="page-eyebrow">{COPY.academy.homeContinueEyebrow}</p>
+          {sessionIsNewerThanStudy && latestSession ? (
+            <Link
+              to="/academy/ask"
+              search={{ session: latestSession.id }}
+              className="mt-2 flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-3 text-sm transition hover:bg-surface-2"
+            >
+              <span className="min-w-0 truncate font-medium">
+                {sessionBannerLabel(latestSession)}
+              </span>
+              <span className="shrink-0 text-xs font-semibold text-primary">
+                {COPY.academy.recentSessionsResume}
+              </span>
+            </Link>
+          ) : lastStudy ? (
+            <Link
+              to={resumeTo.to}
+              params={"params" in resumeTo ? resumeTo.params : undefined}
+              className="mt-2 flex min-h-14 items-center justify-between gap-3 rounded-2xl border border-border bg-card px-5 py-3 text-sm transition hover:bg-surface-2"
+            >
+              <span className="min-w-0 truncate font-medium">{lastStudy.title}</span>
+              <span className="shrink-0 text-xs font-semibold text-primary">
+                {COPY.academy.continueCta}
+              </span>
+            </Link>
+          ) : null}
+        </section>
+      ) : null}
 
       {showTourBanner ? (
         <CalloutBanner
@@ -150,82 +256,35 @@ function AcademyHomePage() {
         />
       ) : null}
 
-      {!lastStudy || showTourBanner ? <AcademyStartGuide /> : null}
-
-      {lastStudy ? (
-        <CalloutBanner
-          className="mt-8"
-          tone="primary"
-          title={COPY.academy.continueTitle}
-          body={`${COPY.academy.continueBody} ${lastStudy.title}`}
-          actions={[
-            {
-              label: COPY.academy.continueCta,
-              to: resumeTo.to,
-              params: "params" in resumeTo ? resumeTo.params : undefined,
-            },
-          ]}
-        />
-      ) : (
-        <section className="mt-8 rounded-2xl border border-dashed border-border bg-background p-5">
-          <p className="text-sm text-muted-foreground">{COPY.academy.continueEmpty}</p>
-        </section>
-      )}
-
-      <section className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <FeatureHubCard
-          icon={BookOpen}
-          title={COPY.academy.libraryCardTitle}
-          body={COPY.academy.libraryCardBody}
-          meta={`${SALES_LIBRARY.length} resources`}
-          to="/academy/library"
-        />
-        <FeatureHubCard
-          icon={MessageCircleQuestion}
-          title={COPY.academy.askCardTitle}
-          body={COPY.academy.askCardBody}
-          meta={COPY.academy.askCardMeta}
-          to="/academy/ask"
-        />
-        <FeatureHubCard
-          icon={GraduationCap}
-          title={COPY.academy.learnCardTitle}
-          body={COPY.academy.learnCardBody}
-          meta={`${trackAvailable} tracks live`}
-          to="/academy/learn"
-        />
-        <FeatureHubCard
-          icon={Newspaper}
-          title={COPY.academy.briefingCardTitle}
-          body={COPY.academy.briefingCardBody}
-          meta={COPY.academy.briefingCardMeta}
-          to="/academy/briefing"
-        />
-      </section>
+      {showTourBanner ? <AcademyStartGuide /> : null}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">{COPY.academy.situationTitle}</h2>
-        <p className="mt-1 text-sm text-muted-foreground max-w-2xl">{COPY.academy.situationBody}</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link
-            to="/academy/stuck"
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
-          >
-            <TriangleAlert className="h-4 w-4" aria-hidden />
-            {COPY.academy.situationStuckCta}
-          </Link>
-          <Link
-            to="/academy/prep"
-            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
-          >
-            <Phone className="h-4 w-4" aria-hidden />
-            {COPY.academy.situationPrepCta}
-          </Link>
+        <h2 className="page-eyebrow">{COPY.academy.homeExploreTitle}</h2>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
           <Link
             to="/academy/library"
-            className="inline-flex min-h-10 items-center rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
+            className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card px-4 text-sm font-medium transition hover:bg-accent"
           >
-            {COPY.academy.browseLibraryCta}
+            <BookOpen className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">{COPY.academy.libraryCardTitle}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">
+              {SALES_LIBRARY.length}
+            </span>
+          </Link>
+          <Link
+            to="/academy/learn"
+            className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card px-4 text-sm font-medium transition hover:bg-accent"
+          >
+            <RouteIcon className="h-4 w-4 shrink-0 text-octa-8" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">{COPY.academy.learnCardTitle}</span>
+            <span className="shrink-0 text-xs text-muted-foreground">{trackAvailable}</span>
+          </Link>
+          <Link
+            to="/academy/briefing"
+            className="flex min-h-12 items-center gap-3 rounded-xl border border-border bg-card px-4 text-sm font-medium transition hover:bg-accent"
+          >
+            <Newspaper className="h-4 w-4 shrink-0 text-octa-4" aria-hidden />
+            <span className="min-w-0 flex-1 truncate">{COPY.academy.briefingCardTitle}</span>
           </Link>
         </div>
       </section>

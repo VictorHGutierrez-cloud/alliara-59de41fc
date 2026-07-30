@@ -5,7 +5,8 @@ export function keptVariantForAppPath(pathname: string): KeptIllustrationVariant
   if (
     pathname.startsWith("/academy/ask") ||
     pathname.startsWith("/academy/stuck") ||
-    pathname.startsWith("/academy/prep")
+    pathname.startsWith("/academy/prep") ||
+    pathname.startsWith("/academy/roleplay")
   ) {
     return "contextBeforeCall";
   }

@@ -126,7 +126,8 @@ function SettingsPage() {
           <h2 className="text-sm font-semibold">{COPY.settings.tourLink}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{COPY.settings.tourLinkHint}</p>
           <Link
-            to="/onboarding/welcome"
+            to="/onboarding/$stepId"
+            params={{ stepId: "welcome" }}
             className="mt-4 inline-flex min-h-10 items-center rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
           >
             {COPY.onboarding.replayCta}

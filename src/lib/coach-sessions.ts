@@ -1,8 +1,65 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 
-export type CoachSessionMode = "stuck" | "prep" | "briefing" | "free";
+export type CoachSessionMode = "stuck" | "prep" | "briefing" | "free" | "roleplay";
 export type ChampionStatus = "yes" | "no" | "unsure";
+
+export const ROLEPLAY_PERSONAS = [
+  {
+    value: "skeptical-cfo",
+    label: "Skeptical CFO",
+    description: "Wants numbers, hates fluff, questions every ROI claim.",
+  },
+  {
+    value: "busy-chro",
+    label: "Busy CHRO",
+    description: "Ten minutes max, drowning in priorities, needs a reason to care.",
+  },
+  {
+    value: "pragmatic-coo",
+    label: "Pragmatic COO",
+    description: "Process-first, wants proof it works before believing anything.",
+  },
+  {
+    value: "rushed-founder",
+    label: "Founder in a hurry",
+    description: "Decides fast, gets bored faster, allergic to corporate talk.",
+  },
+  {
+    value: "tough-procurement",
+    label: "Tough procurement",
+    description: "Discount hunter who plays vendors against each other.",
+  },
+] as const;
+
+export const ROLEPLAY_SCENARIOS = [
+  { value: "cold-call", label: "Cold call" },
+  { value: "discovery", label: "Discovery call" },
+  { value: "demo-followup", label: "Post-demo follow-up" },
+  { value: "negotiation", label: "Negotiation / discount ask" },
+  { value: "objection-gauntlet", label: "Objection gauntlet" },
+] as const;
+
+export const ROLEPLAY_DIFFICULTIES = [
+  { value: "warmup", label: "Warm-up" },
+  { value: "realistic", label: "Realistic" },
+  { value: "brutal", label: "Brutal" },
+] as const;
+
+export function roleplayPersonaLabel(value: string | null): string | null {
+  if (!value) return null;
+  return ROLEPLAY_PERSONAS.find((p) => p.value === value)?.label ?? value;
+}
+
+export function roleplayScenarioLabel(value: string | null): string | null {
+  if (!value) return null;
+  return ROLEPLAY_SCENARIOS.find((s) => s.value === value)?.label ?? value;
+}
+
+export function roleplayDifficultyLabel(value: string | null): string | null {
+  if (!value) return null;
+  return ROLEPLAY_DIFFICULTIES.find((d) => d.value === value)?.label ?? value;
+}
 
 export type CoachChatMessage = {
   role: "user" | "assistant";
@@ -21,6 +78,9 @@ export type CoachSession = {
   situation: string;
   source: string | null;
   slug: string | null;
+  persona: string | null;
+  scenario: string | null;
+  difficulty: string | null;
   messages: CoachChatMessage[];
   created_at: string;
   updated_at: string;
@@ -36,6 +96,9 @@ export type CreateCoachSessionInput = {
   situation?: string;
   source?: string | null;
   slug?: string | null;
+  persona?: string | null;
+  scenario?: string | null;
+  difficulty?: string | null;
   messages?: CoachChatMessage[];
 };
 
@@ -71,7 +134,14 @@ function mapRow(row: Record<string, unknown>): CoachSession {
   return {
     id: row.id as string,
     user_id: row.user_id as string,
-    mode: mode === "stuck" || mode === "prep" || mode === "briefing" || mode === "free" ? mode : "free",
+    mode:
+      mode === "stuck" ||
+      mode === "prep" ||
+      mode === "briefing" ||
+      mode === "free" ||
+      mode === "roleplay"
+        ? mode
+        : "free",
     title: (row.title as string) ?? "",
     deal_name: (row.deal_name as string | null) ?? null,
     stage: (row.stage as string | null) ?? null,
@@ -81,6 +151,9 @@ function mapRow(row: Record<string, unknown>): CoachSession {
     situation: (row.situation as string) ?? "",
     source: (row.source as string | null) ?? null,
     slug: (row.slug as string | null) ?? null,
+    persona: (row.persona as string | null) ?? null,
+    scenario: (row.scenario as string | null) ?? null,
+    difficulty: (row.difficulty as string | null) ?? null,
     messages: parseMessages(row.messages),
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
@@ -104,6 +177,9 @@ export async function createSession(
       situation: input.situation?.trim() || "",
       source: input.source ?? null,
       slug: input.slug ?? null,
+      persona: input.persona ?? null,
+      scenario: input.scenario ?? null,
+      difficulty: input.difficulty ?? null,
       messages: (input.messages ?? []) as Json,
       updated_at: new Date().toISOString(),
     })
@@ -174,6 +250,16 @@ export async function saveSessionMessages(
 }
 
 export function sessionBannerLabel(session: CoachSession): string {
+  if (session.mode === "roleplay") {
+    const parts = [
+      "Roleplay",
+      roleplayPersonaLabel(session.persona),
+      roleplayScenarioLabel(session.scenario),
+      roleplayDifficultyLabel(session.difficulty),
+    ].filter(Boolean);
+    if (session.deal_name) parts.push(session.deal_name);
+    return parts.join(" · ");
+  }
   const parts: string[] = [];
   if (session.deal_name) parts.push(session.deal_name);
   else if (session.title) parts.push(session.title);
@@ -211,5 +297,8 @@ export function sessionToAskContext(session: CoachSession) {
     has_champion: session.has_champion || undefined,
     competitor: session.competitor || undefined,
     situation: session.situation || undefined,
+    persona: session.persona || undefined,
+    scenario: session.scenario || undefined,
+    difficulty: session.difficulty || undefined,
   };
 }

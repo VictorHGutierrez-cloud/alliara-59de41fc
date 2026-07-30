@@ -25,7 +25,7 @@ export function AcademyPageShell({
       {backToAcademy ? (
         <Link
           to="/academy"
-          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden"
+          className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden />
           {COPY.academy.backToHub}

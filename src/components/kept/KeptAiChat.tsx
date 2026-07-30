@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Phone, Plus, Send, TriangleAlert } from "lucide-react";
+import { Drama, Phone, Plus, Send, TriangleAlert } from "lucide-react";
 import { CanvasRevealEffect } from "@/components/ui/canvas-effect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -162,6 +162,13 @@ export function KeptAiChat({
                       >
                         <Phone className="h-3.5 w-3.5" aria-hidden />
                         {COPY.academy.askEmptyPrep}
+                      </Link>
+                      <Link
+                        to="/academy/roleplay"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-xs font-semibold hover:bg-surface-2"
+                      >
+                        <Drama className="h-3.5 w-3.5" aria-hidden />
+                        {COPY.academy.roleplayEmptyCta}
                       </Link>
                     </div>
                   ) : null}

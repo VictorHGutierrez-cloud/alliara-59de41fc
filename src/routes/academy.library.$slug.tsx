@@ -105,7 +105,7 @@ function AcademyLibraryReaderPage() {
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <Link
             to="/academy/library"
-            className="inline-flex min-h-10 items-center gap-1 text-sm text-muted-foreground hover:text-foreground lg:hidden shrink-0"
+            className="inline-flex min-h-10 items-center gap-1 text-sm text-muted-foreground hover:text-foreground shrink-0"
           >
             {COPY.academy.backToLibrary}
           </Link>

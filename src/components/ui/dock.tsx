@@ -52,8 +52,8 @@ const Dock = React.forwardRef<HTMLDivElement, DockProps>(
                     aria-label={item.label}
                     className={cn(
                       "relative h-11 w-11 rounded-xl transition-transform",
-                      "hover:scale-110 hover:bg-surface-2",
-                      item.active && "bg-surface-2 text-foreground",
+                      "hover:scale-110 hover:bg-accent",
+                      item.active && "bg-accent text-primary",
                     )}
                   >
                     <Icon className="h-5 w-5" />

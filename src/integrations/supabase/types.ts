@@ -844,6 +844,9 @@ export type Database = {
           situation: string
           source: string | null
           slug: string | null
+          persona: string | null
+          scenario: string | null
+          difficulty: string | null
           messages: Json
           created_at: string
           updated_at: string
@@ -860,6 +863,9 @@ export type Database = {
           situation?: string
           source?: string | null
           slug?: string | null
+          persona?: string | null
+          scenario?: string | null
+          difficulty?: string | null
           messages?: Json
           created_at?: string
           updated_at?: string
@@ -876,6 +882,9 @@ export type Database = {
           situation?: string
           source?: string | null
           slug?: string | null
+          persona?: string | null
+          scenario?: string | null
+          difficulty?: string | null
           messages?: Json
           created_at?: string
           updated_at?: string

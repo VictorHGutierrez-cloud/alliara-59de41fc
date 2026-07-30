@@ -15,30 +15,33 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { CompanionProvider } from "@/lib/companion-context";
 import { Toaster } from "@/components/ui/sonner";
 import {
-  Menu,
   Settings as SettingsIcon,
   LogOut,
   ShieldCheck,
-  ChevronLeft,
-  ChevronRight,
-  GraduationCap,
   BookOpen,
   MessageCircleQuestion,
   Route as RouteIcon,
   Home,
   Newspaper,
+  Flame,
+  CircleUserRound,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { COPY } from "@/lib/copy";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { KeptAmbientPresence } from "@/components/brand/KeptAmbientPresence";
 import { Dock } from "@/components/ui/dock";
 import { useAcademyProgressSync } from "@/hooks/use-academy-progress-sync";
+import { getStudyStreak } from "@/lib/academy-progress";
 import { cn } from "@/lib/utils";
 import { getSalesMaterial } from "@/content/sales-library";
-
-const SIDEBAR_COLLAPSED_KEY = "kept-sidebar-collapsed";
 
 function NotFoundComponent() {
   return (
@@ -136,27 +139,11 @@ function AppFrame() {
   const isLanding = path === "/";
   const navigate = useNavigate();
   useAcademyProgressSync(user?.id);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      return localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1";
-    } catch {
-      return false;
-    }
-  });
+  const [streakCount, setStreakCount] = useState(0);
 
-  const toggleSidebarCollapsed = () => {
-    setSidebarCollapsed((c) => {
-      const next = !c;
-      try {
-        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
-      } catch {
-        /* ignore */
-      }
-      return next;
-    });
-  };
+  useEffect(() => {
+    setStreakCount(getStudyStreak().current);
+  }, [path]);
 
   const PUBLIC_PATHS = useMemo(
     () => [
@@ -180,7 +167,7 @@ function AppFrame() {
     }
   }, [user, accessStatus, path, PUBLIC_PATHS, navigate]);
 
-  const workspaceItems = useMemo(
+  const dockItems = useMemo(
     () => {
       const libraryMatch = path.match(/^\/academy\/library\/([^/]+)/);
       const librarySlug = libraryMatch?.[1];
@@ -204,21 +191,22 @@ function AppFrame() {
               onClick: () => navigate({ to: "/academy" }),
             },
             {
-              key: "library",
-              icon: BookOpen,
-              label: COPY.appShell.dockLibrary,
-              active: path.startsWith("/academy/library"),
-              onClick: () => navigate({ to: "/academy/library" }),
-            },
-            {
               key: "coach",
               icon: MessageCircleQuestion,
               label: COPY.appShell.dockCoach,
               active:
                 path.startsWith("/academy/ask") ||
                 path.startsWith("/academy/stuck") ||
-                path.startsWith("/academy/prep"),
+                path.startsWith("/academy/prep") ||
+                path.startsWith("/academy/roleplay"),
               onClick: () => navigate({ to: "/academy/ask", search: coachSearch }),
+            },
+            {
+              key: "library",
+              icon: BookOpen,
+              label: COPY.appShell.dockLibrary,
+              active: path.startsWith("/academy/library"),
+              onClick: () => navigate({ to: "/academy/library" }),
             },
             {
               key: "tracks",
@@ -227,76 +215,26 @@ function AppFrame() {
               active: path.startsWith("/academy/learn"),
               onClick: () => navigate({ to: "/academy/learn" }),
             },
-            {
-              key: "briefing",
-              icon: Newspaper,
-              label: COPY.appShell.dockBriefing,
-              active: path.startsWith("/academy/briefing"),
-              onClick: () => navigate({ to: "/academy/briefing" }),
-            },
-            {
-              key: "tour",
-              icon: GraduationCap,
-              label: COPY.appShell.dockTour,
-              active: path.startsWith("/onboarding"),
-              onClick: () => navigate({ to: "/onboarding" }),
-            },
-            {
-              key: "settings",
-              icon: SettingsIcon,
-              label: COPY.appShell.dockSettings,
-              active: path.startsWith("/settings"),
-              onClick: () => navigate({ to: "/settings" }),
-            },
-            ...(isAdmin
-              ? [
-                  {
-                    key: "approvals",
-                    icon: ShieldCheck,
-                    label: COPY.appShell.dockApprovals,
-                    active: path.startsWith("/admin/approvals"),
-                    onClick: () => navigate({ to: "/admin/approvals" }),
-                  },
-                ]
-              : []),
           ]
         : [];
     },
-    [navigate, path, user, isAdmin],
-  );
-
-  const mobileDockItems = useMemo(
-    () =>
-      workspaceItems.filter((i) =>
-        ["home", "library", "coach", "tracks", "briefing"].includes(i.key),
-      ),
-    [workspaceItems],
+    [navigate, path, user],
   );
 
   const inAppWorkspace = Boolean(user && !isLanding);
 
-  const showMobileDock =
+  const showDock =
     !loading &&
     inAppWorkspace &&
-    (path.startsWith("/academy") || path.startsWith("/onboarding"));
-
-  const sidebarColClass = sidebarCollapsed
-    ? "lg:grid-cols-[4.5rem_1fr]"
-    : "lg:grid-cols-[17rem_1fr]";
+    (path.startsWith("/academy") ||
+      path.startsWith("/onboarding") ||
+      path.startsWith("/settings") ||
+      path.startsWith("/admin"));
 
   if (loading) {
     return (
-      <div className="grid min-h-screen w-full overflow-x-clip lg:grid-cols-[17rem_1fr]">
-        <aside className="hidden border-r border-border/70 bg-sidebar/90 px-4 py-5 lg:block">
-          <div className="space-y-3">
-            <Skeleton className="h-10 w-40 rounded-xl" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-            <Skeleton className="h-11 w-full rounded-xl" />
-          </div>
-        </aside>
-        <div className="mx-auto min-w-0 w-full max-w-7xl px-6 py-8">
+      <div className="min-h-screen w-full overflow-x-clip">
+        <div className="mx-auto min-w-0 w-full max-w-5xl px-6 py-8">
           <Skeleton className="h-8 w-52" />
           <Skeleton className="mt-5 h-24 w-full rounded-2xl" />
           <Skeleton className="mt-4 h-24 w-full rounded-2xl" />
@@ -306,95 +244,9 @@ function AppFrame() {
   }
 
   return (
-    <div
-      className={
-        inAppWorkspace
-          ? cn("min-h-screen w-full overflow-x-clip lg:grid", sidebarColClass)
-          : "min-h-screen w-full overflow-x-clip"
-      }
-    >
-      {inAppWorkspace && (
-        <aside
-          className={cn(
-            "hidden border-r border-sidebar-border/80 bg-sidebar/95 py-5 lg:flex lg:flex-col lg:shrink-0 lg:transition-[width] lg:duration-200 lg:ease-out",
-            sidebarCollapsed
-              ? "lg:w-[4.5rem] lg:min-w-[4.5rem] lg:px-2"
-              : "lg:w-[17rem] lg:min-w-[17rem] lg:px-4",
-          )}
-        >
-          <div
-            className={cn(
-              "mb-3 flex shrink-0 items-start gap-2",
-              sidebarCollapsed ? "flex-col items-center" : "flex-row items-center justify-between",
-            )}
-          >
-            <BrandLogo
-              variant={sidebarCollapsed ? "sidebarCollapsed" : "sidebar"}
-              to="/academy"
-              className={cn(sidebarCollapsed ? "justify-center" : "flex-1 pr-1")}
-            />
-            <button
-              type="button"
-              onClick={toggleSidebarCollapsed}
-              aria-expanded={!sidebarCollapsed}
-              aria-controls="workspace-dock-nav"
-              aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
-              className={cn(
-                "inline-flex shrink-0 min-h-10 min-w-10 items-center justify-center rounded-lg border border-border/60 text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground",
-                sidebarCollapsed && "mt-1",
-              )}
-            >
-              {sidebarCollapsed ? (
-                <ChevronRight className="h-5 w-5" />
-              ) : (
-                <ChevronLeft className="h-5 w-5" />
-              )}
-            </button>
-          </div>
-          <nav id="workspace-dock-nav" className="mt-1 space-y-1.5">
-            {workspaceItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={item.onClick}
-                  title={sidebarCollapsed ? item.label : undefined}
-                  className={cn(
-                    "flex min-h-11 w-full items-center gap-3 rounded-xl text-left text-sm transition",
-                    sidebarCollapsed ? "justify-center px-0" : "px-3",
-                    item.active
-                      ? "bg-surface-2 text-foreground shadow-[inset_0_0_0_1px_var(--border)]"
-                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
-                  )}
-                >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span className={cn("truncate", sidebarCollapsed && "sr-only")}>
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </nav>
-          <button
-            type="button"
-            onClick={() => signOut()}
-            title={sidebarCollapsed ? COPY.appShell.dockSignOut : undefined}
-            className={cn(
-              "mt-auto flex min-h-11 items-center gap-3 rounded-xl border border-border/70 text-sm text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground",
-              sidebarCollapsed ? "justify-center px-0" : "px-3",
-            )}
-          >
-            <LogOut className="h-4 w-4 shrink-0" />
-            <span className={cn(sidebarCollapsed && "sr-only")}>{COPY.appShell.dockSignOut}</span>
-          </button>
-        </aside>
-      )}
-
+    <div className="min-h-screen w-full overflow-x-clip">
       <div className="min-h-screen min-w-0 flex flex-col">
-        <header
-          className={isLanding && !user ? "sticky top-0 z-40 bg-white" : "sticky top-0 z-40 glass"}
-        >
+        <header className="sticky top-0 z-40 glass">
           <div
             className={cn(
               "mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6",
@@ -402,28 +254,55 @@ function AppFrame() {
             )}
           >
             <div className="flex min-w-0 items-center gap-3">
-              {inAppWorkspace && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setMobileNavOpen(true)}
-                    className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg border border-border/70 bg-surface lg:hidden"
-                    aria-label="Open navigation menu"
-                  >
-                    <Menu className="h-5 w-5" />
-                  </button>
-                  <Link
-                    to="/academy"
-                    className="inline-flex min-h-11 min-w-[2.75rem] shrink-0 items-center justify-center rounded-lg outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
-                    aria-label={COPY.appShell.goToAcademy}
-                  >
-                    <img src={keptMark} alt="" className="size-8 object-contain" decoding="async" />
-                  </Link>
-                </>
+              {inAppWorkspace ? (
+                <BrandLogo variant="header" to="/academy" />
+              ) : (
+                <BrandLogo variant="header" />
               )}
-              {!inAppWorkspace && <BrandLogo variant="header" />}
             </div>
-            <nav className="flex items-center gap-2 text-sm">
+            {inAppWorkspace && (
+              <div className="flex items-center gap-2">
+                {streakCount > 0 && (
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full border border-secondary-foreground/20 bg-secondary px-3 py-1 text-xs font-semibold text-secondary-foreground"
+                    aria-label={COPY.academy.studyStreakLabel(streakCount)}
+                  >
+                    <Flame className="h-3.5 w-3.5 text-primary" aria-hidden />
+                    {streakCount}
+                  </span>
+                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-border/70 bg-surface text-muted-foreground transition hover:bg-surface-2 hover:text-foreground"
+                    aria-label={COPY.appShell.accountMenuLabel}
+                  >
+                    <CircleUserRound className="h-5 w-5" />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem onClick={() => navigate({ to: "/academy/briefing" })}>
+                      <Newspaper className="h-4 w-4" />
+                      {COPY.appShell.dockBriefing}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate({ to: "/settings" })}>
+                      <SettingsIcon className="h-4 w-4" />
+                      {COPY.appShell.dockSettings}
+                    </DropdownMenuItem>
+                    {isAdmin && (
+                      <DropdownMenuItem onClick={() => navigate({ to: "/admin/approvals" })}>
+                        <ShieldCheck className="h-4 w-4" />
+                        {COPY.appShell.dockApprovals}
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => void signOut()}>
+                      <LogOut className="h-4 w-4" />
+                      {COPY.appShell.dockSignOut}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+            <nav className={cn("flex items-center gap-2 text-sm", inAppWorkspace && "hidden")}>
               {isLanding ? (
                 user ? (
                   <>
@@ -489,16 +368,12 @@ function AppFrame() {
           </div>
         </header>
 
-        <main className={cn("relative min-w-0 flex-1", showMobileDock && "pb-24 lg:pb-0")}>
+        <main className={cn("relative min-w-0 flex-1", showDock && "pb-24")}>
           <Outlet />
           {inAppWorkspace && <KeptAmbientPresence />}
         </main>
 
-        {showMobileDock ? (
-          <div className="lg:hidden">
-            <Dock items={mobileDockItems} className="bottom-3 safe-area-pb" />
-          </div>
-        ) : null}
+        {showDock ? <Dock items={dockItems} className="bottom-3 safe-area-pb" /> : null}
 
         {!isLanding && (
           <footer className="border-t border-border bg-background py-8 text-center">
@@ -509,55 +384,6 @@ function AppFrame() {
           </footer>
         )}
       </div>
-
-      {inAppWorkspace && (
-        <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-          <SheetContent
-            side="left"
-            className="w-[18rem] border-r border-sidebar-border bg-sidebar p-0"
-          >
-            <SheetTitle className="sr-only">App navigation</SheetTitle>
-            <div className="flex h-full flex-col px-3 py-4">
-              <BrandLogo variant="sidebar" to="/academy" className="mb-4 px-2" onClick={() => setMobileNavOpen(false)} />
-              <nav className="space-y-1.5">
-                {workspaceItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      onClick={() => {
-                        setMobileNavOpen(false);
-                        item.onClick();
-                      }}
-                      className={cn(
-                        "flex min-h-11 w-full items-center gap-3 rounded-xl px-3 text-left text-sm transition",
-                        item.active
-                          ? "bg-surface-2 text-foreground"
-                          : "text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
-                      )}
-                    >
-                      <Icon className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{item.label}</span>
-                    </button>
-                  );
-                })}
-              </nav>
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileNavOpen(false);
-                  signOut();
-                }}
-                className="mt-auto flex min-h-11 items-center gap-3 rounded-xl border border-border/70 px-3 text-sm text-muted-foreground transition hover:bg-sidebar-accent hover:text-foreground"
-              >
-                <LogOut className="h-4 w-4 shrink-0" />
-                <span>{COPY.appShell.dockSignOut}</span>
-              </button>
-            </div>
-          </SheetContent>
-        </Sheet>
-      )}
     </div>
   );
 }

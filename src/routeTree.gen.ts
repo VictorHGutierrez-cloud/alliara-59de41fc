@@ -9,89 +9,35 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AcademyRouteImport } from './routes/academy'
-import { Route as ChooseCompanionRouteImport } from './routes/choose-companion'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
-import { Route as IntroRouteImport } from './routes/intro'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as MeetKeptRouteImport } from './routes/meet-kept'
-import { Route as OnboardingRouteImport } from './routes/onboarding'
-import { Route as PartnersRouteImport } from './routes/partners'
-import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SignupRouteImport } from './routes/signup'
-import { Route as AcademyAskRouteImport } from './routes/academy.ask'
-import { Route as AcademyBriefingRouteImport } from './routes/academy.briefing'
-import { Route as AcademyLearnRouteImport } from './routes/academy.learn'
-import { Route as AcademyLibraryRouteImport } from './routes/academy.library'
-import { Route as AcademyPrepRouteImport } from './routes/academy.prep'
-import { Route as AcademyStuckRouteImport } from './routes/academy.stuck'
-import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as PendingApprovalRouteImport } from './routes/pending-approval'
+import { Route as PartnersRouteImport } from './routes/partners'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as MeetKeptRouteImport } from './routes/meet-kept'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as IntroRouteImport } from './routes/intro'
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as ChooseCompanionRouteImport } from './routes/choose-companion'
+import { Route as AcademyRouteImport } from './routes/academy'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as OnboardingStepIdRouteImport } from './routes/onboarding.$stepId'
+import { Route as AdminApprovalsRouteImport } from './routes/admin.approvals'
+import { Route as AcademyStuckRouteImport } from './routes/academy.stuck'
+import { Route as AcademyRoleplayRouteImport } from './routes/academy.roleplay'
+import { Route as AcademyPrepRouteImport } from './routes/academy.prep'
+import { Route as AcademyLibraryRouteImport } from './routes/academy.library'
+import { Route as AcademyLearnRouteImport } from './routes/academy.learn'
+import { Route as AcademyBriefingRouteImport } from './routes/academy.briefing'
+import { Route as AcademyAskRouteImport } from './routes/academy.ask'
 import { Route as AcademyLibrarySlugRouteImport } from './routes/academy.library.$slug'
 import { Route as AcademyLearnTrackIdQuizRouteImport } from './routes/academy.learn.$trackId.quiz'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AcademyRoute = AcademyRouteImport.update({
-  id: '/academy',
-  path: '/academy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ChooseCompanionRoute = ChooseCompanionRouteImport.update({
-  id: '/choose-companion',
-  path: '/choose-companion',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
-  id: '/forgot-password',
-  path: '/forgot-password',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IntroRoute = IntroRouteImport.update({
-  id: '/intro',
-  path: '/intro',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MeetKeptRoute = MeetKeptRouteImport.update({
-  id: '/meet-kept',
-  path: '/meet-kept',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OnboardingRoute = OnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PartnersRoute = PartnersRouteImport.update({
-  id: '/partners',
-  path: '/partners',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PendingApprovalRoute = PendingApprovalRouteImport.update({
-  id: '/pending-approval',
-  path: '/pending-approval',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SettingsRoute = SettingsRouteImport.update({
@@ -99,29 +45,84 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AcademyAskRoute = AcademyAskRouteImport.update({
-  id: '/ask',
-  path: '/ask',
+const PendingApprovalRoute = PendingApprovalRouteImport.update({
+  id: '/pending-approval',
+  path: '/pending-approval',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PartnersRoute = PartnersRouteImport.update({
+  id: '/partners',
+  path: '/partners',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeetKeptRoute = MeetKeptRouteImport.update({
+  id: '/meet-kept',
+  path: '/meet-kept',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntroRoute = IntroRouteImport.update({
+  id: '/intro',
+  path: '/intro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChooseCompanionRoute = ChooseCompanionRouteImport.update({
+  id: '/choose-companion',
+  path: '/choose-companion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcademyRoute = AcademyRouteImport.update({
+  id: '/academy',
+  path: '/academy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardingStepIdRoute = OnboardingStepIdRouteImport.update({
+  id: '/$stepId',
+  path: '/$stepId',
+  getParentRoute: () => OnboardingRoute,
+} as any)
+const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
+  id: '/admin/approvals',
+  path: '/admin/approvals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AcademyStuckRoute = AcademyStuckRouteImport.update({
+  id: '/stuck',
+  path: '/stuck',
   getParentRoute: () => AcademyRoute,
 } as any)
-const AcademyBriefingRoute = AcademyBriefingRouteImport.update({
-  id: '/briefing',
-  path: '/briefing',
-  getParentRoute: () => AcademyRoute,
-} as any)
-const AcademyLearnRoute = AcademyLearnRouteImport.update({
-  id: '/learn',
-  path: '/learn',
-  getParentRoute: () => AcademyRoute,
-} as any)
-const AcademyLibraryRoute = AcademyLibraryRouteImport.update({
-  id: '/library',
-  path: '/library',
+const AcademyRoleplayRoute = AcademyRoleplayRouteImport.update({
+  id: '/roleplay',
+  path: '/roleplay',
   getParentRoute: () => AcademyRoute,
 } as any)
 const AcademyPrepRoute = AcademyPrepRouteImport.update({
@@ -129,20 +130,25 @@ const AcademyPrepRoute = AcademyPrepRouteImport.update({
   path: '/prep',
   getParentRoute: () => AcademyRoute,
 } as any)
-const AcademyStuckRoute = AcademyStuckRouteImport.update({
-  id: '/stuck',
-  path: '/stuck',
+const AcademyLibraryRoute = AcademyLibraryRouteImport.update({
+  id: '/library',
+  path: '/library',
   getParentRoute: () => AcademyRoute,
 } as any)
-const AdminApprovalsRoute = AdminApprovalsRouteImport.update({
-  id: '/admin/approvals',
-  path: '/admin/approvals',
-  getParentRoute: () => rootRouteImport,
+const AcademyLearnRoute = AcademyLearnRouteImport.update({
+  id: '/learn',
+  path: '/learn',
+  getParentRoute: () => AcademyRoute,
 } as any)
-const OnboardingStepIdRoute = OnboardingStepIdRouteImport.update({
-  id: '/$stepId',
-  path: '/$stepId',
-  getParentRoute: () => OnboardingRoute,
+const AcademyBriefingRoute = AcademyBriefingRouteImport.update({
+  id: '/briefing',
+  path: '/briefing',
+  getParentRoute: () => AcademyRoute,
+} as any)
+const AcademyAskRoute = AcademyAskRouteImport.update({
+  id: '/ask',
+  path: '/ask',
+  getParentRoute: () => AcademyRoute,
 } as any)
 const AcademyLibrarySlugRoute = AcademyLibrarySlugRouteImport.update({
   id: '/$slug',
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/academy/learn': typeof AcademyLearnRouteWithChildren
   '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/academy/prep': typeof AcademyPrepRoute
+  '/academy/roleplay': typeof AcademyRoleplayRoute
   '/academy/stuck': typeof AcademyStuckRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/onboarding/$stepId': typeof OnboardingStepIdRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/academy/learn': typeof AcademyLearnRouteWithChildren
   '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/academy/prep': typeof AcademyPrepRoute
+  '/academy/roleplay': typeof AcademyRoleplayRoute
   '/academy/stuck': typeof AcademyStuckRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/onboarding/$stepId': typeof OnboardingStepIdRoute
@@ -228,6 +236,7 @@ export interface FileRoutesById {
   '/academy/learn': typeof AcademyLearnRouteWithChildren
   '/academy/library': typeof AcademyLibraryRouteWithChildren
   '/academy/prep': typeof AcademyPrepRoute
+  '/academy/roleplay': typeof AcademyRoleplayRoute
   '/academy/stuck': typeof AcademyStuckRoute
   '/admin/approvals': typeof AdminApprovalsRoute
   '/onboarding/$stepId': typeof OnboardingStepIdRoute
@@ -256,6 +265,7 @@ export interface FileRouteTypes {
     | '/academy/learn'
     | '/academy/library'
     | '/academy/prep'
+    | '/academy/roleplay'
     | '/academy/stuck'
     | '/admin/approvals'
     | '/onboarding/$stepId'
@@ -282,6 +292,7 @@ export interface FileRouteTypes {
     | '/academy/learn'
     | '/academy/library'
     | '/academy/prep'
+    | '/academy/roleplay'
     | '/academy/stuck'
     | '/admin/approvals'
     | '/onboarding/$stepId'
@@ -308,6 +319,7 @@ export interface FileRouteTypes {
     | '/academy/learn'
     | '/academy/library'
     | '/academy/prep'
+    | '/academy/roleplay'
     | '/academy/stuck'
     | '/admin/approvals'
     | '/onboarding/$stepId'
@@ -335,88 +347,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/academy': {
-      id: '/academy'
-      path: '/academy'
-      fullPath: '/academy'
-      preLoaderRoute: typeof AcademyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/choose-companion': {
-      id: '/choose-companion'
-      path: '/choose-companion'
-      fullPath: '/choose-companion'
-      preLoaderRoute: typeof ChooseCompanionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forgot-password': {
-      id: '/forgot-password'
-      path: '/forgot-password'
-      fullPath: '/forgot-password'
-      preLoaderRoute: typeof ForgotPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/intro': {
-      id: '/intro'
-      path: '/intro'
-      fullPath: '/intro'
-      preLoaderRoute: typeof IntroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/meet-kept': {
-      id: '/meet-kept'
-      path: '/meet-kept'
-      fullPath: '/meet-kept'
-      preLoaderRoute: typeof MeetKeptRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/onboarding': {
-      id: '/onboarding'
-      path: '/onboarding'
-      fullPath: '/onboarding'
-      preLoaderRoute: typeof OnboardingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/partners': {
-      id: '/partners'
-      path: '/partners'
-      fullPath: '/partners'
-      preLoaderRoute: typeof PartnersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/pending-approval': {
-      id: '/pending-approval'
-      path: '/pending-approval'
-      fullPath: '/pending-approval'
-      preLoaderRoute: typeof PendingApprovalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/settings': {
@@ -426,39 +361,116 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/academy/ask': {
-      id: '/academy/ask'
-      path: '/ask'
-      fullPath: '/academy/ask'
-      preLoaderRoute: typeof AcademyAskRouteImport
+    '/pending-approval': {
+      id: '/pending-approval'
+      path: '/pending-approval'
+      fullPath: '/pending-approval'
+      preLoaderRoute: typeof PendingApprovalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/partners': {
+      id: '/partners'
+      path: '/partners'
+      fullPath: '/partners'
+      preLoaderRoute: typeof PartnersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/meet-kept': {
+      id: '/meet-kept'
+      path: '/meet-kept'
+      fullPath: '/meet-kept'
+      preLoaderRoute: typeof MeetKeptRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/intro': {
+      id: '/intro'
+      path: '/intro'
+      fullPath: '/intro'
+      preLoaderRoute: typeof IntroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/choose-companion': {
+      id: '/choose-companion'
+      path: '/choose-companion'
+      fullPath: '/choose-companion'
+      preLoaderRoute: typeof ChooseCompanionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/academy': {
+      id: '/academy'
+      path: '/academy'
+      fullPath: '/academy'
+      preLoaderRoute: typeof AcademyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/onboarding/$stepId': {
+      id: '/onboarding/$stepId'
+      path: '/$stepId'
+      fullPath: '/onboarding/$stepId'
+      preLoaderRoute: typeof OnboardingStepIdRouteImport
+      parentRoute: typeof OnboardingRoute
+    }
+    '/admin/approvals': {
+      id: '/admin/approvals'
+      path: '/admin/approvals'
+      fullPath: '/admin/approvals'
+      preLoaderRoute: typeof AdminApprovalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/academy/stuck': {
+      id: '/academy/stuck'
+      path: '/stuck'
+      fullPath: '/academy/stuck'
+      preLoaderRoute: typeof AcademyStuckRouteImport
       parentRoute: typeof AcademyRoute
     }
-    '/academy/briefing': {
-      id: '/academy/briefing'
-      path: '/briefing'
-      fullPath: '/academy/briefing'
-      preLoaderRoute: typeof AcademyBriefingRouteImport
-      parentRoute: typeof AcademyRoute
-    }
-    '/academy/learn': {
-      id: '/academy/learn'
-      path: '/learn'
-      fullPath: '/academy/learn'
-      preLoaderRoute: typeof AcademyLearnRouteImport
-      parentRoute: typeof AcademyRoute
-    }
-    '/academy/library': {
-      id: '/academy/library'
-      path: '/library'
-      fullPath: '/academy/library'
-      preLoaderRoute: typeof AcademyLibraryRouteImport
+    '/academy/roleplay': {
+      id: '/academy/roleplay'
+      path: '/roleplay'
+      fullPath: '/academy/roleplay'
+      preLoaderRoute: typeof AcademyRoleplayRouteImport
       parentRoute: typeof AcademyRoute
     }
     '/academy/prep': {
@@ -468,26 +480,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AcademyPrepRouteImport
       parentRoute: typeof AcademyRoute
     }
-    '/academy/stuck': {
-      id: '/academy/stuck'
-      path: '/stuck'
-      fullPath: '/academy/stuck'
-      preLoaderRoute: typeof AcademyStuckRouteImport
+    '/academy/library': {
+      id: '/academy/library'
+      path: '/library'
+      fullPath: '/academy/library'
+      preLoaderRoute: typeof AcademyLibraryRouteImport
       parentRoute: typeof AcademyRoute
     }
-    '/admin/approvals': {
-      id: '/admin/approvals'
-      path: '/admin/approvals'
-      fullPath: '/admin/approvals'
-      preLoaderRoute: typeof AdminApprovalsRouteImport
-      parentRoute: typeof rootRouteImport
+    '/academy/learn': {
+      id: '/academy/learn'
+      path: '/learn'
+      fullPath: '/academy/learn'
+      preLoaderRoute: typeof AcademyLearnRouteImport
+      parentRoute: typeof AcademyRoute
     }
-    '/onboarding/$stepId': {
-      id: '/onboarding/$stepId'
-      path: '/$stepId'
-      fullPath: '/onboarding/$stepId'
-      preLoaderRoute: typeof OnboardingStepIdRouteImport
-      parentRoute: typeof OnboardingRoute
+    '/academy/briefing': {
+      id: '/academy/briefing'
+      path: '/briefing'
+      fullPath: '/academy/briefing'
+      preLoaderRoute: typeof AcademyBriefingRouteImport
+      parentRoute: typeof AcademyRoute
+    }
+    '/academy/ask': {
+      id: '/academy/ask'
+      path: '/ask'
+      fullPath: '/academy/ask'
+      preLoaderRoute: typeof AcademyAskRouteImport
+      parentRoute: typeof AcademyRoute
     }
     '/academy/library/$slug': {
       id: '/academy/library/$slug'
@@ -536,6 +555,7 @@ interface AcademyRouteChildren {
   AcademyLearnRoute: typeof AcademyLearnRouteWithChildren
   AcademyLibraryRoute: typeof AcademyLibraryRouteWithChildren
   AcademyPrepRoute: typeof AcademyPrepRoute
+  AcademyRoleplayRoute: typeof AcademyRoleplayRoute
   AcademyStuckRoute: typeof AcademyStuckRoute
 }
 
@@ -545,6 +565,7 @@ const AcademyRouteChildren: AcademyRouteChildren = {
   AcademyLearnRoute: AcademyLearnRouteWithChildren,
   AcademyLibraryRoute: AcademyLibraryRouteWithChildren,
   AcademyPrepRoute: AcademyPrepRoute,
+  AcademyRoleplayRoute: AcademyRoleplayRoute,
   AcademyStuckRoute: AcademyStuckRoute,
 }
 
@@ -583,3 +604,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
