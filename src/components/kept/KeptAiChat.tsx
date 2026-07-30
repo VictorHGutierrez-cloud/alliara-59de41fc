@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Plus, Send } from "lucide-react";
+import { Phone, Plus, Send, TriangleAlert } from "lucide-react";
 import { CanvasRevealEffect } from "@/components/ui/canvas-effect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ type KeptAiChatProps = {
   error?: string | null;
   contextTopic?: string;
   scrollRef?: React.RefObject<HTMLDivElement | null>;
+  emptyActions?: boolean;
 };
 
 function ThinkingSkeleton() {
@@ -76,6 +78,7 @@ export function KeptAiChat({
   error = null,
   contextTopic,
   scrollRef,
+  emptyActions = false,
 }: KeptAiChatProps) {
   const [hovered, setHovered] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
@@ -133,7 +136,7 @@ export function KeptAiChat({
 
           {contextTopic ? (
             <p className="mx-2 mt-3 shrink-0 rounded-xl border border-border bg-surface-2 px-3 py-2 text-center text-xs font-medium text-foreground">
-              {COPY.academy.askContextBanner(contextTopic)}
+              {contextTopic}
             </p>
           ) : null}
 
@@ -144,6 +147,24 @@ export function KeptAiChat({
                   <p className="mx-auto max-w-md text-sm leading-relaxed text-muted-foreground">
                     {COPY.academy.askEmptyHint}
                   </p>
+                  {emptyActions ? (
+                    <div className="flex flex-wrap justify-center gap-2">
+                      <Link
+                        to="/academy/stuck"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-3.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                      >
+                        <TriangleAlert className="h-3.5 w-3.5" aria-hidden />
+                        {COPY.academy.askEmptyStuck}
+                      </Link>
+                      <Link
+                        to="/academy/prep"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-3.5 text-xs font-semibold hover:bg-surface-2"
+                      >
+                        <Phone className="h-3.5 w-3.5" aria-hidden />
+                        {COPY.academy.askEmptyPrep}
+                      </Link>
+                    </div>
+                  ) : null}
                   <div className="flex flex-wrap justify-center gap-2">
                     {COPY.academy.askSuggestions.map((s) => (
                       <button

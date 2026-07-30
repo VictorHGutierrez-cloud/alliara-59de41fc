@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import type { CompanionId } from "@/lib/companion";
 import {
   applyCompanionState,
@@ -9,6 +10,7 @@ import {
 const PROGRESS_KEY = "kept-academy-progress";
 const LAST_STUDY_KEY = "kept-academy-last-study";
 const STUDY_DATES_KEY = "kept-academy-study-dates";
+const QUIZ_RESULTS_KEY = "kept-academy-quiz-results";
 
 export interface LastStudy {
   type: "track" | "material";
@@ -23,12 +25,24 @@ export interface StudyStreak {
   studiedToday: boolean;
 }
 
+export interface QuizResult {
+  score: number;
+  passed: boolean;
+  at: string;
+  /** correct answers count */
+  correct?: number;
+  total?: number;
+}
+
+export type QuizResultsMap = Record<string, QuizResult>;
+
 export interface AcademyProgressState {
   completedSlugs: string[];
   lastStudy: LastStudy | null;
   studyDates: string[];
   companion: CompanionId | null;
   companionChosen: boolean;
+  quizResults: QuizResultsMap;
 }
 
 function todayKey(): string {
@@ -172,6 +186,71 @@ export function loadLastStudy(): LastStudy | null {
   }
 }
 
+function parseQuizResults(raw: unknown): QuizResultsMap {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out: QuizResultsMap = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!value || typeof value !== "object") continue;
+    const v = value as Record<string, unknown>;
+    if (typeof v.score !== "number" || typeof v.passed !== "boolean" || typeof v.at !== "string") {
+      continue;
+    }
+    out[key] = {
+      score: v.score,
+      passed: v.passed,
+      at: v.at,
+      ...(typeof v.correct === "number" ? { correct: v.correct } : {}),
+      ...(typeof v.total === "number" ? { total: v.total } : {}),
+    };
+  }
+  return out;
+}
+
+export function loadQuizResults(): QuizResultsMap {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(QUIZ_RESULTS_KEY);
+    return raw ? parseQuizResults(JSON.parse(raw)) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveQuizResults(results: QuizResultsMap) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(QUIZ_RESULTS_KEY, JSON.stringify(results));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getQuizResult(trackId: string): QuizResult | null {
+  return loadQuizResults()[trackId] ?? null;
+}
+
+export function isQuizPassed(trackId: string): boolean {
+  return Boolean(getQuizResult(trackId)?.passed);
+}
+
+export function saveQuizResult(
+  trackId: string,
+  result: Omit<QuizResult, "at"> & { at?: string },
+): QuizResult {
+  const stored: QuizResult = {
+    score: result.score,
+    passed: result.passed,
+    at: result.at ?? new Date().toISOString(),
+    ...(result.correct !== undefined ? { correct: result.correct } : {}),
+    ...(result.total !== undefined ? { total: result.total } : {}),
+  };
+  const all = loadQuizResults();
+  all[trackId] = stored;
+  saveQuizResults(all);
+  if (stored.passed) recordStudyActivity();
+  return stored;
+}
+
 export function loadProgressState(): AcademyProgressState {
   const companionChosen = hasChosenCompanionForSync();
   return {
@@ -180,6 +259,7 @@ export function loadProgressState(): AcademyProgressState {
     studyDates: loadStudyDates(),
     companion: companionChosen ? getCompanionForSync() : null,
     companionChosen,
+    quizResults: loadQuizResults(),
   };
 }
 
@@ -190,6 +270,7 @@ export function applyProgressState(state: AcademyProgressState) {
       localStorage.setItem(LAST_STUDY_KEY, JSON.stringify(state.lastStudy));
     }
     saveStudyDates(state.studyDates);
+    saveQuizResults(state.quizResults ?? {});
     applyCompanionState(state.companion, state.companionChosen);
   } catch {
     /* ignore */
@@ -217,12 +298,21 @@ function mergeProgress(local: AcademyProgressState, remote: AcademyProgressState
     companionChosen = remote.companionChosen;
   }
 
+  const quizResults: QuizResultsMap = { ...remote.quizResults };
+  for (const [trackId, localResult] of Object.entries(local.quizResults)) {
+    const remoteResult = quizResults[trackId];
+    if (!remoteResult || Date.parse(localResult.at) >= Date.parse(remoteResult.at)) {
+      quizResults[trackId] = localResult;
+    }
+  }
+
   return {
     completedSlugs: [...completed],
     lastStudy,
     studyDates,
     companion,
     companionChosen,
+    quizResults,
   };
 }
 
@@ -231,7 +321,7 @@ export async function syncAcademyProgress(userId: string): Promise<void> {
 
   const { data, error } = await supabase
     .from("academy_progress")
-    .select("completed_slugs, last_study, study_dates, companion, updated_at")
+    .select("completed_slugs, last_study, study_dates, companion, quiz_results, updated_at")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -244,9 +334,10 @@ export async function syncAcademyProgress(userId: string): Promise<void> {
     const { error: insertError } = await supabase.from("academy_progress").upsert({
       user_id: userId,
       completed_slugs: local.completedSlugs,
-      last_study: local.lastStudy,
+      last_study: local.lastStudy as Json | null,
       study_dates: local.studyDates,
       companion: local.companionChosen ? local.companion : null,
+      quiz_results: local.quizResults as unknown as Json,
       updated_at: new Date().toISOString(),
     });
     if (insertError) console.error("[syncAcademyProgress - push]:", insertError);
@@ -262,6 +353,7 @@ export async function syncAcademyProgress(userId: string): Promise<void> {
     studyDates: data.study_dates ?? [],
     companion: remoteCompanion,
     companionChosen: remoteCompanion !== null,
+    quizResults: parseQuizResults(data.quiz_results),
   };
 
   const merged = mergeProgress(local, remote);
@@ -270,9 +362,10 @@ export async function syncAcademyProgress(userId: string): Promise<void> {
   const { error: upsertError } = await supabase.from("academy_progress").upsert({
     user_id: userId,
     completed_slugs: merged.completedSlugs,
-    last_study: merged.lastStudy,
+    last_study: merged.lastStudy as Json | null,
     study_dates: merged.studyDates,
     companion: merged.companionChosen ? merged.companion : null,
+    quiz_results: merged.quizResults as unknown as Json,
     updated_at: new Date().toISOString(),
   });
 
@@ -284,9 +377,10 @@ export async function pushAcademyProgress(userId: string): Promise<void> {
   const { error } = await supabase.from("academy_progress").upsert({
     user_id: userId,
     completed_slugs: state.completedSlugs,
-    last_study: state.lastStudy,
+    last_study: state.lastStudy as Json | null,
     study_dates: state.studyDates,
     companion: state.companionChosen ? state.companion : null,
+    quiz_results: state.quizResults as unknown as Json,
     updated_at: new Date().toISOString(),
   });
   if (error) console.error("[pushAcademyProgress]:", error);

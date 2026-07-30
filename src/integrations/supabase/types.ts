@@ -808,6 +808,7 @@ export type Database = {
           last_study: Json | null
           study_dates: string[]
           companion: string | null
+          quiz_results: Json
           updated_at: string
         }
         Insert: {
@@ -816,6 +817,7 @@ export type Database = {
           last_study?: Json | null
           study_dates?: string[]
           companion?: string | null
+          quiz_results?: Json
           updated_at?: string
         }
         Update: {
@@ -824,6 +826,58 @@ export type Database = {
           last_study?: Json | null
           study_dates?: string[]
           companion?: string | null
+          quiz_results?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coach_sessions: {
+        Row: {
+          id: string
+          user_id: string
+          mode: string
+          title: string
+          deal_name: string | null
+          stage: string | null
+          has_champion: string | null
+          competitor: string | null
+          situation: string
+          source: string | null
+          slug: string | null
+          messages: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          mode: string
+          title?: string
+          deal_name?: string | null
+          stage?: string | null
+          has_champion?: string | null
+          competitor?: string | null
+          situation?: string
+          source?: string | null
+          slug?: string | null
+          messages?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          mode?: string
+          title?: string
+          deal_name?: string | null
+          stage?: string | null
+          has_champion?: string | null
+          competitor?: string | null
+          situation?: string
+          source?: string | null
+          slug?: string | null
+          messages?: Json
+          created_at?: string
           updated_at?: string
         }
         Relationships: []

@@ -36,6 +36,7 @@ import { KeptAmbientPresence } from "@/components/brand/KeptAmbientPresence";
 import { Dock } from "@/components/ui/dock";
 import { useAcademyProgressSync } from "@/hooks/use-academy-progress-sync";
 import { cn } from "@/lib/utils";
+import { getSalesMaterial } from "@/content/sales-library";
 
 const SIDEBAR_COLLAPSED_KEY = "kept-sidebar-collapsed";
 
@@ -180,8 +181,20 @@ function AppFrame() {
   }, [user, accessStatus, path, PUBLIC_PATHS, navigate]);
 
   const workspaceItems = useMemo(
-    () =>
-      user
+    () => {
+      const libraryMatch = path.match(/^\/academy\/library\/([^/]+)/);
+      const librarySlug = libraryMatch?.[1];
+      const material = librarySlug ? getSalesMaterial(librarySlug) : undefined;
+      const coachSearch = material
+        ? {
+            topic: material.title,
+            slug: material.slug,
+            source: "library" as const,
+            draft: COPY.academy.askContextDraft(material.title),
+          }
+        : {};
+
+      return user
         ? [
             {
               key: "home",
@@ -201,8 +214,11 @@ function AppFrame() {
               key: "coach",
               icon: MessageCircleQuestion,
               label: COPY.appShell.dockCoach,
-              active: path.startsWith("/academy/ask"),
-              onClick: () => navigate({ to: "/academy/ask" }),
+              active:
+                path.startsWith("/academy/ask") ||
+                path.startsWith("/academy/stuck") ||
+                path.startsWith("/academy/prep"),
+              onClick: () => navigate({ to: "/academy/ask", search: coachSearch }),
             },
             {
               key: "tracks",
@@ -244,7 +260,8 @@ function AppFrame() {
                 ]
               : []),
           ]
-        : [],
+        : [];
+    },
     [navigate, path, user, isAdmin],
   );
 

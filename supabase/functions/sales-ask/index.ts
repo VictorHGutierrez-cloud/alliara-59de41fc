@@ -32,11 +32,15 @@ FRAMEWORKS YOU KNOW:
 - Land narrow (Core + Time + Leave for SMB), expand later
 - People Path demo story beats — never a 40-menu feature tour
 
-WHEN THEY ASK "WHAT DO I DO NOW?":
+WHEN THEY ASK "WHAT DO I DO NOW?" OR YOU HAVE DEAL CONTEXT:
 1. Clarify the immediate blocker in one sentence
 2. Give 2–3 concrete next steps (who to contact, what to ask, what to send)
 3. Name which MEDDPICC letter is weakest if relevant
 4. If no champion yet, say how to test for champion signals
+
+WHEN MODE IS "prep": lead with call agenda (3 questions max), risks, and how to open. Keep it actionable for the next conversation.
+
+WHEN MODE IS "briefing": tie the article insight to the deal stage and give one way to use it on today's call.
 
 FORMAT: Short paragraphs. Light markdown OK (bold, numbered lists). No em dashes. Under ~250 words unless they ask for depth.
 
@@ -50,17 +54,46 @@ interface AskRequest {
   context?: {
     topic?: string;
     slug?: string;
-    source?: "library" | "briefing" | "dock";
+    source?: "library" | "briefing" | "dock" | "hub";
+    mode?: "stuck" | "prep" | "briefing" | "free";
+    deal_name?: string;
+    stage?: string;
+    has_champion?: "yes" | "no" | "unsure";
+    competitor?: string;
+    situation?: string;
   };
 }
 
+function hasDealContext(context?: AskRequest["context"]): boolean {
+  if (!context) return false;
+  return Boolean(
+    context.topic ||
+      context.slug ||
+      context.source ||
+      context.mode ||
+      context.deal_name ||
+      context.stage ||
+      context.has_champion ||
+      context.competitor ||
+      context.situation,
+  );
+}
+
 function buildSystem(context?: AskRequest["context"]): string {
-  if (!context?.topic && !context?.slug && !context?.source) return SYSTEM;
-  const lines = ["\n\nSESSION CONTEXT (use this to tailor your answer):"];
-  if (context.topic) lines.push(`- Topic: ${context.topic}`);
-  if (context.slug) lines.push(`- Academy material slug: ${context.slug}`);
-  if (context.source) lines.push(`- User arrived from: ${context.source}`);
-  lines.push("- Tie advice to this material or briefing when relevant.");
+  if (!hasDealContext(context)) return SYSTEM;
+  const lines = ["\n\nDEAL CONTEXT (use this to tailor your answer — do not ignore it):"];
+  if (context?.mode) lines.push(`- Session mode: ${context.mode}`);
+  if (context?.deal_name) lines.push(`- Deal / account: ${context.deal_name}`);
+  if (context?.stage) lines.push(`- Stage: ${context.stage}`);
+  if (context?.has_champion) lines.push(`- Has champion: ${context.has_champion}`);
+  if (context?.competitor) lines.push(`- Competitor / alternative: ${context.competitor}`);
+  if (context?.situation) lines.push(`- Situation / call goal: ${context.situation}`);
+  if (context?.topic) lines.push(`- Topic: ${context.topic}`);
+  if (context?.slug) lines.push(`- Academy material slug: ${context.slug}`);
+  if (context?.source) lines.push(`- User arrived from: ${context.source}`);
+  lines.push(
+    "- Name the weakest MEDDPICC letter when useful. Give 2–3 concrete next steps grounded in this context.",
+  );
   return SYSTEM + lines.join("\n");
 }
 

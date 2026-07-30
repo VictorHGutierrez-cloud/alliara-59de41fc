@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, ExternalLink, MessageCircleQuestion, Newspaper } from "lucide-react";
+import { BookOpen, ExternalLink, Newspaper, Phone } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { supabase } from "@/integrations/supabase/client";
 import { COPY } from "@/lib/copy";
@@ -10,6 +10,26 @@ import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { CompanionIllustration } from "@/components/brand/CompanionIllustration";
 import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
 import { cn } from "@/lib/utils";
+import { createSession, DEAL_STAGES } from "@/lib/coach-sessions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const Route = createFileRoute("/academy/briefing")({
   head: () => ({ meta: [{ title: COPY.academy.briefingMetaTitle }] }),
@@ -36,6 +56,12 @@ function AcademyBriefingPage() {
   const [briefs, setBriefs] = useState<BriefRow[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [range, setRange] = useState<RangeFilter>("week");
+  const [activeBrief, setActiveBrief] = useState<BriefRow | null>(null);
+  const [dealName, setDealName] = useState("");
+  const [stage, setStage] = useState("");
+  const [applyNote, setApplyNote] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) void nav({ to: "/login" });
@@ -66,6 +92,41 @@ function AcademyBriefingPage() {
       cancelled = true;
     };
   }, [user]);
+
+  function openUseOnCall(brief: BriefRow) {
+    setActiveBrief(brief);
+    setDealName("");
+    setStage("");
+    setApplyNote(
+      `Article: "${brief.title}". ${brief.summary.slice(0, 280)}${brief.summary.length > 280 ? "…" : ""}`,
+    );
+    setFormError(null);
+  }
+
+  async function submitUseOnCall() {
+    if (!user || !activeBrief || saving) return;
+    setSaving(true);
+    setFormError(null);
+    const { session, error: createError } = await createSession(user.id, {
+      mode: "briefing",
+      title: activeBrief.title,
+      deal_name: dealName.trim() || null,
+      stage: stage || null,
+      situation: applyNote.trim() || activeBrief.title,
+      source: "briefing",
+      slug: activeBrief.related_slugs[0] ?? null,
+    });
+    setSaving(false);
+    if (!session) {
+      setFormError(createError || COPY.academy.situationFormError);
+      return;
+    }
+    setActiveBrief(null);
+    void nav({
+      to: "/academy/ask",
+      search: { session: session.id },
+    });
+  }
 
   const filtered = useMemo(() => {
     if (!briefs) return null;
@@ -203,23 +264,73 @@ function AcademyBriefingPage() {
                 <ExternalLink className="h-4 w-4" aria-hidden />
                 {COPY.academy.briefingReadArticle}
               </a>
-              <Link
-                to="/academy/ask"
-                search={{
-                  topic: b.title,
-                  source: "briefing",
-                  ...(b.related_slugs[0] ? { slug: b.related_slugs[0] } : {}),
-                  draft: COPY.academy.askBriefingDraft(b.title),
-                }}
+              <button
+                type="button"
+                onClick={() => openUseOnCall(b)}
                 className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
               >
-                <MessageCircleQuestion className="h-4 w-4" aria-hidden />
-                {COPY.academy.briefingAskCoach}
-              </Link>
+                <Phone className="h-4 w-4" aria-hidden />
+                {COPY.academy.briefingUseOnCall}
+              </button>
             </div>
           </article>
         ))}
       </div>
+
+      <Dialog open={Boolean(activeBrief)} onOpenChange={(open) => !open && setActiveBrief(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{COPY.academy.briefingUseOnCallTitle}</DialogTitle>
+            <DialogDescription>{COPY.academy.briefingUseOnCallBody}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="brief-deal">{COPY.academy.situationFormDealLabel}</Label>
+              <Input
+                id="brief-deal"
+                value={dealName}
+                onChange={(e) => setDealName(e.target.value)}
+                placeholder={COPY.academy.situationFormDealPlaceholder}
+                maxLength={120}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{COPY.academy.situationFormStageLabel}</Label>
+              <Select value={stage || undefined} onValueChange={setStage}>
+                <SelectTrigger className="min-h-11">
+                  <SelectValue placeholder={COPY.academy.situationFormStagePlaceholder} />
+                </SelectTrigger>
+                <SelectContent>
+                  {DEAL_STAGES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="brief-apply">How does this apply?</Label>
+              <Textarea
+                id="brief-apply"
+                value={applyNote}
+                onChange={(e) => setApplyNote(e.target.value)}
+                rows={4}
+                maxLength={800}
+              />
+            </div>
+            {formError ? <p className="text-sm text-destructive">{formError}</p> : null}
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button type="button" variant="outline" onClick={() => setActiveBrief(null)}>
+              {COPY.academy.briefingUseOnCallCancel}
+            </Button>
+            <Button type="button" disabled={saving} onClick={() => void submitUseOnCall()}>
+              {saving ? COPY.academy.situationFormSaving : COPY.academy.briefingUseOnCallSubmit}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AcademyPageShell>
   );
 }

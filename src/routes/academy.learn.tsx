@@ -1,13 +1,15 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookOpen, Lock } from "lucide-react";
+import { BookOpen, CheckCircle2, Lock } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import { getSalesMaterial, LMS_TRACKS } from "@/content/sales-library";
+import { getTrackQuiz } from "@/content/track-quizzes";
 import { AcademyPageShell } from "@/components/academy/AcademyPageShell";
 import {
   completeMaterial,
   isMaterialCompleted,
+  isQuizPassed,
   pushAcademyProgress,
   saveLastStudy,
   trackCompletionPercent,
@@ -20,20 +22,28 @@ import { CompanionIllustration } from "@/components/brand/CompanionIllustration"
 
 export const Route = createFileRoute("/academy/learn")({
   head: () => ({ meta: [{ title: COPY.academy.learnMetaTitle }] }),
-  component: AcademyLearnPage,
+  component: AcademyLearnLayout,
 });
 
-function AcademyLearnPage() {
+function AcademyLearnLayout() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
-  const [, tick] = useState(0);
-  const { celebrate, celebration } = useCompletionCelebration();
+  const path = useRouterState({ select: (s) => s.location.pathname });
+  const isIndex = path === "/academy/learn" || path === "/academy/learn/";
 
   useEffect(() => {
     if (!loading && !user) void nav({ to: "/login" });
   }, [loading, user, nav]);
 
   if (loading || !user) return <AcademyAuthSkeleton />;
+  if (!isIndex) return <Outlet />;
+  return <AcademyLearnPage />;
+}
+
+function AcademyLearnPage() {
+  const { user } = useAuth();
+  const [, tick] = useState(0);
+  const { celebrate, celebration } = useCompletionCelebration();
 
   return (
     <AcademyPageShell
@@ -48,6 +58,8 @@ function AcademyLearnPage() {
       <div className="mt-4 grid gap-4 lg:grid-cols-2">
         {LMS_TRACKS.map((track) => {
           const pct = trackCompletionPercent(track.materialSlugs);
+          const quiz = getTrackQuiz(track.id);
+          const quizPassed = quiz ? isQuizPassed(track.id) : false;
           return (
             <article
               key={track.id}
@@ -59,6 +71,12 @@ function AcademyLearnPage() {
                   {COPY.academy.trackComingSoon}
                 </div>
               )}
+              {quizPassed ? (
+                <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full border border-border bg-surface-2 px-2 py-1 text-[11px] font-medium">
+                  <CheckCircle2 className="h-3 w-3 text-primary" aria-hidden />
+                  {COPY.academy.quizPassedBadge}
+                </div>
+              ) : null}
               <div
                 className="flex items-center justify-between gap-3 pr-24"
                 onClick={() =>
@@ -126,6 +144,15 @@ function AcademyLearnPage() {
                       );
                     })}
                   </ul>
+                  {quiz ? (
+                    <Link
+                      to="/academy/learn/$trackId/quiz"
+                      params={{ trackId: track.id }}
+                      className="mt-4 inline-flex min-h-10 items-center rounded-xl border border-border px-3.5 text-xs font-semibold hover:bg-surface-2"
+                    >
+                      {quizPassed ? COPY.academy.quizRetakeCta : COPY.academy.quizTakeCta}
+                    </Link>
+                  ) : null}
                 </>
               ) : (
                 <p className="mt-4 text-xs text-muted-foreground italic">{COPY.academy.trackEmpty}</p>

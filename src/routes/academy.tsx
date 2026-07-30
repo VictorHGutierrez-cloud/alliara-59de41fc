@@ -1,6 +1,15 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookOpen, Flame, GraduationCap, MessageCircleQuestion, Newspaper, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  Flame,
+  GraduationCap,
+  MessageCircleQuestion,
+  Newspaper,
+  Phone,
+  Sparkles,
+  TriangleAlert,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { COPY } from "@/lib/copy";
 import { LMS_TRACKS, SALES_LIBRARY } from "@/content/sales-library";
@@ -15,6 +24,7 @@ import {
 } from "@/lib/onboarding-first-run";
 import { hasChosenCompanion } from "@/lib/companion";
 import { AcademyStartGuide } from "@/components/academy/AcademyStartGuide";
+import { listRecentSessions, sessionBannerLabel, type CoachSession } from "@/lib/coach-sessions";
 
 export const Route = createFileRoute("/academy")({
   head: () => ({
@@ -44,7 +54,7 @@ function AcademyLayout() {
 }
 
 function AcademyHomePage() {
-  const { accessStatus } = useAuth();
+  const { user, accessStatus } = useAuth();
   const nav = useNavigate();
   const trackAvailable = LMS_TRACKS.filter((t) => t.status === "available").length;
   const [lastStudy, setLastStudy] = useState(() => loadLastStudy());
@@ -52,11 +62,23 @@ function AcademyHomePage() {
   const [showTourBanner, setShowTourBanner] = useState(
     () => !isOnboardingFirstRunComplete(),
   );
+  const [recentSessions, setRecentSessions] = useState<CoachSession[]>([]);
 
   useEffect(() => {
     setLastStudy(loadLastStudy());
     setStreak(getStudyStreak());
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    void listRecentSessions(user.id, 3).then((rows) => {
+      if (!cancelled) setRecentSessions(rows);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   useEffect(() => {
     if (accessStatus !== "approved") return;
@@ -186,10 +208,18 @@ function AcademyHomePage() {
         <p className="mt-1 text-sm text-muted-foreground max-w-2xl">{COPY.academy.situationBody}</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
-            to="/academy/ask"
-            className="inline-flex min-h-10 items-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
+            to="/academy/stuck"
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground hover:opacity-90"
           >
-            {COPY.academy.situationCta}
+            <TriangleAlert className="h-4 w-4" aria-hidden />
+            {COPY.academy.situationStuckCta}
+          </Link>
+          <Link
+            to="/academy/prep"
+            className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border px-4 text-sm font-semibold hover:bg-surface-2"
+          >
+            <Phone className="h-4 w-4" aria-hidden />
+            {COPY.academy.situationPrepCta}
           </Link>
           <Link
             to="/academy/library"
@@ -198,6 +228,30 @@ function AcademyHomePage() {
             {COPY.academy.browseLibraryCta}
           </Link>
         </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">{COPY.academy.recentSessionsTitle}</h2>
+        {recentSessions.length === 0 ? (
+          <p className="mt-2 text-sm text-muted-foreground">{COPY.academy.recentSessionsEmpty}</p>
+        ) : (
+          <ul className="mt-3 space-y-2">
+            {recentSessions.map((s) => (
+              <li key={s.id}>
+                <Link
+                  to="/academy/ask"
+                  search={{ session: s.id }}
+                  className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-2.5 text-sm hover:bg-surface-2"
+                >
+                  <span className="min-w-0 truncate font-medium">{sessionBannerLabel(s)}</span>
+                  <span className="shrink-0 text-xs font-semibold text-primary">
+                    {COPY.academy.recentSessionsResume}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </div>
   );

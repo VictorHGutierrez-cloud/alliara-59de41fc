@@ -2,7 +2,13 @@ import type { KeptIllustrationVariant } from "@/components/brand/KeptIllustratio
 
 /** Picks a Kept pose that fits the academy screen the user is on. */
 export function keptVariantForAppPath(pathname: string): KeptIllustrationVariant {
-  if (pathname.startsWith("/academy/ask")) return "contextBeforeCall";
+  if (
+    pathname.startsWith("/academy/ask") ||
+    pathname.startsWith("/academy/stuck") ||
+    pathname.startsWith("/academy/prep")
+  ) {
+    return "contextBeforeCall";
+  }
   if (pathname.startsWith("/academy/learn")) return "everythingOnTrack";
   if (pathname.startsWith("/academy/library")) return "keepsContext";
   if (pathname.startsWith("/academy/briefing")) return "radarLooking";

@@ -6,16 +6,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { COPY } from "@/lib/copy";
 import { AcademyAuthSkeleton } from "@/components/academy/AcademyAuthSkeleton";
 import { KeptAiChat, type KeptChatMessage } from "@/components/kept/KeptAiChat";
+import {
+  createSession,
+  listRecentSessions,
+  loadSession,
+  saveSessionMessages,
+  sessionBannerLabel,
+  sessionToAskContext,
+  type CoachSession,
+} from "@/lib/coach-sessions";
 
 const STORAGE_KEY = "kept-academy-ask-messages";
 
-type CoachContext = {
-  topic?: string;
-  slug?: string;
-  source?: "library" | "briefing" | "dock";
-};
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
 
-function loadMessages(): KeptChatMessage[] {
+function loadLocalMessages(): KeptChatMessage[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -25,7 +34,7 @@ function loadMessages(): KeptChatMessage[] {
   }
 }
 
-function saveMessages(msgs: KeptChatMessage[]) {
+function saveLocalMessages(msgs: KeptChatMessage[]) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
   } catch {
@@ -36,6 +45,10 @@ function saveMessages(msgs: KeptChatMessage[]) {
 export const Route = createFileRoute("/academy/ask")({
   head: () => ({ meta: [{ title: COPY.academy.askMetaTitle }] }),
   validateSearch: (search: Record<string, unknown>) => {
+    const session =
+      typeof search.session === "string" && isUuid(search.session.trim())
+        ? search.session.trim()
+        : undefined;
     const topic =
       typeof search.topic === "string" && search.topic.trim()
         ? search.topic.trim().slice(0, 200)
@@ -49,10 +62,14 @@ export const Route = createFileRoute("/academy/ask")({
         ? search.slug.trim().slice(0, 80)
         : undefined;
     const source =
-      search.source === "library" || search.source === "briefing" || search.source === "dock"
+      search.source === "library" ||
+      search.source === "briefing" ||
+      search.source === "dock" ||
+      search.source === "hub"
         ? search.source
         : undefined;
     return {
+      ...(session ? { session } : {}),
       ...(topic ? { topic } : {}),
       ...(draft ? { draft } : {}),
       ...(slug ? { slug } : {}),
@@ -66,26 +83,78 @@ function AcademyAskPage() {
   const { user, loading } = useAuth();
   const nav = useNavigate();
   const search = Route.useSearch();
-  const [messages, setMessages] = useState<KeptChatMessage[]>(() => loadMessages());
+  const [messages, setMessages] = useState<KeptChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [contextTopic, setContextTopic] = useState<string | undefined>(undefined);
-  const coachContext = useRef<CoachContext>({});
+  const [session, setSession] = useState<CoachSession | null>(null);
+  const [recent, setRecent] = useState<CoachSession[]>([]);
+  const [loadingSession, setLoadingSession] = useState(Boolean(search.session));
   const scrollRef = useRef<HTMLDivElement>(null);
-  const appliedSearch = useRef(false);
+  const appliedLegacySearch = useRef(false);
+  const loadedSessionId = useRef<string | null>(null);
+  const legacyContext = useRef<{
+    topic?: string;
+    slug?: string;
+    source?: "library" | "briefing" | "dock" | "hub";
+  }>({});
 
   useEffect(() => {
     if (!loading && !user) void nav({ to: "/login" });
   }, [loading, user, nav]);
 
   useEffect(() => {
-    if (appliedSearch.current) return;
+    if (!user) return;
+    void listRecentSessions(user.id, 5).then(setRecent);
+  }, [user, session?.id]);
+
+  useEffect(() => {
+    if (!user) return;
+    const sessionId = search.session;
+    if (!sessionId) {
+      if (!loadedSessionId.current) {
+        setMessages(loadLocalMessages());
+        setLoadingSession(false);
+      }
+      return;
+    }
+    if (loadedSessionId.current === sessionId) return;
+    let cancelled = false;
+    setLoadingSession(true);
+    void loadSession(user.id, sessionId).then((row) => {
+      if (cancelled) return;
+      if (!row) {
+        setError("Session not found.");
+        setLoadingSession(false);
+        return;
+      }
+      loadedSessionId.current = row.id;
+      setSession(row);
+      setMessages(row.messages);
+      setError(null);
+      setLoadingSession(false);
+      if (row.messages.length === 0 && row.situation) {
+        const opener =
+          row.mode === "prep"
+            ? `Help me prep this call. Goal: ${row.situation}`
+            : row.mode === "briefing"
+              ? `How should I use this on today's call? ${row.situation}`
+              : `I'm stuck. Here's the situation: ${row.situation}`;
+        setInput(opener);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, search.session]);
+
+  useEffect(() => {
+    if (search.session) return;
+    if (appliedLegacySearch.current) return;
     if (!search.draft && !search.topic && !search.slug) return;
-    appliedSearch.current = true;
+    appliedLegacySearch.current = true;
     if (search.draft) setInput(search.draft);
-    if (search.topic) setContextTopic(search.topic);
-    coachContext.current = {
+    legacyContext.current = {
       topic: search.topic,
       slug: search.slug,
       source: search.source,
@@ -95,28 +164,62 @@ function AcademyAskPage() {
       search: {},
       replace: true,
     });
-  }, [search.draft, search.topic, search.slug, search.source, nav]);
+  }, [search.draft, search.topic, search.slug, search.source, search.session, nav]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages, busy]);
 
+  async function ensureFreeSession(userId: string): Promise<CoachSession | null> {
+    if (session) return session;
+    const legacy = legacyContext.current;
+    const { session: created, error: createError } = await createSession(userId, {
+      mode: "free",
+      title: legacy.topic || "Free coach chat",
+      source: legacy.source ?? "hub",
+      slug: legacy.slug,
+      situation: "",
+      messages: [],
+    });
+    if (!created) {
+      setError(createError || COPY.academy.askErrorGeneric);
+      return null;
+    }
+    setSession(created);
+    loadedSessionId.current = created.id;
+    void nav({
+      to: "/academy/ask",
+      search: { session: created.id },
+      replace: true,
+    });
+    return created;
+  }
+
   async function send() {
     const q = input.trim();
-    if (!q || busy) return;
+    if (!q || busy || !user) return;
     setError(null);
     setInput("");
+    setBusy(true);
+
+    const active = await ensureFreeSession(user.id);
+    if (!active) {
+      setBusy(false);
+      return;
+    }
+
     const next: KeptChatMessage[] = [...messages, { role: "user", content: q }];
     setMessages(next);
-    saveMessages(next);
-    setBusy(true);
+    saveLocalMessages(next);
+    await saveSessionMessages(active.id, next);
+
     try {
-      const ctx = coachContext.current;
+      const context = sessionToAskContext(active);
       const { data, error: err } = await supabase.functions.invoke("sales-ask", {
         body: {
           question: q,
           history: messages.slice(-12),
-          ...(ctx.topic || ctx.slug || ctx.source ? { context: ctx } : {}),
+          context,
         },
       });
       if (err) throw err;
@@ -126,7 +229,9 @@ function AcademyAskPage() {
         { role: "assistant", content: content || "(no answer)" },
       ];
       setMessages(final);
-      saveMessages(final);
+      saveLocalMessages(final);
+      await saveSessionMessages(active.id, final);
+      setSession({ ...active, messages: final });
     } catch (e) {
       const msg = e instanceof Error ? e.message : COPY.academy.askErrorGeneric;
       setError(msg);
@@ -135,17 +240,46 @@ function AcademyAskPage() {
     }
   }
 
-  function startNew() {
-    if (busy) return;
-    setMessages([]);
-    saveMessages([]);
+  async function startNew() {
+    if (busy || !user) return;
+    setBusy(true);
     setError(null);
-    setContextTopic(undefined);
-    coachContext.current = {};
+    const { session: created, error: createError } = await createSession(user.id, {
+      mode: "free",
+      title: "Free coach chat",
+      source: "hub",
+      messages: [],
+    });
+    setBusy(false);
+    if (!created) {
+      setError(createError || COPY.academy.askErrorGeneric);
+      return;
+    }
+    loadedSessionId.current = created.id;
+    setSession(created);
+    setMessages([]);
+    saveLocalMessages([]);
     setInput("");
+    void nav({
+      to: "/academy/ask",
+      search: { session: created.id },
+      replace: true,
+    });
   }
 
-  if (loading || !user) return <AcademyAuthSkeleton />;
+  if (loading || !user || loadingSession) return <AcademyAuthSkeleton />;
+
+  const banner =
+    session &&
+    (session.deal_name ||
+      session.stage ||
+      session.has_champion ||
+      session.mode !== "free" ||
+      (session.slug && session.title))
+      ? COPY.academy.askSessionBanner(sessionBannerLabel(session))
+      : search.topic
+        ? COPY.academy.askContextBanner(search.topic)
+        : undefined;
 
   return (
     <div className="mx-auto flex h-[calc(100dvh-5rem)] max-w-4xl flex-col px-4 py-4 pb-24 sm:px-6 lg:pb-4">
@@ -157,17 +291,39 @@ function AcademyAskPage() {
         {COPY.academy.backToHub}
       </Link>
 
+      {recent.length > 0 && messages.length === 0 ? (
+        <div className="mt-2 shrink-0">
+          <p className="page-eyebrow mb-2">{COPY.academy.askResumeTitle}</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {recent.slice(0, 4).map((s) => (
+              <Link
+                key={s.id}
+                to="/academy/ask"
+                search={{ session: s.id }}
+                className="shrink-0 rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium hover:bg-surface-2"
+                onClick={() => {
+                  loadedSessionId.current = null;
+                }}
+              >
+                {sessionBannerLabel(s).slice(0, 42)}
+              </Link>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
       <div className="mt-2 min-h-0 flex-1">
         <KeptAiChat
           messages={messages}
           input={input}
           onInputChange={setInput}
           onSend={() => void send()}
-          onNewChat={startNew}
+          onNewChat={() => void startNew()}
           busy={busy}
           error={error}
-          contextTopic={contextTopic}
+          contextTopic={banner}
           scrollRef={scrollRef}
+          emptyActions
         />
       </div>
     </div>
