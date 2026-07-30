@@ -91,7 +91,8 @@ export const SALES_LIBRARY: SalesMaterial[] = [
   {
     slug: "people-path",
     title: "The People Path (interactive demo story)",
-    summary: "Walk Lena's year — the demo spine. Eight beats, not forty menus.",
+    summary:
+      "Walk Brenda’s year — the demo spine. Eight beats mapped to Core + add-ons (not forty menus). Land one bundle, then expand.",
     category: "demo",
     kind: "html",
     assetPath: "people-path-story.html",

@@ -10,14 +10,14 @@
   <style>
     /* Kept design tokens — keep in sync with src/styles.css */
     :root {
-      --ink: #0f172a;
-      --paper: #f8fafc;
-      --sand: #f1f5f9;
-      --mist: #e0f2fe;
-      --people: #0c4a6e;
-      --people-soft: #e0f2fe;
-      --ops: #134e4a;
-      --ops-soft: #d1fae5;
+      --ink: #1a1220;
+      --paper: #fff8f6;
+      --sand: #fceef4;
+      --mist: #fce7f3;
+      --people: #c9147a;
+      --people-soft: #fce7f3;
+      --ops: #0f766e;
+      --ops-soft: #ccfbf1;
       --finance: #166534;
       --finance-soft: #dcfce7;
       --it: #3730a3;
@@ -26,11 +26,11 @@
       --core-soft: #f1f5f9;
       --trust: #5b21b6;
       --trust-soft: #ede9fe;
-      --accent: #6d28d9; /* Kept brand purple */
-      --kept-primary: #ddd6fe; /* matches React --primary */
-      --accent-soft: #ddd6fe;
+      --accent: #e91e8c;
+      --kept-primary: #e91e8c;
+      --accent-soft: #fce7f3;
       --white: #ffffff;
-      --muted: #64748b;
+      --muted: #6b5a66;
       --ok: #16a34a;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,15 +48,15 @@
 
     .rail {
       position: fixed; inset: 0 0 auto 0; z-index: 50;
-      background: rgba(248,250,252,.94); backdrop-filter: blur(12px);
-      border-bottom: 1px solid #e5e7eb; padding: 10px 14px 12px;
+      background: rgba(255,248,246,.94); backdrop-filter: blur(12px);
+      border-bottom: 1px solid #f3d4e4; padding: 10px 14px 12px;
     }
     .rail-inner { max-width: 1280px; margin: 0 auto; display: flex; gap: 12px; align-items: center; }
     .rail-title {
       font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
       color: var(--accent); white-space: nowrap; text-decoration: none;
     }
-    .rail-title:hover { color: #5b21b6; }
+    .rail-title:hover { color: #c9147a; }
     .rail-sep { color: var(--muted); font-size: 11px; white-space: nowrap; }
     .stations { flex: 1; display: flex; gap: 3px; overflow-x: auto; scrollbar-width: none; }
     .stations::-webkit-scrollbar { display: none; }
@@ -122,8 +122,8 @@
     }
     .btn:active { transform: scale(.98); }
     .btn:disabled { opacity: .45; cursor: not-allowed; }
-    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(109,40,217,.25); }
-    .btn-primary:hover:not(:disabled) { background: #5b21b6; }
+    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(233,30,140,.28); }
+    .btn-primary:hover:not(:disabled) { background: #c9147a; }
     .btn-ghost { background: var(--white); border: 1px solid rgba(20,28,25,.12); color: var(--ink); }
     .btn-ghost:hover:not(:disabled) { background: var(--sand); }
     .btn-people { background: var(--people); color: #fff; }
@@ -219,6 +219,39 @@
     .metric strong { display: block; font-size: 20px; font-family: "Fira Sans", sans-serif; font-weight: 700; }
     .metric span { font-size: 11px; color: var(--muted); }
 
+    .seller-tip {
+      margin-top: 4px;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-soft);
+      border-radius: 0 12px 12px 0;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: var(--ink);
+    }
+    .seller-tip strong {
+      display: block;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .pack-strip {
+      display: grid;
+      gap: 8px;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      max-width: 720px;
+    }
+    .pack-card {
+      background: var(--white);
+      border: 1px solid #f3d4e4;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 13px;
+    }
+    .pack-card b { display: block; margin-bottom: 4px; color: var(--ink); }
+    .pack-card span { color: var(--muted); font-size: 12px; }
+
     .beats { display: grid; grid-template-columns: repeat(auto-fit,minmax(160px,1fr)); gap: 10px; }
     .beat { border-radius: 12px; padding: 12px; font-size: 12px; }
     .beat h4 { font-family: "Fira Sans", sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 3px; }
@@ -304,34 +337,50 @@
 
   <div class="wrap">
     <header class="hero">
-      <p class="eyebrow">Kept Executive Academy · Interactive storytelling · English</p>
+      <p class="eyebrow">Kept Executive Academy · Interactive demo spine · English</p>
       <h1>The People Path:<br /><em>one year with Brenda</em></h1>
       <p class="lede">
-        Click through the full employee lifecycle. Each chapter has real decisions —
-        hire, onboard, clock in, approve spend — based on your Factorial modules spreadsheet.
+        Stop demoing forty menus. Walk one employee through Factorial —
+        from the career page to payday — and let the buyer feel the chaos disappear.
       </p>
       <p class="sheet-note">
-        Built from <strong>Operations Hub</strong>, <strong>People Hub</strong>, Core / Base module,
-        plus add-ons (Recruitment, Training, Expenses, IT, Procurement, Spaces, Complaints).
+        <strong>Northwind Studio · 180 seats.</strong> Hellen (People) is drowning in spreadsheets,
+        Slack threads, and three HR tools that never sync. Brenda is the next hire in Design.
+        Your job on the call: show the <em>path</em>, then land a base bundle and expand with add-ons.
       </p>
 
+      <div class="pack-strip">
+        <div class="pack-card">
+          <b>1 base bundle</b>
+          <span>Starter or PRO — Business or Enterprise. Never two bases.</span>
+        </div>
+        <div class="pack-card">
+          <b>Add-ons on top</b>
+          <span>Recruitment, Expenses, IT, Training… only what the pain needs.</span>
+        </div>
+        <div class="pack-card">
+          <b>Seat = every employee</b>
+          <span>Same Brenda across time, leave, payroll, and growth. No ghost seats.</span>
+        </div>
+      </div>
+
       <div class="cast">
-        <div class="person brenda"><div class="face">B</div><div>Brenda<span class="role">Employee · Design</span></div></div>
-        <div class="person hellen"><div class="face">H</div><div>Hellen<span class="role">People / HR</span></div></div>
-        <div class="person marco"><div class="face">M</div><div>Marco<span class="role">Manager</span></div></div>
+        <div class="person brenda"><div class="face">B</div><div>Brenda<span class="role">New hire · Design</span></div></div>
+        <div class="person hellen"><div class="face">H</div><div>Hellen<span class="role">People / HRBP</span></div></div>
+        <div class="person marco"><div class="face">M</div><div>Marco<span class="role">Design Manager</span></div></div>
         <div class="person tom"><div class="face">T</div><div>Tom<span class="role">IT &amp; Ops</span></div></div>
       </div>
 
       <div class="legend">
-        <span class="chip people">People = teal</span>
-        <span class="chip ops">Operations = orange</span>
-        <span class="chip finance">Finance = green</span>
-        <span class="chip it">IT = steel</span>
-        <span class="chip core">Core = walnut</span>
+        <span class="chip people">People hub</span>
+        <span class="chip ops">Operations hub</span>
+        <span class="chip finance">Finance flow</span>
+        <span class="chip it">IT add-on</span>
+        <span class="chip core">Core / Base</span>
       </div>
 
       <div class="hero-actions">
-        <button class="btn btn-primary" type="button" id="btnStartStory">Start the story</button>
+        <button class="btn btn-primary" type="button" id="btnStartStory">Start Brenda’s year</button>
         <button class="btn btn-ghost" type="button" id="btnResetStory">Reset all choices</button>
       </div>
     </header>
@@ -341,18 +390,23 @@
       <div class="chapter-head">
         <div class="num">01</div>
         <div>
-          <span class="hub-tag">People · Recruitment + Career Page</span>
-          <h2>Hellen opens the role. Brenda enters the funnel.</h2>
+          <span class="hub-tag">Add-on · Recruitment · Career Page sits in Core</span>
+          <h2>Hellen stops fishing in inboxes. Brenda finds Northwind.</h2>
         </div>
         <div class="status-pill" data-status="recruit">Not started</div>
       </div>
       <p class="scene">
-        Career Page and Job Catalog go live. Hellen posts multi-job, uploads CVs in bulk,
-        uses AI Top Match, schedules interviews, and sends an offer letter.
+        Yesterday: CVs in Gmail, interviews in three calendars, offers in Word.
+        Today: one Career Page, one pipeline, AI Top Match, and an offer letter that doesn’t get lost.
       </p>
       <div class="stage">
-        <div class="bubble hellen"><div class="face">H</div><p>“One pipeline. LinkedIn, Indeed, JOIN — no lost inboxes.”</p></div>
-        <div class="bubble brenda them"><div class="face">B</div><p id="recruitLine">“I applied. Waiting to see if I’m a fit…”</p></div>
+        <div class="bubble hellen"><div class="face">H</div><p>“I need designers, not another spreadsheet of ‘maybe.’ One pipeline. LinkedIn, Indeed, JOIN — no lost inboxes.”</p></div>
+        <div class="bubble brenda them"><div class="face">B</div><p id="recruitLine">“I applied from my phone. Waiting to see if I’m a fit…”</p></div>
+
+        <div class="seller-tip">
+          <strong>Seller tip · Attract</strong>
+          Sell the <em>speed to a clean shortlist</em>, not “we have an ATS.” Ask: “Where do good candidates die today — inbox, spreadsheet, or ghosting after the interview?”
+        </div>
 
         <div class="interactive">
           <h3>Your move · Hiring decisions</h3>
@@ -370,9 +424,9 @@
         </div>
 
         <div class="modules">
-          <span class="mod">Recruitment / ATS</span>
-          <span class="mod">Career Page</span>
-          <span class="mod">Job Catalog</span>
+          <span class="mod">Add-on · Recruitment / ATS</span>
+          <span class="mod">Core · Career Page</span>
+          <span class="mod">Core · Job Catalog</span>
           <span class="mod">AI Top Match</span>
           <span class="mod">Offer letters</span>
         </div>
@@ -389,17 +443,23 @@
         <div class="num">02</div>
         <div>
           <span class="hub-tag">Core / Base · Onboarding, Docs, Contracts</span>
-          <h2>Day zero starts on Brenda’s phone.</h2>
+          <h2>Day zero: Brenda feels welcome before she walks in.</h2>
         </div>
         <div class="status-pill" data-status="onboard">Locked</div>
       </div>
       <p class="scene">
-        Hellen launches the onboarding workflow: tasks, personalized emails, document templates.
-        Brenda e-signs, uploads IDs via supertask, and appears on the directory + org chart.
+        The first day used to mean a PDF in email and a laptop that might arrive next week.
+        Now Hellen launches one workflow: welcome space, e-sign, IDs on mobile, directory updated —
+        Brenda is a real seat in Factorial before coffee.
       </p>
       <div class="stage">
-        <div class="bubble hellen"><div class="face">H</div><p>“Inbox + workflows mean I don’t chase every step.”</p></div>
+        <div class="bubble hellen"><div class="face">H</div><p>“I don’t chase signatures anymore. The workflow does. Inbox stays for people, not paperwork.”</p></div>
         <div class="bubble brenda them"><div class="face">B</div><p id="onboardLine">“Waiting for my welcome space…”</p></div>
+
+        <div class="seller-tip">
+          <strong>Seller tip · Welcome</strong>
+          This is your Core land moment. Say: “Same employee record from day zero — so time, leave, and payroll don’t start from a blank spreadsheet next month.”
+        </div>
 
         <div class="interactive">
           <h3>Your move · Onboarding workflow</h3>
@@ -412,17 +472,17 @@
           <div class="checklist" id="onboardList">
             <div class="check-row" data-step="0"><div class="mark"></div>Invitation to Welcome space sent</div>
             <div class="check-row" data-step="1"><div class="mark"></div>Contract e-signed (mobile)</div>
-            <div class="check-row" data-step="2"><div class="mark"></div>IDs + personal data via supertask</div>
+            <div class="check-row" data-step="2"><div class="mark"></div>IDs + personal data via mobile task</div>
             <div class="check-row" data-step="3"><div class="mark"></div>Directory + org chart updated</div>
           </div>
         </div>
 
         <div class="modules">
-          <span class="mod">Onboarding / Offboarding workflows</span>
-          <span class="mod">Document Management</span>
-          <span class="mod">E-signature</span>
-          <span class="mod">Employee directory</span>
-          <span class="mod">Permissions / SSO</span>
+          <span class="mod">Core · Onboarding / Offboarding</span>
+          <span class="mod">Core · Document Management</span>
+          <span class="mod">Core · E-signature</span>
+          <span class="mod">Core · Employee directory</span>
+          <span class="mod">Core · Permissions / SSO</span>
         </div>
       </div>
     </section>
@@ -433,16 +493,22 @@
         <div class="num">03</div>
         <div>
           <span class="hub-tag">Add-on · IT Management</span>
-          <h2>Tom provisions tools. No wasted licenses.</h2>
+          <h2>Tom stops paying for ghosts. Brenda gets the right tools.</h2>
         </div>
         <div class="status-pill" data-status="it">Locked</div>
       </div>
       <p class="scene">
-        IT Management shows who uses which software, tracks SaaS cost, and will later
-        revoke access when someone leaves. Renewals alert Tom. Payments can ride Factorial Cards.
+        Designers leave. Licenses don’t. Tom’s nightmare is paying Figma seats for people who left in March.
+        IT Management ties software to the same Brenda seat — assign now, revoke later, watch renewals.
       </p>
       <div class="stage">
-        <div class="bubble tom"><div class="face">T</div><p>“Right license, right person. No ghost seats.”</p></div>
+        <div class="bubble tom"><div class="face">T</div><p>“Right license, right person. When she leaves, access dies with the offboarding — not three weeks later.”</p></div>
+
+        <div class="seller-tip">
+          <strong>Seller tip · Equip</strong>
+          IT is an expand play after Core. Hook: “Who owns SaaS spend today — and how many seats are still active for leavers?”
+        </div>
+
         <div class="interactive">
           <h3>Your move · Equip Brenda</h3>
           <div class="choice-row">
@@ -456,7 +522,7 @@
           <p class="live-line" id="itLog">Finish onboarding first, then equip Brenda.</p>
         </div>
         <div class="modules">
-          <span class="mod">IT Management</span>
+          <span class="mod">Add-on · IT Management</span>
           <span class="mod">SaaS licenses</span>
           <span class="mod">Factorial Cards</span>
         </div>
@@ -468,18 +534,25 @@
       <div class="chapter-head">
         <div class="num">04</div>
         <div>
-          <span class="hub-tag">Operations · Time, Shifts, Time Off, Spaces, Projects</span>
-          <h2>The day has a clock, a shift, and a desk.</h2>
+          <span class="hub-tag">Ops land · Time Tracking + Time Off · add-ons Shifts &amp; Spaces</span>
+          <h2>Monday morning: Brenda clocks in. Marco finally sleeps.</h2>
         </div>
         <div class="status-pill" data-status="time">Locked</div>
       </div>
       <p class="scene">
-        Clock in via app (QR, geo, facial). Breaks, overtime, timesheet sign-off.
-        Marco plans shifts. Brenda requests time off, books a desk in Space Management,
-        and logs hours on a project task.
+        Before Factorial: missed punches in WhatsApp, Friday off negotiated on Slack, desks claimed with sticky notes.
+        Now Brenda clocks in (app, QR, geo), requests time off against policy, books desk B12, and logs project hours —
+        all on the same seat that Payroll will trust at month-end.
       </p>
       <div class="stage">
-        <div class="bubble marco"><div class="face">M</div><p>“Missed punch? I see it. Shift conflict? Alert.”</p></div>
+        <div class="bubble marco"><div class="face">M</div><p>“Missed punch? I see it. Shift conflict? Alert. I’m not the department’s human spreadsheet anymore.”</p></div>
+        <div class="bubble brenda them"><div class="face">B</div><p>“Clocked in. Desk booked. Friday off is one tap — not a negotiation.”</p></div>
+
+        <div class="seller-tip">
+          <strong>Seller tip · Rhythm</strong>
+          This is the classic <em>Starter / Ops land</em>: Core + Time Tracking + Time Off. Say: “Time and absences land ready for payroll — same Brenda, no re-keying.” Expand later with Time Planning (shifts) and Space Management.
+        </div>
+
         <div class="interactive">
           <h3>Your move · Daily rhythm</h3>
           <div class="choice-row">
@@ -499,9 +572,9 @@
         <div class="modules">
           <span class="mod">Time Tracking</span>
           <span class="mod">Time Off</span>
-          <span class="mod">Time Planning / Shifts</span>
-          <span class="mod">Space Management</span>
-          <span class="mod">Projects</span>
+          <span class="mod">Add-on · Time Planning / Shifts</span>
+          <span class="mod">Add-on · Space Management</span>
+          <span class="mod">Add-on · Projects</span>
         </div>
       </div>
     </section>
@@ -511,16 +584,24 @@
       <div class="chapter-head">
         <div class="num">05</div>
         <div>
-          <span class="hub-tag">People · Communities + Engagement + Complaints channel</span>
-          <h2>Belong: feed energy, climate pulse, safe speak-up.</h2>
+          <span class="hub-tag">Core · Communities · Add-ons Engagement + Complaints</span>
+          <h2>Belong: celebration in the feed, climate on the dashboard, safety when it matters.</h2>
         </div>
         <div class="status-pill" data-status="culture">Locked</div>
       </div>
       <p class="scene">
-        Communities for announcements and claps. Engagement runs eNPS and surveys.
-        Complaints channel (add-on) stays encrypted — anonymous or identified — for whistleblower compliance.
+        Communities (in Core) carry wins and claps so culture isn’t trapped in a manager’s Slack.
+        Engagement add-on sends eNPS and surveys Hellen can act on.
+        Complaints Channel is sold separately — encrypted speak-up, anonymous or identified — for compliance that isn’t a shared inbox.
       </p>
       <div class="stage">
+        <div class="bubble hellen"><div class="face">H</div><p>“I don’t want culture to live in my head. I want a pulse I can show leadership — and a safe door when something’s wrong.”</p></div>
+
+        <div class="seller-tip">
+          <strong>Seller tip · Culture</strong>
+          Don’t bundle Complaints into Core on the call — the Feature Map sells it as its own add-on. Lead with Communities (already in Core), then expand: Engagement for climate, Complaints for whistleblower risk.
+        </div>
+
         <div class="interactive">
           <h3>Your move · Culture signals</h3>
           <div class="choice-row">
@@ -536,9 +617,9 @@
           <p class="live-line" id="cultureLog">Complete a workday first.</p>
         </div>
         <div class="modules">
-          <span class="mod">Communities</span>
-          <span class="mod">Engagement / eNPS</span>
-          <span class="mod">Complaints channel</span>
+          <span class="mod">Core · Communities</span>
+          <span class="mod">Add-on · Engagement / eNPS</span>
+          <span class="mod">Add-on · Complaints Channel</span>
         </div>
         <div class="clip">
           <p class="clip-label">Product clip · Surveys &amp; engagement</p>
@@ -552,16 +633,25 @@
       <div class="chapter-head">
         <div class="num">06</div>
         <div>
-          <span class="hub-tag">People · Performance + Trainings</span>
-          <h2>Six months in: 360°, goals, action plan, certificate.</h2>
+          <span class="hub-tag">People Hub expand · Performance 2.0 + Trainings</span>
+          <h2>Six months in: Brenda doesn’t grow in a forgotten Word doc.</h2>
         </div>
         <div class="status-pill" data-status="growth">Locked</div>
       </div>
       <p class="scene">
-        Marco launches a performance review (360°, competencies, reminders, AI summaries, agreements).
-        An action plan follows. Training tracks attendance, certificates, and competencies.
+        Marco runs Performance 2.0 — 360°, competencies, reminders, goals, agreements — then an action plan that doesn’t die in email.
+        Trainings enroll Brenda, track attendance, and drop a certificate on her phone.
+        Same employee record as day one. No second system of “talent.”
       </p>
       <div class="stage">
+        <div class="bubble marco"><div class="face">M</div><p>“I used to dread review season. Now the cycle runs itself — I show up for the conversation, not the admin.”</p></div>
+        <div class="bubble brenda them"><div class="face">B</div><p>“I know what good looks like. Goals are clear. Training is on my phone.”</p></div>
+
+        <div class="seller-tip">
+          <strong>Seller tip · Grow</strong>
+          People Hub expand after Ops land is calm. Pitch: “You already know Brenda’s time and leave — now grow her without another tool.” Performance + Trainings are add-ons on the same seat.
+        </div>
+
         <div class="interactive">
           <h3>Your move · Growth loop</h3>
           <div class="choice-row">
@@ -573,9 +663,9 @@
           <p class="live-line" id="growthLog">Culture chapter unlocks growth.</p>
         </div>
         <div class="modules">
-          <span class="mod">Performance</span>
+          <span class="mod">Add-on · Performance 2.0</span>
           <span class="mod">Goals / Action plans</span>
-          <span class="mod">Trainings</span>
+          <span class="mod">Add-on · Trainings</span>
         </div>
         <div class="clip">
           <p class="clip-label">Product clip · 1:1 meetings</p>
@@ -597,16 +687,24 @@
       <div class="chapter-head">
         <div class="num">07</div>
         <div>
-          <span class="hub-tag">Expenses · Cards · Procurement · Payroll (in Core)</span>
-          <h2>Trip receipts become payday truth.</h2>
+          <span class="hub-tag">Add-ons · Expenses + Procurement · Payroll lives in Core</span>
+          <h2>A client trip receipt becomes payday truth — not a month-end fight.</h2>
         </div>
         <div class="status-pill" data-status="money">Locked</div>
       </div>
       <p class="scene">
-        OCR expense from mobile, Factorial Card spend, multi-step approvals, procurement POs,
-        then payroll sync (guided cycle, bookkeeper chat, automatic payslips).
+        Finance Hub is deprecated in the Feature Map — don’t sell a “finance package.”
+        Sell the flow: Brenda snaps a receipt (Expenses OCR), Marco approves, Procurement raises a PO when needed,
+        and Payroll inside Core locks the cycle with time + expenses already synced. Bookkeeper chat stays in the same house.
       </p>
       <div class="stage">
+        <div class="bubble hellen"><div class="face">H</div><p>“Month-end used to mean hunting receipts and retyping hours. Now the cycle opens with truth already inside.”</p></div>
+
+        <div class="seller-tip">
+          <strong>Seller tip · Money</strong>
+          Close the loop to Core Payroll: “Time and expenses land ready for payroll — lock the cycle so last-minute edits stop.” Expenses and Procurement are expand add-ons; payslips and guided payroll are Core.
+        </div>
+
         <div class="interactive">
           <h3>Your move · Money flow</h3>
           <div class="choice-row">
@@ -623,10 +721,10 @@
           <p class="live-line" id="moneyLog">Finish growth actions to unlock finance.</p>
         </div>
         <div class="modules">
-          <span class="mod">Expenses + OCR</span>
+          <span class="mod">Add-on · Expenses + OCR</span>
           <span class="mod">Factorial Cards</span>
-          <span class="mod">Procurement</span>
-          <span class="mod">Payroll (Inside Core)</span>
+          <span class="mod">Add-on · Procurement</span>
+          <span class="mod">Core · Payroll</span>
         </div>
       </div>
     </section>
@@ -636,16 +734,23 @@
       <div class="chapter-head">
         <div class="num">08</div>
         <div>
-          <span class="hub-tag">Core + IT · Offboarding</span>
-          <h2>Every ending keeps dignity — and access clean.</h2>
+          <span class="hub-tag">Core · Offboarding · IT add-on closes the loop</span>
+          <h2>Promote her — or let her go clean. Same path. Same dignity.</h2>
         </div>
         <div class="status-pill" data-status="close">Locked</div>
       </div>
       <p class="scene">
-        Offboarding workflow mirrors onboarding. Final payslip. Tom revokes software for leavers.
-        Reports stay accurate. The path is ready for the next hire.
+        Offboarding mirrors onboarding: workflow, final payslip, access cut.
+        Tom recovers licenses the day she leaves — not three weeks later.
+        Reports stay true. The seat is ready for the next hire.
+        Or Marco promotes Brenda: contract change automated on the same Core record.
       </p>
       <div class="stage">
+        <div class="seller-tip">
+          <strong>Seller tip · Close</strong>
+          End the demo on the circle: “One seat from career page to offboarding. Land the base bundle. Expand only where the pain is loud.” Ask which ending they fear more — messy exits or stalled promotions.
+        </div>
+
         <div class="interactive">
           <h3>Your move · Choose Brenda’s next chapter</h3>
           <div class="choice-row">
@@ -660,24 +765,33 @@
           </div>
         </div>
         <div class="modules">
-          <span class="mod">Offboarding workflows</span>
-          <span class="mod">IT Management</span>
-          <span class="mod">Payroll</span>
-          <span class="mod">HR reports</span>
+          <span class="mod">Core · Offboarding workflows</span>
+          <span class="mod">Add-on · IT Management</span>
+          <span class="mod">Core · Payroll</span>
+          <span class="mod">Core · HR reports</span>
         </div>
       </div>
     </section>
 
     <section class="finale">
-      <h2>One path. Your full module map. A story you can click.</h2>
-      <p>Attract → Welcome → Equip → Rhythm → Culture → Grow → Money → Close.</p>
+      <h2>One employee. One seat. One path you can sell.</h2>
+      <p>
+        Attract → Welcome → Equip → Rhythm → Culture → Grow → Money → Close.
+        Demo the lifecycle — then land <strong>one</strong> base bundle (Starter or PRO) and stack only the add-ons the pain needs.
+      </p>
+      <div class="modules" style="justify-content:center;margin-bottom:16px">
+        <span class="mod">1 base bundle</span>
+        <span class="mod">Add-ons on top</span>
+        <span class="mod">Seat = every employee</span>
+        <span class="mod">Business or Enterprise</span>
+      </div>
       <div class="hero-actions" style="justify-content:center">
         <button class="btn btn-primary" type="button" id="btnReplay">Replay from Attract</button>
       </div>
     </section>
 
     <footer>
-      Kept Executive Academy · People Path lifecycle story · Based on Factorial modules · Not official product UI
+      Kept Executive Academy · People Path · Aligned to Factorial Feature Bundle Map (Core, hubs, add-ons) · Not official product UI
     </footer>
   </div>
 
