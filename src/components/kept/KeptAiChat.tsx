@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { Drama, Phone, Plus, Send, TriangleAlert } from "lucide-react";
+import { Drama, Mic, Phone, Plus, Send, TriangleAlert } from "lucide-react";
 import { CanvasRevealEffect } from "@/components/ui/canvas-effect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,7 @@ import { MarkdownProse } from "@/components/ui/markdown-prose";
 import { Skeleton } from "@/components/ui/skeleton";
 import { COPY } from "@/lib/copy";
 import { cn } from "@/lib/utils";
+import { useSpeechInput } from "@/hooks/use-speech-input";
 
 export type KeptChatMessage = {
   role: "user" | "assistant";
@@ -83,6 +84,13 @@ export function KeptAiChat({
   const [hovered, setHovered] = useState(false);
   const [canvasReady, setCanvasReady] = useState(false);
   const reduceMotion = useReducedMotion();
+  const {
+    supported: voiceSupported,
+    listening,
+    toggle: toggleVoice,
+  } = useSpeechInput({
+    onTranscript: (text) => onInputChange(input ? `${input} ${text}` : text),
+  });
 
   useEffect(() => {
     setCanvasReady(true);
@@ -214,9 +222,12 @@ export function KeptAiChat({
               <Input
                 value={input}
                 onChange={(e) => onInputChange(e.target.value)}
-                placeholder={COPY.academy.askPlaceholder}
+                placeholder={listening ? COPY.academy.askVoiceListening : COPY.academy.askPlaceholder}
                 disabled={busy}
-                className="h-11 rounded-xl border-border/80 bg-background/90 pl-12 pr-12 text-[15px] shadow-sm"
+                className={cn(
+                  "h-11 rounded-xl border-border/80 bg-background/90 pl-12 text-[15px] shadow-sm",
+                  voiceSupported ? "pr-[5.25rem]" : "pr-12",
+                )}
                 aria-label={COPY.academy.askPlaceholder}
               />
             </form>
@@ -232,6 +243,24 @@ export function KeptAiChat({
               <Plus className="h-4 w-4" />
               <span className="sr-only">{COPY.academy.askNewChat}</span>
             </Button>
+
+            {voiceSupported ? (
+              <Button
+                type="button"
+                variant={listening ? "default" : "secondary"}
+                size="icon"
+                disabled={busy}
+                onClick={toggleVoice}
+                className={cn(
+                  "absolute right-11 top-1.5 h-8 w-8 rounded-lg",
+                  listening && "animate-pulse",
+                )}
+                aria-label={listening ? COPY.academy.askVoiceStop : COPY.academy.askVoiceStart}
+                aria-pressed={listening}
+              >
+                <Mic className="h-4 w-4" />
+              </Button>
+            ) : null}
 
             <Button
               type="button"

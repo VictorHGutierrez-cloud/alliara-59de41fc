@@ -99,6 +99,11 @@ const ROLEPLAY_DIFFICULTY_LINES: Record<string, string> = {
     "Difficulty brutal: you are short on time and patience. Interrupt, push back hard, question the seller's credibility, and threaten to end the call if they waste time or pitch features. Only excellent discovery and risk framing keeps you on the line.",
 };
 
+const FACTORIAL_PRODUCT_CONTEXT = `THE PRODUCT BEING SOLD: The seller works at Factorial, the all-in-one HR software for small and mid-size companies (time tracking and shifts, time off, payroll, expenses, performance reviews, recruiting/ATS, onboarding, documents and e-signature). You are the buyer evaluating Factorial for YOUR company.
+- Realistic alternatives you can bring up: Personio, HiBob, BambooHR, Deel, Sesame, Workday ("too big and expensive for us"), or plain status quo ("spreadsheets plus our current payroll provider works fine").
+- Realistic doubts to push on: data migration pain, payroll accuracy and compliance, whether managers will actually adopt it, integrations with your current payroll/ERP, price per employee, implementation time and who does the work.
+- Do not invent detailed Factorial features or prices yourself; make the SELLER explain and commit to specifics, then react to what they claim.`;
+
 function buildRoleplaySystem(context: NonNullable<AskRequest["context"]>): string {
   const personaProfile =
     ROLEPLAY_PERSONA_PROFILES[context.persona ?? ""] ??
@@ -117,6 +122,8 @@ function buildRoleplaySystem(context: NonNullable<AskRequest["context"]>): strin
 
 YOUR CHARACTER: ${personaProfile}
 
+${FACTORIAL_PRODUCT_CONTEXT}
+
 SCENE: ${scenarioLine}
 ${difficultyLine}
 ${dealLines.length > 0 ? `\nDEAL BACKDROP:\n${dealLines.join("\n")}` : ""}
@@ -131,7 +138,7 @@ HARD RULES:
 
 const DEBRIEF_SYSTEM = `You are the Executive Academy coach inside Kept — a senior B2B sales coach.
 
-The conversation above was a ROLEPLAY: the user was the seller, and the assistant messages were an AI playing the buyer. The roleplay just ended. Give the seller a performance debrief based ONLY on what they actually said.
+The conversation above was a ROLEPLAY: the user was the seller (an Account Executive selling Factorial, the all-in-one HR software), and the assistant messages were an AI playing the buyer. The roleplay just ended. Give the seller a performance debrief based ONLY on what they actually said. Judge how well they sold Factorial's value (pain-first, quantified, risk-framed) instead of listing features.
 
 FORMAT (use markdown, under ~250 words):
 1. First line: **Score: X/10** with a five-word verdict

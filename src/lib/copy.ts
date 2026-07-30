@@ -236,7 +236,7 @@ export const COPY = {
     roleplayEyebrow: "Practice arena",
     roleplayTitle: "Roleplay a buyer",
     roleplayIntro:
-      "Pick who you're selling to and how tough they are. The AI plays the buyer — you practice the call. End anytime to get scored feedback.",
+      "You're the Factorial AE. Pick who you're selling to and how tough they are — the AI plays the buyer evaluating Factorial. End anytime to get scored feedback.",
     roleplayPersonaLabel: "Who's the buyer?",
     roleplayScenarioLabel: "Scenario",
     roleplayDifficultyLabel: "Difficulty",
@@ -247,6 +247,9 @@ export const COPY = {
     roleplayStarting: "Calling the buyer…",
     roleplayPersonaRequired: "Pick a buyer persona first.",
     roleplayEndCta: "End roleplay & get feedback",
+    askVoiceStart: "Speak instead of typing",
+    askVoiceStop: "Stop listening",
+    askVoiceListening: "Listening… speak now",
     roleplayHomeLink: "practice with a roleplay",
     roleplayEmptyCta: "Roleplay a buyer",
     briefingUseOnCall: "Use on today’s call",
